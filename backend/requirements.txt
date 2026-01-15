@@ -1,0 +1,41 @@
+# ==============================================
+# SaaS Multi-Boutiques - Backend Dependencies
+# ==============================================
+
+# FastAPI & Server
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+python-multipart==0.0.9
+
+# Database - SQLAlchemy 2.0 + MySQL
+sqlalchemy[asyncio]==2.0.25
+aiomysql==0.2.0
+pymysql==1.1.0
+greenlet==3.0.3
+
+# Migrations
+alembic==1.13.1
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+
+# Validation & Settings
+pydantic==2.6.1
+pydantic-settings==2.1.0
+email-validator==2.1.0.post1
+
+# HTTP Client (for OAuth, external APIs)
+httpx==0.26.0
+
+# Email - Brevo
+sib-api-v3-sdk==7.6.0
+
+# Utilities
+python-dotenv==1.0.1
+python-dateutil==2.8.2
+
+# Development & Testing
+pytest==8.0.0
+pytest-asyncio==0.23.4
