@@ -15,7 +15,7 @@ $optionModel = new CustomizationOption();
 
 // Type d'option actuel (size, color, position)
 $currentType = get('type', 'size');
-if (!in_array($currentType, ['size', 'color', 'position', 'font'])) {
+if (!in_array($currentType, ['size', 'color', 'position'])) {
     $currentType = 'size';
 }
 
@@ -23,7 +23,6 @@ $typeLabels = [
     'size' => ['label' => 'Tailles', 'icon' => '📏'],
     'color' => ['label' => 'Couleurs', 'icon' => '🎨'],
     'position' => ['label' => 'Positions', 'icon' => '📍'],
-    'font' => ['label' => 'Polices', 'icon' => '🔤'],
 ];
 
 $success = '';
