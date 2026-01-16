@@ -21,36 +21,30 @@
 
 **Date dernière mise à jour** : 2026-01-16
 
-**Phase actuelle** : STEP 1 - Fondations (EN COURS)
+**Phase actuelle** : STEP 2 & 3 TERMINÉS
 
-**Statut global** : 🟢 Connexion DB OK - Design girly appliqué
+**Statut global** : 🟢 Admin complet fonctionnel
 
 ---
 
 ## Historique des Tâches
 
-### 2026-01-16 - Session 1 : Mise en place initiale
+### 2026-01-16 - Session 1
 
 | Tâche | Statut | Notes |
 |-------|--------|-------|
-| Nettoyage repo (suppression Python/FastAPI) | ✅ OK | Tout le code Python supprimé |
-| Création structure PHP MVC | ✅ OK | Dossiers app/, public/, admin/, sql/ |
-| Configuration database.php | ✅ OK | Credentials o2switch configurés |
-| Classe Database (PDO singleton) | ✅ OK | app/core/Database.php |
-| Classe Auth | ✅ OK | app/core/Auth.php |
-| Helpers (fonctions utilitaires) | ✅ OK | app/helpers/functions.php |
-| Modèle User | ✅ OK | app/models/User.php |
-| Modèle Product | ✅ OK | app/models/Product.php |
-| Modèle Order | ✅ OK | app/models/Order.php |
-| Page publique index.php | ✅ OK | Design girly appliqué |
-| Admin login | ✅ OK | Design girly appliqué |
-| Admin dashboard | ✅ OK | Design girly appliqué |
-| Schéma SQL complet | ✅ OK | sql/schema.sql |
-| Fichier PROGRESSION.md | ✅ OK | Ce fichier |
-| Connexion MySQL | ✅ OK | Test réussi via debug-db.php |
-| Design CSS girly moderne | ✅ OK | Rose + Vert menthe + Noir |
-| Exécuter le SQL sur phpMyAdmin | ⏳ À FAIRE | Utilisateur doit exécuter |
-| Test login admin | ⏳ À FAIRE | admin@personnaly.fr / admin123 |
+| Step 1 : Fondations PHP/MySQL | ✅ OK | Structure MVC, PDO, Auth |
+| Connexion MySQL | ✅ OK | Credentials o2switch |
+| Design girly moderne | ✅ OK | Rose + Vert menthe + Noir |
+| SQL exécuté | ✅ OK | Tables créées |
+| Login admin testé | ✅ OK | password (pas admin123) |
+| Step 2 : Liste produits | ✅ OK | admin/products.php |
+| Step 2 : Formulaire produit | ✅ OK | admin/product-form.php |
+| Step 2 : CRUD complet | ✅ OK | Ajout/Modif/Suppression/Toggle |
+| Step 3 : Liste commandes | ✅ OK | admin/orders.php |
+| Step 3 : Changement statut | ✅ OK | Dropdown avec statuts |
+| Page clients | ✅ OK | admin/customers.php |
+| Page paramètres | ✅ OK | admin/settings.php + changer mdp |
 
 ---
 
@@ -67,28 +61,32 @@
 
 ---
 
+## Pages Admin Disponibles
+
+| Page | URL | Fonctionnalités |
+|------|-----|-----------------|
+| Dashboard | /admin/dashboard.php | Stats, dernières commandes |
+| Produits | /admin/products.php | Liste, toggle actif, supprimer |
+| Formulaire produit | /admin/product-form.php | Ajout et modification |
+| Commandes | /admin/orders.php | Liste, filtres, changer statut |
+| Clients | /admin/customers.php | Liste des clients inscrits |
+| Paramètres | /admin/settings.php | Changer mot de passe |
+
+---
+
 ## Prochaines Étapes
 
-### STEP 1 (en cours)
-- [ ] Exécuter `sql/schema.sql` dans phpMyAdmin
-- [ ] Tester le login admin (admin@personnaly.fr / admin123)
-- [ ] Changer le mot de passe admin
-- [ ] Supprimer debug-db.php
-
-### STEP 2 (à venir)
-- [ ] CRUD Produits complet (admin/products.php)
-- [ ] Upload images produits
-- [ ] Gestion des catégories
-
-### STEP 3 (à venir)
-- [ ] Gestion des commandes (admin/orders.php)
-- [ ] Changement de statut
-- [ ] Affichage des personnalisations JSON
-
-### STEP 4 (futur)
-- [ ] Formulaire de personnalisation côté client
+### STEP 4 (à venir)
+- [ ] Formulaire de personnalisation côté client (public)
 - [ ] Panier
-- [ ] Processus de commande
+- [ ] Processus de commande complet
+- [ ] Envoi d'emails (confirmation commande)
+
+### Améliorations futures
+- [ ] Upload images produits
+- [ ] Export PDF commandes
+- [ ] Statistiques avancées
+- [ ] Notifications email vendeur
 
 ---
 
@@ -96,56 +94,46 @@
 
 ```
 /personnaly.fr/
-├── PROGRESSION.md          ← CE FICHIER
+├── PROGRESSION.md
 ├── .gitignore
 ├── public/
-│   ├── index.php           ← Page d'accueil (design girly)
-│   ├── test-db.php         ← Test connexion (à supprimer)
-│   ├── debug-db.php        ← Debug connexion (à supprimer)
+│   ├── index.php              ← Page d'accueil
 │   ├── .htaccess
 │   ├── uploads/
-│   └── assets/
-│       └── css/
-│           ├── style.css   ← Design system principal
-│           └── admin.css   ← Styles admin
+│   └── assets/css/
+│       ├── style.css          ← Design system
+│       └── admin.css          ← Styles admin
 ├── app/
 │   ├── config/
-│   │   ├── database.example.php
-│   │   └── database.php    ← NE PAS COMMITER
+│   │   └── database.php       ← NE PAS COMMITER
 │   ├── core/
-│   │   ├── Database.php    ← Singleton PDO
-│   │   └── Auth.php        ← Authentification
+│   │   ├── Database.php
+│   │   └── Auth.php
 │   ├── models/
 │   │   ├── User.php
 │   │   ├── Product.php
 │   │   └── Order.php
-│   ├── services/
 │   └── helpers/
 │       └── functions.php
 ├── admin/
-│   ├── login.php           ← Design girly
-│   ├── dashboard.php       ← Design girly
-│   └── logout.php
+│   ├── login.php
+│   ├── logout.php
+│   ├── dashboard.php
+│   ├── products.php           ← CRUD liste
+│   ├── product-form.php       ← Ajout/modif
+│   ├── orders.php             ← Gestion commandes
+│   ├── customers.php          ← Liste clients
+│   └── settings.php           ← Paramètres + mdp
 └── sql/
-    └── schema.sql          ← À exécuter dans phpMyAdmin
+    └── schema.sql
 ```
 
 ---
 
-## Notes Importantes
+## Credentials
 
-1. **Credentials DB** : Ne jamais commiter `app/config/database.php`
-2. **Admin par défaut** : admin@personnaly.fr / admin123 (CHANGER EN PROD)
-3. **JSON pour personnalisations** : La table `order_customizations` utilise un champ JSON pour la flexibilité
-4. **Design** : Ultra-moderne, girly, rose + vert menthe + noir, épuré
-
----
-
-## Blocages / Problèmes Résolus
-
-| Problème | Solution |
-|----------|----------|
-| Connexion MySQL refusée | Associer l'utilisateur à la base dans cPanel |
+- **Admin** : admin@personnaly.fr / password (à changer !)
+- **DB** : zajr1824_persosaas / zajr1824_perso
 
 ---
 
