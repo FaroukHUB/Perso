@@ -359,6 +359,9 @@ $cartCount = Cart::count();
     </style>
 </head>
 <body>
+    <!-- SVG Filters pour techniques de personnalisation -->
+    <?php include __DIR__ . '/assets/includes/svg-filters.php'; ?>
+
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">

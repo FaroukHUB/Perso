@@ -146,31 +146,50 @@
                 transform: translate(-50%, -50%);
                 transition: all 0.3s ease;
             }
-            /* Techniques - styles visuels distincts */
+            /* Techniques - styles visuels distincts (utilise SVG filters de svg-filters.php) */
             .lightbox-text.technique-broderie {
                 text-shadow:
-                    1px 1px 0px rgba(0, 0, 0, 0.3),
-                    2px 2px 0px rgba(0, 0, 0, 0.2),
-                    -0.5px -0.5px 0px rgba(255, 255, 255, 0.4),
-                    3px 3px 2px rgba(0, 0, 0, 0.15);
-                -webkit-text-stroke: 0.3px rgba(0, 0, 0, 0.1);
+                    0 -0.5px 0 rgba(0, 0, 0, 0.1),
+                    1px 1.5px 0 rgba(0, 0, 0, 0.25),
+                    1.5px 2px 0.5px rgba(0, 0, 0, 0.2),
+                    2px 2.5px 1px rgba(0, 0, 0, 0.12),
+                    -0.5px -0.5px 0 rgba(255, 255, 255, 0.15);
+                filter: url(#broderie-a);
+                -webkit-text-stroke: 0.3px currentColor;
+                paint-order: stroke fill;
                 font-weight: 700;
-                letter-spacing: 0.5px;
+                letter-spacing: 0.8px;
+            }
+            /* Variante B broderie (si body a classe broderie-variant-b) */
+            .broderie-variant-b .lightbox-text.technique-broderie {
+                text-shadow:
+                    0 -1px 0 rgba(0, 0, 0, 0.15),
+                    0.5px 1px 0 rgba(0, 0, 0, 0.2),
+                    1px 1.5px 0 rgba(0, 0, 0, 0.25),
+                    1.5px 2px 0 rgba(0, 0, 0, 0.22),
+                    2px 2.5px 0.5px rgba(0, 0, 0, 0.18),
+                    2.5px 3px 1px rgba(0, 0, 0, 0.12),
+                    -0.5px -1px 0 rgba(255, 255, 255, 0.25);
+                filter: url(#broderie-b);
+                -webkit-text-stroke: 0.5px currentColor;
+                font-weight: 800;
+                letter-spacing: 1px;
             }
             .lightbox-text.technique-flex {
                 text-shadow: none;
                 -webkit-font-smoothing: antialiased;
-                filter: contrast(1.05) brightness(1.02);
+                filter: url(#flex-shine);
                 font-weight: 600;
                 letter-spacing: 0.3px;
             }
             .lightbox-text.technique-flock {
                 text-shadow:
-                    0 0 2px currentColor,
-                    0 0 4px rgba(0, 0, 0, 0.1);
-                filter: blur(0.2px) contrast(0.95);
+                    0 0 3px currentColor,
+                    0 1px 2px rgba(0, 0, 0, 0.15);
+                filter: url(#flock-velvet);
                 opacity: 0.95;
                 font-weight: 600;
+                letter-spacing: 0.4px;
             }
             .lightbox-text.technique-sublimation {
                 text-shadow: none;

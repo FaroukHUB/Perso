@@ -302,6 +302,53 @@ CREATE TABLE product_colors (
 | **Sélecteur polices scalable** | ✅ OK | Dropdown avec recherche, preview, catégories |
 | **Refonte layout configurateur** | ✅ OK | 3 colonnes desktop + accordion mobile + sticky CTA |
 
+### 2026-01-16 - Session 12 (REFONTE BRODERIE RÉALISTE)
+
+**Objectif** : Améliorer drastiquement le rendu visuel de la technique "broderie" pour un aspect premium et crédible.
+
+**Références utilisées** : 3 images de broderie réelle macro uploadées dans `/public/assets/references/techniques/broderie/`
+
+**Analyse des références** :
+- Direction fils : Satin stitch horizontal, points parallèles serrés
+- Relief : Ombre portée bas-droite (~2px), texte "monte" du tissu
+- Texture fil : Grain fin visible, aspect satiné/brillant
+- Brillance : Points de lumière subtils sur le haut des fils
+- Contraste : Fonctionne sur fond clair ET fond foncé
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Dossier références | ✅ OK | `/public/assets/references/techniques/broderie/` |
+| Analyse images macro | ✅ OK | Relief, direction fils, texture, brillance |
+| **SVG Filters** | ✅ OK | `/public/assets/includes/svg-filters.php` |
+| **Broderie Variante A** | ✅ OK | Sobre/premium - relief subtil, texture légère |
+| **Broderie Variante B** | ✅ OK | Texture marquée - relief prononcé, grain visible |
+| Switch A/B dev | ✅ OK | `?broderie=b` dans URL ou classe `.broderie-variant-b` |
+| Intégration product.php | ✅ OK | Include SVG filters + switch URL |
+| Intégration cart.php | ✅ OK | Include SVG filters |
+| Intégration admin/order.php | ✅ OK | Include SVG filters |
+| Intégration lightbox.js | ✅ OK | Styles mis à jour avec SVG filters |
+
+**Fichiers modifiés** :
+- `public/assets/includes/svg-filters.php` (NOUVEAU) - Filtres SVG pour toutes techniques
+- `public/assets/css/techniques.css` - Refonte complète broderie + 2 variantes
+- `public/product.php` - Include SVG + switch A/B
+- `public/cart.php` - Include SVG
+- `admin/order.php` - Include SVG
+- `public/assets/js/lightbox.js` - Styles techniques mis à jour
+
+**Détail technique SVG Filters** :
+- `#broderie-a` : feTurbulence (grain léger) + feDisplacementMap + feDropShadow + feSpecularLighting
+- `#broderie-b` : feTurbulence (grain marqué) + feDisplacementMap + double ombre + feConvolveMatrix + feSpecularLighting
+- `#flex-shine` : feSpecularLighting (brillance vinyle)
+- `#flock-velvet` : feTurbulence + feGaussianBlur (velours mat)
+
+**Pourquoi c'est plus réaliste** :
+1. Relief crédible avec ombre directionnelle (lumière haut-gauche)
+2. Grain du fil simulé via feTurbulence + displacement
+3. Brillance naturelle via feSpecularLighting
+4. Contour légèrement irrégulier (pas plastique)
+5. Fonctionne sur fonds clairs ET sombres
+
 ---
 
 ## 🔴 AUDIT RECADRAGE - 2026-01-16

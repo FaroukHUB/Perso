@@ -1109,7 +1109,10 @@ $cartCount = Cart::count();
         .product-grid { display: none; }
     </style>
 </head>
-<body>
+<body<?php echo (isset($_GET['broderie']) && $_GET['broderie'] === 'b') ? ' class="broderie-variant-b"' : ''; ?>>
+    <!-- SVG Filters pour techniques de personnalisation -->
+    <?php include __DIR__ . '/assets/includes/svg-filters.php'; ?>
+
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">

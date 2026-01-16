@@ -1,6 +1,13 @@
 /**
  * PERSONNALY - Styles visuels par technique de personnalisation
  * Chaque technique produit un rendu visuel immédiatement identifiable
+ *
+ * IMPORTANT: Nécessite l'inclusion de /public/assets/includes/svg-filters.php
+ * dans le <body> de chaque page utilisant ces styles.
+ *
+ * SWITCH A/B BRODERIE:
+ * - Par défaut: Variante A (sobre/premium)
+ * - Pour tester B: ajouter classe .broderie-variant-b sur <body> ou parent
  */
 
 /* ============================================
@@ -12,41 +19,96 @@
 }
 
 /* ============================================
-   BRODERIE - Relief + effet fil cousu
-   Aspect premium, texture visible, ombres multiples
+   BRODERIE VARIANTE A - Premium / Sobre
+   Inspiré des références réelles:
+   - Relief subtil mais crédible
+   - Texture fil légère (grain)
+   - Direction satin stitch simulée
+   - Brillance naturelle du fil
    ============================================ */
 .technique-broderie {
-    /* Relief principal avec ombres multiples simulant les fils */
+    /* Relief principal - ombre portée réaliste (fil qui monte du tissu) */
     text-shadow:
-        /* Ombre de base pour le relief */
-        1px 1px 0px rgba(0, 0, 0, 0.3),
-        2px 2px 0px rgba(0, 0, 0, 0.2),
-        /* Points de lumière (fils qui brillent) */
-        -0.5px -0.5px 0px rgba(255, 255, 255, 0.4),
-        /* Profondeur */
-        3px 3px 2px rgba(0, 0, 0, 0.15);
+        /* Ombre interne haute (creux du tissu) */
+        0 -0.5px 0 rgba(0, 0, 0, 0.1),
+        /* Ombre principale portée (direction lumière haut-gauche) */
+        1px 1.5px 0 rgba(0, 0, 0, 0.25),
+        1.5px 2px 0.5px rgba(0, 0, 0, 0.2),
+        /* Profondeur supplémentaire */
+        2px 2.5px 1px rgba(0, 0, 0, 0.12),
+        /* Highlight subtil (brillance fil) */
+        -0.5px -0.5px 0 rgba(255, 255, 255, 0.15);
 
-    /* Légère texture pour effet couture */
-    -webkit-text-stroke: 0.3px rgba(0, 0, 0, 0.1);
+    /* Filtre SVG pour texture et relief */
+    filter: url(#broderie-a);
 
-    /* Aspect légèrement en relief */
-    transform: translateZ(0);
+    /* Contour léger simulant l'épaisseur du fil */
+    -webkit-text-stroke: 0.3px currentColor;
+    paint-order: stroke fill;
 
-    /* Texture fil - léger motif */
-    filter: url(#broderie-texture);
-
-    /* Police légèrement plus grasse pour la broderie */
+    /* Police adaptée broderie (plus grasse, espacement) */
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
+
+    /* Légère transformation 3D pour profondeur */
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
-/* Animation subtile au survol pour montrer le relief */
-.technique-broderie:hover {
+/* Fallback si SVG filter non supporté */
+@supports not (filter: url(#broderie-a)) {
+    .technique-broderie {
+        text-shadow:
+            0 -0.5px 0 rgba(0, 0, 0, 0.1),
+            1px 1.5px 0 rgba(0, 0, 0, 0.3),
+            2px 2.5px 1px rgba(0, 0, 0, 0.2),
+            2.5px 3px 2px rgba(0, 0, 0, 0.1),
+            -0.5px -0.5px 0 rgba(255, 255, 255, 0.2);
+        filter: contrast(1.05);
+    }
+}
+
+/* Ajustement pour fonds sombres */
+.dark-background .technique-broderie,
+[style*="background-color: #1"] .technique-broderie,
+[style*="background-color: #0"] .technique-broderie {
     text-shadow:
-        1px 1px 0px rgba(0, 0, 0, 0.35),
-        2px 2px 0px rgba(0, 0, 0, 0.25),
-        -0.5px -0.5px 0px rgba(255, 255, 255, 0.5),
-        4px 4px 3px rgba(0, 0, 0, 0.2);
+        0 -0.5px 0 rgba(255, 255, 255, 0.05),
+        1px 1.5px 0 rgba(0, 0, 0, 0.5),
+        2px 2.5px 1px rgba(0, 0, 0, 0.35),
+        -0.5px -0.5px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* ============================================
+   BRODERIE VARIANTE B - Texture marquée
+   Plus de relief, grain plus visible
+   Activer avec: .broderie-variant-b sur parent
+   ============================================ */
+.broderie-variant-b .technique-broderie,
+.technique-broderie.variant-b {
+    /* Relief plus prononcé */
+    text-shadow:
+        /* Ombre interne */
+        0 -1px 0 rgba(0, 0, 0, 0.15),
+        /* Ombres portées multiples (effet cousu en relief) */
+        0.5px 1px 0 rgba(0, 0, 0, 0.2),
+        1px 1.5px 0 rgba(0, 0, 0, 0.25),
+        1.5px 2px 0 rgba(0, 0, 0, 0.22),
+        2px 2.5px 0.5px rgba(0, 0, 0, 0.18),
+        2.5px 3px 1px rgba(0, 0, 0, 0.12),
+        /* Highlight marqué */
+        -0.5px -1px 0 rgba(255, 255, 255, 0.25),
+        0 -0.5px 0 rgba(255, 255, 255, 0.1);
+
+    /* Filtre SVG variante B (plus de texture) */
+    filter: url(#broderie-b);
+
+    /* Contour plus épais */
+    -webkit-text-stroke: 0.5px currentColor;
+
+    /* Police encore plus grasse */
+    font-weight: 800;
+    letter-spacing: 1px;
 }
 
 /* ============================================
@@ -54,27 +116,27 @@
    Bords très nets, aspect plastique premium
    ============================================ */
 .technique-flex {
-    /* Pas d'ombre - aspect plat */
+    /* Pas d'ombre portée - aspect plat collé */
     text-shadow: none;
 
     /* Bords ultra nets */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    /* Léger reflet brillant (gradient sur le texte) */
+    /* Léger reflet brillant (gradient subtil) */
     background: linear-gradient(
-        180deg,
+        175deg,
         currentColor 0%,
-        currentColor 45%,
-        rgba(255, 255, 255, 0.3) 50%,
-        currentColor 55%,
+        currentColor 40%,
+        rgba(255, 255, 255, 0.2) 50%,
+        currentColor 60%,
         currentColor 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
 
-    /* Légère brillance */
-    filter: contrast(1.05) brightness(1.02);
+    /* Filtre SVG pour brillance */
+    filter: url(#flex-shine);
 
     /* Police standard, très lisible */
     font-weight: 600;
@@ -85,7 +147,7 @@
 @supports not (-webkit-background-clip: text) {
     .technique-flex {
         background: none;
-        text-shadow: 0 0 1px currentColor;
+        filter: brightness(1.05) contrast(1.02);
     }
 }
 
@@ -94,23 +156,27 @@
    Aspect textile doux, pas de brillance
    ============================================ */
 .technique-flock {
-    /* Ombre douce diffuse - effet velours */
+    /* Ombre douce diffuse - effet velours posé */
     text-shadow:
-        0 0 2px currentColor,
-        0 0 4px rgba(0, 0, 0, 0.1);
+        0 0 3px currentColor,
+        0 1px 2px rgba(0, 0, 0, 0.15);
 
-    /* Légère texture floue */
-    filter: blur(0.2px) contrast(0.95);
+    /* Filtre velours */
+    filter: url(#flock-velvet);
 
-    /* Pas de reflet, mat */
+    /* Légère opacité pour aspect mat */
     opacity: 0.95;
-
-    /* Contour léger pour texture */
-    -webkit-text-stroke: 0.2px rgba(0, 0, 0, 0.05);
 
     /* Police légèrement arrondie */
     font-weight: 600;
     letter-spacing: 0.4px;
+}
+
+/* Fallback */
+@supports not (filter: url(#flock-velvet)) {
+    .technique-flock {
+        filter: blur(0.2px) contrast(0.95);
+    }
 }
 
 /* ============================================
@@ -118,13 +184,13 @@
    Couleur fondue dans le textile
    ============================================ */
 .technique-sublimation {
-    /* Pas de relief, intégré */
+    /* Pas de relief, intégré au tissu */
     text-shadow: none;
 
     /* Opacité réduite - fondu dans le tissu */
     opacity: 0.85;
 
-    /* Léger flou pour effet diffusion */
+    /* Léger flou pour effet diffusion encre */
     filter: blur(0.3px) saturate(0.9);
 
     /* Blend mode pour intégration tissu */
@@ -151,7 +217,7 @@
     left: 50%;
     transform: translateX(-50%);
     padding: 4px 12px;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.75);
     color: white;
     font-size: 10px;
     font-weight: 600;
@@ -161,6 +227,25 @@
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.3s;
+    backdrop-filter: blur(4px);
+}
+
+/* Couleurs par technique */
+.technique-broderie ~ .technique-indicator,
+.technique-broderie + .technique-indicator {
+    background: linear-gradient(135deg, rgba(139, 69, 19, 0.9), rgba(160, 82, 45, 0.9));
+}
+.technique-flex ~ .technique-indicator,
+.technique-flex + .technique-indicator {
+    background: linear-gradient(135deg, rgba(255, 105, 180, 0.9), rgba(255, 20, 147, 0.9));
+}
+.technique-flock ~ .technique-indicator,
+.technique-flock + .technique-indicator {
+    background: linear-gradient(135deg, rgba(147, 112, 219, 0.9), rgba(138, 43, 226, 0.9));
+}
+.technique-sublimation ~ .technique-indicator,
+.technique-sublimation + .technique-indicator {
+    background: linear-gradient(135deg, rgba(0, 191, 255, 0.9), rgba(30, 144, 255, 0.9));
 }
 
 .product-preview:hover .technique-indicator,
@@ -169,6 +254,23 @@
 }
 
 /* ============================================
-   SVG FILTER POUR BRODERIE (texture fil)
+   DEV: Switch A/B pour comparaison broderie
+   Ajouter ?broderie=b dans l'URL ou
+   classe .broderie-variant-b sur body
    ============================================ */
-/* Ce SVG sera injecté dans le DOM */
+
+/* Indicateur visuel du mode actif (dev only) */
+body.broderie-variant-b::after {
+    content: 'BRODERIE: Variante B';
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background: #8B4513;
+    color: white;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 4px;
+    z-index: 9999;
+    pointer-events: none;
+}
