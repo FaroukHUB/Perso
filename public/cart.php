@@ -166,6 +166,30 @@ $cartCount = Cart::count();
             align-items: center;
             justify-content: center;
             font-size: 2.5rem;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 8px;
+        }
+        .item-image:hover .zoom-overlay {
+            opacity: 1;
+        }
+        .zoom-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 105, 180, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.2s;
+            border-radius: var(--radius-md);
         }
         .item-details h3 {
             font-size: 1rem;
@@ -385,7 +409,25 @@ $cartCount = Cart::count();
 
                         <?php foreach ($cartItems as $key => $item): ?>
                             <div class="cart-item">
-                                <div class="item-image">👕</div>
+                                <div class="item-image" onclick="openCartLightbox(this)"
+                                     data-img="<?= !empty($item['product']['image_front_url']) ? '/public' . h($item['product']['image_front_url']) : '' ?>"
+                                     data-text="<?= h($item['customization']['text'] ?? '') ?>"
+                                     data-font="<?= h($item['customization']['font'] ?? 'Poppins') ?>"
+                                     data-name="<?= h($item['product']['name']) ?>">
+                                    <?php if (!empty($item['product']['image_front_url'])): ?>
+                                        <img src="/public<?= h($item['product']['image_front_url']) ?>" alt="<?= h($item['product']['name']) ?>">
+                                    <?php else: ?>
+                                        👕
+                                    <?php endif; ?>
+                                    <div class="zoom-overlay">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="11" cy="11" r="8"/>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                            <line x1="11" y1="8" x2="11" y2="14"/>
+                                            <line x1="8" y1="11" x2="14" y2="11"/>
+                                        </svg>
+                                    </div>
+                                </div>
                                 <div class="item-details">
                                     <h3><?= h($item['product']['name']) ?></h3>
                                     <div class="item-customization">
@@ -463,5 +505,27 @@ $cartCount = Cart::count();
             <?php endif; ?>
         </div>
     </section>
+
+    <!-- Lightbox Component -->
+    <script src="/public/assets/js/lightbox.js"></script>
+    <script>
+        function openCartLightbox(el) {
+            if (!window.PersonnalyLightbox) return;
+
+            const imgSrc = el.dataset.img;
+            if (!imgSrc) return;
+
+            PersonnalyLightbox.open({
+                imageSrc: imgSrc,
+                imageAlt: el.dataset.name || 'Produit',
+                text: el.dataset.text || null,
+                font: (el.dataset.font || 'Poppins') + ', sans-serif',
+                fontSize: '2rem',
+                textX: 50,
+                textY: 50,
+                textColor: '#FF1493'
+            });
+        }
+    </script>
 </body>
 </html>
