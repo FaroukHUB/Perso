@@ -181,6 +181,33 @@ CREATE TABLE product_colors (
 - cart.php (miniatures cliquables)
 - admin/order.php (détail commande)
 
+### 6. Layout Configurateur 3 Colonnes
+
+**Architecture :**
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  GAUCHE (300px)    │   CENTRE (flex)      │   DROITE (320px)       │
+│  Options visuelles │   Produit Hero       │   Options produit      │
+│  ───────────────── │   ─────────────────  │   ──────────────────── │
+│  • Texte perso     │   • Face/Dos toggle  │   • Nom + Prix         │
+│  • Police          │   • Preview 450px    │   • Taille             │
+│  • Couleur texte   │   • Zoom cliquable   │   • Couleur vêtement   │
+│  • Technique       │   • Drag & drop      │   • Quantité           │
+│                    │                      │   • Ajouter au panier  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Responsive :**
+- 1200px+ : 3 colonnes (300px | flex | 320px)
+- 1024px : Stack (produit en haut)
+- 768px : Mobile accordion + sticky CTA
+- 600px : Preview réduit, UI compacte
+
+**Mobile :**
+- Sections collapsibles (accordions)
+- Produit hero toujours visible en premier
+- CTA sticky en bas de page
+
 ---
 
 ## Historique des Tâches
@@ -273,7 +300,7 @@ CREATE TABLE product_colors (
 | Admin variantes couleur | ✅ OK | Interface dans product-form.php |
 | Client changement images | ✅ OK | Au clic couleur → vraies photos |
 | **Sélecteur polices scalable** | ✅ OK | Dropdown avec recherche, preview, catégories |
-| Refonte layout configurateur | ❌ TODO | Vision UX 2026 |
+| **Refonte layout configurateur** | ✅ OK | 3 colonnes desktop + accordion mobile + sticky CTA |
 
 ---
 
