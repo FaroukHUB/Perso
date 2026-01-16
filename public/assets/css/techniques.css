@@ -26,7 +26,8 @@
    - Direction satin stitch simulée
    - Brillance naturelle du fil
    ============================================ */
-.technique-broderie {
+.technique-broderie,
+.technique-Broderie {
     /* Relief principal - ombre portée réaliste (fil qui monte du tissu) */
     text-shadow:
         /* Ombre interne haute (creux du tissu) */
@@ -57,7 +58,8 @@
 
 /* Fallback si SVG filter non supporté */
 @supports not (filter: url(#broderie-a)) {
-    .technique-broderie {
+    .technique-broderie,
+    .technique-Broderie {
         text-shadow:
             0 -0.5px 0 rgba(0, 0, 0, 0.1),
             1px 1.5px 0 rgba(0, 0, 0, 0.3),
@@ -70,8 +72,11 @@
 
 /* Ajustement pour fonds sombres */
 .dark-background .technique-broderie,
+.dark-background .technique-Broderie,
 [style*="background-color: #1"] .technique-broderie,
-[style*="background-color: #0"] .technique-broderie {
+[style*="background-color: #1"] .technique-Broderie,
+[style*="background-color: #0"] .technique-broderie,
+[style*="background-color: #0"] .technique-Broderie {
     text-shadow:
         0 -0.5px 0 rgba(255, 255, 255, 0.05),
         1px 1.5px 0 rgba(0, 0, 0, 0.5),
@@ -85,7 +90,9 @@
    Activer avec: .broderie-variant-b sur parent
    ============================================ */
 .broderie-variant-b .technique-broderie,
-.technique-broderie.variant-b {
+.broderie-variant-b .technique-Broderie,
+.technique-broderie.variant-b,
+.technique-Broderie.variant-b {
     /* Relief plus prononcé */
     text-shadow:
         /* Ombre interne */
@@ -232,7 +239,9 @@
 
 /* Couleurs par technique */
 .technique-broderie ~ .technique-indicator,
-.technique-broderie + .technique-indicator {
+.technique-broderie + .technique-indicator,
+.technique-Broderie ~ .technique-indicator,
+.technique-Broderie + .technique-indicator {
     background: linear-gradient(135deg, rgba(139, 69, 19, 0.9), rgba(160, 82, 45, 0.9));
 }
 .technique-flex ~ .technique-indicator,

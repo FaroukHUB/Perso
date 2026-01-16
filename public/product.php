@@ -258,7 +258,7 @@ $cartCount = Cart::count();
     <!-- Polices personnalisation (chargées dynamiquement depuis admin) -->
     <?= FontLoader::renderHead() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
-    <link rel="stylesheet" href="/public/assets/css/techniques.css?v=2">
+    <link rel="stylesheet" href="/public/assets/css/techniques.css?v=3">
     <style>
         body { background: var(--gray-light); }
 
@@ -1807,12 +1807,12 @@ $cartCount = Cart::count();
 
             document.querySelectorAll('.technique-option').forEach(option => {
                 option.addEventListener('click', function() {
-                    const technique = this.dataset.technique;
+                    const technique = this.dataset.technique.toLowerCase();
 
-                    // Retirer toutes les classes de technique
-                    previewText.classList.remove('technique-flex', 'technique-flock', 'technique-broderie', 'technique-sublimation');
+                    // Retirer toutes les classes de technique (toutes les variantes possibles)
+                    previewText.className = previewText.className.replace(/\btechnique-\S+/g, '').trim();
 
-                    // Ajouter la nouvelle classe
+                    // Ajouter la nouvelle classe (en minuscules)
                     previewText.classList.add('technique-' + technique);
 
                     // Mettre à jour l'indicateur
