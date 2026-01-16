@@ -1,0 +1,33 @@
+# ==============================================
+# PERSONNALY - Git Ignore
+# ==============================================
+
+# Configuration locale (credentials)
+app/config/database.php
+
+# Logs
+*.log
+logs/
+
+# Uploads utilisateurs
+public/uploads/*
+!public/uploads/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups
+*.bak
+*.backup
+
+# Cache
+cache/
+tmp/
