@@ -57,6 +57,17 @@
 | Lien produits accueil | ✅ OK | Bouton "Personnaliser" fonctionnel |
 | Panier navbar | ✅ OK | Badge avec compteur |
 
+### 2026-01-16 - Session 3 (Priorités Hautes)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Helper Email | ✅ OK | app/helpers/Email.php (mail PHP) |
+| Email confirmation client | ✅ OK | Template HTML moderne, envoyé au checkout |
+| Email notification admin | ✅ OK | Alerte nouvelle commande avec détails |
+| Page détail commande | ✅ OK | admin/order.php (items, client, statut) |
+| Fiche client détaillée | ✅ OK | admin/customer.php (stats, historique) |
+| Liens navigation | ✅ OK | Commandes et clients cliquables |
+
 ---
 
 ## Design System
@@ -82,7 +93,9 @@
 | Produits | /admin/products.php | Liste, toggle actif, supprimer |
 | Formulaire produit | /admin/product-form.php | Ajout et modification |
 | Commandes | /admin/orders.php | Liste, filtres, changer statut |
+| Détail commande | /admin/order.php?id=X | Items, personnalisations, client, statut |
 | Clients | /admin/customers.php | Liste des clients inscrits |
+| Fiche client | /admin/customer.php?id=X | Stats, infos, historique commandes |
 | Paramètres | /admin/settings.php | Changer mot de passe |
 
 ### Public (clients)
@@ -141,7 +154,8 @@
 │   │   └── Order.php
 │   └── helpers/
 │       ├── functions.php
-│       └── Cart.php           ← Gestion panier session
+│       ├── Cart.php           ← Gestion panier session
+│       └── Email.php          ← Envoi emails (mail PHP)
 ├── admin/
 │   ├── login.php
 │   ├── logout.php
@@ -149,7 +163,9 @@
 │   ├── products.php           ← CRUD liste
 │   ├── product-form.php       ← Ajout/modif
 │   ├── orders.php             ← Gestion commandes
+│   ├── order.php              ← Détail commande
 │   ├── customers.php          ← Liste clients
+│   ├── customer.php           ← Fiche client
 │   └── settings.php           ← Paramètres + mdp
 └── sql/
     └── schema.sql
@@ -199,16 +215,16 @@
 | Fidélité preview → panier → commande | ✅ OUI |
 | Structure pour novices (options admin) | ⚠️ PARTIEL |
 | Séparation logique/affichage | ⚠️ PARTIEL |
-| Gestion clients admin complète | ⚠️ PARTIEL |
-| Réception commandes (email) | ⚠️ PARTIEL |
+| Gestion clients admin complète | ✅ OUI |
+| Réception commandes (email) | ✅ OUI |
 | Upsell / options commerciales | ❌ NON |
 
 ### Fonctionnalités restantes (priorité haute)
 
-- [ ] Envoi email confirmation commande
-- [ ] Envoi email notification admin
-- [ ] Page détail commande admin
-- [ ] Fiche client détaillée avec historique
+- [x] Envoi email confirmation commande ✅
+- [x] Envoi email notification admin ✅
+- [x] Page détail commande admin ✅
+- [x] Fiche client détaillée avec historique ✅
 
 ### Fonctionnalités restantes (priorité moyenne)
 

@@ -170,7 +170,7 @@ $statuses = [
                         <tbody>
                             <?php foreach ($orders as $order): ?>
                                 <tr>
-                                    <td><strong>#<?= $order['id'] ?></strong></td>
+                                    <td><a href="/admin/order.php?id=<?= $order['id'] ?>" style="color: var(--pink-main); text-decoration: none; font-weight: 700;">#<?= $order['id'] ?></a></td>
                                     <td><?= h($order['user_email'] ?? 'Invité') ?></td>
                                     <td><strong style="color: var(--pink-dark);"><?= formatPrice($order['total']) ?></strong></td>
                                     <td>

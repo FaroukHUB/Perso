@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/helpers/Cart.php';
+require_once __DIR__ . '/../app/helpers/Email.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Order.php';
@@ -98,6 +99,38 @@ if (isPost() && isset($_POST['place_order'])) {
                 }
 
                 $db->commit();
+
+                // Préparer les données pour les emails
+                $orderData = [
+                    'id' => $orderId,
+                    'total' => $cartTotal,
+                    'shipping_address' => $shippingAddress,
+                ];
+                $customerData = [
+                    'email' => $email,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'phone' => $phone,
+                ];
+
+                // Récupérer les items avec noms produits pour emails
+                $emailItems = [];
+                foreach ($cartItems as $item) {
+                    $emailItems[] = [
+                        'product_name' => $item['product']['name'],
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['unit_price'],
+                        'data_json' => $item['customization'],
+                    ];
+                }
+
+                // Envoyer emails (ne bloque pas si échec)
+                try {
+                    Email::sendOrderConfirmation($orderData, $customerData, $emailItems);
+                    Email::sendAdminNewOrder($orderData, $customerData, $emailItems);
+                } catch (Exception $emailError) {
+                    // Log silencieux, ne pas bloquer la commande
+                }
 
                 // Vider le panier
                 Cart::clear();

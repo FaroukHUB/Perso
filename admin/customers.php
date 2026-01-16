@@ -119,10 +119,12 @@ $clients = $stmt->fetchAll();
                             <?php foreach ($clients as $client): ?>
                                 <tr>
                                     <td>
-                                        <strong><?= h($client['first_name'] ?? '') ?> <?= h($client['last_name'] ?? '') ?></strong>
-                                        <?php if (empty($client['first_name']) && empty($client['last_name'])): ?>
-                                            <span class="text-muted">Non renseigné</span>
-                                        <?php endif; ?>
+                                        <a href="/admin/customer.php?id=<?= $client['id'] ?>" style="color: var(--pink-main); text-decoration: none; font-weight: 600;">
+                                            <?= h($client['first_name'] ?? '') ?> <?= h($client['last_name'] ?? '') ?>
+                                            <?php if (empty($client['first_name']) && empty($client['last_name'])): ?>
+                                                <span style="color: var(--gray); font-weight: 400;">Non renseigné</span>
+                                            <?php endif; ?>
+                                        </a>
                                     </td>
                                     <td><?= h($client['email']) ?></td>
                                     <td class="text-muted"><?= formatDate($client['created_at']) ?></td>
