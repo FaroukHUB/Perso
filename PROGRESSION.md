@@ -23,7 +23,7 @@
 
 **Phase actuelle** : P1 - POLICES ADMINISTRABLES
 
-**Statut global** : 🟢 Architecture validée - En attente validation SQL
+**Statut global** : 🟢 SQL validé - Prêt pour implémentation
 
 ---
 
@@ -34,9 +34,17 @@
 | Composant | Décision |
 |-----------|----------|
 | **Polices** | Table `fonts` avec Google Fonts (family+weights) + upload custom (.woff2) |
-| **Import dynamique** | `google_import_url` générée automatiquement, jamais saisie |
+| **Import dynamique** | `google_import_url` générée automatiquement par PHP, jamais saisie |
 | **Zones d'impression** | Table `product_print_zones` avec positions en %, contraintes, polices autorisées |
 | **Packs thématiques** | P4 (après polices, preview, zones) |
+
+### Décisions SQL finales (2026-01-16)
+
+| Élément | Décision | Raison |
+|---------|----------|--------|
+| `DROP TABLE` ordre | product_print_zones AVANT fonts | Respect des FK |
+| `google_import_url` | NULL dans INSERT, généré par PHP | Logique métier côté code |
+| `allowed_fonts` | **TEXT** (pas JSON natif) | Compatibilité MySQL 5.6+ o2switch |
 
 ### Contraintes MVP obligatoires
 
@@ -44,7 +52,7 @@
 2. **Upload .woff2 uniquement** (.woff en fallback optionnel)
 3. **css_key unique** - Généré automatiquement, non éditable
 4. **google_import_url** - Générée automatiquement si source=google
-5. **allowed_fonts JSON** - NULL = toutes polices, sinon liste des font_id
+5. **allowed_fonts TEXT** - NULL = toutes polices, sinon JSON array en TEXT
 
 ### Priorités MVP (ordre obligatoire)
 
@@ -61,7 +69,7 @@
 fonts
 ├── id, name, family, css_key (UNIQUE, auto-généré)
 ├── source (google/custom)
-├── google_weights, google_import_url (auto-générée)
+├── google_weights, google_import_url (NULL, générée par PHP)
 ├── custom_woff2_url, custom_woff_url
 ├── category (sans-serif, serif, script, display, handwriting)
 └── active, sort_order, created_at, updated_at
@@ -71,7 +79,7 @@ product_print_zones
 ├── zone_name, zone_label
 ├── pos_x, pos_y, width, height (en %)
 ├── max_chars, max_lines
-├── default_font_id (FK fonts), allowed_fonts (JSON)
+├── default_font_id (FK fonts), allowed_fonts (TEXT, JSON array)
 └── active, sort_order, created_at
 ```
 
