@@ -21,9 +21,9 @@
 
 **Date dernière mise à jour** : 2026-01-16
 
-**Phase actuelle** : STEP 2 & 3 TERMINÉS
+**Phase actuelle** : STEP 4 TERMINÉ
 
-**Statut global** : 🟢 Admin complet fonctionnel
+**Statut global** : 🟢 Boutique fonctionnelle (Admin + Client)
 
 ---
 
@@ -46,6 +46,17 @@
 | Page clients | ✅ OK | admin/customers.php |
 | Page paramètres | ✅ OK | admin/settings.php + changer mdp |
 
+### 2026-01-16 - Session 2
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Step 4 : Classe Cart | ✅ OK | app/helpers/Cart.php (session) |
+| Step 4 : Page produit | ✅ OK | public/product.php + personnalisation |
+| Step 4 : Page panier | ✅ OK | public/cart.php + quantités |
+| Step 4 : Checkout | ✅ OK | public/checkout.php + commande |
+| Lien produits accueil | ✅ OK | Bouton "Personnaliser" fonctionnel |
+| Panier navbar | ✅ OK | Badge avec compteur |
+
 ---
 
 ## Design System
@@ -61,7 +72,9 @@
 
 ---
 
-## Pages Admin Disponibles
+## Pages Disponibles
+
+### Admin (protégées)
 
 | Page | URL | Fonctionnalités |
 |------|-----|-----------------|
@@ -72,21 +85,31 @@
 | Clients | /admin/customers.php | Liste des clients inscrits |
 | Paramètres | /admin/settings.php | Changer mot de passe |
 
+### Public (clients)
+
+| Page | URL | Fonctionnalités |
+|------|-----|-----------------|
+| Accueil | / | Hero, catalogue produits |
+| Produit | /public/product.php?id=X | Personnalisation, aperçu |
+| Panier | /public/cart.php | Liste articles, modifier quantité |
+| Checkout | /public/checkout.php | Formulaire commande |
+
 ---
 
 ## Prochaines Étapes
 
-### STEP 4 (à venir)
-- [ ] Formulaire de personnalisation côté client (public)
-- [ ] Panier
-- [ ] Processus de commande complet
+### STEP 5 (à venir)
 - [ ] Envoi d'emails (confirmation commande)
+- [ ] Upload images produits
+- [ ] Page "Mes commandes" pour clients
+- [ ] Connexion/Inscription clients
 
 ### Améliorations futures
-- [ ] Upload images produits
 - [ ] Export PDF commandes
 - [ ] Statistiques avancées
 - [ ] Notifications email vendeur
+- [ ] Paiement en ligne (Stripe)
+- [ ] Page détail commande admin
 
 ---
 
@@ -97,7 +120,10 @@
 ├── PROGRESSION.md
 ├── .gitignore
 ├── public/
-│   ├── index.php              ← Page d'accueil
+│   ├── index.php              ← Page d'accueil + catalogue
+│   ├── product.php            ← Personnalisation produit
+│   ├── cart.php               ← Panier
+│   ├── checkout.php           ← Finalisation commande
 │   ├── .htaccess
 │   ├── uploads/
 │   └── assets/css/
@@ -114,7 +140,8 @@
 │   │   ├── Product.php
 │   │   └── Order.php
 │   └── helpers/
-│       └── functions.php
+│       ├── functions.php
+│       └── Cart.php           ← Gestion panier session
 ├── admin/
 │   ├── login.php
 │   ├── logout.php
@@ -134,6 +161,31 @@
 
 - **Admin** : admin@personnaly.fr / password (à changer !)
 - **DB** : zajr1824_persosaas / zajr1824_perso
+
+---
+
+## Fonctionnalités Clés Step 4
+
+### Personnalisation produit
+- Choix taille (XS à XXL)
+- Choix couleur (blanc, noir, rose, menthe, bleu, gris)
+- Texte personnalisé (max 50 caractères)
+- Position du texte (centre, gauche, droite, dos)
+- Aperçu en direct
+
+### Panier
+- Stockage en session PHP
+- Gestion quantités (+/-)
+- Suppression articles
+- Calcul automatique total
+- Badge compteur navbar
+
+### Checkout
+- Formulaire coordonnées
+- Adresse de livraison
+- Création client automatique
+- Création commande avec personnalisations
+- Page confirmation avec numéro commande
 
 ---
 

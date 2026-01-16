@@ -5,8 +5,11 @@
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
+require_once __DIR__ . '/../app/helpers/Cart.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
+
+$cartCount = Cart::count();
 
 // Récupération des produits actifs
 $productModel = new Product();
@@ -67,6 +70,30 @@ $products = $productModel->findActive();
 
         .navbar-nav a:hover {
             color: var(--pink-main);
+        }
+
+        .cart-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--gradient-mint);
+            color: var(--black) !important;
+            padding: 10px 18px;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            transition: all var(--transition-normal);
+        }
+        .cart-nav-link:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-mint);
+            color: var(--black) !important;
+        }
+        .cart-badge {
+            background: var(--pink-main);
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
         }
 
         /* Hero Section */
@@ -377,8 +404,14 @@ $products = $productModel->findActive();
                 <a href="#produits">Produits</a>
                 <a href="#categories">Catégories</a>
                 <a href="#contact">Contact</a>
-                <a href="/admin/login.php" class="btn btn-primary" style="padding: 10px 20px; font-size: 14px;">
-                    Admin
+                <a href="/public/cart.php" class="cart-nav-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                    Panier
+                    <?php if ($cartCount > 0): ?><span class="cart-badge"><?= $cartCount ?></span><?php endif; ?>
                 </a>
             </div>
         </div>
@@ -446,7 +479,7 @@ $products = $productModel->findActive();
                                 <p><?= h($product['description'] ?? 'Personnalisable avec votre design') ?></p>
                                 <div class="product-footer">
                                     <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
-                                    <a href="#" class="product-btn">Personnaliser</a>
+                                    <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
                                 </div>
                             </div>
                         </div>
