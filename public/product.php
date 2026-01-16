@@ -198,6 +198,39 @@ $cartCount = Cart::count();
             text-align: center;
             word-break: break-word;
             color: var(--pink-dark);
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }
+        /* Positions du texte sur le preview */
+        .preview-text.pos-centre {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .preview-text.pos-gauche {
+            top: 50%;
+            left: 15%;
+            transform: translateY(-50%);
+            text-align: left;
+        }
+        .preview-text.pos-droite {
+            top: 50%;
+            right: 15%;
+            left: auto;
+            transform: translateY(-50%);
+            text-align: right;
+        }
+        .preview-text.pos-dos {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.6;
+            font-size: 1.2rem;
+        }
+        .preview-text.pos-dos::before {
+            content: '(Dos) ';
+            font-size: 0.8rem;
+            opacity: 0.7;
         }
         .product-category-badge {
             position: absolute;
@@ -483,7 +516,7 @@ $cartCount = Cart::count();
                         <?php else: ?>
                             <span class="preview-icon">👕</span>
                         <?php endif; ?>
-                        <span class="preview-text" id="previewText"></span>
+                        <span class="preview-text pos-centre" id="previewText"></span>
                     </div>
                     <p style="color: var(--gray); margin-top: 20px; font-size: 14px;">
                         Aperçu de votre personnalisation
@@ -651,6 +684,17 @@ $cartCount = Cart::count();
                 const font = this.dataset.font;
                 const category = this.dataset.category || 'sans-serif';
                 previewText.style.fontFamily = "'" + font + "', " + category;
+            });
+        });
+
+        // Position preview
+        document.querySelectorAll('.position-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const position = this.querySelector('input').value;
+                // Retirer toutes les classes de position
+                previewText.classList.remove('pos-centre', 'pos-gauche', 'pos-droite', 'pos-dos');
+                // Ajouter la nouvelle classe de position
+                previewText.classList.add('pos-' + position);
             });
         });
 

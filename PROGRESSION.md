@@ -21,9 +21,9 @@
 
 **Date dernière mise à jour** : 2026-01-16
 
-**Phase actuelle** : P1 - POLICES ADMINISTRABLES
+**Phase actuelle** : P2 - PREVIEW AMÉLIORÉ
 
-**Statut global** : 🟢 P1 COMPLÉTÉ - Polices administrables fonctionnelles
+**Statut global** : 🟢 P2 COMPLÉTÉ - Preview avec positions dynamiques
 
 ---
 
@@ -163,6 +163,15 @@ product_print_zones
 | Menu admin + Polices | ✅ OK | admin/includes/sidebar.php |
 | Intégration frontend | ✅ OK | product.php charge polices depuis DB + FontLoader |
 
+### 2026-01-16 - Session 5 (P2 - Preview Amélioré)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| CSS positions preview | ✅ OK | Classes pos-centre, pos-gauche, pos-droite, pos-dos |
+| JS position dynamique | ✅ OK | Changement de position en temps réel |
+| Text-shadow lisibilité | ✅ OK | Ombre légère pour contraste |
+| Transition fluide | ✅ OK | Animation 0.3s entre positions |
+
 ---
 
 ## Design System
@@ -210,10 +219,10 @@ product_print_zones
 
 ## Prochaines Étapes
 
-### P2 - Preview Phase 2 (prochaine priorité)
-- [ ] Image produit + overlay texte positionné
-- [ ] Position du texte selon zone sélectionnée
-- [ ] Preview plus réaliste avec police appliquée
+### P2 - Preview Phase 2 ✅ COMPLÉTÉ
+- [x] Image produit + overlay texte positionné
+- [x] Position du texte selon zone sélectionnée (centre/gauche/droite/dos)
+- [x] Preview plus réaliste avec police appliquée + transition fluide
 
 ### P3 - Zones d'impression
 - [ ] Admin zones par produit (product_print_zones)
