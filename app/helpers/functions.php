@@ -89,6 +89,14 @@ function csrfField(): string
 }
 
 /**
+ * Alias pour csrfToken() - compatibilité
+ */
+function generateCsrf(): string
+{
+    return csrfToken();
+}
+
+/**
  * Formate un prix
  */
 function formatPrice(float $price): string
