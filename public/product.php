@@ -306,23 +306,106 @@ $cartCount = Cart::count();
             border-radius: var(--radius-full);
         }
 
-        /* Product Page Layout */
-        .product-page { padding: 40px 0 80px; }
-        .product-grid {
+        /* ===========================================
+           3-COLUMN CONFIGURATOR LAYOUT (2026-ready)
+           Left: Visual options | Center: Product Hero | Right: Product options
+           =========================================== */
+
+        .product-page { padding: 30px 0 100px; }
+
+        /* Desktop: 3 columns */
+        .configurator-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
+            grid-template-columns: 300px 1fr 320px;
+            gap: 30px;
             align-items: start;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        /* Product Image */
+        /* Column containers */
+        .config-left,
+        .config-right {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            position: sticky;
+            top: 90px;
+        }
+
+        .config-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Section headers in columns */
+        .config-section {
+            margin-bottom: 20px;
+        }
+        .config-section:last-child {
+            margin-bottom: 0;
+        }
+        .config-section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .config-section-title::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: var(--gradient-pink);
+            border-radius: 2px;
+        }
+
+        /* Product info in right column */
+        .product-info-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+        .product-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--black-soft);
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+        .product-price {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--pink-dark);
+        }
+
+        /* Legacy grid fallback - not used */
+        .product-grid {
+            display: none;
+        }
+
+        /* Product Hero (Center Column) */
+        .product-hero {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* Legacy class - keep for compatibility */
         .product-image-box {
             background: white;
             border-radius: var(--radius-lg);
-            padding: 40px;
+            padding: 30px;
             text-align: center;
-            position: sticky;
-            top: 100px;
         }
 
         /* View Toggle (Face/Dos) */
@@ -362,8 +445,8 @@ $cartCount = Cart::count();
         }
         .product-preview {
             width: 100%;
-            max-width: 400px;
-            height: 400px;
+            max-width: 450px;
+            height: 450px;
             margin: 0 auto;
             background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
             border-radius: var(--radius-lg);
@@ -375,11 +458,12 @@ $cartCount = Cart::count();
             transition: background-color 0.3s ease;
             overflow: hidden;
             touch-action: none; /* Empêche le scroll pendant le drag */
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
         }
         .preview-icon { font-size: 6rem; opacity: 0.6; }
         .preview-product-img {
-            max-width: 80%;
-            max-height: 300px;
+            max-width: 85%;
+            max-height: 360px;
             object-fit: contain;
             border-radius: var(--radius-md);
             pointer-events: none; /* L'image ne capture pas les events */
@@ -870,15 +954,159 @@ $cartCount = Cart::count();
             text-decoration: underline;
         }
 
-        /* Responsive */
-        @media (max-width: 968px) {
-            .product-grid { grid-template-columns: 1fr; gap: 30px; }
-            .product-image-box { position: static; }
+        /* ===========================================
+           RESPONSIVE / MOBILE ACCORDION
+           =========================================== */
+
+        /* Tablet: 2 columns */
+        @media (max-width: 1200px) {
+            .configurator-layout {
+                grid-template-columns: 280px 1fr 280px;
+                gap: 20px;
+            }
         }
+
+        /* Small tablet: Stack layout */
+        @media (max-width: 1024px) {
+            .configurator-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .config-left,
+            .config-right {
+                position: static;
+            }
+            .config-center {
+                order: -1; /* Product hero first */
+            }
+            .product-hero {
+                max-width: 100%;
+            }
+        }
+
+        /* Mobile: Accordion + Sticky CTA */
+        @media (max-width: 768px) {
+            .product-page { padding: 15px 0 120px; }
+            .configurator-layout { gap: 15px; }
+
+            .config-left,
+            .config-right {
+                padding: 0;
+                background: transparent;
+            }
+
+            .product-hero {
+                padding: 20px;
+            }
+            .product-preview {
+                height: 350px;
+                max-width: 100%;
+            }
+            .preview-product-img {
+                max-height: 280px;
+            }
+
+            /* Accordion sections */
+            .mobile-accordion {
+                background: white;
+                border-radius: var(--radius-md);
+                margin-bottom: 10px;
+                overflow: hidden;
+            }
+            .accordion-header {
+                padding: 16px 20px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                cursor: pointer;
+                background: white;
+                font-weight: 600;
+                color: var(--black-soft);
+            }
+            .accordion-header::after {
+                content: '▼';
+                font-size: 10px;
+                color: var(--gray);
+                transition: transform 0.2s;
+            }
+            .accordion-header.collapsed::after {
+                transform: rotate(-90deg);
+            }
+            .accordion-content {
+                padding: 0 20px 20px;
+                transition: max-height 0.3s ease;
+            }
+            .accordion-content.collapsed {
+                max-height: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+
+            /* Config section mobile adjustments */
+            .config-section {
+                margin-bottom: 15px;
+            }
+            .config-section-title {
+                font-size: 0.8rem;
+            }
+
+            /* Sticky CTA bar */
+            .sticky-cta {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                padding: 15px 20px;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 15px;
+            }
+            .sticky-cta .price-display {
+                font-family: var(--font-display);
+                font-size: 1.4rem;
+                font-weight: 800;
+                color: var(--pink-dark);
+            }
+            .sticky-cta .btn {
+                flex: 1;
+                max-width: 200px;
+            }
+
+            /* Hide desktop add to cart in mobile */
+            .desktop-only-cta {
+                display: none;
+            }
+        }
+
+        /* Desktop: Show desktop CTA, hide sticky */
+        @media (min-width: 769px) {
+            .sticky-cta {
+                display: none;
+            }
+            .mobile-accordion .accordion-header {
+                display: none;
+            }
+            .accordion-content.collapsed {
+                max-height: none;
+                padding: initial;
+                overflow: visible;
+            }
+        }
+
         @media (max-width: 600px) {
-            .product-preview { height: 350px; }
-            .preview-text { font-size: 1.2rem; }
+            .product-preview { height: 300px; }
+            .preview-text { font-size: 1.1rem; }
+            .preview-product-img { max-height: 240px; }
+            .view-btn { padding: 10px 16px; font-size: 13px; }
+            .drag-hint { font-size: 12px; padding: 10px; }
         }
+
+        /* Legacy grid fallback - kept for reference */
+        .product-grid { display: none; }
     </style>
 </head>
 <body>
@@ -903,263 +1131,308 @@ $cartCount = Cart::count();
         </div>
     </nav>
 
-    <!-- Product Page -->
+    <!-- Product Page - 3 Column Layout -->
     <section class="product-page">
         <div class="container">
-            <div class="product-grid">
-                <!-- Image / Preview -->
-                <div class="product-image-box">
-                    <?php if ($hasBackImage): ?>
-                    <!-- Bascule Face/Dos -->
-                    <div class="view-toggle">
-                        <button type="button" class="view-btn active" data-view="front" id="btnFront">
-                            <span class="view-icon">👕</span> Face
-                        </button>
-                        <button type="button" class="view-btn" data-view="back" id="btnBack">
-                            <span class="view-icon">🔄</span> Dos
-                        </button>
-                    </div>
-                    <?php endif; ?>
-
-                    <div class="product-preview" id="productPreview">
-                        <!-- Bouton Zoom -->
-                        <button type="button" class="zoom-btn" id="zoomBtn" title="Agrandir la preview">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"/>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                                <line x1="11" y1="8" x2="11" y2="14"/>
-                                <line x1="8" y1="11" x2="14" y2="11"/>
-                            </svg>
-                        </button>
-
-                        <span class="product-category-badge badge badge-pink">
-                            <?= h($product['category'] ?? 'Textile') ?>
-                        </span>
-
-                        <!-- Zone d'impression (overlay visuel) -->
-                        <div class="print-zone-overlay" id="printZone"
-                             style="left: <?= $printZone['x'] ?>%; top: <?= $printZone['y'] ?>%; width: <?= $printZone['width'] ?>%; height: <?= $printZone['height'] ?>%;">
-                            <span class="print-zone-label"><?= h($printZone['label'] ?? 'Zone d\'impression') ?></span>
-                        </div>
-
-                        <?php if (!empty($product['image_front_url'])): ?>
-                            <img src="/public<?= h($product['image_front_url']) ?>"
-                                 alt="<?= h($product['name']) ?> - Face"
-                                 class="preview-product-img"
-                                 id="previewImage"
-                                 data-front="/public<?= h($product['image_front_url']) ?>"
-                                 data-back="<?= !empty($product['image_back_url']) ? '/public' . h($product['image_back_url']) : '' ?>">
-                        <?php else: ?>
-                            <span class="preview-icon">👕</span>
-                        <?php endif; ?>
-
-                        <!-- Texte draggable avec style technique -->
-                        <span class="preview-text empty technique-flex" id="previewText">Votre texte</span>
-
-                        <!-- Indicateur technique -->
-                        <span class="technique-indicator" id="techniqueIndicator">FLEX</span>
-                    </div>
-
-                    <!-- Indication drag -->
-                    <div class="drag-hint">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 9l-3 3 3 3"/>
-                            <path d="M9 5l3-3 3 3"/>
-                            <path d="M15 19l-3 3-3-3"/>
-                            <path d="M19 9l3 3-3 3"/>
-                            <line x1="2" y1="12" x2="22" y2="12"/>
-                            <line x1="12" y1="2" x2="12" y2="22"/>
-                        </svg>
-                        Déplacez le texte pour ajuster sa position
-                    </div>
+            <?php if ($success): ?>
+                <div class="alert alert-success" style="margin-bottom: 20px;">
+                    <?= h($success) ?> <a href="/public/cart.php">Voir le panier</a>
                 </div>
+            <?php endif; ?>
 
-                <!-- Form -->
-                <div class="product-form-section">
-                    <h1 class="product-title"><?= h($product['name']) ?></h1>
-                    <p class="product-description">
-                        <?= h($product['description'] ?? 'Un produit de qualité premium, personnalisable selon vos envies.') ?>
-                    </p>
-                    <div class="product-price"><?= formatPrice($product['base_price']) ?></div>
+            <?php if ($error): ?>
+                <div class="alert alert-error" style="margin-bottom: 20px;"><?= h($error) ?></div>
+            <?php endif; ?>
 
-                    <?php if ($success): ?>
-                        <div class="alert alert-success">
-                            <?= h($success) ?> <a href="/public/cart.php">Voir le panier</a>
-                        </div>
-                    <?php endif; ?>
+            <form method="post" id="customizationForm">
+                <?= csrfField() ?>
+                <input type="hidden" name="add_to_cart" value="1">
+                <input type="hidden" name="position_x" id="positionX" value="50">
+                <input type="hidden" name="position_y" id="positionY" value="50">
+                <input type="hidden" name="position_zone_id" id="positionZoneId" value="<?= $printZone['id'] ?>">
+                <input type="hidden" name="view" id="viewInput" value="front">
 
-                    <?php if ($error): ?>
-                        <div class="alert alert-error"><?= h($error) ?></div>
-                    <?php endif; ?>
-
-                    <form method="post" id="customizationForm">
-                        <?= csrfField() ?>
-                        <input type="hidden" name="add_to_cart" value="1">
-
-                        <!-- Position et vue (hidden - set by drag & drop / toggle) -->
-                        <input type="hidden" name="position_x" id="positionX" value="50">
-                        <input type="hidden" name="position_y" id="positionY" value="50">
-                        <input type="hidden" name="position_zone_id" id="positionZoneId" value="<?= $printZone['id'] ?>">
-                        <input type="hidden" name="view" id="viewInput" value="front">
-
-                        <!-- Taille -->
-                        <div class="customization-section">
-                            <h3 class="section-title">Taille</h3>
-                            <div class="size-options">
-                                <?php foreach ($sizes as $size): ?>
-                                    <label class="size-option <?= $size === 'M' ? 'selected' : '' ?>">
-                                        <input type="radio" name="size" value="<?= $size ?>" <?= $size === 'M' ? 'checked' : '' ?>>
-                                        <?= $size ?>
-                                    </label>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                        <!-- Couleur -->
-                        <div class="customization-section">
-                            <h3 class="section-title">Couleur du produit</h3>
-                            <div class="color-options">
-                                <?php
-                                $firstColor = true;
-                                foreach ($colors as $name => $hex):
-                                    // Détermine si cette couleur est sélectionnée par défaut
-                                    $isDefault = ($hasColorVariants && $defaultColorKey)
-                                        ? ($name === $defaultColorKey)
-                                        : $firstColor;
-
-                                    // Récupère les images de cette variante si disponibles
-                                    $imgFront = $colorImages[$name]['front'] ?? '';
-                                    $imgBack = $colorImages[$name]['back'] ?? '';
-                                ?>
-                                    <label class="color-option <?= $isDefault ? 'selected' : '' ?>"
-                                           style="background-color: <?= $hex ?>; <?= strtolower($hex) === '#ffffff' ? 'border: 1px solid #ddd;' : '' ?>"
-                                           title="<?= ucfirst($name) ?>"
-                                           data-color="<?= $hex ?>"
-                                           data-color-name="<?= h($name) ?>"
-                                           <?php if ($hasColorVariants && $imgFront): ?>
-                                           data-image-front="<?= h($imgFront) ?>"
-                                           data-image-back="<?= h($imgBack) ?>"
-                                           <?php endif; ?>>
-                                        <input type="radio" name="color" value="<?= $name ?>" <?= $isDefault ? 'checked' : '' ?>>
-                                    </label>
-                                <?php
-                                    $firstColor = false;
-                                endforeach;
-                                ?>
-                            </div>
-                        </div>
-
+                <div class="configurator-layout">
+                    <!-- ========================================
+                         COLONNE GAUCHE: Options visuelles
+                         (texte, police, couleur texte, technique)
+                         ======================================== -->
+                    <div class="config-left">
                         <!-- Texte personnalisé -->
-                        <div class="customization-section">
-                            <h3 class="section-title">Votre texte personnalisé</h3>
-                            <input type="text"
-                                   name="custom_text"
-                                   id="customText"
-                                   class="custom-text-input"
-                                   placeholder="Ex: Famille Dupont, Team Papa..."
-                                   maxlength="<?= $printZone['max_chars'] ?? 50 ?>">
+                        <div class="config-section mobile-accordion">
+                            <div class="accordion-header">Votre texte</div>
+                            <div class="accordion-content">
+                                <h3 class="config-section-title">Texte personnalisé</h3>
+                                <input type="text"
+                                       name="custom_text"
+                                       id="customText"
+                                       class="custom-text-input"
+                                       placeholder="Ex: Famille Dupont, Team Papa..."
+                                       maxlength="<?= $printZone['max_chars'] ?? 50 ?>">
+                            </div>
                         </div>
 
-                        <!-- Police - Sélecteur Dropdown Scalable -->
-                        <div class="customization-section">
-                            <h3 class="section-title">Style de police</h3>
-                            <div class="font-selector-wrapper" id="fontSelector">
-                                <input type="hidden" name="font" id="fontInput" value="<?= h($fonts[0]['value'] ?? 'Poppins') ?>">
+                        <!-- Police -->
+                        <div class="config-section mobile-accordion">
+                            <div class="accordion-header">Police</div>
+                            <div class="accordion-content">
+                                <h3 class="config-section-title">Style de police</h3>
+                                <div class="font-selector-wrapper" id="fontSelector">
+                                    <input type="hidden" name="font" id="fontInput" value="<?= h($fonts[0]['value'] ?? 'Poppins') ?>">
 
-                                <div class="font-selector-trigger" id="fontTrigger">
-                                    <span class="font-selector-preview" id="fontPreview"
-                                          style="font-family: '<?= h($fonts[0]['value'] ?? 'Poppins') ?>', <?= h($fonts[0]['category'] ?? 'sans-serif') ?>">
-                                        <?= h($fonts[0]['label'] ?? 'Sélectionner une police') ?>
-                                    </span>
-                                    <svg class="font-selector-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="6 9 12 15 18 9"/>
-                                    </svg>
-                                </div>
-
-                                <div class="font-selector-dropdown" id="fontDropdown">
-                                    <div class="font-search-box">
-                                        <input type="text" class="font-search-input" id="fontSearch"
-                                               placeholder="Rechercher une police...">
+                                    <div class="font-selector-trigger" id="fontTrigger">
+                                        <span class="font-selector-preview" id="fontPreview"
+                                              style="font-family: '<?= h($fonts[0]['value'] ?? 'Poppins') ?>', <?= h($fonts[0]['category'] ?? 'sans-serif') ?>">
+                                            <?= h($fonts[0]['label'] ?? 'Sélectionner une police') ?>
+                                        </span>
+                                        <svg class="font-selector-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="6 9 12 15 18 9"/>
+                                        </svg>
                                     </div>
-                                    <div class="font-list" id="fontList">
-                                        <?php foreach ($fonts as $index => $font): ?>
-                                            <div class="font-list-item <?= $index === 0 ? 'selected' : '' ?>"
-                                                 data-font="<?= h($font['value']) ?>"
-                                                 data-label="<?= h($font['label']) ?>"
-                                                 data-category="<?= h($font['category'] ?? 'sans-serif') ?>"
-                                                 style="font-family: '<?= h($font['value']) ?>', <?= h($font['category'] ?? 'sans-serif') ?>">
-                                                <span class="font-item-name"><?= h($font['label']) ?></span>
-                                                <span class="font-item-category"><?= h($font['category'] ?? 'sans-serif') ?></span>
-                                            </div>
-                                        <?php endforeach; ?>
+
+                                    <div class="font-selector-dropdown" id="fontDropdown">
+                                        <div class="font-search-box">
+                                            <input type="text" class="font-search-input" id="fontSearch"
+                                                   placeholder="Rechercher une police...">
+                                        </div>
+                                        <div class="font-list" id="fontList">
+                                            <?php foreach ($fonts as $index => $font): ?>
+                                                <div class="font-list-item <?= $index === 0 ? 'selected' : '' ?>"
+                                                     data-font="<?= h($font['value']) ?>"
+                                                     data-label="<?= h($font['label']) ?>"
+                                                     data-category="<?= h($font['category'] ?? 'sans-serif') ?>"
+                                                     style="font-family: '<?= h($font['value']) ?>', <?= h($font['category'] ?? 'sans-serif') ?>">
+                                                    <span class="font-item-name"><?= h($font['label']) ?></span>
+                                                    <span class="font-item-category"><?= h($font['category'] ?? 'sans-serif') ?></span>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Couleur du texte -->
-                        <div class="customization-section">
-                            <h3 class="section-title">Couleur du texte</h3>
-                            <div class="text-color-options">
-                                <?php foreach ($textColors as $index => $tc): ?>
-                                    <label class="text-color-option <?= $index === 0 ? 'selected' : '' ?>"
-                                           style="background-color: <?= h($tc['hex']) ?>;"
-                                           data-color="<?= h($tc['hex']) ?>"
-                                           title="<?= h($tc['label']) ?>">
-                                        <input type="radio" name="text_color" value="<?= h($tc['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
-                                        <span class="color-label"><?= h($tc['label']) ?></span>
-                                    </label>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                        <!-- Technique d'impression -->
-                        <div class="customization-section">
-                            <h3 class="section-title">Technique d'impression</h3>
-                            <div class="technique-options">
-                                <?php foreach ($techniques as $index => $tech): ?>
-                                    <label class="technique-option <?= $index === 0 ? 'selected' : '' ?>"
-                                           data-price="<?= $tech['price'] ?>"
-                                           data-technique="<?= h($tech['value']) ?>">
-                                        <input type="radio" name="technique" value="<?= h($tech['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
-                                        <div class="technique-info">
-                                            <span class="technique-name"><?= h($tech['label']) ?></span>
-                                            <?php if (!empty($tech['description'])): ?>
-                                                <span class="technique-desc"><?= h($tech['description']) ?></span>
-                                            <?php endif; ?>
-                                        </div>
-                                        <span class="technique-price <?= $tech['price'] == 0 ? 'free' : '' ?>">
-                                            <?= $tech['price'] == 0 ? 'Inclus' : '+' . formatPrice($tech['price']) ?>
-                                        </span>
-                                    </label>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                        <!-- Quantité -->
-                        <div class="customization-section">
-                            <h3 class="section-title">Quantité</h3>
-                            <div class="quantity-row">
-                                <div class="quantity-selector">
-                                    <button type="button" class="qty-btn" id="qtyMinus">−</button>
-                                    <input type="number" name="quantity" id="qtyInput" class="qty-input" value="1" min="1" max="99">
-                                    <button type="button" class="qty-btn" id="qtyPlus">+</button>
+                        <div class="config-section mobile-accordion">
+                            <div class="accordion-header">Couleur du texte</div>
+                            <div class="accordion-content">
+                                <h3 class="config-section-title">Couleur du texte</h3>
+                                <div class="text-color-options">
+                                    <?php foreach ($textColors as $index => $tc): ?>
+                                        <label class="text-color-option <?= $index === 0 ? 'selected' : '' ?>"
+                                               style="background-color: <?= h($tc['hex']) ?>;"
+                                               data-color="<?= h($tc['hex']) ?>"
+                                               title="<?= h($tc['label']) ?>">
+                                            <input type="radio" name="text_color" value="<?= h($tc['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
+                                            <span class="color-label"><?= h($tc['label']) ?></span>
+                                        </label>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Bouton Ajouter -->
-                        <button type="submit" class="btn btn-primary add-to-cart-btn">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                                <line x1="3" y1="6" x2="21" y2="6"/>
-                                <path d="M16 10a4 4 0 0 1-8 0"/>
-                            </svg>
-                            Ajouter au panier
-                        </button>
-                    </form>
+                        <!-- Technique d'impression -->
+                        <div class="config-section mobile-accordion">
+                            <div class="accordion-header">Technique</div>
+                            <div class="accordion-content">
+                                <h3 class="config-section-title">Technique d'impression</h3>
+                                <div class="technique-options">
+                                    <?php foreach ($techniques as $index => $tech): ?>
+                                        <label class="technique-option <?= $index === 0 ? 'selected' : '' ?>"
+                                               data-price="<?= $tech['price'] ?>"
+                                               data-technique="<?= h($tech['value']) ?>">
+                                            <input type="radio" name="technique" value="<?= h($tech['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
+                                            <div class="technique-info">
+                                                <span class="technique-name"><?= h($tech['label']) ?></span>
+                                                <?php if (!empty($tech['description'])): ?>
+                                                    <span class="technique-desc"><?= h($tech['description']) ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <span class="technique-price <?= $tech['price'] == 0 ? 'free' : '' ?>">
+                                                <?= $tech['price'] == 0 ? 'Inclus' : '+' . formatPrice($tech['price']) ?>
+                                            </span>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         COLONNE CENTRALE: Produit Hero
+                         (Preview live, Face/Dos, Zoom)
+                         ======================================== -->
+                    <div class="config-center">
+                        <div class="product-hero">
+                            <?php if ($hasBackImage): ?>
+                            <!-- Bascule Face/Dos -->
+                            <div class="view-toggle">
+                                <button type="button" class="view-btn active" data-view="front" id="btnFront">
+                                    <span class="view-icon">👕</span> Face
+                                </button>
+                                <button type="button" class="view-btn" data-view="back" id="btnBack">
+                                    <span class="view-icon">🔄</span> Dos
+                                </button>
+                            </div>
+                            <?php endif; ?>
+
+                            <div class="product-preview" id="productPreview">
+                                <!-- Bouton Zoom -->
+                                <button type="button" class="zoom-btn" id="zoomBtn" title="Agrandir la preview">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"/>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                        <line x1="11" y1="8" x2="11" y2="14"/>
+                                        <line x1="8" y1="11" x2="14" y2="11"/>
+                                    </svg>
+                                </button>
+
+                                <span class="product-category-badge badge badge-pink">
+                                    <?= h($product['category'] ?? 'Textile') ?>
+                                </span>
+
+                                <!-- Zone d'impression (overlay visuel) -->
+                                <div class="print-zone-overlay" id="printZone"
+                                     style="left: <?= $printZone['x'] ?>%; top: <?= $printZone['y'] ?>%; width: <?= $printZone['width'] ?>%; height: <?= $printZone['height'] ?>%;">
+                                    <span class="print-zone-label"><?= h($printZone['label'] ?? 'Zone d\'impression') ?></span>
+                                </div>
+
+                                <?php if (!empty($product['image_front_url'])): ?>
+                                    <img src="/public<?= h($product['image_front_url']) ?>"
+                                         alt="<?= h($product['name']) ?> - Face"
+                                         class="preview-product-img"
+                                         id="previewImage"
+                                         data-front="/public<?= h($product['image_front_url']) ?>"
+                                         data-back="<?= !empty($product['image_back_url']) ? '/public' . h($product['image_back_url']) : '' ?>">
+                                <?php else: ?>
+                                    <span class="preview-icon">👕</span>
+                                <?php endif; ?>
+
+                                <!-- Texte draggable avec style technique -->
+                                <span class="preview-text empty technique-flex" id="previewText">Votre texte</span>
+
+                                <!-- Indicateur technique -->
+                                <span class="technique-indicator" id="techniqueIndicator">FLEX</span>
+                            </div>
+
+                            <!-- Indication drag -->
+                            <div class="drag-hint">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 9l-3 3 3 3"/>
+                                    <path d="M9 5l3-3 3 3"/>
+                                    <path d="M15 19l-3 3-3-3"/>
+                                    <path d="M19 9l3 3-3 3"/>
+                                    <line x1="2" y1="12" x2="22" y2="12"/>
+                                    <line x1="12" y1="2" x2="12" y2="22"/>
+                                </svg>
+                                Glissez pour positionner
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         COLONNE DROITE: Options produit
+                         (Nom, Prix, Taille, Couleur, Quantité, CTA)
+                         ======================================== -->
+                    <div class="config-right">
+                        <!-- Info produit -->
+                        <div class="product-info-header">
+                            <h1 class="product-title"><?= h($product['name']) ?></h1>
+                            <div class="product-price" id="productPrice"><?= formatPrice($product['base_price']) ?></div>
+                        </div>
+
+                        <!-- Taille -->
+                        <div class="config-section mobile-accordion">
+                            <div class="accordion-header">Taille</div>
+                            <div class="accordion-content">
+                                <h3 class="config-section-title">Taille</h3>
+                                <div class="size-options">
+                                    <?php foreach ($sizes as $size): ?>
+                                        <label class="size-option <?= $size === 'M' ? 'selected' : '' ?>">
+                                            <input type="radio" name="size" value="<?= $size ?>" <?= $size === 'M' ? 'checked' : '' ?>>
+                                            <?= $size ?>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Couleur -->
+                        <div class="config-section mobile-accordion">
+                            <div class="accordion-header">Couleur</div>
+                            <div class="accordion-content">
+                                <h3 class="config-section-title">Couleur du produit</h3>
+                                <div class="color-options">
+                                    <?php
+                                    $firstColor = true;
+                                    foreach ($colors as $name => $hex):
+                                        $isDefault = ($hasColorVariants && $defaultColorKey)
+                                            ? ($name === $defaultColorKey)
+                                            : $firstColor;
+                                        $imgFront = $colorImages[$name]['front'] ?? '';
+                                        $imgBack = $colorImages[$name]['back'] ?? '';
+                                    ?>
+                                        <label class="color-option <?= $isDefault ? 'selected' : '' ?>"
+                                               style="background-color: <?= $hex ?>; <?= strtolower($hex) === '#ffffff' ? 'border: 1px solid #ddd;' : '' ?>"
+                                               title="<?= ucfirst($name) ?>"
+                                               data-color="<?= $hex ?>"
+                                               data-color-name="<?= h($name) ?>"
+                                               <?php if ($hasColorVariants && $imgFront): ?>
+                                               data-image-front="<?= h($imgFront) ?>"
+                                               data-image-back="<?= h($imgBack) ?>"
+                                               <?php endif; ?>>
+                                            <input type="radio" name="color" value="<?= $name ?>" <?= $isDefault ? 'checked' : '' ?>>
+                                        </label>
+                                    <?php
+                                        $firstColor = false;
+                                    endforeach;
+                                    ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quantité -->
+                        <div class="config-section mobile-accordion">
+                            <div class="accordion-header">Quantité</div>
+                            <div class="accordion-content">
+                                <h3 class="config-section-title">Quantité</h3>
+                                <div class="quantity-row">
+                                    <div class="quantity-selector">
+                                        <button type="button" class="qty-btn" id="qtyMinus">−</button>
+                                        <input type="number" name="quantity" id="qtyInput" class="qty-input" value="1" min="1" max="99">
+                                        <button type="button" class="qty-btn" id="qtyPlus">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bouton Ajouter (Desktop) -->
+                        <div class="desktop-only-cta">
+                            <button type="submit" class="btn btn-primary add-to-cart-btn">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                                    <line x1="3" y1="6" x2="21" y2="6"/>
+                                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                                </svg>
+                                Ajouter au panier
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Sticky CTA Mobile -->
+                <div class="sticky-cta">
+                    <span class="price-display"><?= formatPrice($product['base_price']) ?></span>
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        Ajouter
+                    </button>
+                </div>
+            </form>
         </div>
     </section>
 
@@ -1589,6 +1862,56 @@ $cartCount = Cart::count();
                     });
                 });
             }
+
+            // === MOBILE ACCORDION ===
+            // Gestion des accordions pour mobile uniquement
+            function isMobile() {
+                return window.innerWidth <= 768;
+            }
+
+            document.querySelectorAll('.accordion-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    if (!isMobile()) return; // Ne rien faire sur desktop
+
+                    const content = this.nextElementSibling;
+                    const isCollapsed = this.classList.contains('collapsed');
+
+                    // Toggle l'état
+                    if (isCollapsed) {
+                        this.classList.remove('collapsed');
+                        content.classList.remove('collapsed');
+                    } else {
+                        this.classList.add('collapsed');
+                        content.classList.add('collapsed');
+                    }
+                });
+            });
+
+            // Initialiser l'état des accordions au chargement
+            function initAccordions() {
+                const headers = document.querySelectorAll('.accordion-header');
+                if (isMobile()) {
+                    // Sur mobile: tout fermer sauf le premier (texte)
+                    headers.forEach((header, index) => {
+                        const content = header.nextElementSibling;
+                        if (index > 0) {
+                            header.classList.add('collapsed');
+                            content.classList.add('collapsed');
+                        }
+                    });
+                } else {
+                    // Sur desktop: tout ouvrir
+                    headers.forEach(header => {
+                        const content = header.nextElementSibling;
+                        header.classList.remove('collapsed');
+                        content.classList.remove('collapsed');
+                    });
+                }
+            }
+
+            // Initialiser au chargement et au resize
+            initAccordions();
+            window.addEventListener('resize', initAccordions);
 
         })();
     </script>
