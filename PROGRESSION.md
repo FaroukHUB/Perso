@@ -21,9 +21,83 @@
 
 **Date dernière mise à jour** : 2026-01-16
 
-**Phase actuelle** : STEP 4 TERMINÉ
+**Phase actuelle** : RECADRAGE VISION PRODUIT
 
-**Statut global** : 🟢 Boutique fonctionnelle (Admin + Client)
+**Statut global** : 🟡 Pause - Validation architecture requise
+
+---
+
+## ⚠️ RECADRAGE 2026-01-16
+
+### Problème identifié
+
+L'implémentation actuelle (6 polices fixes, preview basique) ne correspond pas à la vision produit PERSONNALY :
+
+| Aspect | Implémentation actuelle | Vision attendue |
+|--------|-------------------------|-----------------|
+| Polices | 6 polices codées en dur dans head | Admin configure via Google Fonts + upload custom |
+| Options | Système basique (taille/couleur) | Moteur extensible + packs thématiques |
+| Preview | Texte sur fond coloré | Rendu métier (position réelle, simulation textile) |
+
+### Vision PERSONNALY confirmée
+
+PERSONNALY doit être un **moteur de personnalisation**, pas un simple formulaire :
+
+1. **Polices administrables** : Google Fonts (recherche/sélection) + upload custom
+2. **Packs thématiques** : Collections culturelles/événementielles (Aïd, Mariage, Sport...)
+3. **Preview métier** : Rendu réaliste, zones d'impression, lisibilité
+4. **Aucune limite arbitraire** : Pas de "6 polices max" codé en dur
+
+### Architecture proposée (en attente de validation)
+
+#### Tables à créer
+
+```
+fonts
+├── id, name, family, source (google/custom)
+├── file_url, google_import, category
+└── active, sort_order
+
+theme_packs
+├── id, name, slug, description, icon
+└── active, sort_order
+
+theme_pack_items
+├── pack_id, type (font/color/text_suggestion)
+└── value, label
+
+product_print_zones (futur)
+├── product_id, zone_name, x, y, width, height
+└── max_chars, allowed_fonts
+```
+
+#### Workflow admin polices
+
+1. Admin recherche dans Google Fonts (liste préchargée ou API)
+2. OU Admin uploade une police custom (.woff2, .ttf)
+3. Admin catégorise (Élégant, Moderne, Fun, Script...)
+4. Admin active/désactive selon besoins
+
+#### Workflow packs thématiques
+
+1. Admin crée un pack (ex: "Aïd Mubarak")
+2. Admin associe : polices recommandées + couleurs + textes suggérés
+3. Client voit le pack comme raccourci de personnalisation
+
+#### Preview évolutive
+
+- Phase 1 : Texte sur fond (actuel)
+- Phase 2 : Overlay sur image produit avec position
+- Phase 3 : Canvas avec simulation textile
+- Phase 4 : Mockup 3D (optionnel)
+
+### Prochaine action
+
+**ATTENTE VALIDATION** avant tout code :
+- [ ] Validation architecture polices
+- [ ] Validation architecture packs
+- [ ] Définition scope Phase 1 (MVP)
+- [ ] Priorités : Polices ? Packs ? Preview ?
 
 ---
 
