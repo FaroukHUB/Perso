@@ -252,8 +252,8 @@ $products = $productModel->findActive();
         }
 
         .product-image {
-            height: 250px;
-            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            aspect-ratio: 4/3;
+            background: linear-gradient(145deg, #fafafa 0%, #f0f0f0 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -270,10 +270,9 @@ $products = $productModel->findActive();
         .product-image img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 0;
-            left: 0;
+            object-fit: contain;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .product-image:has(img)::before {

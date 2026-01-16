@@ -20,13 +20,18 @@ class CustomizationOption
      */
     public function findByType(string $type): array
     {
-        $stmt = $this->db->prepare(
-            'SELECT * FROM customization_options
-             WHERE type = ? AND active = 1
-             ORDER BY sort_order ASC'
-        );
-        $stmt->execute([$type]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare(
+                'SELECT * FROM customization_options
+                 WHERE type = ? AND active = 1
+                 ORDER BY sort_order ASC'
+            );
+            $stmt->execute([$type]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Table n'existe pas encore - retourner tableau vide
+            return [];
+        }
     }
 
     /**
@@ -34,13 +39,17 @@ class CustomizationOption
      */
     public function findAllByType(string $type): array
     {
-        $stmt = $this->db->prepare(
-            'SELECT * FROM customization_options
-             WHERE type = ?
-             ORDER BY sort_order ASC'
-        );
-        $stmt->execute([$type]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare(
+                'SELECT * FROM customization_options
+                 WHERE type = ?
+                 ORDER BY sort_order ASC'
+            );
+            $stmt->execute([$type]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return [];
+        }
     }
 
     /**

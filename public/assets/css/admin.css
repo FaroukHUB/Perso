@@ -534,3 +534,69 @@
         gap: var(--spacing-md);
     }
 }
+
+/* ========================================
+   LAYOUT ALIASES (for consistency)
+   ======================================== */
+
+/* Support for alternate class names */
+.admin-layout { display: flex; min-height: 100vh; }
+.admin-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 280px;
+    height: 100vh;
+    background: var(--gradient-dark);
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+}
+.admin-sidebar .sidebar-header { padding: var(--spacing-md) 0 var(--spacing-xl); border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: var(--spacing-lg); }
+.admin-sidebar .admin-logo {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 800;
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+}
+.admin-sidebar .sidebar-nav { flex: 1; }
+.admin-sidebar .nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: 14px 18px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-sm);
+    transition: all var(--transition-normal);
+    font-weight: 500;
+}
+.admin-sidebar .nav-item:hover { background: rgba(255, 255, 255, 0.08); color: var(--white); }
+.admin-sidebar .nav-item.active { background: var(--gradient-pink); color: var(--white); box-shadow: var(--shadow-pink); }
+.admin-sidebar .sidebar-footer { padding-top: var(--spacing-lg); border-top: 1px solid rgba(255, 255, 255, 0.1); }
+.admin-sidebar .sidebar-footer a { color: rgba(255, 255, 255, 0.5); }
+.admin-sidebar .sidebar-footer a:hover { color: var(--pink-light); }
+.admin-main {
+    flex: 1;
+    margin-left: 280px;
+    padding: var(--spacing-xl);
+    background: var(--gray-light);
+    min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+    .admin-sidebar { width: 80px; padding: var(--spacing-md); }
+    .admin-sidebar .admin-logo, .admin-sidebar .nav-item span { display: none; }
+    .admin-sidebar .nav-item { justify-content: center; padding: 14px; }
+    .admin-main { margin-left: 80px; }
+}
+@media (max-width: 768px) {
+    .admin-sidebar { display: none; }
+    .admin-main { margin-left: 0; padding: var(--spacing-md); }
+}
