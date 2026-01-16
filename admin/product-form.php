@@ -1,7 +1,7 @@
 <?php
 /**
  * PERSONNALY - Admin : Formulaire Produit (Ajout/Modification)
- * Support images Face + Dos
+ * Support images Face + Dos + Variantes couleur avec images
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
@@ -10,12 +10,14 @@ require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/ProductColor.php';
+require_once __DIR__ . '/../app/models/ProductColorImage.php';
 
 Auth::requireAdmin();
 
 $productModel = new Product();
 $orderModel = new Order();
 $productColorModel = new ProductColor();
+$productColorImageModel = new ProductColorImage();
 $pendingOrders = $orderModel->countNew();
 
 // Mode édition ou création
@@ -23,8 +25,11 @@ $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $product = $id ? $productModel->findById($id) : null;
 $isEdit = $product !== null;
 
-// Récupérer les couleurs du produit
+// Récupérer les couleurs du produit (ancien système)
 $productColors = $isEdit ? $productColorModel->findAllByProduct($id) : [];
+
+// Récupérer les variantes couleur avec images (nouveau système)
+$colorVariants = $isEdit ? $productColorImageModel->findByProduct($id) : [];
 
 $error = '';
 $formData = [
@@ -149,7 +154,7 @@ if (isPost()) {
                     $productId = $productModel->create($formData);
                 }
 
-                // Sauvegarder les couleurs du produit
+                // Sauvegarder les couleurs du produit (ancien système - pour compatibilité)
                 $colorNames = post('color_names', []);
                 $colorHexes = post('color_hexes', []);
                 $colors = [];
@@ -161,6 +166,74 @@ if (isPost()) {
                     }
                 }
                 $productColorModel->syncColors($productId, $colors);
+
+                // === NOUVEAU : Traitement des variantes couleur avec images ===
+                $variantIds = post('variant_ids', []);
+                $variantNames = post('variant_names', []);
+                $variantHexes = post('variant_hexes', []);
+                $variantDefaults = post('variant_default', '');
+
+                // Variantes à supprimer
+                $deleteVariants = post('delete_variants', []);
+                foreach ($deleteVariants as $delId) {
+                    $productColorImageModel->delete((int)$delId);
+                }
+
+                // Mettre à jour ou créer les variantes
+                foreach ($variantNames as $i => $vName) {
+                    $vName = trim($vName);
+                    if (empty($vName)) continue;
+
+                    $vHex = trim($variantHexes[$i] ?? '#CCCCCC');
+                    $vId = isset($variantIds[$i]) ? (int)$variantIds[$i] : 0;
+                    $isDefault = ($variantDefaults == $i) ? 1 : 0;
+
+                    // Upload image face variante
+                    $frontUrl = null;
+                    if (isset($_FILES['variant_front_' . $i]) && $_FILES['variant_front_' . $i]['error'] === UPLOAD_ERR_OK) {
+                        $frontUrl = $productColorImageModel->uploadImage(
+                            $_FILES['variant_front_' . $i],
+                            $productId,
+                            $vName,
+                            'front'
+                        );
+                    }
+
+                    // Upload image dos variante
+                    $backUrl = null;
+                    if (isset($_FILES['variant_back_' . $i]) && $_FILES['variant_back_' . $i]['error'] === UPLOAD_ERR_OK) {
+                        $backUrl = $productColorImageModel->uploadImage(
+                            $_FILES['variant_back_' . $i],
+                            $productId,
+                            $vName,
+                            'back'
+                        );
+                    }
+
+                    if ($vId > 0) {
+                        // Mise à jour variante existante
+                        $updateData = [
+                            'color_name' => $vName,
+                            'hex_code' => $vHex,
+                            'is_default' => $isDefault,
+                            'sort_order' => $i
+                        ];
+                        if ($frontUrl) $updateData['image_front_url'] = $frontUrl;
+                        if ($backUrl) $updateData['image_back_url'] = $backUrl;
+                        $productColorImageModel->update($vId, $updateData);
+                    } else {
+                        // Nouvelle variante
+                        $productColorImageModel->create([
+                            'product_id' => $productId,
+                            'color_name' => $vName,
+                            'hex_code' => $vHex,
+                            'image_front_url' => $frontUrl,
+                            'image_back_url' => $backUrl,
+                            'is_default' => $isDefault,
+                            'sort_order' => $i
+                        ]);
+                    }
+                }
 
                 redirect('/admin/products.php?success=' . ($isEdit ? 'Produit mis à jour' : 'Produit créé'));
             }
@@ -467,6 +540,220 @@ if (isPost()) {
         .colors-hint strong {
             color: var(--pink-dark);
         }
+
+        /* === Variantes couleur avec images === */
+        .variants-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid var(--pink-light);
+        }
+        .variants-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .variants-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--black-soft);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .variants-header h3::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--gradient-pink);
+            border-radius: 2px;
+        }
+        .add-variant-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            background: var(--gradient-pink);
+            color: white;
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .add-variant-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-pink);
+        }
+        .variant-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .variant-item {
+            background: white;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            position: relative;
+            transition: border-color 0.2s;
+        }
+        .variant-item:hover {
+            border-color: var(--pink-light);
+        }
+        .variant-item.is-default {
+            border-color: var(--mint-main);
+            background: rgba(61, 255, 192, 0.03);
+        }
+        .variant-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .variant-color-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .variant-color-preview {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .variant-color-inputs {
+            display: flex;
+            gap: 10px;
+        }
+        .variant-color-inputs input[type="text"] {
+            width: 150px;
+            padding: 10px 14px;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .variant-color-inputs input[type="color"] {
+            width: 50px;
+            height: 42px;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+        }
+        .variant-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .variant-default-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(61, 255, 192, 0.1);
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--mint-dark);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .variant-default-label:hover {
+            background: rgba(61, 255, 192, 0.2);
+        }
+        .variant-default-label input {
+            width: 16px;
+            height: 16px;
+        }
+        .variant-delete-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .variant-delete-btn:hover {
+            background: #EF4444;
+            color: white;
+        }
+        .variant-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .variant-image-box {
+            background: var(--gray-light);
+            border: 2px dashed rgba(0,0,0,0.1);
+            border-radius: var(--radius-md);
+            padding: 15px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .variant-image-box:hover {
+            border-color: var(--pink-main);
+        }
+        .variant-image-box.has-image {
+            border-style: solid;
+            border-color: var(--mint-main);
+        }
+        .variant-image-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .variant-image-preview {
+            background: white;
+            border-radius: var(--radius-md);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .variant-image-preview img {
+            max-width: 100%;
+            max-height: 120px;
+            object-fit: contain;
+        }
+        .variant-image-preview .placeholder {
+            font-size: 2.5rem;
+            opacity: 0.3;
+        }
+        .variant-upload-btn {
+            width: 100%;
+            padding: 8px;
+            font-size: 12px;
+        }
+        .variants-hint {
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, rgba(255,105,180,0.08) 0%, rgba(61,255,192,0.08) 100%);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+        .variants-hint strong {
+            color: var(--pink-dark);
+        }
+        .variants-hint ul {
+            margin: 10px 0 0 20px;
+        }
     </style>
 </head>
 <body>
@@ -655,6 +942,89 @@ if (isPost()) {
                         </div>
                     </div>
 
+                    <!-- === NOUVEAU : Variantes couleur avec images === -->
+                    <div class="variants-section">
+                        <div class="variants-header">
+                            <h3>Variantes couleur avec images</h3>
+                            <button type="button" class="add-variant-btn" onclick="addVariant()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Ajouter une variante
+                            </button>
+                        </div>
+
+                        <div class="variant-list" id="variantList">
+                            <?php foreach ($colorVariants as $i => $variant): ?>
+                            <div class="variant-item <?= $variant['is_default'] ? 'is-default' : '' ?>" data-index="<?= $i ?>">
+                                <input type="hidden" name="variant_ids[]" value="<?= (int)$variant['id'] ?>">
+                                <div class="variant-header">
+                                    <div class="variant-color-info">
+                                        <div class="variant-color-preview" style="background-color: <?= h($variant['hex_code']) ?>"></div>
+                                        <div class="variant-color-inputs">
+                                            <input type="text" name="variant_names[]" value="<?= h($variant['color_name']) ?>" placeholder="Nom couleur (ex: Noir)">
+                                            <input type="color" name="variant_hexes[]" value="<?= h($variant['hex_code']) ?>" onchange="updateVariantPreview(this)">
+                                        </div>
+                                    </div>
+                                    <div class="variant-actions">
+                                        <label class="variant-default-label">
+                                            <input type="radio" name="variant_default" value="<?= $i ?>" <?= $variant['is_default'] ? 'checked' : '' ?>>
+                                            Par défaut
+                                        </label>
+                                        <button type="button" class="variant-delete-btn" onclick="deleteVariant(this, <?= (int)$variant['id'] ?>)">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                                <line x1="6" y1="6" x2="18" y2="18"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="variant-images">
+                                    <div class="variant-image-box <?= !empty($variant['image_front_url']) ? 'has-image' : '' ?>">
+                                        <div class="variant-image-label">📷 Image Face</div>
+                                        <div class="variant-image-preview" onclick="document.getElementById('variantFront<?= $i ?>').click()">
+                                            <?php if (!empty($variant['image_front_url'])): ?>
+                                                <img src="/public<?= h($variant['image_front_url']) ?>" alt="Face">
+                                            <?php else: ?>
+                                                <span class="placeholder">👕</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <input type="file" name="variant_front_<?= $i ?>" id="variantFront<?= $i ?>" accept="image/*" style="display:none" onchange="previewVariantImage(this)">
+                                        <button type="button" class="btn btn-secondary variant-upload-btn" onclick="document.getElementById('variantFront<?= $i ?>').click()">
+                                            <?= !empty($variant['image_front_url']) ? 'Changer' : 'Ajouter' ?>
+                                        </button>
+                                    </div>
+                                    <div class="variant-image-box <?= !empty($variant['image_back_url']) ? 'has-image' : '' ?>">
+                                        <div class="variant-image-label">📷 Image Dos</div>
+                                        <div class="variant-image-preview" onclick="document.getElementById('variantBack<?= $i ?>').click()">
+                                            <?php if (!empty($variant['image_back_url'])): ?>
+                                                <img src="/public<?= h($variant['image_back_url']) ?>" alt="Dos">
+                                            <?php else: ?>
+                                                <span class="placeholder">👕</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <input type="file" name="variant_back_<?= $i ?>" id="variantBack<?= $i ?>" accept="image/*" style="display:none" onchange="previewVariantImage(this)">
+                                        <button type="button" class="btn btn-secondary variant-upload-btn" onclick="document.getElementById('variantBack<?= $i ?>').click()">
+                                            <?= !empty($variant['image_back_url']) ? 'Changer' : 'Ajouter' ?>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <div class="variants-hint">
+                            <strong>Images par couleur</strong> — Pour une expérience client optimale :
+                            <ul>
+                                <li>Uploadez une photo Face et Dos pour chaque variante couleur</li>
+                                <li>Le client verra la vraie photo du produit quand il sélectionne une couleur</li>
+                                <li>Marquez une variante "Par défaut" pour l'afficher en premier</li>
+                                <li>Si aucune variante n'a d'image, les images générales du produit seront utilisées</li>
+                            </ul>
+                        </div>
+                    </div>
+
                     <div class="form-actions">
                         <a href="/admin/products.php" class="btn btn-dark">Annuler</a>
                         <button type="submit" class="btn btn-primary">
@@ -719,6 +1089,101 @@ if (isPost()) {
         function updateColorPreview(input) {
             const preview = input.closest('.color-item').querySelector('.color-preview');
             preview.style.backgroundColor = input.value;
+        }
+
+        // === Gestion des variantes couleur avec images ===
+        let variantIndex = <?= count($colorVariants) ?>;
+        let deletedVariants = [];
+
+        function addVariant() {
+            const list = document.getElementById('variantList');
+            const idx = variantIndex++;
+
+            const item = document.createElement('div');
+            item.className = 'variant-item';
+            item.dataset.index = idx;
+            item.innerHTML = `
+                <input type="hidden" name="variant_ids[]" value="0">
+                <div class="variant-header">
+                    <div class="variant-color-info">
+                        <div class="variant-color-preview" style="background-color: #FFFFFF"></div>
+                        <div class="variant-color-inputs">
+                            <input type="text" name="variant_names[]" placeholder="Nom couleur (ex: Noir)" required>
+                            <input type="color" name="variant_hexes[]" value="#FFFFFF" onchange="updateVariantPreview(this)">
+                        </div>
+                    </div>
+                    <div class="variant-actions">
+                        <label class="variant-default-label">
+                            <input type="radio" name="variant_default" value="${idx}">
+                            Par défaut
+                        </label>
+                        <button type="button" class="variant-delete-btn" onclick="deleteVariant(this, 0)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="variant-images">
+                    <div class="variant-image-box">
+                        <div class="variant-image-label">📷 Image Face</div>
+                        <div class="variant-image-preview" onclick="document.getElementById('variantFront${idx}').click()">
+                            <span class="placeholder">👕</span>
+                        </div>
+                        <input type="file" name="variant_front_${idx}" id="variantFront${idx}" accept="image/*" style="display:none" onchange="previewVariantImage(this)">
+                        <button type="button" class="btn btn-secondary variant-upload-btn" onclick="document.getElementById('variantFront${idx}').click()">
+                            Ajouter
+                        </button>
+                    </div>
+                    <div class="variant-image-box">
+                        <div class="variant-image-label">📷 Image Dos</div>
+                        <div class="variant-image-preview" onclick="document.getElementById('variantBack${idx}').click()">
+                            <span class="placeholder">👕</span>
+                        </div>
+                        <input type="file" name="variant_back_${idx}" id="variantBack${idx}" accept="image/*" style="display:none" onchange="previewVariantImage(this)">
+                        <button type="button" class="btn btn-secondary variant-upload-btn" onclick="document.getElementById('variantBack${idx}').click()">
+                            Ajouter
+                        </button>
+                    </div>
+                </div>
+            `;
+            list.appendChild(item);
+        }
+
+        function deleteVariant(btn, variantId) {
+            if (!confirm('Supprimer cette variante couleur ?')) return;
+
+            const item = btn.closest('.variant-item');
+
+            // Si c'est une variante existante (id > 0), marquer pour suppression
+            if (variantId > 0) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'delete_variants[]';
+                input.value = variantId;
+                document.querySelector('form').appendChild(input);
+            }
+
+            item.remove();
+        }
+
+        function updateVariantPreview(input) {
+            const preview = input.closest('.variant-item').querySelector('.variant-color-preview');
+            preview.style.backgroundColor = input.value;
+        }
+
+        function previewVariantImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const container = input.closest('.variant-image-box').querySelector('.variant-image-preview');
+                container.innerHTML = '<img src="' + e.target.result + '" alt="Aperçu">';
+                input.closest('.variant-image-box').classList.add('has-image');
+            };
+            reader.readAsDataURL(file);
         }
     </script>
 </body>

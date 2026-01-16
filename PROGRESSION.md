@@ -267,7 +267,11 @@ CREATE TABLE product_colors (
 |-------|--------|-------|
 | **BUG FIX: Lightbox** | ✅ OK | lightbox.js chargé AVANT le JS inline (était chargé APRÈS) |
 | **BUG FIX: Face/Dos** | ✅ OK | Condition corrigée (vérifier image, pas zone) |
-| Images par coloris | ❌ TODO | Architecture à définir |
+| **Images par coloris** | ✅ OK | Table product_color_images + admin + client |
+| Migration SQL | ✅ OK | migrate_product_color_images.sql |
+| Modèle ProductColorImage | ✅ OK | CRUD + upload images |
+| Admin variantes couleur | ✅ OK | Interface dans product-form.php |
+| Client changement images | ✅ OK | Au clic couleur → vraies photos |
 | Sélecteur polices scalable | ❌ TODO | Dropdown + recherche pour 20+ polices |
 | Refonte layout configurateur | ❌ TODO | Vision UX 2026 |
 
@@ -292,7 +296,7 @@ CREATE TABLE product_colors (
 | Styles visuels techniques | ✅ OK | CSS distinct par technique |
 | **Zoom/lightbox** | ✅ OK | **BUG CORRIGÉ cette session** |
 | **Bascule face/dos client** | ✅ OK | **BUG CORRIGÉ cette session** |
-| Images par coloris | ❌ NON | Chaque couleur devrait avoir ses images |
+| **Images par coloris** | ✅ OK | **IMPLÉMENTÉ cette session** |
 | Sélecteur polices scalable | ⚠️ PARTIEL | Grille OK pour <10 polices, pas scalable |
 | Layout configurateur moderne | ❌ NON | Layout vertical formulaire classique |
 
@@ -300,11 +304,11 @@ CREATE TABLE product_colors (
 
 | # | Tâche | Priorité | Complexité | Notes |
 |---|-------|----------|------------|-------|
-| 1 | Images par coloris | 🔴 HAUTE | Moyenne | Table product_color_images, admin + client |
-| 2 | Sélecteur polices scalable | 🟡 MOYENNE | Faible | Dropdown avec preview et recherche |
-| 3 | Refonte layout configurateur | 🟡 MOYENNE | Haute | Produit au centre, options sur côtés |
-| 4 | Pinch-zoom mobile | 🟢 BASSE | Faible | Amélioration lightbox |
-| 5 | Packs thématiques (P4) | 🟢 BASSE | Haute | Non prioritaire |
+| ~~1~~ | ~~Images par coloris~~ | ~~🔴 HAUTE~~ | ~~Moyenne~~ | ✅ TERMINÉ |
+| 1 | Sélecteur polices scalable | 🟡 MOYENNE | Faible | Dropdown avec preview et recherche |
+| 2 | Refonte layout configurateur | 🟡 MOYENNE | Haute | Produit au centre, options sur côtés |
+| 3 | Pinch-zoom mobile | 🟢 BASSE | Faible | Amélioration lightbox |
+| 4 | Packs thématiques (P4) | 🟢 BASSE | Haute | Non prioritaire |
 
 ---
 

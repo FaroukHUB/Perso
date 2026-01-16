@@ -14,6 +14,7 @@ require_once __DIR__ . '/../app/models/CustomizationOption.php';
 require_once __DIR__ . '/../app/models/Font.php';
 require_once __DIR__ . '/../app/models/ProductPrintZone.php';
 require_once __DIR__ . '/../app/models/ProductColor.php';
+require_once __DIR__ . '/../app/models/ProductColorImage.php';
 
 // Récupération du produit
 $productId = (int) get('id', 0);
@@ -34,16 +35,30 @@ $sizesFromDb = $optionModel->getSizes();
 $textColorsFromDb = $optionModel->getTextColors();
 $techniquesFromDb = $optionModel->getTechniques();
 
-// Couleurs du produit (priorité aux couleurs spécifiques du produit)
+// Couleurs du produit avec images (nouveau système prioritaire)
+$productColorImageModel = new ProductColorImage();
+$colorVariants = $productColorImageModel->findByProduct($productId);
+$hasColorVariants = !empty($colorVariants);
+
+// Couleurs du produit (ancien système - fallback)
 $productColorModel = new ProductColor();
 $productColorsFromDb = $productColorModel->findByProduct($productId);
 
-// Si le produit a des couleurs spécifiques, les utiliser; sinon, utiliser les couleurs globales
-if (!empty($productColorsFromDb)) {
+// Détermine quel système de couleurs utiliser
+if ($hasColorVariants) {
+    // Nouveau système : variantes couleur avec images
+    $colorsFromDb = $colorVariants;
+    $usingColorVariants = true;
+    $usingProductColors = true;
+} elseif (!empty($productColorsFromDb)) {
+    // Ancien système : couleurs produit sans images
     $colorsFromDb = $productColorsFromDb;
+    $usingColorVariants = false;
     $usingProductColors = true;
 } else {
+    // Fallback : couleurs globales
     $colorsFromDb = $optionModel->getColors();
+    $usingColorVariants = false;
     $usingProductColors = false;
 }
 
@@ -53,15 +68,37 @@ $fontsFromDb = $fontModel->findActive();
 
 // Fallback si la table n'existe pas encore
 $sizes = !empty($sizesFromDb) ? array_column($sizesFromDb, 'value') : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+// Construction du tableau des couleurs avec support des images par variante
 $colors = [];
+$colorImages = []; // Pour stocker les images de chaque variante
+$defaultColorKey = null;
+
 if (!empty($colorsFromDb)) {
     foreach ($colorsFromDb as $c) {
-        // Support des deux formats (product_colors et customization_options)
+        // Support des trois formats (product_color_images, product_colors, customization_options)
         $colorName = $c['color_name'] ?? $c['value'] ?? 'unknown';
         $colors[$colorName] = $c['hex_code'] ?? '#CCCCCC';
+
+        // Si c'est une variante avec images
+        if ($hasColorVariants) {
+            $colorImages[$colorName] = [
+                'front' => !empty($c['image_front_url']) ? '/public' . $c['image_front_url'] : '',
+                'back' => !empty($c['image_back_url']) ? '/public' . $c['image_back_url'] : '',
+            ];
+            // Marquer le défaut
+            if (!empty($c['is_default'])) {
+                $defaultColorKey = $colorName;
+            }
+        }
     }
 } else {
     $colors = ['blanc' => '#FFFFFF', 'noir' => '#1A1A2E', 'rose' => '#FF69B4', 'menthe' => '#3DFFC0', 'bleu' => '#4A90D9', 'gris' => '#6B7280'];
+}
+
+// Si pas de couleur par défaut explicite, prendre la première
+if ($hasColorVariants && !$defaultColorKey && !empty($colors)) {
+    $defaultColorKey = array_key_first($colors);
 }
 
 // Adapter les polices au format attendu par le template
@@ -900,14 +937,33 @@ $cartCount = Cart::count();
                         <div class="customization-section">
                             <h3 class="section-title">Couleur du produit</h3>
                             <div class="color-options">
-                                <?php foreach ($colors as $name => $hex): ?>
-                                    <label class="color-option <?= $name === 'blanc' ? 'selected' : '' ?>"
-                                           style="background-color: <?= $hex ?>; <?= $name === 'blanc' ? 'border: 1px solid #ddd;' : '' ?>"
+                                <?php
+                                $firstColor = true;
+                                foreach ($colors as $name => $hex):
+                                    // Détermine si cette couleur est sélectionnée par défaut
+                                    $isDefault = ($hasColorVariants && $defaultColorKey)
+                                        ? ($name === $defaultColorKey)
+                                        : $firstColor;
+
+                                    // Récupère les images de cette variante si disponibles
+                                    $imgFront = $colorImages[$name]['front'] ?? '';
+                                    $imgBack = $colorImages[$name]['back'] ?? '';
+                                ?>
+                                    <label class="color-option <?= $isDefault ? 'selected' : '' ?>"
+                                           style="background-color: <?= $hex ?>; <?= strtolower($hex) === '#ffffff' ? 'border: 1px solid #ddd;' : '' ?>"
                                            title="<?= ucfirst($name) ?>"
-                                           data-color="<?= $hex ?>">
-                                        <input type="radio" name="color" value="<?= $name ?>" <?= $name === 'blanc' ? 'checked' : '' ?>>
+                                           data-color="<?= $hex ?>"
+                                           data-color-name="<?= h($name) ?>"
+                                           <?php if ($hasColorVariants && $imgFront): ?>
+                                           data-image-front="<?= h($imgFront) ?>"
+                                           data-image-back="<?= h($imgBack) ?>"
+                                           <?php endif; ?>>
+                                        <input type="radio" name="color" value="<?= $name ?>" <?= $isDefault ? 'checked' : '' ?>>
                                     </label>
-                                <?php endforeach; ?>
+                                <?php
+                                    $firstColor = false;
+                                endforeach;
+                                ?>
                             </div>
                         </div>
 
@@ -1238,11 +1294,30 @@ $cartCount = Cart::count();
                 previewText.style.color = firstTextColor.dataset.color;
             }
 
-            // Color preview (couleur du produit)
+            // Color preview (couleur du produit + images par variante)
             document.querySelectorAll('.color-option').forEach(option => {
                 option.addEventListener('click', function() {
                     const color = this.dataset.color;
-                    productPreview.style.backgroundColor = color === '#FFFFFF' ? '#f8f8f8' : color;
+                    const imageFront = this.dataset.imageFront;
+                    const imageBack = this.dataset.imageBack;
+
+                    // Si cette variante a des images, les utiliser
+                    if (imageFront && previewImage) {
+                        previewImage.src = imageFront;
+                        previewImage.dataset.front = imageFront;
+                        if (imageBack) {
+                            previewImage.dataset.back = imageBack;
+                        }
+                        // Reset sur la vue "front" quand on change de couleur
+                        if (currentView === 'back' && imageBack) {
+                            previewImage.src = imageBack;
+                        }
+                        // Pas de changement de fond si on a une vraie image
+                        productPreview.style.backgroundColor = '';
+                    } else {
+                        // Fallback : simuler la couleur avec le fond
+                        productPreview.style.backgroundColor = color === '#FFFFFF' ? '#f8f8f8' : color;
+                    }
                 });
             });
 
