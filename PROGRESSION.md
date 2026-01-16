@@ -214,10 +214,21 @@ CREATE TABLE product_colors (
 | Tâche | Statut | Notes |
 |-------|--------|-------|
 | Audit complet vs prompt | ✅ OK | Ce fichier |
-| Architecture images face/dos | ✅ VALIDÉE | En attente implémentation |
-| Architecture couleurs par produit | ✅ VALIDÉE | En attente implémentation |
-| Architecture lightbox | ✅ VALIDÉE | En attente implémentation |
-| Implémentation | ⏳ EN ATTENTE | Validation utilisateur requise |
+| Architecture images face/dos | ✅ VALIDÉE | Implémentée |
+| Architecture couleurs par produit | ✅ VALIDÉE | En attente |
+| Architecture lightbox | ✅ VALIDÉE | En attente |
+
+### 2026-01-16 - Session 8 (IMAGES FACE/DOS)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| SQL migration (image_front_url, image_back_url) | ✅ OK | migrate_images_face_back.sql |
+| Product.php model | ✅ OK | Supporte 2 images |
+| product-form.php (2 uploads) | ✅ OK | Zone Face + Zone Dos |
+| product.php (bascule) | ✅ OK | Boutons Face/Dos, zones distinctes |
+| index.php | ✅ OK | Utilise image_front_url |
+| product-zones.php | ✅ OK | Utilise image_front_url |
+| schema.sql | ✅ OK | Colonnes ajoutées |
 
 ---
 
@@ -225,22 +236,22 @@ CREATE TABLE product_colors (
 
 ### Phase immédiate (HAUTE priorité)
 
-1. **Images face/dos**
-   - [ ] ALTER TABLE products
-   - [ ] Modifier product-form.php (2 uploads)
-   - [ ] Modifier product.php (bascule face/dos)
-   - [ ] Adapter zones d'impression
+1. **Images face/dos** ✅ TERMINÉ
+   - [x] ALTER TABLE products
+   - [x] Modifier product-form.php (2 uploads)
+   - [x] Modifier product.php (bascule face/dos)
+   - [x] Adapter zones d'impression
 
-2. **Options client**
-   - [ ] Couleurs texte dans product.php
-   - [ ] Techniques dans product.php + prix dynamique
-   - [ ] Couleurs par produit (association)
-
-3. **Lightbox**
+2. **Lightbox / Zoom** ⏳ EN COURS
    - [ ] Composant modal réutilisable
    - [ ] Intégration product.php
    - [ ] Intégration cart.php
    - [ ] Intégration admin/order.php
+
+3. **Options client**
+   - [ ] Couleurs texte dans product.php
+   - [ ] Techniques dans product.php + prix dynamique
+   - [ ] Couleurs par produit (association)
 
 ### Phase suivante (MOYENNE priorité)
 
