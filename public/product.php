@@ -65,36 +65,48 @@ if (!empty($fontsFromDb)) {
     ];
 }
 
-// Zone d'impression depuis la base de données
+// Zones d'impression depuis la base de données (front et back)
 $printZoneModel = new ProductPrintZone();
-$dbZone = $printZoneModel->findPrimaryByProduct($productId);
+$allZones = $printZoneModel->findByProduct($productId);
 
-// Utiliser la zone de la DB ou le fallback par défaut
-if ($dbZone) {
-    $printZone = [
-        'id' => (int) $dbZone['id'],
-        'x' => (float) $dbZone['pos_x'],
-        'y' => (float) $dbZone['pos_y'],
-        'width' => (float) $dbZone['width'],
-        'height' => (float) $dbZone['height'],
-        'max_chars' => (int) $dbZone['max_chars'],
-        'max_lines' => (int) $dbZone['max_lines'],
-        'label' => $dbZone['zone_label']
-    ];
-} else {
-    // Fallback par défaut si aucune zone définie
-    $printZone = ProductPrintZone::getDefaultZone();
-    $printZone = [
+// Organiser les zones par vue (front/back)
+$zones = ['front' => null, 'back' => null];
+foreach ($allZones as $z) {
+    $zoneName = strtolower($z['zone_name'] ?? 'front');
+    if (in_array($zoneName, ['front', 'back'])) {
+        $zones[$zoneName] = [
+            'id' => (int) $z['id'],
+            'x' => (float) $z['pos_x'],
+            'y' => (float) $z['pos_y'],
+            'width' => (float) $z['width'],
+            'height' => (float) $z['height'],
+            'max_chars' => (int) $z['max_chars'],
+            'max_lines' => (int) $z['max_lines'],
+            'label' => $z['zone_label']
+        ];
+    }
+}
+
+// Fallback pour la zone front si non définie
+if (!$zones['front']) {
+    $defaultZone = ProductPrintZone::getDefaultZone();
+    $zones['front'] = [
         'id' => 0,
-        'x' => (float) $printZone['pos_x'],
-        'y' => (float) $printZone['pos_y'],
-        'width' => (float) $printZone['width'],
-        'height' => (float) $printZone['height'],
-        'max_chars' => (int) $printZone['max_chars'],
-        'max_lines' => (int) $printZone['max_lines'],
-        'label' => $printZone['zone_label']
+        'x' => (float) $defaultZone['pos_x'],
+        'y' => (float) $defaultZone['pos_y'],
+        'width' => (float) $defaultZone['width'],
+        'height' => (float) $defaultZone['height'],
+        'max_chars' => (int) $defaultZone['max_chars'],
+        'max_lines' => (int) $defaultZone['max_lines'],
+        'label' => $defaultZone['zone_label']
     ];
 }
+
+// Zone active par défaut
+$printZone = $zones['front'];
+
+// Vérifier si le produit a une image dos
+$hasBackImage = !empty($product['image_back_url']);
 
 // Traitement du formulaire d'ajout au panier
 if (isPost() && isset($_POST['add_to_cart'])) {
@@ -113,6 +125,7 @@ if (isPost() && isset($_POST['add_to_cart'])) {
             'color' => post('color', 'blanc'),
             'text' => trim(post('custom_text', '')),
             'font' => post('font', 'Poppins'),
+            'view' => post('view', 'front'),
             'position' => [
                 'x' => round($posX, 1),
                 'y' => round($posY, 1),
@@ -211,6 +224,42 @@ $cartCount = Cart::count();
             text-align: center;
             position: sticky;
             top: 100px;
+        }
+
+        /* View Toggle (Face/Dos) */
+        .view-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        .view-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--radius-full);
+            background: white;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .view-btn:hover {
+            border-color: var(--pink-light);
+            color: var(--pink-main);
+        }
+        .view-btn.active {
+            background: var(--gradient-pink);
+            border-color: transparent;
+            color: white;
+            box-shadow: var(--shadow-pink);
+        }
+        .view-btn .view-icon {
+            font-size: 1.1em;
         }
         .product-preview {
             width: 100%;
@@ -565,6 +614,18 @@ $cartCount = Cart::count();
             <div class="product-grid">
                 <!-- Image / Preview -->
                 <div class="product-image-box">
+                    <?php if ($hasBackImage): ?>
+                    <!-- Bascule Face/Dos -->
+                    <div class="view-toggle">
+                        <button type="button" class="view-btn active" data-view="front" id="btnFront">
+                            <span class="view-icon">👕</span> Face
+                        </button>
+                        <button type="button" class="view-btn" data-view="back" id="btnBack">
+                            <span class="view-icon">🔄</span> Dos
+                        </button>
+                    </div>
+                    <?php endif; ?>
+
                     <div class="product-preview" id="productPreview">
                         <span class="product-category-badge badge badge-pink">
                             <?= h($product['category'] ?? 'Textile') ?>
@@ -576,8 +637,13 @@ $cartCount = Cart::count();
                             <span class="print-zone-label"><?= h($printZone['label'] ?? 'Zone d\'impression') ?></span>
                         </div>
 
-                        <?php if (!empty($product['image_url'])): ?>
-                            <img src="/public<?= h($product['image_url']) ?>" alt="<?= h($product['name']) ?>" class="preview-product-img" id="previewImage">
+                        <?php if (!empty($product['image_front_url'])): ?>
+                            <img src="/public<?= h($product['image_front_url']) ?>"
+                                 alt="<?= h($product['name']) ?> - Face"
+                                 class="preview-product-img"
+                                 id="previewImage"
+                                 data-front="/public<?= h($product['image_front_url']) ?>"
+                                 data-back="<?= !empty($product['image_back_url']) ? '/public' . h($product['image_back_url']) : '' ?>">
                         <?php else: ?>
                             <span class="preview-icon">👕</span>
                         <?php endif; ?>
@@ -622,10 +688,11 @@ $cartCount = Cart::count();
                         <?= csrfField() ?>
                         <input type="hidden" name="add_to_cart" value="1">
 
-                        <!-- Position (hidden - set by drag & drop) -->
+                        <!-- Position et vue (hidden - set by drag & drop / toggle) -->
                         <input type="hidden" name="position_x" id="positionX" value="50">
                         <input type="hidden" name="position_y" id="positionY" value="50">
                         <input type="hidden" name="position_zone_id" id="positionZoneId" value="<?= $printZone['id'] ?>">
+                        <input type="hidden" name="view" id="viewInput" value="front">
 
                         <!-- Taille -->
                         <div class="customization-section">
@@ -725,16 +792,18 @@ $cartCount = Cart::count();
             const customText = document.getElementById('customText');
             const positionXInput = document.getElementById('positionX');
             const positionYInput = document.getElementById('positionY');
+            const viewInput = document.getElementById('viewInput');
+            const previewImage = document.getElementById('previewImage');
 
-            // === ZONE D'IMPRESSION (en % du preview) ===
-            const zone = {
-                x: <?= $printZone['x'] ?>,
-                y: <?= $printZone['y'] ?>,
-                width: <?= $printZone['width'] ?>,
-                height: <?= $printZone['height'] ?>,
-                maxChars: <?= $printZone['max_chars'] ?? 50 ?>,
-                maxLines: <?= $printZone['max_lines'] ?? 3 ?>
+            // === ZONES D'IMPRESSION (front et back) ===
+            const zones = {
+                front: <?= json_encode($zones['front']) ?>,
+                back: <?= $zones['back'] ? json_encode($zones['back']) : 'null' ?>
             };
+
+            // === ÉTAT ACTUEL ===
+            let currentView = 'front';
+            let zone = zones.front;
 
             // === ÉTAT DU DRAG ===
             let isDragging = false;
@@ -747,6 +816,48 @@ $cartCount = Cart::count();
 
             // Appliquer position initiale
             updateTextPosition();
+
+            // === GESTION BASCULE FACE/DOS ===
+            const btnFront = document.getElementById('btnFront');
+            const btnBack = document.getElementById('btnBack');
+
+            function switchView(view) {
+                if (view === currentView) return;
+                if (view === 'back' && !zones.back) return;
+
+                currentView = view;
+                zone = zones[view] || zones.front;
+
+                // Update hidden input
+                viewInput.value = view;
+
+                // Update buttons
+                if (btnFront && btnBack) {
+                    btnFront.classList.toggle('active', view === 'front');
+                    btnBack.classList.toggle('active', view === 'back');
+                }
+
+                // Update image
+                if (previewImage) {
+                    const imgSrc = view === 'front' ? previewImage.dataset.front : previewImage.dataset.back;
+                    if (imgSrc) previewImage.src = imgSrc;
+                }
+
+                // Update print zone overlay
+                printZone.style.left = zone.x + '%';
+                printZone.style.top = zone.y + '%';
+                printZone.style.width = zone.width + '%';
+                printZone.style.height = zone.height + '%';
+                printZone.querySelector('.print-zone-label').textContent = zone.label || 'Zone d\'impression';
+
+                // Reset text position to center of new zone
+                currentX = zone.x + (zone.width / 2);
+                currentY = zone.y + (zone.height / 2);
+                updateTextPosition();
+            }
+
+            if (btnFront) btnFront.addEventListener('click', () => switchView('front'));
+            if (btnBack) btnBack.addEventListener('click', () => switchView('back'));
 
             // === FONCTIONS UTILITAIRES ===
 

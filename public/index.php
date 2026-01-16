@@ -485,8 +485,8 @@ $products = $productModel->findActive();
                                 <span class="product-category badge badge-pink">
                                     <?= h($product['category'] ?? 'Textile') ?>
                                 </span>
-                                <?php if (!empty($product['image_url'])): ?>
-                                    <img src="/public<?= h($product['image_url']) ?>" alt="<?= h($product['name']) ?>">
+                                <?php if (!empty($product['image_front_url'])): ?>
+                                    <img src="/public<?= h($product['image_front_url']) ?>" alt="<?= h($product['name']) ?>">
                                 <?php endif; ?>
                             </div>
                             <div class="product-info">

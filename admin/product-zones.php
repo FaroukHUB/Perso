@@ -312,8 +312,8 @@ if ($editId) {
             <div class="zone-preview-container">
                 <h3 style="margin-bottom: 15px;">Aperçu des zones</h3>
                 <div class="zone-preview" id="zonePreview">
-                    <?php if (!empty($product['image_url'])): ?>
-                        <img src="/public<?= h($product['image_url']) ?>" alt="<?= h($product['name']) ?>">
+                    <?php if (!empty($product['image_front_url'])): ?>
+                        <img src="/public<?= h($product['image_front_url']) ?>" alt="<?= h($product['name']) ?>">
                     <?php else: ?>
                         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; opacity: 0.3;">👕</div>
                     <?php endif; ?>
