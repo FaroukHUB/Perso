@@ -21,83 +21,73 @@
 
 **Date dernière mise à jour** : 2026-01-16
 
-**Phase actuelle** : RECADRAGE VISION PRODUIT
+**Phase actuelle** : P1 - POLICES ADMINISTRABLES
 
-**Statut global** : 🟡 Pause - Validation architecture requise
+**Statut global** : 🟢 Architecture validée - En attente validation SQL
 
 ---
 
-## ⚠️ RECADRAGE 2026-01-16
+## ✅ DÉCISION ARCHITECTURE - 2026-01-16
 
-### Problème identifié
+### Architecture validée
 
-L'implémentation actuelle (6 polices fixes, preview basique) ne correspond pas à la vision produit PERSONNALY :
+| Composant | Décision |
+|-----------|----------|
+| **Polices** | Table `fonts` avec Google Fonts (family+weights) + upload custom (.woff2) |
+| **Import dynamique** | `google_import_url` générée automatiquement, jamais saisie |
+| **Zones d'impression** | Table `product_print_zones` avec positions en %, contraintes, polices autorisées |
+| **Packs thématiques** | P4 (après polices, preview, zones) |
 
-| Aspect | Implémentation actuelle | Vision attendue |
-|--------|-------------------------|-----------------|
-| Polices | 6 polices codées en dur dans head | Admin configure via Google Fonts + upload custom |
-| Options | Système basique (taille/couleur) | Moteur extensible + packs thématiques |
-| Preview | Texte sur fond coloré | Rendu métier (position réelle, simulation textile) |
+### Contraintes MVP obligatoires
 
-### Vision PERSONNALY confirmée
+1. **Pas d'API Google Fonts** - Admin saisit family + weights manuellement
+2. **Upload .woff2 uniquement** (.woff en fallback optionnel)
+3. **css_key unique** - Généré automatiquement, non éditable
+4. **google_import_url** - Générée automatiquement si source=google
+5. **allowed_fonts JSON** - NULL = toutes polices, sinon liste des font_id
 
-PERSONNALY doit être un **moteur de personnalisation**, pas un simple formulaire :
+### Priorités MVP (ordre obligatoire)
 
-1. **Polices administrables** : Google Fonts (recherche/sélection) + upload custom
-2. **Packs thématiques** : Collections culturelles/événementielles (Aïd, Mariage, Sport...)
-3. **Preview métier** : Rendu réaliste, zones d'impression, lisibilité
-4. **Aucune limite arbitraire** : Pas de "6 polices max" codé en dur
+| Priorité | Composant | Description |
+|----------|-----------|-------------|
+| **P1** | Polices | Table fonts + admin + loader CSS dynamique |
+| **P2** | Preview | Image produit + overlay texte positionné |
+| **P3** | Zones | Table product_print_zones + admin par produit |
+| **P4** | Packs v1 | CRUD packs + affectation produit |
 
-### Architecture proposée (en attente de validation)
-
-#### Tables à créer
+### Tables SQL à créer
 
 ```
 fonts
-├── id, name, family, source (google/custom)
-├── file_url, google_import, category
-└── active, sort_order
+├── id, name, family, css_key (UNIQUE, auto-généré)
+├── source (google/custom)
+├── google_weights, google_import_url (auto-générée)
+├── custom_woff2_url, custom_woff_url
+├── category (sans-serif, serif, script, display, handwriting)
+└── active, sort_order, created_at, updated_at
 
-theme_packs
-├── id, name, slug, description, icon
-└── active, sort_order
-
-theme_pack_items
-├── pack_id, type (font/color/text_suggestion)
-└── value, label
-
-product_print_zones (futur)
-├── product_id, zone_name, x, y, width, height
-└── max_chars, allowed_fonts
+product_print_zones
+├── id, product_id (FK products)
+├── zone_name, zone_label
+├── pos_x, pos_y, width, height (en %)
+├── max_chars, max_lines
+├── default_font_id (FK fonts), allowed_fonts (JSON)
+└── active, sort_order, created_at
 ```
 
-#### Workflow admin polices
+### Vision produit (rappel permanent)
 
-1. Admin recherche dans Google Fonts (liste préchargée ou API)
-2. OU Admin uploade une police custom (.woff2, .ttf)
-3. Admin catégorise (Élégant, Moderne, Fun, Script...)
-4. Admin active/désactive selon besoins
+**PERSONNALY EST** :
+- Un moteur de personnalisation modulaire
+- Des polices administrables (pas codées en dur)
+- Des zones d'impression métier
+- Une preview évolutive réaliste
+- Une base scalable PHP/MySQL sur o2switch
 
-#### Workflow packs thématiques
-
-1. Admin crée un pack (ex: "Aïd Mubarak")
-2. Admin associe : polices recommandées + couleurs + textes suggérés
-3. Client voit le pack comme raccourci de personnalisation
-
-#### Preview évolutive
-
-- Phase 1 : Texte sur fond (actuel)
-- Phase 2 : Overlay sur image produit avec position
-- Phase 3 : Canvas avec simulation textile
-- Phase 4 : Mockup 3D (optionnel)
-
-### Prochaine action
-
-**ATTENTE VALIDATION** avant tout code :
-- [ ] Validation architecture polices
-- [ ] Validation architecture packs
-- [ ] Définition scope Phase 1 (MVP)
-- [ ] Priorités : Polices ? Packs ? Preview ?
+**PERSONNALY N'EST PAS** :
+- Un formulaire figé
+- Un choix de X polices codées en dur
+- Une preview cosmétique basique
 
 ---
 
