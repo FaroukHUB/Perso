@@ -21,9 +21,9 @@
 
 **Date dernière mise à jour** : 2026-01-16
 
-**Phase actuelle** : RECADRAGE - Alignement vision PERSONNALY
+**Phase actuelle** : RECADRAGE TERMINÉ - Toutes les priorités HAUTE complétées
 
-**Statut global** : 🟡 EN COURS - Audit et architecture validés, implémentation en attente
+**Statut global** : 🟢 COMPLET - Phase haute priorité terminée, prêt pour déploiement
 
 ---
 
@@ -57,12 +57,12 @@
 | **Gestion clients admin** | ✅ OK | Liste, fiche, historique |
 | **Emails transactionnels** | ✅ OK | Confirmation + notification admin |
 | **Panier + Checkout** | ✅ OK | Fonctionnels |
-| **Images face/dos** | ❌ NON | 1 seule image actuellement |
-| **Couleurs par produit** | ❌ NON | Couleurs globales seulement |
-| **Couleurs texte client** | ❌ NON | Admin OK, pas affiché client |
-| **Techniques client** | ❌ NON | Admin OK, pas affiché client |
-| **Zoom/lightbox images** | ❌ NON | Pas implémenté |
-| **Preview fidèle panier** | ⚠️ PARTIEL | Texte affiché, pas de zoom |
+| **Images face/dos** | ✅ OK | Face + Dos + bascule client |
+| **Couleurs par produit** | ✅ OK | Table product_colors + admin |
+| **Couleurs texte client** | ✅ OK | 6 couleurs + preview temps réel |
+| **Techniques client** | ✅ OK | Flex/Flock/Broderie + prix |
+| **Zoom/lightbox images** | ✅ OK | Composant réutilisable |
+| **Preview fidèle panier** | ✅ OK | Lightbox + texte personnalisé |
 | **Packs thématiques** | ❌ NON | P4 non commencé |
 
 ### Ce qui est FAIT ✅
@@ -92,22 +92,22 @@
 
 | Élément | Admin | Client |
 |---------|-------|--------|
-| Couleurs texte | ✅ OK | ❌ NON |
-| Techniques perso | ✅ OK | ❌ NON |
-| Preview panier | - | ⚠️ Basique |
+| Couleurs texte | ✅ OK | ✅ OK |
+| Techniques perso | ✅ OK | ✅ OK |
+| Preview panier | - | ✅ OK (Lightbox) |
 
 ### Ce qui reste à faire ❌
 
 | # | Tâche | Priorité | Complexité |
 |---|-------|----------|------------|
-| 1 | Images face/dos produit | HAUTE | Moyenne |
-| 2 | Bascule Face/Dos côté client | HAUTE | Moyenne |
-| 3 | Zones d'impression par vue (front/back) | HAUTE | Faible (déjà prévu) |
-| 4 | Couleurs par produit (association) | HAUTE | Moyenne |
-| 5 | Couleurs texte côté client | HAUTE | Faible |
-| 6 | Techniques côté client + prix | HAUTE | Moyenne |
-| 7 | Lightbox/zoom (produit, panier, admin) | HAUTE | Moyenne |
-| 8 | Mise à jour preview panier fidèle | HAUTE | Moyenne |
+| ~~1~~ | ~~Images face/dos produit~~ | ~~HAUTE~~ | ✅ TERMINÉ |
+| ~~2~~ | ~~Bascule Face/Dos côté client~~ | ~~HAUTE~~ | ✅ TERMINÉ |
+| ~~3~~ | ~~Zones d'impression par vue~~ | ~~HAUTE~~ | ✅ TERMINÉ |
+| ~~4~~ | ~~Couleurs par produit~~ | ~~HAUTE~~ | ✅ TERMINÉ |
+| ~~5~~ | ~~Couleurs texte côté client~~ | ~~HAUTE~~ | ✅ TERMINÉ |
+| ~~6~~ | ~~Techniques côté client + prix~~ | ~~HAUTE~~ | ✅ TERMINÉ |
+| ~~7~~ | ~~Lightbox/zoom~~ | ~~HAUTE~~ | ✅ TERMINÉ |
+| ~~8~~ | ~~Preview panier fidèle~~ | ~~HAUTE~~ | ✅ TERMINÉ |
 | 9 | Packs thématiques (P4) | BASSE | Haute |
 
 ---
@@ -230,11 +230,27 @@ CREATE TABLE product_colors (
 | product-zones.php | ✅ OK | Utilise image_front_url |
 | schema.sql | ✅ OK | Colonnes ajoutées |
 
+### 2026-01-16 - Session 9 (RECADRAGE COMPLET)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Fix upload image dos | ✅ OK | Création dossier + vérification retour |
+| Composant Lightbox | ✅ OK | lightbox.js réutilisable |
+| Lightbox product.php | ✅ OK | Bouton zoom + preview |
+| Lightbox cart.php | ✅ OK | Images cliquables |
+| Lightbox admin/order.php | ✅ OK | Images cliquables |
+| Couleurs texte client | ✅ OK | 6 couleurs avec preview |
+| Techniques client | ✅ OK | Flex/Flock/Broderie |
+| Table product_colors | ✅ OK | migrate_product_colors.sql |
+| Modèle ProductColor | ✅ OK | CRUD complet |
+| Interface admin couleurs | ✅ OK | Ajout/suppression dynamique |
+| product.php couleurs produit | ✅ OK | Priorité couleurs spécifiques |
+
 ---
 
 ## Prochaines Étapes (ordre validé)
 
-### Phase immédiate (HAUTE priorité)
+### Phase immédiate (HAUTE priorité) ✅ TERMINÉ
 
 1. **Images face/dos** ✅ TERMINÉ
    - [x] ALTER TABLE products
@@ -242,16 +258,23 @@ CREATE TABLE product_colors (
    - [x] Modifier product.php (bascule face/dos)
    - [x] Adapter zones d'impression
 
-2. **Lightbox / Zoom** ⏳ EN COURS
-   - [ ] Composant modal réutilisable
-   - [ ] Intégration product.php
-   - [ ] Intégration cart.php
-   - [ ] Intégration admin/order.php
+2. **Lightbox / Zoom** ✅ TERMINÉ
+   - [x] Composant modal réutilisable (lightbox.js)
+   - [x] Intégration product.php (bouton zoom)
+   - [x] Intégration cart.php (images cliquables)
+   - [x] Intégration admin/order.php (images cliquables)
 
-3. **Options client**
-   - [ ] Couleurs texte dans product.php
-   - [ ] Techniques dans product.php + prix dynamique
-   - [ ] Couleurs par produit (association)
+3. **Couleurs texte + Techniques** ✅ TERMINÉ
+   - [x] Couleurs texte dans product.php (6 options)
+   - [x] Techniques dans product.php (Flex, Flock, Broderie)
+   - [x] Preview temps réel de la couleur du texte
+   - [x] Ombres adaptatives pour lisibilité
+
+4. **Couleurs par produit** ✅ TERMINÉ
+   - [x] Table product_colors (migration SQL)
+   - [x] Modèle ProductColor.php
+   - [x] Interface admin dans product-form.php
+   - [x] product.php utilise couleurs spécifiques si définies
 
 ### Phase suivante (MOYENNE priorité)
 
