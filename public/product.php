@@ -12,6 +12,7 @@ require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/CustomizationOption.php';
 require_once __DIR__ . '/../app/models/Font.php';
+require_once __DIR__ . '/../app/models/ProductPrintZone.php';
 
 // Récupération du produit
 $productId = (int) get('id', 0);
@@ -64,15 +65,36 @@ if (!empty($fontsFromDb)) {
     ];
 }
 
-// Zone d'impression par défaut (sera remplacée par product_print_zones en P3)
-// Coordonnées en % du preview
-$printZone = [
-    'id' => 1,
-    'x' => 15,      // 15% depuis la gauche
-    'y' => 25,      // 25% depuis le haut
-    'width' => 70,  // 70% de largeur
-    'height' => 50  // 50% de hauteur
-];
+// Zone d'impression depuis la base de données
+$printZoneModel = new ProductPrintZone();
+$dbZone = $printZoneModel->findPrimaryByProduct($productId);
+
+// Utiliser la zone de la DB ou le fallback par défaut
+if ($dbZone) {
+    $printZone = [
+        'id' => (int) $dbZone['id'],
+        'x' => (float) $dbZone['pos_x'],
+        'y' => (float) $dbZone['pos_y'],
+        'width' => (float) $dbZone['width'],
+        'height' => (float) $dbZone['height'],
+        'max_chars' => (int) $dbZone['max_chars'],
+        'max_lines' => (int) $dbZone['max_lines'],
+        'label' => $dbZone['zone_label']
+    ];
+} else {
+    // Fallback par défaut si aucune zone définie
+    $printZone = ProductPrintZone::getDefaultZone();
+    $printZone = [
+        'id' => 0,
+        'x' => (float) $printZone['pos_x'],
+        'y' => (float) $printZone['pos_y'],
+        'width' => (float) $printZone['width'],
+        'height' => (float) $printZone['height'],
+        'max_chars' => (int) $printZone['max_chars'],
+        'max_lines' => (int) $printZone['max_lines'],
+        'label' => $printZone['zone_label']
+    ];
+}
 
 // Traitement du formulaire d'ajout au panier
 if (isPost() && isset($_POST['add_to_cart'])) {
@@ -551,7 +573,7 @@ $cartCount = Cart::count();
                         <!-- Zone d'impression (overlay visuel) -->
                         <div class="print-zone-overlay" id="printZone"
                              style="left: <?= $printZone['x'] ?>%; top: <?= $printZone['y'] ?>%; width: <?= $printZone['width'] ?>%; height: <?= $printZone['height'] ?>%;">
-                            <span class="print-zone-label">Zone d'impression</span>
+                            <span class="print-zone-label"><?= h($printZone['label'] ?? 'Zone d\'impression') ?></span>
                         </div>
 
                         <?php if (!empty($product['image_url'])): ?>
@@ -641,7 +663,7 @@ $cartCount = Cart::count();
                                    id="customText"
                                    class="custom-text-input"
                                    placeholder="Ex: Famille Dupont, Team Papa..."
-                                   maxlength="50">
+                                   maxlength="<?= $printZone['max_chars'] ?? 50 ?>">
                         </div>
 
                         <!-- Police -->
@@ -709,7 +731,9 @@ $cartCount = Cart::count();
                 x: <?= $printZone['x'] ?>,
                 y: <?= $printZone['y'] ?>,
                 width: <?= $printZone['width'] ?>,
-                height: <?= $printZone['height'] ?>
+                height: <?= $printZone['height'] ?>,
+                maxChars: <?= $printZone['max_chars'] ?? 50 ?>,
+                maxLines: <?= $printZone['max_lines'] ?? 3 ?>
             };
 
             // === ÉTAT DU DRAG ===

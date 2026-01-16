@@ -218,6 +218,25 @@ if (isPost()) {
                                     Formats: JPG, PNG, WebP, GIF (max 5 Mo)
                                 </p>
                             </div>
+
+                            <?php if ($isEdit): ?>
+                            <div class="form-group" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                                <label class="form-label">Zone d'impression</label>
+                                <a href="/admin/product-zones.php?product_id=<?= $id ?>" class="btn btn-outline" style="width: 100%;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="9" y1="3" x2="9" y2="21"/>
+                                        <line x1="15" y1="3" x2="15" y2="21"/>
+                                        <line x1="3" y1="9" x2="21" y2="9"/>
+                                        <line x1="3" y1="15" x2="21" y2="15"/>
+                                    </svg>
+                                    Gérer les zones d'impression
+                                </a>
+                                <p class="text-muted" style="font-size: 12px; margin-top: 8px;">
+                                    Définissez où le texte peut être placé sur le produit
+                                </p>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 

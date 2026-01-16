@@ -21,9 +21,9 @@
 
 **Date dernière mise à jour** : 2026-01-16
 
-**Phase actuelle** : P2 - PREVIEW DRAG & DROP
+**Phase actuelle** : P3 - ZONES D'IMPRESSION
 
-**Statut global** : 🟢 P2 COMPLÉTÉ - Drag & drop contraint fonctionnel
+**Statut global** : 🟢 P3 COMPLÉTÉ - Zones administrables par produit
 
 ---
 
@@ -195,6 +195,16 @@ product_print_zones
 | Indication UX | ✅ OK | "Déplacez le texte pour ajuster sa position" |
 | Ajustement taille texte | ✅ OK | Réduction auto si texte > 20/30 caractères |
 
+### 2026-01-16 - Session 5 (P3 - Zones d'impression)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Model ProductPrintZone | ✅ OK | CRUD + findPrimaryByProduct + getDefaultZone |
+| Page admin product-zones.php | ✅ OK | Gestion zones par produit, preview visuel |
+| Lien dans product-form | ✅ OK | Bouton "Gérer les zones d'impression" |
+| Intégration frontend | ✅ OK | Chargement zone depuis DB, fallback par défaut |
+| Contraintes max_chars/max_lines | ✅ OK | maxlength dynamique sur input texte |
+
 ---
 
 ## Design System
@@ -224,6 +234,7 @@ product_print_zones
 | Commandes | /admin/orders.php | Liste, filtres, changer statut |
 | Détail commande | /admin/order.php?id=X | Items, personnalisations, client, statut |
 | **Polices** | /admin/fonts.php | CRUD Google/Custom, preview, toggle actif |
+| **Zones** | /admin/product-zones.php?product_id=X | Zones d'impression par produit |
 | Options | /admin/options.php | Tailles, couleurs, positions |
 | Clients | /admin/customers.php | Liste des clients inscrits |
 | Fiche client | /admin/customer.php?id=X | Stats, infos, historique commandes |
@@ -253,10 +264,13 @@ product_print_zones
 - [x] Indication utilisateur "Déplacez le texte"
 - [x] Ajustement taille texte selon longueur
 
-### P3 - Zones d'impression
-- [ ] Admin zones par produit (product_print_zones)
-- [ ] Positions %, contraintes (max_chars, max_lines)
-- [ ] Polices autorisées par zone
+### P3 - Zones d'impression ✅ COMPLÉTÉ
+- [x] Admin zones par produit (product_print_zones)
+- [x] Positions %, contraintes (max_chars, max_lines)
+- [x] Model ProductPrintZone.php avec CRUD complet
+- [x] Lien "Gérer zones" dans product-form.php
+- [x] Chargement dynamique zone dans product.php
+- [ ] Polices autorisées par zone (P3.1 - optionnel)
 
 ### P4 - Packs thématiques v1
 - [ ] Table packs + CRUD admin
@@ -299,7 +313,8 @@ product_print_zones
 │   │   ├── Product.php
 │   │   ├── Order.php
 │   │   ├── CustomizationOption.php  ← Options admin
-│   │   └── Font.php           ← CRUD polices + auto-génération
+│   │   ├── Font.php           ← CRUD polices + auto-génération
+│   │   └── ProductPrintZone.php ← Zones d'impression par produit
 │   └── helpers/
 │       ├── functions.php
 │       ├── Cart.php           ← Gestion panier session
@@ -314,6 +329,7 @@ product_print_zones
 │   ├── orders.php             ← Gestion commandes
 │   ├── order.php              ← Détail commande
 │   ├── fonts.php              ← Gestion polices (Google + Custom)
+│   ├── product-zones.php      ← Zones d'impression par produit
 │   ├── customers.php          ← Liste clients
 │   ├── customer.php           ← Fiche client
 │   ├── options.php            ← Gestion tailles/couleurs/positions
