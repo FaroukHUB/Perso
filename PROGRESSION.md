@@ -23,7 +23,7 @@
 
 **Phase actuelle** : P2 - PREVIEW DRAG & DROP
 
-**Statut global** : 🟡 P2 EN REFONTE - Passage au drag & drop contraint
+**Statut global** : 🟢 P2 COMPLÉTÉ - Drag & drop contraint fonctionnel
 
 ---
 
@@ -185,13 +185,15 @@ product_print_zones
 
 | Tâche | Statut | Notes |
 |-------|--------|-------|
-| Supprimer pos-centre/gauche/droite | ⏳ À FAIRE | Nettoyer l'ancienne approche |
-| Overlay zone d'impression | ⏳ À FAIRE | Bordure pointillée sur la zone |
-| Drag & drop souris | ⏳ À FAIRE | mousedown/mousemove/mouseup |
-| Drag & drop tactile | ⏳ À FAIRE | touchstart/touchmove/touchend |
-| Contrainte dans la zone | ⏳ À FAIRE | Math.max/min sur les limites |
-| Stockage {x, y, zone_id} | ⏳ À FAIRE | Hidden inputs + data_json |
-| Indication UX | ⏳ À FAIRE | "Déplacez le texte" |
+| Supprimer pos-centre/gauche/droite | ✅ OK | Ancien système entièrement supprimé |
+| Overlay zone d'impression | ✅ OK | Bordure pointillée + label "Zone d'impression" |
+| Drag & drop souris | ✅ OK | mousedown/mousemove/mouseup |
+| Drag & drop tactile | ✅ OK | touchstart/touchmove/touchend (prioritaire) |
+| Contrainte dans la zone | ✅ OK | Math.max/min sur les limites zone |
+| Stockage {x, y, zone_id} | ✅ OK | Hidden inputs + position objet dans data_json |
+| Position par défaut | ✅ OK | Centre de la zone d'impression |
+| Indication UX | ✅ OK | "Déplacez le texte pour ajuster sa position" |
+| Ajustement taille texte | ✅ OK | Réduction auto si texte > 20/30 caractères |
 
 ---
 
@@ -240,14 +242,16 @@ product_print_zones
 
 ## Prochaines Étapes
 
-### P2 - Preview Drag & Drop 🔄 EN REFONTE
+### P2 - Preview Drag & Drop ✅ COMPLÉTÉ
 - [x] ~~Positions prédéfinies (centre/gauche/droite)~~ **ABANDONNÉ** - UX inadaptée
-- [ ] Drag & drop souris (desktop)
-- [ ] Drag & drop tactile (mobile)
-- [ ] Zone d'impression visuelle (overlay pointillé)
-- [ ] Contrainte du texte dans la zone
-- [ ] Stockage position en % : `{ "x": 48.2, "y": 55.7, "zone_id": 1 }`
-- [ ] Indication utilisateur "Déplacez le texte"
+- [x] Drag & drop souris (desktop)
+- [x] Drag & drop tactile (mobile) - **Prioritaire**
+- [x] Zone d'impression visuelle (overlay pointillé)
+- [x] Contrainte du texte dans la zone
+- [x] Stockage position en % : `{ "x": 48.2, "y": 55.7, "zone_id": 1 }`
+- [x] Position par défaut intelligente (centre de la zone)
+- [x] Indication utilisateur "Déplacez le texte"
+- [x] Ajustement taille texte selon longueur
 
 ### P3 - Zones d'impression
 - [ ] Admin zones par produit (product_print_zones)

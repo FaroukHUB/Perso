@@ -2,6 +2,7 @@
 /**
  * PERSONNALY - Page Produit avec Personnalisation
  * Design: Ultra-moderne • Girly • Rose + Vert Menthe + Noir
+ * P2: Drag & Drop contraint à la zone d'impression
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
@@ -29,7 +30,6 @@ $error = '';
 $optionModel = new CustomizationOption();
 $sizesFromDb = $optionModel->getSizes();
 $colorsFromDb = $optionModel->getColors();
-$positionsFromDb = $optionModel->getPositions();
 
 // Polices depuis la nouvelle table fonts (système administrable)
 $fontModel = new Font();
@@ -45,7 +45,6 @@ if (!empty($colorsFromDb)) {
 } else {
     $colors = ['blanc' => '#FFFFFF', 'noir' => '#1A1A2E', 'rose' => '#FF69B4', 'menthe' => '#3DFFC0', 'bleu' => '#4A90D9', 'gris' => '#6B7280'];
 }
-$positions = !empty($positionsFromDb) ? array_column($positionsFromDb, 'value') : ['centre', 'gauche', 'droite', 'dos'];
 
 // Adapter les polices au format attendu par le template
 $fonts = [];
@@ -65,15 +64,38 @@ if (!empty($fontsFromDb)) {
     ];
 }
 
+// Zone d'impression par défaut (sera remplacée par product_print_zones en P3)
+// Coordonnées en % du preview
+$printZone = [
+    'id' => 1,
+    'x' => 15,      // 15% depuis la gauche
+    'y' => 25,      // 25% depuis le haut
+    'width' => 70,  // 70% de largeur
+    'height' => 50  // 50% de hauteur
+];
+
 // Traitement du formulaire d'ajout au panier
 if (isPost() && isset($_POST['add_to_cart'])) {
     if (verifyCsrf($_POST['csrf_token'] ?? '')) {
+        // Récupérer la position en % (drag & drop)
+        $posX = (float) post('position_x', 50);
+        $posY = (float) post('position_y', 50);
+        $zoneId = (int) post('position_zone_id', 1);
+
+        // Valider que les coordonnées sont dans des limites raisonnables
+        $posX = max(0, min(100, $posX));
+        $posY = max(0, min(100, $posY));
+
         $customization = [
             'size' => post('size', 'M'),
             'color' => post('color', 'blanc'),
             'text' => trim(post('custom_text', '')),
             'font' => post('font', 'Poppins'),
-            'position' => post('position', 'centre'),
+            'position' => [
+                'x' => round($posX, 1),
+                'y' => round($posY, 1),
+                'zone_id' => $zoneId
+            ],
             'quantity' => max(1, (int) post('quantity', 1)),
         ];
 
@@ -93,7 +115,7 @@ $cartCount = Cart::count();
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?= h($product['name']) ?> - PERSONNALY</title>
     <meta name="description" content="<?= h($product['description'] ?? 'Personnalisez ce produit selon vos envies') ?>">
     <!-- Polices système (Inter pour UI) -->
@@ -181,6 +203,8 @@ $cartCount = Cart::count();
             justify-content: center;
             position: relative;
             transition: background-color 0.3s ease;
+            overflow: hidden;
+            touch-action: none; /* Empêche le scroll pendant le drag */
         }
         .preview-icon { font-size: 6rem; opacity: 0.6; }
         .preview-product-img {
@@ -188,54 +212,90 @@ $cartCount = Cart::count();
             max-height: 300px;
             object-fit: contain;
             border-radius: var(--radius-md);
+            pointer-events: none; /* L'image ne capture pas les events */
         }
+
+        /* Zone d'impression (overlay) */
+        .print-zone-overlay {
+            position: absolute;
+            border: 2px dashed rgba(255, 105, 180, 0.4);
+            background: rgba(255, 105, 180, 0.03);
+            border-radius: 8px;
+            pointer-events: none;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        .print-zone-overlay.active {
+            border-color: rgba(255, 105, 180, 0.7);
+            background: rgba(255, 105, 180, 0.08);
+        }
+        .print-zone-label {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            font-size: 10px;
+            color: var(--pink-main);
+            background: white;
+            padding: 2px 6px;
+            border-radius: 4px 4px 0 0;
+            opacity: 0.8;
+        }
+
+        /* Texte draggable */
         .preview-text {
             position: absolute;
             font-family: var(--font-display);
             font-weight: 700;
             font-size: 1.5rem;
-            max-width: 80%;
+            max-width: 70%;
             text-align: center;
             word-break: break-word;
             color: var(--pink-dark);
-            transition: all 0.3s ease;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
-        }
-        /* Positions du texte sur le preview */
-        .preview-text.pos-centre {
-            top: 50%;
-            left: 50%;
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: box-shadow 0.2s, transform 0.1s;
             transform: translate(-50%, -50%);
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
+            z-index: 10;
         }
-        .preview-text.pos-gauche {
-            top: 50%;
-            left: 15%;
-            transform: translateY(-50%);
-            text-align: left;
+        .preview-text:hover {
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.2);
         }
-        .preview-text.pos-droite {
-            top: 50%;
-            right: 15%;
-            left: auto;
-            transform: translateY(-50%);
-            text-align: right;
+        .preview-text.dragging {
+            cursor: grabbing;
+            box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+            transform: translate(-50%, -50%) scale(1.05);
+            z-index: 20;
         }
-        .preview-text.pos-dos {
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.6;
-            font-size: 1.2rem;
+        .preview-text.empty {
+            opacity: 0.4;
+            font-style: italic;
         }
-        .preview-text.pos-dos::before {
-            content: '(Dos) ';
-            font-size: 0.8rem;
-            opacity: 0.7;
+
+        /* Indication drag */
+        .drag-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(255,105,180,0.1) 0%, rgba(61,255,192,0.1) 100%);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--gray);
+            margin-top: 15px;
         }
+        .drag-hint svg {
+            color: var(--pink-main);
+        }
+
         .product-category-badge {
             position: absolute;
             top: 20px;
             left: 20px;
+            z-index: 5;
         }
 
         /* Form Section */
@@ -337,31 +397,6 @@ $cartCount = Cart::count();
             box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
         }
         .color-option input { display: none; }
-
-        /* Position Selection */
-        .position-options {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-        .position-option {
-            padding: 12px;
-            border: 2px solid #e5e5e5;
-            border-radius: var(--radius-md);
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .position-option:hover { border-color: var(--mint-main); }
-        .position-option.selected {
-            background: var(--gradient-mint);
-            border-color: var(--mint-main);
-            color: var(--black);
-        }
-        .position-option input { display: none; }
 
         /* Font Selection */
         .font-options {
@@ -475,7 +510,8 @@ $cartCount = Cart::count();
             .product-image-box { position: static; }
         }
         @media (max-width: 600px) {
-            .position-options { grid-template-columns: repeat(2, 1fr); }
+            .product-preview { height: 350px; }
+            .preview-text { font-size: 1.2rem; }
         }
     </style>
 </head>
@@ -511,16 +547,35 @@ $cartCount = Cart::count();
                         <span class="product-category-badge badge badge-pink">
                             <?= h($product['category'] ?? 'Textile') ?>
                         </span>
+
+                        <!-- Zone d'impression (overlay visuel) -->
+                        <div class="print-zone-overlay" id="printZone"
+                             style="left: <?= $printZone['x'] ?>%; top: <?= $printZone['y'] ?>%; width: <?= $printZone['width'] ?>%; height: <?= $printZone['height'] ?>%;">
+                            <span class="print-zone-label">Zone d'impression</span>
+                        </div>
+
                         <?php if (!empty($product['image_url'])): ?>
                             <img src="/public<?= h($product['image_url']) ?>" alt="<?= h($product['name']) ?>" class="preview-product-img" id="previewImage">
                         <?php else: ?>
                             <span class="preview-icon">👕</span>
                         <?php endif; ?>
-                        <span class="preview-text pos-centre" id="previewText"></span>
+
+                        <!-- Texte draggable -->
+                        <span class="preview-text empty" id="previewText">Votre texte</span>
                     </div>
-                    <p style="color: var(--gray); margin-top: 20px; font-size: 14px;">
-                        Aperçu de votre personnalisation
-                    </p>
+
+                    <!-- Indication drag -->
+                    <div class="drag-hint">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 9l-3 3 3 3"/>
+                            <path d="M9 5l3-3 3 3"/>
+                            <path d="M15 19l-3 3-3-3"/>
+                            <path d="M19 9l3 3-3 3"/>
+                            <line x1="2" y1="12" x2="22" y2="12"/>
+                            <line x1="12" y1="2" x2="12" y2="22"/>
+                        </svg>
+                        Déplacez le texte pour ajuster sa position
+                    </div>
                 </div>
 
                 <!-- Form -->
@@ -544,6 +599,11 @@ $cartCount = Cart::count();
                     <form method="post" id="customizationForm">
                         <?= csrfField() ?>
                         <input type="hidden" name="add_to_cart" value="1">
+
+                        <!-- Position (hidden - set by drag & drop) -->
+                        <input type="hidden" name="position_x" id="positionX" value="50">
+                        <input type="hidden" name="position_y" id="positionY" value="50">
+                        <input type="hidden" name="position_zone_id" id="positionZoneId" value="<?= $printZone['id'] ?>">
 
                         <!-- Taille -->
                         <div class="customization-section">
@@ -600,19 +660,6 @@ $cartCount = Cart::count();
                             </div>
                         </div>
 
-                        <!-- Position -->
-                        <div class="customization-section">
-                            <h3 class="section-title">Position du texte</h3>
-                            <div class="position-options">
-                                <?php foreach ($positions as $pos): ?>
-                                    <label class="position-option <?= $pos === 'centre' ? 'selected' : '' ?>">
-                                        <input type="radio" name="position" value="<?= $pos ?>" <?= $pos === 'centre' ? 'checked' : '' ?>>
-                                        <?= ucfirst($pos) ?>
-                                    </label>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
                         <!-- Quantité -->
                         <div class="customization-section">
                             <h3 class="section-title">Quantité</h3>
@@ -641,71 +688,213 @@ $cartCount = Cart::count();
     </section>
 
     <script>
-        // Selection handling - un seul élément sélectionné par groupe
-        document.querySelectorAll('.size-option, .color-option, .position-option, .font-option').forEach(option => {
-            option.addEventListener('click', function() {
-                const parent = this.parentElement;
-                const baseClass = this.className.split(' ')[0];
-                parent.querySelectorAll('.' + baseClass).forEach(o => o.classList.remove('selected'));
-                this.classList.add('selected');
+        // ============================================
+        // PERSONNALY - Drag & Drop Preview System
+        // Mobile-first, contraint à la zone d'impression
+        // ============================================
+
+        (function() {
+            'use strict';
+
+            // === ÉLÉMENTS DOM ===
+            const previewText = document.getElementById('previewText');
+            const productPreview = document.getElementById('productPreview');
+            const printZone = document.getElementById('printZone');
+            const customText = document.getElementById('customText');
+            const positionXInput = document.getElementById('positionX');
+            const positionYInput = document.getElementById('positionY');
+
+            // === ZONE D'IMPRESSION (en % du preview) ===
+            const zone = {
+                x: <?= $printZone['x'] ?>,
+                y: <?= $printZone['y'] ?>,
+                width: <?= $printZone['width'] ?>,
+                height: <?= $printZone['height'] ?>
+            };
+
+            // === ÉTAT DU DRAG ===
+            let isDragging = false;
+            let startX = 0, startY = 0;
+            let currentX = 50, currentY = 50; // Position initiale (centre de la zone)
+
+            // Calculer le centre de la zone comme position par défaut
+            currentX = zone.x + (zone.width / 2);
+            currentY = zone.y + (zone.height / 2);
+
+            // Appliquer position initiale
+            updateTextPosition();
+
+            // === FONCTIONS UTILITAIRES ===
+
+            function getEventCoords(e) {
+                if (e.touches && e.touches.length > 0) {
+                    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+                return { x: e.clientX, y: e.clientY };
+            }
+
+            function updateTextPosition() {
+                previewText.style.left = currentX + '%';
+                previewText.style.top = currentY + '%';
+
+                // Mettre à jour les hidden inputs
+                positionXInput.value = currentX.toFixed(1);
+                positionYInput.value = currentY.toFixed(1);
+            }
+
+            function constrainToZone(x, y) {
+                // Contraindre X dans la zone
+                const minX = zone.x;
+                const maxX = zone.x + zone.width;
+                x = Math.max(minX, Math.min(maxX, x));
+
+                // Contraindre Y dans la zone
+                const minY = zone.y;
+                const maxY = zone.y + zone.height;
+                y = Math.max(minY, Math.min(maxY, y));
+
+                return { x, y };
+            }
+
+            // === DRAG & DROP HANDLERS ===
+
+            function startDrag(e) {
+                // Ne pas démarrer si pas de texte
+                if (previewText.classList.contains('empty')) return;
+
+                e.preventDefault();
+                isDragging = true;
+
+                const coords = getEventCoords(e);
+                startX = coords.x;
+                startY = coords.y;
+
+                previewText.classList.add('dragging');
+                printZone.classList.add('active');
+            }
+
+            function drag(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+
+                const coords = getEventCoords(e);
+                const rect = productPreview.getBoundingClientRect();
+
+                // Calculer la nouvelle position en % du preview
+                let newX = ((coords.x - rect.left) / rect.width) * 100;
+                let newY = ((coords.y - rect.top) / rect.height) * 100;
+
+                // Contraindre à la zone d'impression
+                const constrained = constrainToZone(newX, newY);
+                currentX = constrained.x;
+                currentY = constrained.y;
+
+                updateTextPosition();
+            }
+
+            function endDrag(e) {
+                if (!isDragging) return;
+
+                isDragging = false;
+                previewText.classList.remove('dragging');
+                printZone.classList.remove('active');
+            }
+
+            // === EVENT LISTENERS (Mobile prioritaire) ===
+
+            // Touch events (mobile)
+            previewText.addEventListener('touchstart', startDrag, { passive: false });
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('touchend', endDrag, { passive: true });
+
+            // Mouse events (desktop)
+            previewText.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+
+            // Empêcher le drag natif de l'élément
+            previewText.addEventListener('dragstart', e => e.preventDefault());
+
+            // === LIVE PREVIEW DU TEXTE ===
+
+            customText.addEventListener('input', function() {
+                const text = this.value.trim();
+
+                if (text) {
+                    previewText.textContent = text;
+                    previewText.classList.remove('empty');
+                } else {
+                    previewText.textContent = 'Votre texte';
+                    previewText.classList.add('empty');
+                }
+
+                // Ajuster la taille du texte si trop long
+                adjustTextSize(text);
             });
-        });
 
-        // Live preview of custom text
-        const customText = document.getElementById('customText');
-        const previewText = document.getElementById('previewText');
-        const productPreview = document.getElementById('productPreview');
+            function adjustTextSize(text) {
+                // Réduire la taille si le texte est long
+                if (text.length > 30) {
+                    previewText.style.fontSize = '1rem';
+                } else if (text.length > 20) {
+                    previewText.style.fontSize = '1.2rem';
+                } else {
+                    previewText.style.fontSize = '1.5rem';
+                }
+            }
 
-        customText.addEventListener('input', function() {
-            previewText.textContent = this.value;
-        });
+            // === SÉLECTION DES OPTIONS ===
 
-        // Initialiser le style de la première police sélectionnée
-        const firstFont = document.querySelector('.font-option.selected');
-        if (firstFont) {
-            const font = firstFont.dataset.font;
-            const category = firstFont.dataset.category || 'sans-serif';
-            previewText.style.fontFamily = "'" + font + "', " + category;
-        }
-
-        // Color preview
-        document.querySelectorAll('.color-option').forEach(option => {
-            option.addEventListener('click', function() {
-                const color = this.dataset.color;
-                productPreview.style.backgroundColor = color === '#FFFFFF' ? '#f8f8f8' : color;
-                const isDark = ['#1A1A2E', '#6B7280'].includes(color);
-                previewText.style.color = isDark ? '#FF69B4' : '#FF1493';
+            // Gestionnaire générique pour les options radio
+            document.querySelectorAll('.size-option, .color-option, .font-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const parent = this.parentElement;
+                    const baseClass = this.className.split(' ')[0];
+                    parent.querySelectorAll('.' + baseClass).forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
             });
-        });
 
-        // Font preview
-        document.querySelectorAll('.font-option').forEach(option => {
-            option.addEventListener('click', function() {
-                const font = this.dataset.font;
-                const category = this.dataset.category || 'sans-serif';
+            // Initialiser le style de la première police sélectionnée
+            const firstFont = document.querySelector('.font-option.selected');
+            if (firstFont) {
+                const font = firstFont.dataset.font;
+                const category = firstFont.dataset.category || 'sans-serif';
                 previewText.style.fontFamily = "'" + font + "', " + category;
-            });
-        });
+            }
 
-        // Position preview
-        document.querySelectorAll('.position-option').forEach(option => {
-            option.addEventListener('click', function() {
-                const position = this.querySelector('input').value;
-                // Retirer toutes les classes de position
-                previewText.classList.remove('pos-centre', 'pos-gauche', 'pos-droite', 'pos-dos');
-                // Ajouter la nouvelle classe de position
-                previewText.classList.add('pos-' + position);
-            });
-        });
+            // Color preview
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const color = this.dataset.color;
+                    productPreview.style.backgroundColor = color === '#FFFFFF' ? '#f8f8f8' : color;
 
-        // Quantity controls
-        const qtyInput = document.getElementById('qtyInput');
-        document.getElementById('qtyMinus').addEventListener('click', () => {
-            if (qtyInput.value > 1) qtyInput.value = parseInt(qtyInput.value) - 1;
-        });
-        document.getElementById('qtyPlus').addEventListener('click', () => {
-            if (qtyInput.value < 99) qtyInput.value = parseInt(qtyInput.value) + 1;
-        });
+                    // Ajuster la couleur du texte pour le contraste
+                    const isDark = ['#1A1A2E', '#6B7280'].includes(color);
+                    previewText.style.color = isDark ? '#FF69B4' : '#FF1493';
+                });
+            });
+
+            // Font preview
+            document.querySelectorAll('.font-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const font = this.dataset.font;
+                    const category = this.dataset.category || 'sans-serif';
+                    previewText.style.fontFamily = "'" + font + "', " + category;
+                });
+            });
+
+            // === QUANTITÉ ===
+
+            const qtyInput = document.getElementById('qtyInput');
+            document.getElementById('qtyMinus').addEventListener('click', () => {
+                if (qtyInput.value > 1) qtyInput.value = parseInt(qtyInput.value) - 1;
+            });
+            document.getElementById('qtyPlus').addEventListener('click', () => {
+                if (qtyInput.value < 99) qtyInput.value = parseInt(qtyInput.value) + 1;
+            });
+
+        })();
     </script>
 </body>
 </html>
