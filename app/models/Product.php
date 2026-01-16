@@ -54,13 +54,15 @@ class Product
     public function create(array $data): int
     {
         $stmt = $this->db->prepare(
-            'INSERT INTO products (name, description, base_price, active, created_at)
-             VALUES (?, ?, ?, ?, NOW())'
+            'INSERT INTO products (name, description, base_price, category, image_url, active, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, NOW())'
         );
         $stmt->execute([
             $data['name'],
             $data['description'] ?? '',
             $data['base_price'],
+            $data['category'] ?? null,
+            $data['image_url'] ?? null,
             $data['active'] ?? 1,
         ]);
         return (int) $this->db->lastInsertId();

@@ -267,6 +267,19 @@ $products = $productModel->findActive();
             opacity: 0.5;
         }
 
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .product-image:has(img)::before {
+            display: none;
+        }
+
         .product-category {
             position: absolute;
             top: 15px;
@@ -473,6 +486,9 @@ $products = $productModel->findActive();
                                 <span class="product-category badge badge-pink">
                                     <?= h($product['category'] ?? 'Textile') ?>
                                 </span>
+                                <?php if (!empty($product['image_url'])): ?>
+                                    <img src="/public<?= h($product['image_url']) ?>" alt="<?= h($product['name']) ?>">
+                                <?php endif; ?>
                             </div>
                             <div class="product-info">
                                 <h3><?= h($product['name']) ?></h3>

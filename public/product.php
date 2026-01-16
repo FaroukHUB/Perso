@@ -8,6 +8,7 @@ require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/helpers/Cart.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
+require_once __DIR__ . '/../app/models/CustomizationOption.php';
 
 // Récupération du produit
 $productId = (int) get('id', 0);
@@ -22,17 +23,23 @@ if (!$product || !$product['active']) {
 $success = '';
 $error = '';
 
-// Options de personnalisation disponibles
-$sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-$colors = [
-    'blanc' => '#FFFFFF',
-    'noir' => '#1A1A2E',
-    'rose' => '#FF69B4',
-    'menthe' => '#3DFFC0',
-    'bleu' => '#4A90D9',
-    'gris' => '#6B7280',
-];
-$positions = ['centre', 'gauche', 'droite', 'dos'];
+// Options de personnalisation depuis la base de données
+$optionModel = new CustomizationOption();
+$sizesFromDb = $optionModel->getSizes();
+$colorsFromDb = $optionModel->getColors();
+$positionsFromDb = $optionModel->getPositions();
+
+// Fallback si la table n'existe pas encore
+$sizes = !empty($sizesFromDb) ? array_column($sizesFromDb, 'value') : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+$colors = [];
+if (!empty($colorsFromDb)) {
+    foreach ($colorsFromDb as $c) {
+        $colors[$c['value']] = $c['hex_code'] ?? '#CCCCCC';
+    }
+} else {
+    $colors = ['blanc' => '#FFFFFF', 'noir' => '#1A1A2E', 'rose' => '#FF69B4', 'menthe' => '#3DFFC0', 'bleu' => '#4A90D9', 'gris' => '#6B7280'];
+}
+$positions = !empty($positionsFromDb) ? array_column($positionsFromDb, 'value') : ['centre', 'gauche', 'droite', 'dos'];
 
 // Traitement du formulaire d'ajout au panier
 if (isPost() && isset($_POST['add_to_cart'])) {
@@ -148,6 +155,12 @@ $cartCount = Cart::count();
             transition: background-color 0.3s ease;
         }
         .preview-icon { font-size: 6rem; opacity: 0.6; }
+        .preview-product-img {
+            max-width: 80%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: var(--radius-md);
+        }
         .preview-text {
             position: absolute;
             font-family: var(--font-display);
@@ -414,7 +427,11 @@ $cartCount = Cart::count();
                         <span class="product-category-badge badge badge-pink">
                             <?= h($product['category'] ?? 'Textile') ?>
                         </span>
-                        <span class="preview-icon">👕</span>
+                        <?php if (!empty($product['image_url'])): ?>
+                            <img src="/public<?= h($product['image_url']) ?>" alt="<?= h($product['name']) ?>" class="preview-product-img" id="previewImage">
+                        <?php else: ?>
+                            <span class="preview-icon">👕</span>
+                        <?php endif; ?>
                         <span class="preview-text" id="previewText"></span>
                     </div>
                     <p style="color: var(--gray); margin-top: 20px; font-size: 14px;">

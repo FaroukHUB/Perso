@@ -27,10 +27,17 @@ $formData = [
     'base_price' => $product['base_price'] ?? '',
     'category' => $product['category'] ?? '',
     'active' => $product['active'] ?? 1,
+    'image_url' => $product['image_url'] ?? '',
 ];
 
 // Catégories disponibles
 $categories = ['Homme', 'Femme', 'Enfant', 'Unisexe', 'Accessoire'];
+
+// Dossier d'upload
+$uploadDir = __DIR__ . '/../public/uploads/products/';
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0755, true);
+}
 
 // Traitement du formulaire
 if (isPost()) {
@@ -45,21 +52,57 @@ if (isPost()) {
             'base_price' => (float)post('base_price', 0),
             'category' => trim(post('category', '')),
             'active' => post('active') ? 1 : 0,
+            'image_url' => $formData['image_url'], // Conserver l'image existante
         ];
 
-        // Validation
-        if (empty($formData['name'])) {
-            $error = 'Le nom du produit est requis.';
-        } elseif ($formData['base_price'] <= 0) {
-            $error = 'Le prix doit être supérieur à 0.';
-        } else {
-            // Sauvegarde
-            if ($isEdit) {
-                $productModel->update($id, $formData);
-                redirect('/admin/products.php?success=Produit mis à jour');
+        // Gestion de l'upload d'image
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            $maxSize = 5 * 1024 * 1024; // 5 MB
+
+            $fileType = $_FILES['image']['type'];
+            $fileSize = $_FILES['image']['size'];
+
+            if (!in_array($fileType, $allowedTypes)) {
+                $error = 'Format d\'image non supporté. Utilisez JPG, PNG, WebP ou GIF.';
+            } elseif ($fileSize > $maxSize) {
+                $error = 'L\'image est trop volumineuse (max 5 Mo).';
             } else {
-                $productModel->create($formData);
-                redirect('/admin/products.php?success=Produit créé');
+                // Générer un nom unique
+                $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $fileName = 'product_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+                $filePath = $uploadDir . $fileName;
+
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $filePath)) {
+                    // Supprimer l'ancienne image si elle existe
+                    if (!empty($formData['image_url'])) {
+                        $oldFile = __DIR__ . '/../public' . $formData['image_url'];
+                        if (file_exists($oldFile)) {
+                            unlink($oldFile);
+                        }
+                    }
+                    $formData['image_url'] = '/uploads/products/' . $fileName;
+                } else {
+                    $error = 'Erreur lors de l\'upload de l\'image.';
+                }
+            }
+        }
+
+        // Validation
+        if (empty($error)) {
+            if (empty($formData['name'])) {
+                $error = 'Le nom du produit est requis.';
+            } elseif ($formData['base_price'] <= 0) {
+                $error = 'Le prix doit être supérieur à 0.';
+            } else {
+                // Sauvegarde
+                if ($isEdit) {
+                    $productModel->update($id, $formData);
+                    redirect('/admin/products.php?success=Produit mis à jour');
+                } else {
+                    $productModel->create($formData);
+                    redirect('/admin/products.php?success=Produit créé');
+                }
             }
         }
     }
@@ -164,7 +207,7 @@ if (isPost()) {
             <?php endif; ?>
 
             <div class="form-card">
-                <form method="post" class="product-form">
+                <form method="post" class="product-form" enctype="multipart/form-data">
                     <?= csrfField() ?>
 
                     <div class="form-grid">
@@ -221,10 +264,23 @@ if (isPost()) {
                             </div>
 
                             <div class="form-group">
-                                <div class="preview-box">
-                                    <div class="preview-icon">👕</div>
-                                    <p>Aperçu de l'image<br><small class="text-muted">(Upload à venir)</small></p>
+                                <label class="form-label">Image du produit</label>
+                                <div class="preview-box" id="previewBox">
+                                    <?php if (!empty($formData['image_url'])): ?>
+                                        <img src="/public<?= h($formData['image_url']) ?>" alt="Aperçu" id="previewImage">
+                                    <?php else: ?>
+                                        <div class="preview-icon" id="previewIcon">👕</div>
+                                        <p id="previewText">Cliquez pour ajouter une image</p>
+                                    <?php endif; ?>
                                 </div>
+                                <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;">
+                                <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 10px;"
+                                        onclick="document.getElementById('imageInput').click()">
+                                    📷 <?= !empty($formData['image_url']) ? 'Changer l\'image' : 'Ajouter une image' ?>
+                                </button>
+                                <p class="text-muted" style="font-size: 12px; margin-top: 8px;">
+                                    Formats: JPG, PNG, WebP, GIF (max 5 Mo)
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -355,6 +411,25 @@ if (isPost()) {
             border-radius: var(--radius-md);
             padding: var(--spacing-xl);
             text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preview-box:hover {
+            border-color: var(--pink-main);
+            background: rgba(255, 105, 180, 0.05);
+        }
+
+        .preview-box img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: var(--radius-md);
+            object-fit: contain;
         }
 
         .preview-icon {
@@ -367,5 +442,25 @@ if (isPost()) {
             font-size: 14px;
         }
     </style>
+
+    <script>
+        // Image preview on select
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewBox = document.getElementById('previewBox');
+                    previewBox.innerHTML = '<img src="' + e.target.result + '" alt="Aperçu" id="previewImage">';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Click on preview box to select image
+        document.getElementById('previewBox').addEventListener('click', function() {
+            document.getElementById('imageInput').click();
+        });
+    </script>
 </body>
 </html>

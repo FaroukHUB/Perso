@@ -68,6 +68,17 @@
 | Fiche client détaillée | ✅ OK | admin/customer.php (stats, historique) |
 | Liens navigation | ✅ OK | Commandes et clients cliquables |
 
+### 2026-01-16 - Session 4 (Options + Images)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Table customization_options | ✅ OK | sql/options.sql (tailles, couleurs, positions) |
+| Model CustomizationOption | ✅ OK | app/models/CustomizationOption.php |
+| Page admin Options | ✅ OK | admin/options.php (CRUD tailles/couleurs/positions) |
+| Options dynamiques frontend | ✅ OK | product.php charge depuis DB |
+| Upload images produits | ✅ OK | admin/product-form.php (JPG, PNG, WebP, GIF) |
+| Preview avec vraie image | ✅ OK | Affichage image produit sur accueil et fiche |
+
 ---
 
 ## Design System
@@ -151,7 +162,8 @@
 │   ├── models/
 │   │   ├── User.php
 │   │   ├── Product.php
-│   │   └── Order.php
+│   │   ├── Order.php
+│   │   └── CustomizationOption.php  ← Options admin
 │   └── helpers/
 │       ├── functions.php
 │       ├── Cart.php           ← Gestion panier session
@@ -161,14 +173,16 @@
 │   ├── logout.php
 │   ├── dashboard.php
 │   ├── products.php           ← CRUD liste
-│   ├── product-form.php       ← Ajout/modif
+│   ├── product-form.php       ← Ajout/modif + upload image
 │   ├── orders.php             ← Gestion commandes
 │   ├── order.php              ← Détail commande
 │   ├── customers.php          ← Liste clients
 │   ├── customer.php           ← Fiche client
+│   ├── options.php            ← Gestion tailles/couleurs/positions
 │   └── settings.php           ← Paramètres + mdp
 └── sql/
-    └── schema.sql
+    ├── schema.sql
+    └── options.sql            ← Table customization_options
 ```
 
 ---
@@ -213,7 +227,7 @@
 |----------|--------|
 | Aperçu temps réel | ✅ OUI |
 | Fidélité preview → panier → commande | ✅ OUI |
-| Structure pour novices (options admin) | ⚠️ PARTIEL |
+| Structure pour novices (options admin) | ✅ OUI |
 | Séparation logique/affichage | ⚠️ PARTIEL |
 | Gestion clients admin complète | ✅ OUI |
 | Réception commandes (email) | ✅ OUI |
@@ -228,9 +242,9 @@
 
 ### Fonctionnalités restantes (priorité moyenne)
 
-- [ ] Options personnalisation administrables (tailles, couleurs)
-- [ ] Upload images produits
-- [ ] Preview avec vraie image produit
+- [x] Options personnalisation administrables (tailles, couleurs) ✅
+- [x] Upload images produits ✅
+- [x] Preview avec vraie image produit ✅
 
 ### Fonctionnalités restantes (priorité basse)
 
