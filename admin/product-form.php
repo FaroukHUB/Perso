@@ -9,17 +9,22 @@ require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Order.php';
+require_once __DIR__ . '/../app/models/ProductColor.php';
 
 Auth::requireAdmin();
 
 $productModel = new Product();
 $orderModel = new Order();
+$productColorModel = new ProductColor();
 $pendingOrders = $orderModel->countNew();
 
 // Mode édition ou création
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $product = $id ? $productModel->findById($id) : null;
 $isEdit = $product !== null;
+
+// Récupérer les couleurs du produit
+$productColors = $isEdit ? $productColorModel->findAllByProduct($id) : [];
 
 $error = '';
 $formData = [
@@ -139,11 +144,25 @@ if (isPost()) {
                 // Sauvegarde
                 if ($isEdit) {
                     $productModel->update($id, $formData);
-                    redirect('/admin/products.php?success=Produit mis à jour');
+                    $productId = $id;
                 } else {
-                    $productModel->create($formData);
-                    redirect('/admin/products.php?success=Produit créé');
+                    $productId = $productModel->create($formData);
                 }
+
+                // Sauvegarder les couleurs du produit
+                $colorNames = post('color_names', []);
+                $colorHexes = post('color_hexes', []);
+                $colors = [];
+                foreach ($colorNames as $i => $name) {
+                    $name = trim($name);
+                    $hex = trim($colorHexes[$i] ?? '#CCCCCC');
+                    if (!empty($name) && preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) {
+                        $colors[] = ['name' => $name, 'hex' => $hex];
+                    }
+                }
+                $productColorModel->syncColors($productId, $colors);
+
+                redirect('/admin/products.php?success=' . ($isEdit ? 'Produit mis à jour' : 'Produit créé'));
             }
         } catch (Exception $e) {
             $error = $e->getMessage();
@@ -346,6 +365,108 @@ if (isPost()) {
             padding-top: 25px;
             border-top: 1px solid rgba(0,0,0,0.08);
         }
+
+        /* Product Colors */
+        .colors-section {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(0,0,0,0.08);
+        }
+        .colors-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .colors-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--black-soft);
+        }
+        .add-color-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--gradient-mint);
+            color: var(--black);
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .add-color-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-pink);
+        }
+        .color-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .color-item {
+            display: grid;
+            grid-template-columns: 50px 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 15px;
+            background: var(--gray-light);
+            border-radius: var(--radius-md);
+        }
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+        }
+        .color-inputs {
+            display: flex;
+            gap: 10px;
+        }
+        .color-inputs input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+        }
+        .color-inputs input[type="color"] {
+            width: 50px;
+            height: 38px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+        .remove-color-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .remove-color-btn:hover {
+            background: #EF4444;
+            color: white;
+        }
+        .colors-hint {
+            margin-top: 15px;
+            padding: 12px 15px;
+            background: rgba(255, 105, 180, 0.08);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            color: var(--gray);
+        }
+        .colors-hint strong {
+            color: var(--pink-dark);
+        }
     </style>
 </head>
 <body>
@@ -495,6 +616,45 @@ if (isPost()) {
                         </div>
                     </div>
 
+                    <!-- Section Couleurs du produit -->
+                    <div class="colors-section">
+                        <div class="colors-header">
+                            <h3>Couleurs disponibles pour ce produit</h3>
+                            <button type="button" class="add-color-btn" onclick="addColorRow()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Ajouter une couleur
+                            </button>
+                        </div>
+
+                        <div class="color-list" id="colorList">
+                            <?php if (!empty($productColors)): ?>
+                                <?php foreach ($productColors as $color): ?>
+                                    <div class="color-item">
+                                        <div class="color-preview" style="background-color: <?= h($color['hex_code']) ?>"></div>
+                                        <div class="color-inputs">
+                                            <input type="text" name="color_names[]" value="<?= h($color['color_name']) ?>" placeholder="Nom (ex: blanc)">
+                                            <input type="color" name="color_hexes[]" value="<?= h($color['hex_code']) ?>" onchange="updateColorPreview(this)">
+                                        </div>
+                                        <button type="button" class="remove-color-btn" onclick="removeColorRow(this)">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                                <line x1="6" y1="6" x2="18" y2="18"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="colors-hint">
+                            <strong>Conseil :</strong> Si vous ne définissez aucune couleur, les couleurs globales seront utilisées.
+                            Ajoutez des couleurs spécifiques si ce produit a des variantes différentes.
+                        </div>
+                    </div>
+
                     <div class="form-actions">
                         <a href="/admin/products.php" class="btn btn-dark">Annuler</a>
                         <button type="submit" class="btn btn-primary">
@@ -529,6 +689,37 @@ if (isPost()) {
 
         setupImagePreview('imageFrontInput');
         setupImagePreview('imageBackInput');
+
+        // Gestion des couleurs du produit
+        function addColorRow() {
+            const list = document.getElementById('colorList');
+            const item = document.createElement('div');
+            item.className = 'color-item';
+            item.innerHTML = `
+                <div class="color-preview" style="background-color: #FFFFFF"></div>
+                <div class="color-inputs">
+                    <input type="text" name="color_names[]" placeholder="Nom (ex: blanc)" required>
+                    <input type="color" name="color_hexes[]" value="#FFFFFF" onchange="updateColorPreview(this)">
+                </div>
+                <button type="button" class="remove-color-btn" onclick="removeColorRow(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            `;
+            list.appendChild(item);
+        }
+
+        function removeColorRow(btn) {
+            const item = btn.closest('.color-item');
+            item.remove();
+        }
+
+        function updateColorPreview(input) {
+            const preview = input.closest('.color-item').querySelector('.color-preview');
+            preview.style.backgroundColor = input.value;
+        }
     </script>
 </body>
 </html>

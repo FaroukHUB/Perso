@@ -13,6 +13,7 @@ require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/CustomizationOption.php';
 require_once __DIR__ . '/../app/models/Font.php';
 require_once __DIR__ . '/../app/models/ProductPrintZone.php';
+require_once __DIR__ . '/../app/models/ProductColor.php';
 
 // Récupération du produit
 $productId = (int) get('id', 0);
@@ -30,9 +31,21 @@ $error = '';
 // Options de personnalisation depuis la base de données
 $optionModel = new CustomizationOption();
 $sizesFromDb = $optionModel->getSizes();
-$colorsFromDb = $optionModel->getColors();
 $textColorsFromDb = $optionModel->getTextColors();
 $techniquesFromDb = $optionModel->getTechniques();
+
+// Couleurs du produit (priorité aux couleurs spécifiques du produit)
+$productColorModel = new ProductColor();
+$productColorsFromDb = $productColorModel->findByProduct($productId);
+
+// Si le produit a des couleurs spécifiques, les utiliser; sinon, utiliser les couleurs globales
+if (!empty($productColorsFromDb)) {
+    $colorsFromDb = $productColorsFromDb;
+    $usingProductColors = true;
+} else {
+    $colorsFromDb = $optionModel->getColors();
+    $usingProductColors = false;
+}
 
 // Polices depuis la nouvelle table fonts (système administrable)
 $fontModel = new Font();
@@ -43,7 +56,9 @@ $sizes = !empty($sizesFromDb) ? array_column($sizesFromDb, 'value') : ['XS', 'S'
 $colors = [];
 if (!empty($colorsFromDb)) {
     foreach ($colorsFromDb as $c) {
-        $colors[$c['value']] = $c['hex_code'] ?? '#CCCCCC';
+        // Support des deux formats (product_colors et customization_options)
+        $colorName = $c['color_name'] ?? $c['value'] ?? 'unknown';
+        $colors[$colorName] = $c['hex_code'] ?? '#CCCCCC';
     }
 } else {
     $colors = ['blanc' => '#FFFFFF', 'noir' => '#1A1A2E', 'rose' => '#FF69B4', 'menthe' => '#3DFFC0', 'bleu' => '#4A90D9', 'gris' => '#6B7280'];
