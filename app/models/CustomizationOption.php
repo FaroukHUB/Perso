@@ -157,7 +157,15 @@ class CustomizationOption
     }
 
     /**
-     * Récupère les couleurs de texte actives
+     * Récupère les couleurs produit actives (couleurs du vêtement)
+     */
+    public function getColors(): array
+    {
+        return $this->findByType('color');
+    }
+
+    /**
+     * Récupère les couleurs de texte actives (pour personnalisation)
      */
     public function getTextColors(): array
     {
