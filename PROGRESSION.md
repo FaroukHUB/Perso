@@ -21,9 +21,9 @@
 
 **Date dernière mise à jour** : 2026-01-16
 
-**Phase actuelle** : P2 - PREVIEW AMÉLIORÉ
+**Phase actuelle** : P2 - PREVIEW DRAG & DROP
 
-**Statut global** : 🟢 P2 COMPLÉTÉ - Preview avec positions dynamiques
+**Statut global** : 🟡 P2 EN REFONTE - Passage au drag & drop contraint
 
 ---
 
@@ -53,6 +53,15 @@
 3. **css_key unique** - Généré automatiquement, non éditable
 4. **google_import_url** - Générée automatiquement si source=google
 5. **allowed_fonts TEXT** - NULL = toutes polices, sinon JSON array en TEXT
+
+### Décision UX P2 (2026-01-16)
+
+| Approche | Décision | Raison |
+|----------|----------|--------|
+| Positions prédéfinies | ❌ REJETÉ | "gauche/droite" = inutilisable pour l'impression |
+| Drag & drop contraint | ✅ ADOPTÉ | Visuel, intuitif, données précises en % |
+| Stockage position | `{"x": 48.2, "y": 55.7, "zone_id": 1}` | Coordonnées relatives à la zone |
+| Contrainte zone | Obligatoire | Empêche les erreurs de placement |
 
 ### Priorités MVP (ordre obligatoire)
 
@@ -163,14 +172,26 @@ product_print_zones
 | Menu admin + Polices | ✅ OK | admin/includes/sidebar.php |
 | Intégration frontend | ✅ OK | product.php charge polices depuis DB + FontLoader |
 
-### 2026-01-16 - Session 5 (P2 - Preview Amélioré)
+### 2026-01-16 - Session 5 (P2 - Preview v1 → ABANDONNÉ)
 
 | Tâche | Statut | Notes |
 |-------|--------|-------|
-| CSS positions preview | ✅ OK | Classes pos-centre, pos-gauche, pos-droite, pos-dos |
-| JS position dynamique | ✅ OK | Changement de position en temps réel |
-| Text-shadow lisibilité | ✅ OK | Ombre légère pour contraste |
-| Transition fluide | ✅ OK | Animation 0.3s entre positions |
+| CSS positions preview | ❌ ABANDONNÉ | Classes pos-centre/gauche/droite inadaptées |
+| JS position dynamique | ❌ ABANDONNÉ | Boutons radio ≠ UX moderne |
+
+**Raison abandon** : Le système de positions prédéfinies (gauche/droite/centre) n'est pas un outil visuel moderne. Le texte sort du produit, l'utilisateur ne comprend pas où sera imprimé son texte, et les données stockées ("gauche") sont inutilisables pour l'impression.
+
+### 2026-01-16 - Session 5 (P2 - Preview Drag & Drop)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Supprimer pos-centre/gauche/droite | ⏳ À FAIRE | Nettoyer l'ancienne approche |
+| Overlay zone d'impression | ⏳ À FAIRE | Bordure pointillée sur la zone |
+| Drag & drop souris | ⏳ À FAIRE | mousedown/mousemove/mouseup |
+| Drag & drop tactile | ⏳ À FAIRE | touchstart/touchmove/touchend |
+| Contrainte dans la zone | ⏳ À FAIRE | Math.max/min sur les limites |
+| Stockage {x, y, zone_id} | ⏳ À FAIRE | Hidden inputs + data_json |
+| Indication UX | ⏳ À FAIRE | "Déplacez le texte" |
 
 ---
 
@@ -219,10 +240,14 @@ product_print_zones
 
 ## Prochaines Étapes
 
-### P2 - Preview Phase 2 ✅ COMPLÉTÉ
-- [x] Image produit + overlay texte positionné
-- [x] Position du texte selon zone sélectionnée (centre/gauche/droite/dos)
-- [x] Preview plus réaliste avec police appliquée + transition fluide
+### P2 - Preview Drag & Drop 🔄 EN REFONTE
+- [x] ~~Positions prédéfinies (centre/gauche/droite)~~ **ABANDONNÉ** - UX inadaptée
+- [ ] Drag & drop souris (desktop)
+- [ ] Drag & drop tactile (mobile)
+- [ ] Zone d'impression visuelle (overlay pointillé)
+- [ ] Contrainte du texte dans la zone
+- [ ] Stockage position en % : `{ "x": 48.2, "y": 55.7, "zone_id": 1 }`
+- [ ] Indication utilisateur "Déplacez le texte"
 
 ### P3 - Zones d'impression
 - [ ] Admin zones par produit (product_print_zones)
