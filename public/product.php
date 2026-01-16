@@ -258,7 +258,7 @@ $cartCount = Cart::count();
     <!-- Polices personnalisation (chargées dynamiquement depuis admin) -->
     <?= FontLoader::renderHead() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
-    <link rel="stylesheet" href="/public/assets/css/techniques.css">
+    <link rel="stylesheet" href="/public/assets/css/techniques.css?v=2">
     <style>
         body { background: var(--gray-light); }
 
