@@ -99,22 +99,35 @@ if (isPost()) {
         ];
 
         try {
+            // Créer le dossier d'upload s'il n'existe pas
+            if (!is_dir($uploadDir)) {
+                if (!mkdir($uploadDir, 0755, true)) {
+                    throw new Exception('Impossible de créer le dossier d\'upload.');
+                }
+            }
+
             // Upload image FACE
             if (isset($_FILES['image_front']) && $_FILES['image_front']['error'] === UPLOAD_ERR_OK) {
-                $formData['image_front_url'] = handleImageUpload(
+                $newFrontUrl = handleImageUpload(
                     $_FILES['image_front'],
                     $uploadDir,
                     $formData['image_front_url']
                 );
+                if ($newFrontUrl) {
+                    $formData['image_front_url'] = $newFrontUrl;
+                }
             }
 
             // Upload image DOS
             if (isset($_FILES['image_back']) && $_FILES['image_back']['error'] === UPLOAD_ERR_OK) {
-                $formData['image_back_url'] = handleImageUpload(
+                $newBackUrl = handleImageUpload(
                     $_FILES['image_back'],
                     $uploadDir,
                     $formData['image_back_url']
                 );
+                if ($newBackUrl) {
+                    $formData['image_back_url'] = $newBackUrl;
+                }
             }
 
             // Validation
