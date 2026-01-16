@@ -167,4 +167,12 @@ class CustomizationOption
     {
         return $this->findByType('position');
     }
+
+    /**
+     * Récupère les polices actives (raccourci)
+     */
+    public function getFonts(): array
+    {
+        return $this->findByType('font');
+    }
 }

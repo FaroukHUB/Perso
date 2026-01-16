@@ -11,7 +11,7 @@ SET NAMES utf8mb4;
 -- ---------------------------------------------
 CREATE TABLE IF NOT EXISTS `customization_options` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `type` ENUM('size', 'color', 'position') NOT NULL,
+    `type` ENUM('size', 'color', 'position', 'font') NOT NULL,
     `value` VARCHAR(50) NOT NULL,
     `label` VARCHAR(100) NOT NULL,
     `hex_code` VARCHAR(7) DEFAULT NULL COMMENT 'Code couleur hex pour type=color',
@@ -53,6 +53,17 @@ INSERT INTO `customization_options` (`type`, `value`, `label`, `sort_order`, `ac
 ('position', 'gauche', 'Gauche', 2, 1),
 ('position', 'droite', 'Droite', 3, 1),
 ('position', 'dos', 'Dos', 4, 1);
+
+-- ---------------------------------------------
+-- Données par défaut : Polices
+-- ---------------------------------------------
+INSERT INTO `customization_options` (`type`, `value`, `label`, `sort_order`, `active`) VALUES
+('font', 'Poppins', 'Poppins (Moderne)', 1, 1),
+('font', 'Playfair Display', 'Playfair (Élégant)', 2, 1),
+('font', 'Lobster', 'Lobster (Script)', 3, 1),
+('font', 'Oswald', 'Oswald (Impact)', 4, 1),
+('font', 'Dancing Script', 'Dancing Script (Cursif)', 5, 1),
+('font', 'Bebas Neue', 'Bebas Neue (Bold)', 6, 1);
 
 -- =============================================
 -- FIN - Exécuter dans phpMyAdmin

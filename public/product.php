@@ -28,6 +28,7 @@ $optionModel = new CustomizationOption();
 $sizesFromDb = $optionModel->getSizes();
 $colorsFromDb = $optionModel->getColors();
 $positionsFromDb = $optionModel->getPositions();
+$fontsFromDb = $optionModel->getFonts();
 
 // Fallback si la table n'existe pas encore
 $sizes = !empty($sizesFromDb) ? array_column($sizesFromDb, 'value') : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
@@ -40,6 +41,12 @@ if (!empty($colorsFromDb)) {
     $colors = ['blanc' => '#FFFFFF', 'noir' => '#1A1A2E', 'rose' => '#FF69B4', 'menthe' => '#3DFFC0', 'bleu' => '#4A90D9', 'gris' => '#6B7280'];
 }
 $positions = !empty($positionsFromDb) ? array_column($positionsFromDb, 'value') : ['centre', 'gauche', 'droite', 'dos'];
+$fonts = !empty($fontsFromDb) ? $fontsFromDb : [
+    ['value' => 'Poppins', 'label' => 'Poppins (Moderne)'],
+    ['value' => 'Playfair Display', 'label' => 'Playfair (Élégant)'],
+    ['value' => 'Lobster', 'label' => 'Lobster (Script)'],
+    ['value' => 'Oswald', 'label' => 'Oswald (Impact)'],
+];
 
 // Traitement du formulaire d'ajout au panier
 if (isPost() && isset($_POST['add_to_cart'])) {
@@ -48,6 +55,7 @@ if (isPost() && isset($_POST['add_to_cart'])) {
             'size' => post('size', 'M'),
             'color' => post('color', 'blanc'),
             'text' => trim(post('custom_text', '')),
+            'font' => post('font', 'Poppins'),
             'position' => post('position', 'centre'),
             'quantity' => max(1, (int) post('quantity', 1)),
         ];
@@ -73,7 +81,7 @@ $cartCount = Cart::count();
     <meta name="description" content="<?= h($product['description'] ?? 'Personnalisez ce produit selon vos envies') ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&family=Playfair+Display:wght@700&family=Lobster&family=Oswald:wght@700&family=Dancing+Script:wght@700&family=Bebas+Neue&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <style>
         body { background: var(--gray-light); }
@@ -302,6 +310,29 @@ $cartCount = Cart::count();
         }
         .position-option input { display: none; }
 
+        /* Font Selection */
+        .font-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .font-option {
+            padding: 14px 16px;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 15px;
+            text-align: center;
+        }
+        .font-option:hover { border-color: var(--pink-main); }
+        .font-option.selected {
+            background: linear-gradient(135deg, rgba(255,105,180,0.1) 0%, rgba(61,255,192,0.1) 100%);
+            border-color: var(--pink-main);
+        }
+        .font-option input { display: none; }
+
         /* Text Input */
         .custom-text-input {
             width: 100%;
@@ -500,6 +531,21 @@ $cartCount = Cart::count();
                                    maxlength="50">
                         </div>
 
+                        <!-- Police -->
+                        <div class="customization-section">
+                            <h3 class="section-title">Style de police</h3>
+                            <div class="font-options">
+                                <?php foreach ($fonts as $index => $font): ?>
+                                    <label class="font-option <?= $index === 0 ? 'selected' : '' ?>"
+                                           style="font-family: '<?= h($font['value']) ?>', sans-serif;"
+                                           data-font="<?= h($font['value']) ?>">
+                                        <input type="radio" name="font" value="<?= h($font['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
+                                        <?= h($font['label']) ?>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
                         <!-- Position -->
                         <div class="customization-section">
                             <h3 class="section-title">Position du texte</h3>
@@ -541,11 +587,12 @@ $cartCount = Cart::count();
     </section>
 
     <script>
-        // Selection handling
-        document.querySelectorAll('.size-option, .color-option, .position-option').forEach(option => {
+        // Selection handling - un seul élément sélectionné par groupe
+        document.querySelectorAll('.size-option, .color-option, .position-option, .font-option').forEach(option => {
             option.addEventListener('click', function() {
                 const parent = this.parentElement;
-                parent.querySelectorAll(this.className.split(' ')[0].replace('.', '')).forEach(o => o.classList.remove('selected'));
+                const baseClass = this.className.split(' ')[0];
+                parent.querySelectorAll('.' + baseClass).forEach(o => o.classList.remove('selected'));
                 this.classList.add('selected');
             });
         });
@@ -564,9 +611,16 @@ $cartCount = Cart::count();
             option.addEventListener('click', function() {
                 const color = this.dataset.color;
                 productPreview.style.backgroundColor = color === '#FFFFFF' ? '#f8f8f8' : color;
-                // Adjust text color for dark backgrounds
                 const isDark = ['#1A1A2E', '#6B7280'].includes(color);
                 previewText.style.color = isDark ? '#FF69B4' : '#FF1493';
+            });
+        });
+
+        // Font preview
+        document.querySelectorAll('.font-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const font = this.dataset.font;
+                previewText.style.fontFamily = "'" + font + "', sans-serif";
             });
         });
 
