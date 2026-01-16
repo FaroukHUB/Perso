@@ -31,6 +31,8 @@ $error = '';
 $optionModel = new CustomizationOption();
 $sizesFromDb = $optionModel->getSizes();
 $colorsFromDb = $optionModel->getColors();
+$textColorsFromDb = $optionModel->getTextColors();
+$techniquesFromDb = $optionModel->getTechniques();
 
 // Polices depuis la nouvelle table fonts (système administrable)
 $fontModel = new Font();
@@ -62,6 +64,48 @@ if (!empty($fontsFromDb)) {
     $fonts = [
         ['value' => 'Poppins', 'label' => 'Poppins', 'category' => 'sans-serif'],
         ['value' => 'Playfair Display', 'label' => 'Playfair Display', 'category' => 'serif'],
+    ];
+}
+
+// Couleurs de texte (pour personnalisation)
+$textColors = [];
+if (!empty($textColorsFromDb)) {
+    foreach ($textColorsFromDb as $tc) {
+        $textColors[] = [
+            'value' => $tc['value'],
+            'label' => $tc['label'],
+            'hex' => $tc['hex_code'] ?? '#000000'
+        ];
+    }
+} else {
+    // Fallback si table vide
+    $textColors = [
+        ['value' => 'noir', 'label' => 'Noir', 'hex' => '#1A1A2E'],
+        ['value' => 'blanc', 'label' => 'Blanc', 'hex' => '#FFFFFF'],
+        ['value' => 'rose', 'label' => 'Rose', 'hex' => '#FF69B4'],
+        ['value' => 'menthe', 'label' => 'Menthe', 'hex' => '#3DFFC0'],
+        ['value' => 'or', 'label' => 'Or', 'hex' => '#FFD700'],
+        ['value' => 'argent', 'label' => 'Argent', 'hex' => '#C0C0C0'],
+    ];
+}
+
+// Techniques d'impression
+$techniques = [];
+if (!empty($techniquesFromDb)) {
+    foreach ($techniquesFromDb as $t) {
+        $techniques[] = [
+            'value' => $t['value'],
+            'label' => $t['label'],
+            'description' => $t['description'] ?? '',
+            'price' => (float)($t['price'] ?? 0)
+        ];
+    }
+} else {
+    // Fallback si table vide
+    $techniques = [
+        ['value' => 'flex', 'label' => 'Flex', 'description' => 'Idéal pour textes et logos simples', 'price' => 0],
+        ['value' => 'flock', 'label' => 'Flock', 'description' => 'Effet velours, toucher doux', 'price' => 2],
+        ['value' => 'broderie', 'label' => 'Broderie', 'description' => 'Finition premium et durable', 'price' => 5],
     ];
 }
 
@@ -124,7 +168,9 @@ if (isPost() && isset($_POST['add_to_cart'])) {
             'size' => post('size', 'M'),
             'color' => post('color', 'blanc'),
             'text' => trim(post('custom_text', '')),
+            'text_color' => post('text_color', 'noir'),
             'font' => post('font', 'Poppins'),
+            'technique' => post('technique', 'flex'),
             'view' => post('view', 'front'),
             'position' => [
                 'x' => round($posX, 1),
@@ -518,6 +564,94 @@ $cartCount = Cart::count();
         }
         .font-option input { display: none; }
 
+        /* Text Color Selection */
+        .text-color-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        .text-color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 3px solid transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .text-color-option:hover { transform: scale(1.1); }
+        .text-color-option.selected {
+            border-color: var(--pink-main);
+            transform: scale(1.15);
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+        }
+        .text-color-option input { display: none; }
+        .text-color-option[data-color="#FFFFFF"] {
+            border: 2px solid #ddd;
+        }
+        .text-color-option .color-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: var(--gray);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .text-color-option:hover .color-label,
+        .text-color-option.selected .color-label {
+            opacity: 1;
+        }
+
+        /* Technique Selection */
+        .technique-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .technique-option {
+            padding: 16px 20px;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .technique-option:hover { border-color: var(--pink-main); }
+        .technique-option.selected {
+            background: linear-gradient(135deg, rgba(255,105,180,0.1) 0%, rgba(61,255,192,0.1) 100%);
+            border-color: var(--pink-main);
+        }
+        .technique-option input { display: none; }
+        .technique-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .technique-name {
+            font-weight: 600;
+            color: var(--black-soft);
+        }
+        .technique-desc {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        .technique-price {
+            font-weight: 700;
+            color: var(--mint-dark);
+            font-size: 14px;
+        }
+        .technique-price.free {
+            color: var(--mint-main);
+        }
+
         /* Text Input */
         .custom-text-input {
             width: 100%;
@@ -785,6 +919,44 @@ $cartCount = Cart::count();
                             </div>
                         </div>
 
+                        <!-- Couleur du texte -->
+                        <div class="customization-section">
+                            <h3 class="section-title">Couleur du texte</h3>
+                            <div class="text-color-options">
+                                <?php foreach ($textColors as $index => $tc): ?>
+                                    <label class="text-color-option <?= $index === 0 ? 'selected' : '' ?>"
+                                           style="background-color: <?= h($tc['hex']) ?>;"
+                                           data-color="<?= h($tc['hex']) ?>"
+                                           title="<?= h($tc['label']) ?>">
+                                        <input type="radio" name="text_color" value="<?= h($tc['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
+                                        <span class="color-label"><?= h($tc['label']) ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Technique d'impression -->
+                        <div class="customization-section">
+                            <h3 class="section-title">Technique d'impression</h3>
+                            <div class="technique-options">
+                                <?php foreach ($techniques as $index => $tech): ?>
+                                    <label class="technique-option <?= $index === 0 ? 'selected' : '' ?>"
+                                           data-price="<?= $tech['price'] ?>">
+                                        <input type="radio" name="technique" value="<?= h($tech['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
+                                        <div class="technique-info">
+                                            <span class="technique-name"><?= h($tech['label']) ?></span>
+                                            <?php if (!empty($tech['description'])): ?>
+                                                <span class="technique-desc"><?= h($tech['description']) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <span class="technique-price <?= $tech['price'] == 0 ? 'free' : '' ?>">
+                                            <?= $tech['price'] == 0 ? 'Inclus' : '+' . formatPrice($tech['price']) ?>
+                                        </span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
                         <!-- Quantité -->
                         <div class="customization-section">
                             <h3 class="section-title">Quantité</h3>
@@ -1017,7 +1189,7 @@ $cartCount = Cart::count();
             // === SÉLECTION DES OPTIONS ===
 
             // Gestionnaire générique pour les options radio
-            document.querySelectorAll('.size-option, .color-option, .font-option').forEach(option => {
+            document.querySelectorAll('.size-option, .color-option, .font-option, .text-color-option, .technique-option').forEach(option => {
                 option.addEventListener('click', function() {
                     const parent = this.parentElement;
                     const baseClass = this.className.split(' ')[0];
@@ -1034,15 +1206,31 @@ $cartCount = Cart::count();
                 previewText.style.fontFamily = "'" + font + "', " + category;
             }
 
-            // Color preview
+            // Initialiser la couleur du texte depuis la première option sélectionnée
+            const firstTextColor = document.querySelector('.text-color-option.selected');
+            if (firstTextColor) {
+                previewText.style.color = firstTextColor.dataset.color;
+            }
+
+            // Color preview (couleur du produit)
             document.querySelectorAll('.color-option').forEach(option => {
                 option.addEventListener('click', function() {
                     const color = this.dataset.color;
                     productPreview.style.backgroundColor = color === '#FFFFFF' ? '#f8f8f8' : color;
+                });
+            });
 
-                    // Ajuster la couleur du texte pour le contraste
-                    const isDark = ['#1A1A2E', '#6B7280'].includes(color);
-                    previewText.style.color = isDark ? '#FF69B4' : '#FF1493';
+            // Text color preview (couleur du texte personnalisé)
+            document.querySelectorAll('.text-color-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const color = this.dataset.color;
+                    previewText.style.color = color;
+                    // Ajouter une ombre pour la lisibilité sur fond clair/sombre
+                    if (color === '#FFFFFF' || color === '#FFD700' || color === '#C0C0C0') {
+                        previewText.style.textShadow = '1px 1px 3px rgba(0,0,0,0.5)';
+                    } else {
+                        previewText.style.textShadow = '1px 1px 2px rgba(255,255,255,0.9)';
+                    }
                 });
             });
 
