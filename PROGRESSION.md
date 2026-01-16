@@ -272,7 +272,7 @@ CREATE TABLE product_colors (
 | Modèle ProductColorImage | ✅ OK | CRUD + upload images |
 | Admin variantes couleur | ✅ OK | Interface dans product-form.php |
 | Client changement images | ✅ OK | Au clic couleur → vraies photos |
-| Sélecteur polices scalable | ❌ TODO | Dropdown + recherche pour 20+ polices |
+| **Sélecteur polices scalable** | ✅ OK | Dropdown avec recherche, preview, catégories |
 | Refonte layout configurateur | ❌ TODO | Vision UX 2026 |
 
 ---
@@ -297,7 +297,7 @@ CREATE TABLE product_colors (
 | **Zoom/lightbox** | ✅ OK | **BUG CORRIGÉ cette session** |
 | **Bascule face/dos client** | ✅ OK | **BUG CORRIGÉ cette session** |
 | **Images par coloris** | ✅ OK | **IMPLÉMENTÉ cette session** |
-| Sélecteur polices scalable | ⚠️ PARTIEL | Grille OK pour <10 polices, pas scalable |
+| **Sélecteur polices scalable** | ✅ OK | **IMPLÉMENTÉ cette session** |
 | Layout configurateur moderne | ❌ NON | Layout vertical formulaire classique |
 
 ### B. Ce qu'il reste à faire (priorisé)
@@ -305,10 +305,10 @@ CREATE TABLE product_colors (
 | # | Tâche | Priorité | Complexité | Notes |
 |---|-------|----------|------------|-------|
 | ~~1~~ | ~~Images par coloris~~ | ~~🔴 HAUTE~~ | ~~Moyenne~~ | ✅ TERMINÉ |
-| 1 | Sélecteur polices scalable | 🟡 MOYENNE | Faible | Dropdown avec preview et recherche |
-| 2 | Refonte layout configurateur | 🟡 MOYENNE | Haute | Produit au centre, options sur côtés |
-| 3 | Pinch-zoom mobile | 🟢 BASSE | Faible | Amélioration lightbox |
-| 4 | Packs thématiques (P4) | 🟢 BASSE | Haute | Non prioritaire |
+| ~~2~~ | ~~Sélecteur polices scalable~~ | ~~🟡 MOYENNE~~ | ~~Faible~~ | ✅ TERMINÉ |
+| 1 | Refonte layout configurateur | 🟡 MOYENNE | Haute | Produit au centre, options sur côtés |
+| 2 | Pinch-zoom mobile | 🟢 BASSE | Faible | Amélioration lightbox |
+| 3 | Packs thématiques (P4) | 🟢 BASSE | Haute | Non prioritaire |
 
 ---
 

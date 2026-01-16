@@ -594,28 +594,110 @@ $cartCount = Cart::count();
         }
         .color-option input { display: none; }
 
-        /* Font Selection */
-        .font-options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+        /* Font Selection - Dropdown Scalable */
+        .font-selector-wrapper {
+            position: relative;
             margin-bottom: 25px;
         }
-        .font-option {
-            padding: 14px 16px;
+        .font-selector-trigger {
+            width: 100%;
+            padding: 16px 20px;
             border: 2px solid #e5e5e5;
             border-radius: var(--radius-md);
+            background: white;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             transition: all 0.2s;
-            font-size: 15px;
-            text-align: center;
         }
-        .font-option:hover { border-color: var(--pink-main); }
-        .font-option.selected {
-            background: linear-gradient(135deg, rgba(255,105,180,0.1) 0%, rgba(61,255,192,0.1) 100%);
+        .font-selector-trigger:hover {
             border-color: var(--pink-main);
         }
-        .font-option input { display: none; }
+        .font-selector-trigger.open {
+            border-color: var(--pink-main);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+        }
+        .font-selector-preview {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .font-selector-arrow {
+            transition: transform 0.2s;
+        }
+        .font-selector-trigger.open .font-selector-arrow {
+            transform: rotate(180deg);
+        }
+        .font-selector-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--pink-main);
+            border-top: none;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            max-height: 300px;
+            overflow: hidden;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .font-selector-dropdown.open {
+            display: block;
+        }
+        .font-search-box {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+        .font-search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #e5e5e5;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+        }
+        .font-search-input:focus {
+            outline: none;
+            border-color: var(--pink-main);
+        }
+        .font-list {
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .font-list-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.15s;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .font-list-item:hover {
+            background: rgba(255, 105, 180, 0.08);
+        }
+        .font-list-item.selected {
+            background: linear-gradient(135deg, rgba(255,105,180,0.15) 0%, rgba(61,255,192,0.15) 100%);
+        }
+        .font-list-item.hidden {
+            display: none;
+        }
+        .font-item-name {
+            font-size: 16px;
+        }
+        .font-item-category {
+            font-size: 11px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 3px 8px;
+            background: rgba(0,0,0,0.05);
+            border-radius: var(--radius-full);
+        }
+        .font-hidden-input {
+            display: none;
+        }
 
         /* Text Color Selection */
         .text-color-options {
@@ -978,19 +1060,40 @@ $cartCount = Cart::count();
                                    maxlength="<?= $printZone['max_chars'] ?? 50 ?>">
                         </div>
 
-                        <!-- Police -->
+                        <!-- Police - Sélecteur Dropdown Scalable -->
                         <div class="customization-section">
                             <h3 class="section-title">Style de police</h3>
-                            <div class="font-options">
-                                <?php foreach ($fonts as $index => $font): ?>
-                                    <label class="font-option <?= $index === 0 ? 'selected' : '' ?>"
-                                           style="font-family: '<?= h($font['value']) ?>', <?= h($font['category'] ?? 'sans-serif') ?>;"
-                                           data-font="<?= h($font['value']) ?>"
-                                           data-category="<?= h($font['category'] ?? 'sans-serif') ?>">
-                                        <input type="radio" name="font" value="<?= h($font['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
-                                        <?= h($font['label']) ?>
-                                    </label>
-                                <?php endforeach; ?>
+                            <div class="font-selector-wrapper" id="fontSelector">
+                                <input type="hidden" name="font" id="fontInput" value="<?= h($fonts[0]['value'] ?? 'Poppins') ?>">
+
+                                <div class="font-selector-trigger" id="fontTrigger">
+                                    <span class="font-selector-preview" id="fontPreview"
+                                          style="font-family: '<?= h($fonts[0]['value'] ?? 'Poppins') ?>', <?= h($fonts[0]['category'] ?? 'sans-serif') ?>">
+                                        <?= h($fonts[0]['label'] ?? 'Sélectionner une police') ?>
+                                    </span>
+                                    <svg class="font-selector-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                </div>
+
+                                <div class="font-selector-dropdown" id="fontDropdown">
+                                    <div class="font-search-box">
+                                        <input type="text" class="font-search-input" id="fontSearch"
+                                               placeholder="Rechercher une police...">
+                                    </div>
+                                    <div class="font-list" id="fontList">
+                                        <?php foreach ($fonts as $index => $font): ?>
+                                            <div class="font-list-item <?= $index === 0 ? 'selected' : '' ?>"
+                                                 data-font="<?= h($font['value']) ?>"
+                                                 data-label="<?= h($font['label']) ?>"
+                                                 data-category="<?= h($font['category'] ?? 'sans-serif') ?>"
+                                                 style="font-family: '<?= h($font['value']) ?>', <?= h($font['category'] ?? 'sans-serif') ?>">
+                                                <span class="font-item-name"><?= h($font['label']) ?></span>
+                                                <span class="font-item-category"><?= h($font['category'] ?? 'sans-serif') ?></span>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1280,8 +1383,93 @@ $cartCount = Cart::count();
                 });
             });
 
+            // === SÉLECTEUR DE POLICES DROPDOWN ===
+            const fontSelector = document.getElementById('fontSelector');
+            const fontTrigger = document.getElementById('fontTrigger');
+            const fontDropdown = document.getElementById('fontDropdown');
+            const fontSearch = document.getElementById('fontSearch');
+            const fontList = document.getElementById('fontList');
+            const fontInput = document.getElementById('fontInput');
+            const fontPreview = document.getElementById('fontPreview');
+
+            // Ouvrir/fermer le dropdown
+            fontTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isOpen = fontDropdown.classList.contains('open');
+                if (isOpen) {
+                    closeFontDropdown();
+                } else {
+                    openFontDropdown();
+                }
+            });
+
+            function openFontDropdown() {
+                fontTrigger.classList.add('open');
+                fontDropdown.classList.add('open');
+                fontSearch.value = '';
+                filterFonts('');
+                setTimeout(() => fontSearch.focus(), 100);
+            }
+
+            function closeFontDropdown() {
+                fontTrigger.classList.remove('open');
+                fontDropdown.classList.remove('open');
+            }
+
+            // Fermer au clic extérieur
+            document.addEventListener('click', function(e) {
+                if (!fontSelector.contains(e.target)) {
+                    closeFontDropdown();
+                }
+            });
+
+            // Recherche de polices
+            fontSearch.addEventListener('input', function() {
+                filterFonts(this.value.toLowerCase());
+            });
+
+            function filterFonts(query) {
+                const items = fontList.querySelectorAll('.font-list-item');
+                items.forEach(item => {
+                    const name = item.dataset.label.toLowerCase();
+                    const category = item.dataset.category.toLowerCase();
+                    if (name.includes(query) || category.includes(query)) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Sélection d'une police
+            fontList.addEventListener('click', function(e) {
+                const item = e.target.closest('.font-list-item');
+                if (!item) return;
+
+                const font = item.dataset.font;
+                const label = item.dataset.label;
+                const category = item.dataset.category || 'sans-serif';
+
+                // Mettre à jour l'input hidden
+                fontInput.value = font;
+
+                // Mettre à jour le preview du trigger
+                fontPreview.textContent = label;
+                fontPreview.style.fontFamily = "'" + font + "', " + category;
+
+                // Mettre à jour la sélection visuelle
+                fontList.querySelectorAll('.font-list-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+
+                // Mettre à jour le texte preview du produit
+                previewText.style.fontFamily = "'" + font + "', " + category;
+
+                // Fermer le dropdown
+                closeFontDropdown();
+            });
+
             // Initialiser le style de la première police sélectionnée
-            const firstFont = document.querySelector('.font-option.selected');
+            const firstFont = document.querySelector('.font-list-item.selected');
             if (firstFont) {
                 const font = firstFont.dataset.font;
                 const category = firstFont.dataset.category || 'sans-serif';
@@ -1330,14 +1518,7 @@ $cartCount = Cart::count();
                 });
             });
 
-            // Font preview
-            document.querySelectorAll('.font-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    const font = this.dataset.font;
-                    const category = this.dataset.category || 'sans-serif';
-                    previewText.style.fontFamily = "'" + font + "', " + category;
-                });
-            });
+            // (Font preview géré par le nouveau sélecteur dropdown)
 
             // Technique preview - applique le style visuel distinct
             const techniqueIndicator = document.getElementById('techniqueIndicator');
@@ -1385,8 +1566,9 @@ $cartCount = Cart::count();
                     // Récupérer l'image actuelle
                     const imgSrc = previewImage ? previewImage.src : '';
                     const text = customText.value.trim();
-                    const fontEl = document.querySelector('.font-option.selected');
-                    const font = fontEl ? fontEl.dataset.font : 'Poppins';
+                    // Récupérer la police depuis le nouveau sélecteur dropdown
+                    const fontEl = document.querySelector('.font-list-item.selected');
+                    const font = fontEl ? fontEl.dataset.font : (fontInput ? fontInput.value : 'Poppins');
                     const category = fontEl ? (fontEl.dataset.category || 'sans-serif') : 'sans-serif';
 
                     // Récupérer la technique sélectionnée
