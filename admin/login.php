@@ -1,6 +1,7 @@
 <?php
 /**
  * PERSONNALY - Admin Login
+ * Design: Ultra-moderne • Girly • Rose + Vert Menthe + Noir
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
@@ -49,99 +50,48 @@ if (isPost()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion Admin - PERSONNALY</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #1a1a2e;
-        }
-        .form-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover { background: #5a6fd6; }
-        .error {
-            background: #ffe6e6;
-            color: #c00;
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .back-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .back-link a { color: #667eea; }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/public/assets/css/style.css">
+    <link rel="stylesheet" href="/public/assets/css/admin.css">
 </head>
-<body>
+<body class="login-page">
     <div class="login-box">
-        <h1>PERSONNALY<br><small style="font-size: 14px; color: #666;">Administration</small></h1>
+        <div class="login-header">
+            <h1>PERSONNALY</h1>
+            <p>Administration</p>
+        </div>
 
         <?php if ($error): ?>
-            <div class="error"><?= h($error) ?></div>
+            <div class="login-error"><?= h($error) ?></div>
         <?php endif; ?>
 
-        <form method="post">
+        <form method="post" class="login-form">
             <?= csrfField() ?>
 
             <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required
+                <label class="form-label" for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-input"
+                       placeholder="votre@email.com" required
                        value="<?= h(post('email', '')) ?>">
             </div>
 
             <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <input type="password" id="password" name="password" required>
+                <label class="form-label" for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" class="form-input"
+                       placeholder="••••••••" required>
             </div>
 
-            <button type="submit">Se connecter</button>
+            <button type="submit" class="btn btn-primary">
+                Se connecter
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </button>
         </form>
 
-        <div class="back-link">
+        <div class="login-footer">
             <a href="/">← Retour au site</a>
         </div>
     </div>

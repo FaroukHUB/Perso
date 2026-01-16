@@ -13,6 +13,7 @@
 | Hébergement | o2switch (mutualisé) |
 | Stack | PHP 7.4+ / MySQL / PDO |
 | Base de données | zajr1824_persosaas |
+| Design | Ultra-moderne • Girly • Rose + Vert Menthe + Noir |
 
 ---
 
@@ -20,9 +21,9 @@
 
 **Date dernière mise à jour** : 2026-01-16
 
-**Phase actuelle** : STEP 1 - Fondations
+**Phase actuelle** : STEP 1 - Fondations (EN COURS)
 
-**Statut global** : 🟡 En cours
+**Statut global** : 🟢 Connexion DB OK - Design girly appliqué
 
 ---
 
@@ -41,13 +42,28 @@
 | Modèle User | ✅ OK | app/models/User.php |
 | Modèle Product | ✅ OK | app/models/Product.php |
 | Modèle Order | ✅ OK | app/models/Order.php |
-| Page publique index.php | ✅ OK | public/index.php |
-| Admin login | ✅ OK | admin/login.php |
-| Admin dashboard | ✅ OK | admin/dashboard.php |
+| Page publique index.php | ✅ OK | Design girly appliqué |
+| Admin login | ✅ OK | Design girly appliqué |
+| Admin dashboard | ✅ OK | Design girly appliqué |
 | Schéma SQL complet | ✅ OK | sql/schema.sql |
 | Fichier PROGRESSION.md | ✅ OK | Ce fichier |
+| Connexion MySQL | ✅ OK | Test réussi via debug-db.php |
+| Design CSS girly moderne | ✅ OK | Rose + Vert menthe + Noir |
 | Exécuter le SQL sur phpMyAdmin | ⏳ À FAIRE | Utilisateur doit exécuter |
-| Test connexion DB | ⏳ À FAIRE | Après exécution SQL |
+| Test login admin | ⏳ À FAIRE | admin@personnaly.fr / admin123 |
+
+---
+
+## Design System
+
+### Couleurs
+- **Rose** : #FF69B4 (principal), #FF1493 (foncé), #FFB6C1 (clair)
+- **Vert Menthe** : #3DFFC0 (principal), #00D9A0 (foncé), #98FFD6 (clair)
+- **Noir** : #0D0D0D, #1A1A2E, #16213E
+
+### Polices
+- **Display** : Poppins (titres)
+- **Body** : Inter (texte)
 
 ---
 
@@ -55,9 +71,9 @@
 
 ### STEP 1 (en cours)
 - [ ] Exécuter `sql/schema.sql` dans phpMyAdmin
-- [ ] Tester la connexion à la base
 - [ ] Tester le login admin (admin@personnaly.fr / admin123)
 - [ ] Changer le mot de passe admin
+- [ ] Supprimer debug-db.php
 
 ### STEP 2 (à venir)
 - [ ] CRUD Produits complet (admin/products.php)
@@ -79,12 +95,19 @@
 ## Structure Actuelle du Projet
 
 ```
-/home/user/Perso/
+/personnaly.fr/
 ├── PROGRESSION.md          ← CE FICHIER
 ├── .gitignore
 ├── public/
-│   ├── index.php           ← Page d'accueil
-│   └── .htaccess
+│   ├── index.php           ← Page d'accueil (design girly)
+│   ├── test-db.php         ← Test connexion (à supprimer)
+│   ├── debug-db.php        ← Debug connexion (à supprimer)
+│   ├── .htaccess
+│   ├── uploads/
+│   └── assets/
+│       └── css/
+│           ├── style.css   ← Design system principal
+│           └── admin.css   ← Styles admin
 ├── app/
 │   ├── config/
 │   │   ├── database.example.php
@@ -96,12 +119,12 @@
 │   │   ├── User.php
 │   │   ├── Product.php
 │   │   └── Order.php
-│   ├── services/           ← (vide, pour plus tard)
+│   ├── services/
 │   └── helpers/
 │       └── functions.php
 ├── admin/
-│   ├── login.php
-│   ├── dashboard.php
+│   ├── login.php           ← Design girly
+│   ├── dashboard.php       ← Design girly
 │   └── logout.php
 └── sql/
     └── schema.sql          ← À exécuter dans phpMyAdmin
@@ -114,26 +137,15 @@
 1. **Credentials DB** : Ne jamais commiter `app/config/database.php`
 2. **Admin par défaut** : admin@personnaly.fr / admin123 (CHANGER EN PROD)
 3. **JSON pour personnalisations** : La table `order_customizations` utilise un champ JSON pour la flexibilité
+4. **Design** : Ultra-moderne, girly, rose + vert menthe + noir, épuré
 
 ---
 
-## Blocages / Problèmes Connus
+## Blocages / Problèmes Résolus
 
-*Aucun pour le moment.*
-
----
-
-## Commandes Git Utiles
-
-```bash
-# Pull sur o2switch
-git pull origin claude/fastapi-customization-subdomain-GIlQI
-
-# Après modifications
-git add -A
-git commit -m "Description"
-git push origin claude/fastapi-customization-subdomain-GIlQI
-```
+| Problème | Solution |
+|----------|----------|
+| Connexion MySQL refusée | Associer l'utilisateur à la base dans cPanel |
 
 ---
 
