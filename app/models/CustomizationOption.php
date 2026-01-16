@@ -1,7 +1,7 @@
 <?php
 /**
  * PERSONNALY - Model CustomizationOption
- * Gestion des options de personnalisation (tailles, couleurs, positions)
+ * Gestion des options de personnalisation (tailles, couleurs texte, techniques)
  */
 
 require_once __DIR__ . '/../core/Database.php';
@@ -76,14 +76,16 @@ class CustomizationOption
         $maxOrder = $stmt->fetch(PDO::FETCH_ASSOC)['max_order'] ?? 0;
 
         $stmt = $this->db->prepare(
-            'INSERT INTO customization_options (type, value, label, hex_code, sort_order, active, created_at)
-             VALUES (?, ?, ?, ?, ?, 1, NOW())'
+            'INSERT INTO customization_options (type, value, label, hex_code, price, description, sort_order, active, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW())'
         );
         $stmt->execute([
             $data['type'],
             $data['value'],
             $data['label'],
             $data['hex_code'] ?? null,
+            $data['price'] ?? null,
+            $data['description'] ?? null,
             $maxOrder + 1,
         ]);
 
@@ -97,13 +99,15 @@ class CustomizationOption
     {
         $stmt = $this->db->prepare(
             'UPDATE customization_options
-             SET value = ?, label = ?, hex_code = ?
+             SET value = ?, label = ?, hex_code = ?, price = ?, description = ?
              WHERE id = ?'
         );
         return $stmt->execute([
             $data['value'],
             $data['label'],
             $data['hex_code'] ?? null,
+            $data['price'] ?? null,
+            $data['description'] ?? null,
             $id,
         ]);
     }
@@ -145,7 +149,7 @@ class CustomizationOption
     }
 
     /**
-     * Récupère les tailles actives (raccourci)
+     * Récupère les tailles actives
      */
     public function getSizes(): array
     {
@@ -153,26 +157,18 @@ class CustomizationOption
     }
 
     /**
-     * Récupère les couleurs actives (raccourci)
+     * Récupère les couleurs de texte actives
      */
-    public function getColors(): array
+    public function getTextColors(): array
     {
-        return $this->findByType('color');
+        return $this->findByType('text_color');
     }
 
     /**
-     * Récupère les positions actives (raccourci)
+     * Récupère les techniques de personnalisation actives
      */
-    public function getPositions(): array
+    public function getTechniques(): array
     {
-        return $this->findByType('position');
-    }
-
-    /**
-     * Récupère les polices actives (raccourci)
-     */
-    public function getFonts(): array
-    {
-        return $this->findByType('font');
+        return $this->findByType('technique');
     }
 }
