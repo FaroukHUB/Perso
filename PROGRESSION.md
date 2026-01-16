@@ -189,4 +189,55 @@
 
 ---
 
+## Audit de Conformité (2026-01-16)
+
+### Conformité prompt initial
+
+| Exigence | Statut |
+|----------|--------|
+| Aperçu temps réel | ✅ OUI |
+| Fidélité preview → panier → commande | ✅ OUI |
+| Structure pour novices (options admin) | ⚠️ PARTIEL |
+| Séparation logique/affichage | ⚠️ PARTIEL |
+| Gestion clients admin complète | ⚠️ PARTIEL |
+| Réception commandes (email) | ⚠️ PARTIEL |
+| Upsell / options commerciales | ❌ NON |
+
+### Fonctionnalités restantes (priorité haute)
+
+- [ ] Envoi email confirmation commande
+- [ ] Envoi email notification admin
+- [ ] Page détail commande admin
+- [ ] Fiche client détaillée avec historique
+
+### Fonctionnalités restantes (priorité moyenne)
+
+- [ ] Options personnalisation administrables (tailles, couleurs)
+- [ ] Upload images produits
+- [ ] Preview avec vraie image produit
+
+### Fonctionnalités restantes (priorité basse)
+
+- [ ] Connexion/Inscription clients
+- [ ] Page "Mes commandes" client
+- [ ] Codes promo
+- [ ] Multi-boutiques (architecture préparée mais non active)
+
+### Décisions techniques prises
+
+1. **Stack** : PHP 7.4+ / MySQL / PDO (compatible o2switch)
+2. **Auth** : Sessions PHP + bcrypt
+3. **Panier** : Session PHP (pas de base)
+4. **Personnalisations** : JSON dans `order_customizations.data_json`
+5. **Design** : CSS natif, pas de framework (léger)
+6. **JS** : Vanilla JS, pas de framework (simple)
+
+### Scalabilité prévue
+
+- Jusqu'à ~500 boutiques : o2switch mutualisé viable
+- Emails : externaliser vers Brevo/Mailjet dès maintenant
+- Multi-boutiques : ajout `shop_id` aux tables quand nécessaire
+
+---
+
 **FIN DU FICHIER DE PROGRESSION**
