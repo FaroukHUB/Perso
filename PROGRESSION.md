@@ -261,6 +261,51 @@ CREATE TABLE product_colors (
 | cart.php technique | ✅ OK | data-technique + affichage tag |
 | admin/order.php technique | ✅ OK | data-technique + affichage tag |
 
+### 2026-01-16 - Session 11 (RECADRAGE UX FINAL)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| **BUG FIX: Lightbox** | ✅ OK | lightbox.js chargé AVANT le JS inline (était chargé APRÈS) |
+| **BUG FIX: Face/Dos** | ✅ OK | Condition corrigée (vérifier image, pas zone) |
+| Images par coloris | ❌ TODO | Architecture à définir |
+| Sélecteur polices scalable | ❌ TODO | Dropdown + recherche pour 20+ polices |
+| Refonte layout configurateur | ❌ TODO | Vision UX 2026 |
+
+---
+
+## 🔴 AUDIT RECADRAGE - 2026-01-16
+
+### A. État d'avancement vs prompt initial
+
+| Fonctionnalité | Statut | Détail |
+|----------------|--------|--------|
+| Aperçu temps réel | ✅ OK | Drag & drop + preview texte live |
+| Polices administrables | ✅ OK | Google + Custom, admin fonts.php |
+| Zones d'impression | ✅ OK | Admin product-zones.php, front/back |
+| Drag & drop contraint | ✅ OK | Position en %, contrainte zone |
+| Gestion commandes | ✅ OK | Liste, détail, statuts |
+| Gestion clients | ✅ OK | Liste, fiche, historique |
+| Images face/dos | ✅ OK | Upload admin + bascule client |
+| Couleurs par produit | ✅ OK | Table product_colors + admin |
+| Couleurs texte | ✅ OK | 6 couleurs + preview temps réel |
+| Techniques client | ✅ OK | Flex/Flock/Broderie/Sublimation + prix |
+| Styles visuels techniques | ✅ OK | CSS distinct par technique |
+| **Zoom/lightbox** | ✅ OK | **BUG CORRIGÉ cette session** |
+| **Bascule face/dos client** | ✅ OK | **BUG CORRIGÉ cette session** |
+| Images par coloris | ❌ NON | Chaque couleur devrait avoir ses images |
+| Sélecteur polices scalable | ⚠️ PARTIEL | Grille OK pour <10 polices, pas scalable |
+| Layout configurateur moderne | ❌ NON | Layout vertical formulaire classique |
+
+### B. Ce qu'il reste à faire (priorisé)
+
+| # | Tâche | Priorité | Complexité | Notes |
+|---|-------|----------|------------|-------|
+| 1 | Images par coloris | 🔴 HAUTE | Moyenne | Table product_color_images, admin + client |
+| 2 | Sélecteur polices scalable | 🟡 MOYENNE | Faible | Dropdown avec preview et recherche |
+| 3 | Refonte layout configurateur | 🟡 MOYENNE | Haute | Produit au centre, options sur côtés |
+| 4 | Pinch-zoom mobile | 🟢 BASSE | Faible | Amélioration lightbox |
+| 5 | Packs thématiques (P4) | 🟢 BASSE | Haute | Non prioritaire |
+
 ---
 
 ## Prochaines Étapes (ordre validé)

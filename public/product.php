@@ -1004,6 +1004,9 @@ $cartCount = Cart::count();
         </div>
     </section>
 
+    <!-- Lightbox Component (chargé AVANT le JS inline qui l'utilise) -->
+    <script src="/public/assets/js/lightbox.js"></script>
+
     <script>
         // ============================================
         // PERSONNALY - Drag & Drop Preview System
@@ -1051,9 +1054,12 @@ $cartCount = Cart::count();
 
             function switchView(view) {
                 if (view === currentView) return;
-                if (view === 'back' && !zones.back) return;
+
+                // Vérifier qu'il y a une image dos si on switch vers 'back'
+                if (view === 'back' && previewImage && !previewImage.dataset.back) return;
 
                 currentView = view;
+                // Utiliser la zone du dos si elle existe, sinon fallback sur la zone front
                 zone = zones[view] || zones.front;
 
                 // Update hidden input
@@ -1329,7 +1335,5 @@ $cartCount = Cart::count();
 
         })();
     </script>
-    <!-- Lightbox Component -->
-    <script src="/public/assets/js/lightbox.js"></script>
 </body>
 </html>
