@@ -1,0 +1,17 @@
+# PERSONNALY - Configuration Apache racine
+# Redirige tout vers le dossier public
+
+RewriteEngine On
+
+# Si le fichier ou dossier existe dans public, y accéder directement
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
+RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
+RewriteRule ^(.*)$ /public/$1 [L]
+
+# Sinon, tout envoyer vers public/index.php
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteCond %{REQUEST_URI} !^/admin/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /public/index.php [L]
