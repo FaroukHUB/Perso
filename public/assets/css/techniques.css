@@ -1,0 +1,174 @@
+/**
+ * PERSONNALY - Styles visuels par technique de personnalisation
+ * Chaque technique produit un rendu visuel immédiatement identifiable
+ */
+
+/* ============================================
+   BASE - Texte de personnalisation
+   ============================================ */
+.preview-text,
+.lightbox-text {
+    transition: all 0.3s ease;
+}
+
+/* ============================================
+   BRODERIE - Relief + effet fil cousu
+   Aspect premium, texture visible, ombres multiples
+   ============================================ */
+.technique-broderie {
+    /* Relief principal avec ombres multiples simulant les fils */
+    text-shadow:
+        /* Ombre de base pour le relief */
+        1px 1px 0px rgba(0, 0, 0, 0.3),
+        2px 2px 0px rgba(0, 0, 0, 0.2),
+        /* Points de lumière (fils qui brillent) */
+        -0.5px -0.5px 0px rgba(255, 255, 255, 0.4),
+        /* Profondeur */
+        3px 3px 2px rgba(0, 0, 0, 0.15);
+
+    /* Légère texture pour effet couture */
+    -webkit-text-stroke: 0.3px rgba(0, 0, 0, 0.1);
+
+    /* Aspect légèrement en relief */
+    transform: translateZ(0);
+
+    /* Texture fil - léger motif */
+    filter: url(#broderie-texture);
+
+    /* Police légèrement plus grasse pour la broderie */
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Animation subtile au survol pour montrer le relief */
+.technique-broderie:hover {
+    text-shadow:
+        1px 1px 0px rgba(0, 0, 0, 0.35),
+        2px 2px 0px rgba(0, 0, 0, 0.25),
+        -0.5px -0.5px 0px rgba(255, 255, 255, 0.5),
+        4px 4px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   FLEX - Vinyle plat, lisse, brillant
+   Bords très nets, aspect plastique premium
+   ============================================ */
+.technique-flex {
+    /* Pas d'ombre - aspect plat */
+    text-shadow: none;
+
+    /* Bords ultra nets */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Léger reflet brillant (gradient sur le texte) */
+    background: linear-gradient(
+        180deg,
+        currentColor 0%,
+        currentColor 45%,
+        rgba(255, 255, 255, 0.3) 50%,
+        currentColor 55%,
+        currentColor 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    /* Légère brillance */
+    filter: contrast(1.05) brightness(1.02);
+
+    /* Police standard, très lisible */
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* Fallback si background-clip non supporté */
+@supports not (-webkit-background-clip: text) {
+    .technique-flex {
+        background: none;
+        text-shadow: 0 0 1px currentColor;
+    }
+}
+
+/* ============================================
+   FLOCK - Velours mat, texture douce
+   Aspect textile doux, pas de brillance
+   ============================================ */
+.technique-flock {
+    /* Ombre douce diffuse - effet velours */
+    text-shadow:
+        0 0 2px currentColor,
+        0 0 4px rgba(0, 0, 0, 0.1);
+
+    /* Légère texture floue */
+    filter: blur(0.2px) contrast(0.95);
+
+    /* Pas de reflet, mat */
+    opacity: 0.95;
+
+    /* Contour léger pour texture */
+    -webkit-text-stroke: 0.2px rgba(0, 0, 0, 0.05);
+
+    /* Police légèrement arrondie */
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+/* ============================================
+   SUBLIMATION - Intégré au tissu, diffus
+   Couleur fondue dans le textile
+   ============================================ */
+.technique-sublimation {
+    /* Pas de relief, intégré */
+    text-shadow: none;
+
+    /* Opacité réduite - fondu dans le tissu */
+    opacity: 0.85;
+
+    /* Léger flou pour effet diffusion */
+    filter: blur(0.3px) saturate(0.9);
+
+    /* Blend mode pour intégration tissu */
+    mix-blend-mode: multiply;
+
+    /* Police standard */
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+/* Correction pour fonds sombres */
+.dark-background .technique-sublimation {
+    mix-blend-mode: screen;
+    opacity: 0.8;
+}
+
+/* ============================================
+   INDICATEUR VISUEL DE TECHNIQUE
+   Petit badge montrant la technique active
+   ============================================ */
+.technique-indicator {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 12px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 20px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.product-preview:hover .technique-indicator,
+.lightbox-image-container:hover .technique-indicator {
+    opacity: 1;
+}
+
+/* ============================================
+   SVG FILTER POUR BRODERIE (texture fil)
+   ============================================ */
+/* Ce SVG sera injecté dans le DOM */

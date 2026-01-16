@@ -413,6 +413,8 @@ $cartCount = Cart::count();
                                      data-img="<?= !empty($item['product']['image_front_url']) ? '/public' . h($item['product']['image_front_url']) : '' ?>"
                                      data-text="<?= h($item['customization']['text'] ?? '') ?>"
                                      data-font="<?= h($item['customization']['font'] ?? 'Poppins') ?>"
+                                     data-text-color="<?= h($item['customization']['text_color'] ?? '#FF1493') ?>"
+                                     data-technique="<?= h($item['customization']['technique'] ?? 'flex') ?>"
                                      data-name="<?= h($item['product']['name']) ?>">
                                     <?php if (!empty($item['product']['image_front_url'])): ?>
                                         <img src="/public<?= h($item['product']['image_front_url']) ?>" alt="<?= h($item['product']['name']) ?>">
@@ -445,6 +447,11 @@ $cartCount = Cart::count();
                                         <span class="customization-tag">
                                             Position: <strong><?= ucfirst(h($item['customization']['position'] ?? 'centre')) ?></strong>
                                         </span>
+                                        <?php if (!empty($item['customization']['technique'])): ?>
+                                            <span class="customization-tag">
+                                                Technique: <strong><?= ucfirst(h($item['customization']['technique'])) ?></strong>
+                                            </span>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="item-price"><?= formatPrice($item['unit_price']) ?> / unité</div>
                                 </div>
@@ -523,7 +530,8 @@ $cartCount = Cart::count();
                 fontSize: '2rem',
                 textX: 50,
                 textY: 50,
-                textColor: '#FF1493'
+                textColor: el.dataset.textColor || '#FF1493',
+                technique: el.dataset.technique || 'flex'
             });
         }
     </script>

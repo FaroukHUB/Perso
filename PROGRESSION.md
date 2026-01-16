@@ -61,7 +61,8 @@
 | **Couleurs par produit** | ✅ OK | Table product_colors + admin |
 | **Couleurs texte client** | ✅ OK | 6 couleurs + preview temps réel |
 | **Techniques client** | ✅ OK | Flex/Flock/Broderie + prix |
-| **Zoom/lightbox images** | ✅ OK | Composant réutilisable |
+| **Styles visuels par technique** | ✅ OK | CSS distinct par technique |
+| **Zoom/lightbox images** | ✅ OK | Composant réutilisable + technique |
 | **Preview fidèle panier** | ✅ OK | Lightbox + texte personnalisé |
 | **Packs thématiques** | ❌ NON | P4 non commencé |
 
@@ -245,6 +246,20 @@ CREATE TABLE product_colors (
 | Modèle ProductColor | ✅ OK | CRUD complet |
 | Interface admin couleurs | ✅ OK | Ajout/suppression dynamique |
 | product.php couleurs produit | ✅ OK | Priorité couleurs spécifiques |
+
+### 2026-01-16 - Session 10 (STYLES VISUELS PAR TECHNIQUE)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| CSS techniques.css | ✅ OK | 4 styles distincts (broderie, flex, flock, sublimation) |
+| Broderie | ✅ OK | Relief + ombres multiples + effet fil cousu |
+| Flex | ✅ OK | Plat, net, léger reflet brillant |
+| Flock | ✅ OK | Velours mat, ombre douce diffuse |
+| Sublimation | ✅ OK | Intégré au tissu, mix-blend-mode |
+| product.php technique | ✅ OK | Classe CSS dynamique + indicateur |
+| lightbox.js technique | ✅ OK | Support paramètre technique + styles |
+| cart.php technique | ✅ OK | data-technique + affichage tag |
+| admin/order.php technique | ✅ OK | data-technique + affichage tag |
 
 ---
 

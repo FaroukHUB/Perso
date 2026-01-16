@@ -26,6 +26,7 @@
                 <div class="lightbox-image-container">
                     <img src="" alt="Preview" class="lightbox-image" id="lightbox-img">
                     <span class="lightbox-text" id="lightbox-text"></span>
+                    <span class="lightbox-technique-indicator" id="lightbox-technique"></span>
                 </div>
                 <div class="lightbox-controls">
                     <button class="lightbox-zoom-btn" data-action="zoom-out" aria-label="Dézoomer">
@@ -138,12 +139,59 @@
             }
             .lightbox-text {
                 position: absolute;
-                font-weight: 700;
+                font-weight: 600;
                 color: #FF1493;
-                text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
                 white-space: nowrap;
                 pointer-events: none;
                 transform: translate(-50%, -50%);
+                transition: all 0.3s ease;
+            }
+            /* Techniques - styles visuels distincts */
+            .lightbox-text.technique-broderie {
+                text-shadow:
+                    1px 1px 0px rgba(0, 0, 0, 0.3),
+                    2px 2px 0px rgba(0, 0, 0, 0.2),
+                    -0.5px -0.5px 0px rgba(255, 255, 255, 0.4),
+                    3px 3px 2px rgba(0, 0, 0, 0.15);
+                -webkit-text-stroke: 0.3px rgba(0, 0, 0, 0.1);
+                font-weight: 700;
+                letter-spacing: 0.5px;
+            }
+            .lightbox-text.technique-flex {
+                text-shadow: none;
+                -webkit-font-smoothing: antialiased;
+                filter: contrast(1.05) brightness(1.02);
+                font-weight: 600;
+                letter-spacing: 0.3px;
+            }
+            .lightbox-text.technique-flock {
+                text-shadow:
+                    0 0 2px currentColor,
+                    0 0 4px rgba(0, 0, 0, 0.1);
+                filter: blur(0.2px) contrast(0.95);
+                opacity: 0.95;
+                font-weight: 600;
+            }
+            .lightbox-text.technique-sublimation {
+                text-shadow: none;
+                opacity: 0.85;
+                filter: blur(0.3px) saturate(0.9);
+                mix-blend-mode: multiply;
+                font-weight: 500;
+            }
+            .lightbox-technique-indicator {
+                position: absolute;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 6px 16px;
+                background: rgba(0, 0, 0, 0.7);
+                color: white;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                border-radius: 20px;
             }
             .lightbox-controls {
                 display: flex;
@@ -251,6 +299,14 @@
         }
     }
 
+    // Labels des techniques pour l'indicateur
+    const techniqueLabels = {
+        'flex': 'FLEX',
+        'flock': 'FLOCK',
+        'broderie': 'BRODERIE',
+        'sublimation': 'SUBLIMATION'
+    };
+
     // Ouvrir la lightbox
     function openLightbox(options) {
         createLightboxContainer();
@@ -258,6 +314,7 @@
         const lightbox = document.getElementById('personnaly-lightbox');
         const img = document.getElementById('lightbox-img');
         const textEl = document.getElementById('lightbox-text');
+        const techniqueEl = document.getElementById('lightbox-technique');
         const zoomLevel = lightbox.querySelector('.lightbox-zoom-level');
 
         // Reset zoom
@@ -268,6 +325,21 @@
         // Image
         img.src = options.imageSrc || '';
         img.alt = options.imageAlt || 'Preview';
+
+        // Technique - retirer les anciennes classes
+        textEl.classList.remove('technique-flex', 'technique-flock', 'technique-broderie', 'technique-sublimation');
+
+        // Technique - appliquer la nouvelle classe
+        const technique = options.technique || 'flex';
+        textEl.classList.add('technique-' + technique);
+
+        // Indicateur de technique
+        if (options.text && techniqueEl) {
+            techniqueEl.style.display = 'block';
+            techniqueEl.textContent = techniqueLabels[technique] || technique.toUpperCase();
+        } else if (techniqueEl) {
+            techniqueEl.style.display = 'none';
+        }
 
         // Texte personnalisé
         if (options.text) {

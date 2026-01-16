@@ -221,6 +221,7 @@ $cartCount = Cart::count();
     <!-- Polices personnalisation (chargées dynamiquement depuis admin) -->
     <?= FontLoader::renderHead() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
+    <link rel="stylesheet" href="/public/assets/css/techniques.css">
     <style>
         body { background: var(--gray-light); }
 
@@ -833,8 +834,11 @@ $cartCount = Cart::count();
                             <span class="preview-icon">👕</span>
                         <?php endif; ?>
 
-                        <!-- Texte draggable -->
-                        <span class="preview-text empty" id="previewText">Votre texte</span>
+                        <!-- Texte draggable avec style technique -->
+                        <span class="preview-text empty technique-flex" id="previewText">Votre texte</span>
+
+                        <!-- Indicateur technique -->
+                        <span class="technique-indicator" id="techniqueIndicator">FLEX</span>
                     </div>
 
                     <!-- Indication drag -->
@@ -956,7 +960,8 @@ $cartCount = Cart::count();
                             <div class="technique-options">
                                 <?php foreach ($techniques as $index => $tech): ?>
                                     <label class="technique-option <?= $index === 0 ? 'selected' : '' ?>"
-                                           data-price="<?= $tech['price'] ?>">
+                                           data-price="<?= $tech['price'] ?>"
+                                           data-technique="<?= h($tech['value']) ?>">
                                         <input type="radio" name="technique" value="<?= h($tech['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
                                         <div class="technique-info">
                                             <span class="technique-name"><?= h($tech['label']) ?></span>
@@ -1240,12 +1245,7 @@ $cartCount = Cart::count();
                 option.addEventListener('click', function() {
                     const color = this.dataset.color;
                     previewText.style.color = color;
-                    // Ajouter une ombre pour la lisibilité sur fond clair/sombre
-                    if (color === '#FFFFFF' || color === '#FFD700' || color === '#C0C0C0') {
-                        previewText.style.textShadow = '1px 1px 3px rgba(0,0,0,0.5)';
-                    } else {
-                        previewText.style.textShadow = '1px 1px 2px rgba(255,255,255,0.9)';
-                    }
+                    // Note: l'ombre est gérée par la classe technique
                 });
             });
 
@@ -1255,6 +1255,32 @@ $cartCount = Cart::count();
                     const font = this.dataset.font;
                     const category = this.dataset.category || 'sans-serif';
                     previewText.style.fontFamily = "'" + font + "', " + category;
+                });
+            });
+
+            // Technique preview - applique le style visuel distinct
+            const techniqueIndicator = document.getElementById('techniqueIndicator');
+            const techniqueLabels = {
+                'flex': 'FLEX',
+                'flock': 'FLOCK',
+                'broderie': 'BRODERIE',
+                'sublimation': 'SUBLIMATION'
+            };
+
+            document.querySelectorAll('.technique-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const technique = this.dataset.technique;
+
+                    // Retirer toutes les classes de technique
+                    previewText.classList.remove('technique-flex', 'technique-flock', 'technique-broderie', 'technique-sublimation');
+
+                    // Ajouter la nouvelle classe
+                    previewText.classList.add('technique-' + technique);
+
+                    // Mettre à jour l'indicateur
+                    if (techniqueIndicator) {
+                        techniqueIndicator.textContent = techniqueLabels[technique] || technique.toUpperCase();
+                    }
                 });
             });
 
@@ -1282,6 +1308,10 @@ $cartCount = Cart::count();
                     const font = fontEl ? fontEl.dataset.font : 'Poppins';
                     const category = fontEl ? (fontEl.dataset.category || 'sans-serif') : 'sans-serif';
 
+                    // Récupérer la technique sélectionnée
+                    const techEl = document.querySelector('.technique-option.selected');
+                    const technique = techEl ? techEl.dataset.technique : 'flex';
+
                     // Ouvrir la lightbox
                     PersonnalyLightbox.open({
                         imageSrc: imgSrc,
@@ -1291,7 +1321,8 @@ $cartCount = Cart::count();
                         fontSize: '2.5rem',
                         textX: currentX,
                         textY: currentY,
-                        textColor: previewText.style.color || '#FF1493'
+                        textColor: previewText.style.color || '#FF1493',
+                        technique: technique
                     });
                 });
             }

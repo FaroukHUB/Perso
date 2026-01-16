@@ -429,6 +429,8 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
                                  data-img="<?= !empty($item['product_image']) ? '/public' . h($item['product_image']) : '' ?>"
                                  data-text="<?= h($customization['text'] ?? '') ?>"
                                  data-font="<?= h($customization['font'] ?? 'Poppins') ?>"
+                                 data-text-color="<?= h($customization['text_color'] ?? '#FF1493') ?>"
+                                 data-technique="<?= h($customization['technique'] ?? 'flex') ?>"
                                  data-name="<?= h($item['product_name'] ?? 'Produit') ?>">
                                 <?php if (!empty($item['product_image'])): ?>
                                     <img src="/public<?= h($item['product_image']) ?>" alt="<?= h($item['product_name']) ?>">
@@ -456,6 +458,11 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
                                     <span class="custom-tag">
                                         Position: <strong><?= ucfirst(h($customization['position'] ?? 'centre')) ?></strong>
                                     </span>
+                                    <?php if (!empty($customization['technique'])): ?>
+                                        <span class="custom-tag">
+                                            Technique: <strong><?= ucfirst(h($customization['technique'])) ?></strong>
+                                        </span>
+                                    <?php endif; ?>
                                     <?php if (!empty($customization['text'])): ?>
                                         <span class="custom-tag custom-text-tag">
                                             Texte: <strong>"<?= h($customization['text']) ?>"</strong>
@@ -559,7 +566,8 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
                 fontSize: '2rem',
                 textX: 50,
                 textY: 50,
-                textColor: '#FF1493'
+                textColor: el.dataset.textColor || '#FF1493',
+                technique: el.dataset.technique || 'flex'
             });
         }
     </script>
