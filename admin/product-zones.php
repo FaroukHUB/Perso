@@ -11,7 +11,7 @@ require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/ProductPrintZone.php';
 require_once __DIR__ . '/../app/models/Font.php';
 
-Auth::requireLogin();
+Auth::requireAdmin();
 
 $productId = (int) get('product_id', 0);
 if (!$productId) {
