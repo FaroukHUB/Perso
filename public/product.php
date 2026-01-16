@@ -6,9 +6,11 @@
 
 require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/helpers/Cart.php';
+require_once __DIR__ . '/../app/helpers/FontLoader.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/CustomizationOption.php';
+require_once __DIR__ . '/../app/models/Font.php';
 
 // Récupération du produit
 $productId = (int) get('id', 0);
@@ -28,7 +30,10 @@ $optionModel = new CustomizationOption();
 $sizesFromDb = $optionModel->getSizes();
 $colorsFromDb = $optionModel->getColors();
 $positionsFromDb = $optionModel->getPositions();
-$fontsFromDb = $optionModel->getFonts();
+
+// Polices depuis la nouvelle table fonts (système administrable)
+$fontModel = new Font();
+$fontsFromDb = $fontModel->findActive();
 
 // Fallback si la table n'existe pas encore
 $sizes = !empty($sizesFromDb) ? array_column($sizesFromDb, 'value') : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
@@ -41,12 +46,24 @@ if (!empty($colorsFromDb)) {
     $colors = ['blanc' => '#FFFFFF', 'noir' => '#1A1A2E', 'rose' => '#FF69B4', 'menthe' => '#3DFFC0', 'bleu' => '#4A90D9', 'gris' => '#6B7280'];
 }
 $positions = !empty($positionsFromDb) ? array_column($positionsFromDb, 'value') : ['centre', 'gauche', 'droite', 'dos'];
-$fonts = !empty($fontsFromDb) ? $fontsFromDb : [
-    ['value' => 'Poppins', 'label' => 'Poppins (Moderne)'],
-    ['value' => 'Playfair Display', 'label' => 'Playfair (Élégant)'],
-    ['value' => 'Lobster', 'label' => 'Lobster (Script)'],
-    ['value' => 'Oswald', 'label' => 'Oswald (Impact)'],
-];
+
+// Adapter les polices au format attendu par le template
+$fonts = [];
+if (!empty($fontsFromDb)) {
+    foreach ($fontsFromDb as $f) {
+        $fonts[] = [
+            'value' => $f['family'],
+            'label' => $f['name'],
+            'category' => $f['category']
+        ];
+    }
+} else {
+    // Fallback si table vide
+    $fonts = [
+        ['value' => 'Poppins', 'label' => 'Poppins', 'category' => 'sans-serif'],
+        ['value' => 'Playfair Display', 'label' => 'Playfair Display', 'category' => 'serif'],
+    ];
+}
 
 // Traitement du formulaire d'ajout au panier
 if (isPost() && isset($_POST['add_to_cart'])) {
@@ -79,9 +96,12 @@ $cartCount = Cart::count();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($product['name']) ?> - PERSONNALY</title>
     <meta name="description" content="<?= h($product['description'] ?? 'Personnalisez ce produit selon vos envies') ?>">
+    <!-- Polices système (Inter pour UI) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&family=Playfair+Display:wght@700&family=Lobster&family=Oswald:wght@700&family=Dancing+Script:wght@700&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Polices personnalisation (chargées dynamiquement depuis admin) -->
+    <?= FontLoader::renderHead() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <style>
         body { background: var(--gray-light); }
@@ -537,8 +557,9 @@ $cartCount = Cart::count();
                             <div class="font-options">
                                 <?php foreach ($fonts as $index => $font): ?>
                                     <label class="font-option <?= $index === 0 ? 'selected' : '' ?>"
-                                           style="font-family: '<?= h($font['value']) ?>', sans-serif;"
-                                           data-font="<?= h($font['value']) ?>">
+                                           style="font-family: '<?= h($font['value']) ?>', <?= h($font['category'] ?? 'sans-serif') ?>;"
+                                           data-font="<?= h($font['value']) ?>"
+                                           data-category="<?= h($font['category'] ?? 'sans-serif') ?>">
                                         <input type="radio" name="font" value="<?= h($font['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
                                         <?= h($font['label']) ?>
                                     </label>
@@ -606,6 +627,14 @@ $cartCount = Cart::count();
             previewText.textContent = this.value;
         });
 
+        // Initialiser le style de la première police sélectionnée
+        const firstFont = document.querySelector('.font-option.selected');
+        if (firstFont) {
+            const font = firstFont.dataset.font;
+            const category = firstFont.dataset.category || 'sans-serif';
+            previewText.style.fontFamily = "'" + font + "', " + category;
+        }
+
         // Color preview
         document.querySelectorAll('.color-option').forEach(option => {
             option.addEventListener('click', function() {
@@ -620,7 +649,8 @@ $cartCount = Cart::count();
         document.querySelectorAll('.font-option').forEach(option => {
             option.addEventListener('click', function() {
                 const font = this.dataset.font;
-                previewText.style.fontFamily = "'" + font + "', sans-serif";
+                const category = this.dataset.category || 'sans-serif';
+                previewText.style.fontFamily = "'" + font + "', " + category;
             });
         });
 

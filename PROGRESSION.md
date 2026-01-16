@@ -23,7 +23,7 @@
 
 **Phase actuelle** : P1 - POLICES ADMINISTRABLES
 
-**Statut global** : 🟢 SQL validé - Prêt pour implémentation
+**Statut global** : 🟢 P1 COMPLÉTÉ - Polices administrables fonctionnelles
 
 ---
 
@@ -151,6 +151,18 @@ product_print_zones
 | Upload images produits | ✅ OK | admin/product-form.php (JPG, PNG, WebP, GIF) |
 | Preview avec vraie image | ✅ OK | Affichage image produit sur accueil et fiche |
 
+### 2026-01-16 - Session 5 (P1 - Polices Administrables)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Table fonts | ✅ OK | sql/fonts.sql (Google + Custom upload) |
+| Table product_print_zones | ✅ OK | sql/fonts.sql (zones P3) |
+| Model Font | ✅ OK | app/models/Font.php (CRUD + auto-génération css_key/url) |
+| Helper FontLoader | ✅ OK | app/helpers/FontLoader.php (CSS dynamique) |
+| Page admin Polices | ✅ OK | admin/fonts.php (ajout Google/Custom, preview, toggle) |
+| Menu admin + Polices | ✅ OK | admin/includes/sidebar.php |
+| Intégration frontend | ✅ OK | product.php charge polices depuis DB + FontLoader |
+
 ---
 
 ## Design System
@@ -161,8 +173,10 @@ product_print_zones
 - **Noir** : #0D0D0D, #1A1A2E, #16213E
 
 ### Polices
-- **Display** : Poppins (titres)
-- **Body** : Inter (texte)
+- **UI** : Inter (interface utilisateur)
+- **Personnalisation** : Dynamiques depuis table `fonts` (admin)
+  - Google Fonts : family + weights → URL auto-générée
+  - Custom : Upload .woff2 (.woff fallback)
 
 ---
 
@@ -177,6 +191,8 @@ product_print_zones
 | Formulaire produit | /admin/product-form.php | Ajout et modification |
 | Commandes | /admin/orders.php | Liste, filtres, changer statut |
 | Détail commande | /admin/order.php?id=X | Items, personnalisations, client, statut |
+| **Polices** | /admin/fonts.php | CRUD Google/Custom, preview, toggle actif |
+| Options | /admin/options.php | Tailles, couleurs, positions |
 | Clients | /admin/customers.php | Liste des clients inscrits |
 | Fiche client | /admin/customer.php?id=X | Stats, infos, historique commandes |
 | Paramètres | /admin/settings.php | Changer mot de passe |
@@ -194,18 +210,26 @@ product_print_zones
 
 ## Prochaines Étapes
 
-### STEP 5 (à venir)
-- [ ] Envoi d'emails (confirmation commande)
-- [ ] Upload images produits
-- [ ] Page "Mes commandes" pour clients
-- [ ] Connexion/Inscription clients
+### P2 - Preview Phase 2 (prochaine priorité)
+- [ ] Image produit + overlay texte positionné
+- [ ] Position du texte selon zone sélectionnée
+- [ ] Preview plus réaliste avec police appliquée
+
+### P3 - Zones d'impression
+- [ ] Admin zones par produit (product_print_zones)
+- [ ] Positions %, contraintes (max_chars, max_lines)
+- [ ] Polices autorisées par zone
+
+### P4 - Packs thématiques v1
+- [ ] Table packs + CRUD admin
+- [ ] Affectation pack → produit
 
 ### Améliorations futures
+- [ ] Connexion/Inscription clients
+- [ ] Page "Mes commandes" client
+- [ ] Codes promo
 - [ ] Export PDF commandes
-- [ ] Statistiques avancées
-- [ ] Notifications email vendeur
 - [ ] Paiement en ligne (Stripe)
-- [ ] Page détail commande admin
 
 ---
 
@@ -217,11 +241,12 @@ product_print_zones
 ├── .gitignore
 ├── public/
 │   ├── index.php              ← Page d'accueil + catalogue
-│   ├── product.php            ← Personnalisation produit
+│   ├── product.php            ← Personnalisation produit (polices dynamiques)
 │   ├── cart.php               ← Panier
 │   ├── checkout.php           ← Finalisation commande
 │   ├── .htaccess
 │   ├── uploads/
+│   │   └── fonts/             ← Upload polices custom (.woff2/.woff)
 │   └── assets/css/
 │       ├── style.css          ← Design system
 │       └── admin.css          ← Styles admin
@@ -235,11 +260,13 @@ product_print_zones
 │   │   ├── User.php
 │   │   ├── Product.php
 │   │   ├── Order.php
-│   │   └── CustomizationOption.php  ← Options admin
+│   │   ├── CustomizationOption.php  ← Options admin
+│   │   └── Font.php           ← CRUD polices + auto-génération
 │   └── helpers/
 │       ├── functions.php
 │       ├── Cart.php           ← Gestion panier session
-│       └── Email.php          ← Envoi emails (mail PHP)
+│       ├── Email.php          ← Envoi emails (mail PHP)
+│       └── FontLoader.php     ← Chargement CSS polices dynamique
 ├── admin/
 │   ├── login.php
 │   ├── logout.php
@@ -248,13 +275,17 @@ product_print_zones
 │   ├── product-form.php       ← Ajout/modif + upload image
 │   ├── orders.php             ← Gestion commandes
 │   ├── order.php              ← Détail commande
+│   ├── fonts.php              ← Gestion polices (Google + Custom)
 │   ├── customers.php          ← Liste clients
 │   ├── customer.php           ← Fiche client
 │   ├── options.php            ← Gestion tailles/couleurs/positions
-│   └── settings.php           ← Paramètres + mdp
+│   ├── settings.php           ← Paramètres + mdp
+│   └── includes/
+│       └── sidebar.php        ← Menu admin commun
 └── sql/
     ├── schema.sql
-    └── options.sql            ← Table customization_options
+    ├── options.sql            ← Table customization_options
+    └── fonts.sql              ← Tables fonts + product_print_zones
 ```
 
 ---

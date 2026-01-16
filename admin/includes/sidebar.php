@@ -48,6 +48,15 @@ function isActive($page, $current) {
             <span>Produits</span>
         </a>
 
+        <a href="/admin/fonts.php" class="nav-item <?= isActive('fonts.php', $currentPage) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="4 7 4 4 20 4 20 7"/>
+                <line x1="9" y1="20" x2="15" y2="20"/>
+                <line x1="12" y1="4" x2="12" y2="20"/>
+            </svg>
+            <span>Polices</span>
+        </a>
+
         <a href="/admin/options.php" class="nav-item <?= isActive('options.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7m0-18H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7m0-18v18"/>
