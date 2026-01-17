@@ -103,8 +103,8 @@ $csrf = csrfToken();
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/admin.css">
-    <!-- TinyMCE WYSIWYG Editor -->
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <!-- Quill WYSIWYG Editor (gratuit, sans clé API) -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 </head>
 <body>
     <div class="admin-wrapper">
@@ -169,8 +169,9 @@ $csrf = csrfToken();
                             </div>
                             <div class="data-card-body">
                                 <div class="form-group">
-                                    <label for="content">Contenu complet</label>
-                                    <textarea id="content" name="content"><?= $post['content'] ?? '' ?></textarea>
+                                    <label>Contenu complet</label>
+                                    <input type="hidden" name="content" id="contentInput">
+                                    <div id="quillEditor"><?= $post['content'] ?? '' ?></div>
                                     <small class="form-hint">Utilisez l'éditeur pour ajouter des titres (H1, H2, H3), images, liens, listes, etc.</small>
                                 </div>
                             </div>
@@ -358,93 +359,128 @@ $csrf = csrfToken();
             color: var(--pink-dark);
             border-left: 4px solid var(--pink-main);
         }
-        /* TinyMCE custom styling */
-        .tox-tinymce {
-            border: 2px solid var(--gray-light) !important;
-            border-radius: var(--radius-md) !important;
+        /* Quill Editor Styling */
+        #quillEditor {
+            min-height: 400px;
+            background: #fff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        .tox .tox-edit-area__iframe {
-            background: #fff !important;
+        .ql-container {
+            font-size: 16px;
+            border-bottom-left-radius: var(--radius-md);
+            border-bottom-right-radius: var(--radius-md);
+        }
+        .ql-toolbar {
+            border-top-left-radius: var(--radius-md);
+            border-top-right-radius: var(--radius-md);
+            background: #fafafa;
+        }
+        .ql-editor {
+            min-height: 350px;
+            line-height: 1.7;
+        }
+        .ql-editor h1 { font-size: 2rem; font-weight: 700; margin: 1.5em 0 0.5em; }
+        .ql-editor h2 { font-size: 1.5rem; font-weight: 700; margin: 1.5em 0 0.5em; }
+        .ql-editor h3 { font-size: 1.25rem; font-weight: 600; margin: 1.5em 0 0.5em; }
+        .ql-editor p { margin: 0 0 1em; }
+        .ql-editor a { color: #FF69B4; }
+        .ql-editor img { max-width: 100%; height: auto; border-radius: 8px; }
+        .ql-editor blockquote {
+            border-left: 4px solid #FF69B4;
+            margin: 1.5em 0;
+            padding: 1em 1.5em;
+            background: #f9f9f9;
+        }
+        .ql-snow .ql-picker.ql-header .ql-picker-label::before,
+        .ql-snow .ql-picker.ql-header .ql-picker-item::before {
+            content: 'Paragraphe';
+        }
+        .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+            content: 'Titre 1';
+        }
+        .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+            content: 'Titre 2';
+        }
+        .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+            content: 'Titre 3';
         }
     </style>
 
+    <!-- Quill Editor JS -->
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
     <script>
-    // TinyMCE WYSIWYG Editor
-    tinymce.init({
-        selector: '#content',
-        height: 500,
-        language: 'fr_FR',
-        plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'media', 'table', 'help', 'wordcount'
-        ],
-        toolbar: 'undo redo | blocks | ' +
-            'bold italic underline strikethrough | forecolor backcolor | ' +
-            'alignleft aligncenter alignright alignjustify | ' +
-            'bullist numlist outdent indent | ' +
-            'link image media | ' +
-            'removeformat code fullscreen help',
-        block_formats: 'Paragraphe=p; Titre 1=h1; Titre 2=h2; Titre 3=h3; Titre 4=h4; Citation=blockquote',
-        menubar: 'file edit view insert format tools table help',
-        branding: false,
-        promotion: false,
-        content_style: `
-            body {
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-                font-size: 16px;
-                line-height: 1.7;
-                color: #1a1a2e;
-                padding: 20px;
-            }
-            h1 { font-size: 2rem; font-weight: 700; margin: 1.5em 0 0.5em; }
-            h2 { font-size: 1.5rem; font-weight: 700; margin: 1.5em 0 0.5em; }
-            h3 { font-size: 1.25rem; font-weight: 600; margin: 1.5em 0 0.5em; }
-            h4 { font-size: 1.1rem; font-weight: 600; margin: 1.5em 0 0.5em; }
-            p { margin: 0 0 1em; }
-            a { color: #FF69B4; text-decoration: underline; }
-            img { max-width: 100%; height: auto; border-radius: 8px; }
-            blockquote {
-                border-left: 4px solid #FF69B4;
-                margin: 1.5em 0;
-                padding: 1em 1.5em;
-                background: #f9f9f9;
-                font-style: italic;
-            }
-            ul, ol { margin: 1em 0; padding-left: 2em; }
-            li { margin: 0.5em 0; }
-        `,
-        // Image upload handler
-        images_upload_handler: function (blobInfo, progress) {
-            return new Promise((resolve, reject) => {
-                const formData = new FormData();
-                formData.append('file', blobInfo.blob(), blobInfo.filename());
-                formData.append('csrf_token', '<?= $csrf ?>');
+    // Configuration Quill
+    const toolbarOptions = [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'align': [] }],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        ['blockquote'],
+        ['link', 'image'],
+        ['clean']
+    ];
 
-                fetch('/admin/upload-image.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success && result.url) {
-                        resolve(result.url);
-                    } else {
-                        reject(result.error || 'Erreur upload');
-                    }
-                })
-                .catch(() => reject('Erreur réseau'));
-            });
+    // Initialisation Quill
+    const quill = new Quill('#quillEditor', {
+        theme: 'snow',
+        modules: {
+            toolbar: toolbarOptions
         },
-        file_picker_types: 'image',
-        automatic_uploads: true,
-        // Link options
-        link_default_target: '_blank',
-        link_assume_external_targets: true,
-        default_link_target: '_blank'
+        placeholder: 'Rédigez votre article ici...'
     });
 
-    // Prévisualisation de l'image uploadée
+    // Upload d'image personnalisé
+    function imageHandler() {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = async () => {
+            const file = input.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('csrf_token', '<?= $csrf ?>');
+
+                try {
+                    const response = await fetch('/admin/upload-image.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await response.json();
+
+                    if (result.success && result.url) {
+                        const range = quill.getSelection(true);
+                        quill.insertEmbed(range.index, 'image', result.url);
+                        quill.setSelection(range.index + 1);
+                    } else {
+                        alert(result.error || 'Erreur lors de l\'upload');
+                    }
+                } catch (error) {
+                    alert('Erreur réseau lors de l\'upload');
+                }
+            }
+        };
+    }
+
+    // Ajouter handler personnalisé pour images
+    quill.getModule('toolbar').addHandler('image', imageHandler);
+
+    // Synchroniser le contenu avec le champ hidden avant soumission
+    const form = document.querySelector('form');
+    const contentInput = document.getElementById('contentInput');
+
+    form.addEventListener('submit', function(e) {
+        contentInput.value = quill.root.innerHTML;
+    });
+
+    // Prévisualisation de l'image uploadée (cover)
     document.getElementById('cover_image').addEventListener('change', function(e) {
         const file = e.target.files[0];
         const preview = document.getElementById('imagePreview');
