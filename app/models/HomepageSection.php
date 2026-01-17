@@ -228,10 +228,12 @@ class HomepageSection
                     CASE
                         WHEN si.item_type = "product" THEN p.name
                         WHEN si.item_type = "pack" THEN pk.name
+                        WHEN si.item_type = "blog" THEN bp.title
                     END as item_name,
                     CASE
                         WHEN si.item_type = "product" THEN p.image_front_url
                         WHEN si.item_type = "pack" THEN pk.cover_image_url
+                        WHEN si.item_type = "blog" THEN bp.cover_image_url
                     END as item_image,
                     CASE
                         WHEN si.item_type = "product" THEN p.base_price
@@ -240,10 +242,12 @@ class HomepageSection
                     CASE
                         WHEN si.item_type = "product" THEN p.active
                         WHEN si.item_type = "pack" THEN (pk.status = "active")
+                        WHEN si.item_type = "blog" THEN (bp.status = "published")
                     END as item_active
              FROM homepage_section_items si
              LEFT JOIN products p ON si.item_type = "product" AND si.item_id = p.id
              LEFT JOIN packs pk ON si.item_type = "pack" AND si.item_id = pk.id
+             LEFT JOIN blog_posts bp ON si.item_type = "blog" AND si.item_id = bp.id
              WHERE si.section_id = ?
              ORDER BY si.sort_order ASC'
         );
