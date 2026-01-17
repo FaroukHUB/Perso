@@ -826,49 +826,158 @@ $cartCount = Cart::count();
             opacity: 1;
         }
 
-        /* Technique Selection */
-        .technique-options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        /* Technique Selection - Dropdown Scalable (comme polices) */
+        .technique-selector-wrapper {
+            position: relative;
             margin-bottom: 25px;
         }
-        .technique-option {
+        .technique-selector-trigger {
+            width: 100%;
             padding: 16px 20px;
             border: 2px solid #e5e5e5;
             border-radius: var(--radius-md);
+            background: white;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            transition: all 0.2s;
         }
-        .technique-option:hover { border-color: var(--pink-main); }
-        .technique-option.selected {
-            background: linear-gradient(135deg, rgba(255,105,180,0.1) 0%, rgba(61,255,192,0.1) 100%);
+        .technique-selector-trigger:hover {
             border-color: var(--pink-main);
         }
-        .technique-option input { display: none; }
-        .technique-info {
+        .technique-selector-trigger.open {
+            border-color: var(--pink-main);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+        }
+        .technique-trigger-content {
             display: flex;
             flex-direction: column;
             gap: 4px;
+            flex: 1;
+            min-width: 0;
         }
-        .technique-name {
+        .technique-selector-name {
+            font-size: 16px;
             font-weight: 600;
             color: var(--black-soft);
         }
-        .technique-desc {
+        .technique-selector-desc {
             font-size: 12px;
             color: var(--gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .technique-price {
+        .technique-trigger-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .technique-selector-price {
             font-weight: 700;
             color: var(--mint-dark);
             font-size: 14px;
+            padding: 4px 10px;
+            background: rgba(61, 255, 192, 0.1);
+            border-radius: var(--radius-full);
         }
-        .technique-price.free {
+        .technique-selector-arrow {
+            transition: transform 0.2s;
+            color: var(--gray);
+        }
+        .technique-selector-trigger.open .technique-selector-arrow {
+            transform: rotate(180deg);
+        }
+        .technique-selector-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--pink-main);
+            border-top: none;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            max-height: 320px;
+            overflow: hidden;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .technique-selector-dropdown.open {
+            display: block;
+        }
+        .technique-search-box {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+        .technique-search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #e5e5e5;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+        }
+        .technique-search-input:focus {
+            outline: none;
+            border-color: var(--pink-main);
+        }
+        .technique-list {
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        .technique-list-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            transition: background 0.15s;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .technique-list-item:last-child {
+            border-bottom: none;
+        }
+        .technique-list-item:hover {
+            background: rgba(255, 105, 180, 0.08);
+        }
+        .technique-list-item.selected {
+            background: linear-gradient(135deg, rgba(255,105,180,0.15) 0%, rgba(61,255,192,0.15) 100%);
+        }
+        .technique-list-item.hidden {
+            display: none;
+        }
+        .technique-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 0;
+        }
+        .technique-item-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--black-soft);
+        }
+        .technique-item-desc {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        .technique-item-price {
+            font-weight: 700;
+            color: var(--mint-dark);
+            font-size: 13px;
+            padding: 4px 10px;
+            background: rgba(61, 255, 192, 0.1);
+            border-radius: var(--radius-full);
+            flex-shrink: 0;
+        }
+        .technique-item-price.free {
             color: var(--mint-main);
+            background: rgba(61, 255, 192, 0.15);
         }
 
         /* Bouton Voir le rendu réel - Position sous l'image produit */
@@ -1277,23 +1386,53 @@ $cartCount = Cart::count();
                             <div class="accordion-header">Technique</div>
                             <div class="accordion-content">
                                 <h3 class="config-section-title">Technique d'impression</h3>
-                                <div class="technique-options">
-                                    <?php foreach ($techniques as $index => $tech): ?>
-                                        <label class="technique-option <?= $index === 0 ? 'selected' : '' ?>"
-                                               data-price="<?= $tech['price'] ?>"
-                                               data-technique="<?= h($tech['value']) ?>">
-                                            <input type="radio" name="technique" value="<?= h($tech['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
-                                            <div class="technique-info">
-                                                <span class="technique-name"><?= h($tech['label']) ?></span>
-                                                <?php if (!empty($tech['description'])): ?>
-                                                    <span class="technique-desc"><?= h($tech['description']) ?></span>
-                                                <?php endif; ?>
-                                            </div>
-                                            <span class="technique-price <?= $tech['price'] == 0 ? 'free' : '' ?>">
-                                                <?= $tech['price'] == 0 ? 'Inclus' : '+' . formatPrice($tech['price']) ?>
+                                <div class="technique-selector-wrapper" id="techniqueSelector">
+                                    <input type="hidden" name="technique" id="techniqueInput" value="<?= h($techniques[0]['value'] ?? 'flex') ?>">
+
+                                    <div class="technique-selector-trigger" id="techniqueTrigger">
+                                        <div class="technique-trigger-content">
+                                            <span class="technique-selector-name" id="techniquePreviewName">
+                                                <?= h($techniques[0]['label'] ?? 'Sélectionner une technique') ?>
                                             </span>
-                                        </label>
-                                    <?php endforeach; ?>
+                                            <span class="technique-selector-desc" id="techniquePreviewDesc">
+                                                <?= h($techniques[0]['description'] ?? '') ?>
+                                            </span>
+                                        </div>
+                                        <div class="technique-trigger-right">
+                                            <span class="technique-selector-price" id="techniquePreviewPrice">
+                                                <?= ($techniques[0]['price'] ?? 0) == 0 ? 'Inclus' : '+' . formatPrice($techniques[0]['price']) ?>
+                                            </span>
+                                            <svg class="technique-selector-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="6 9 12 15 18 9"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    <div class="technique-selector-dropdown" id="techniqueDropdown">
+                                        <div class="technique-search-box">
+                                            <input type="text" class="technique-search-input" id="techniqueSearch"
+                                                   placeholder="Rechercher une technique...">
+                                        </div>
+                                        <div class="technique-list" id="techniqueList">
+                                            <?php foreach ($techniques as $index => $tech): ?>
+                                                <div class="technique-list-item <?= $index === 0 ? 'selected' : '' ?>"
+                                                     data-technique="<?= h($tech['value']) ?>"
+                                                     data-label="<?= h($tech['label']) ?>"
+                                                     data-description="<?= h($tech['description'] ?? '') ?>"
+                                                     data-price="<?= $tech['price'] ?>">
+                                                    <div class="technique-item-info">
+                                                        <span class="technique-item-name"><?= h($tech['label']) ?></span>
+                                                        <?php if (!empty($tech['description'])): ?>
+                                                            <span class="technique-item-desc"><?= h($tech['description']) ?></span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <span class="technique-item-price <?= $tech['price'] == 0 ? 'free' : '' ?>">
+                                                        <?= $tech['price'] == 0 ? 'Inclus' : '+' . formatPrice($tech['price']) ?>
+                                                    </span>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1699,8 +1838,8 @@ $cartCount = Cart::count();
 
             // === SÉLECTION DES OPTIONS ===
 
-            // Gestionnaire générique pour les options radio
-            document.querySelectorAll('.size-option, .color-option, .font-option, .text-color-option, .technique-option').forEach(option => {
+            // Gestionnaire générique pour les options radio (technique géré par dropdown)
+            document.querySelectorAll('.size-option, .color-option, .font-option, .text-color-option').forEach(option => {
                 option.addEventListener('click', function() {
                     const parent = this.parentElement;
                     const baseClass = this.className.split(' ')[0];
@@ -1846,8 +1985,18 @@ $cartCount = Cart::count();
 
             // (Font preview géré par le nouveau sélecteur dropdown)
 
-            // Technique preview - applique le style visuel distinct
+            // === SÉLECTEUR DE TECHNIQUES DROPDOWN ===
+            const techniqueSelector = document.getElementById('techniqueSelector');
+            const techniqueTrigger = document.getElementById('techniqueTrigger');
+            const techniqueDropdown = document.getElementById('techniqueDropdown');
+            const techniqueSearch = document.getElementById('techniqueSearch');
+            const techniqueList = document.getElementById('techniqueList');
+            const techniqueInput = document.getElementById('techniqueInput');
+            const techniquePreviewName = document.getElementById('techniquePreviewName');
+            const techniquePreviewDesc = document.getElementById('techniquePreviewDesc');
+            const techniquePreviewPrice = document.getElementById('techniquePreviewPrice');
             const techniqueIndicator = document.getElementById('techniqueIndicator');
+
             const techniqueLabels = {
                 'flex': 'FLEX',
                 'flock': 'FLOCK',
@@ -1855,22 +2004,105 @@ $cartCount = Cart::count();
                 'sublimation': 'SUBLIMATION'
             };
 
-            document.querySelectorAll('.technique-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    const technique = this.dataset.technique.toLowerCase();
+            // Ouvrir/fermer le dropdown technique
+            techniqueTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isOpen = techniqueDropdown.classList.contains('open');
+                if (isOpen) {
+                    closeTechniqueDropdown();
+                } else {
+                    openTechniqueDropdown();
+                }
+            });
 
-                    // Retirer toutes les classes de technique (toutes les variantes possibles)
-                    previewText.className = previewText.className.replace(/\btechnique-\S+/g, '').trim();
+            function openTechniqueDropdown() {
+                techniqueTrigger.classList.add('open');
+                techniqueDropdown.classList.add('open');
+                techniqueSearch.value = '';
+                filterTechniques('');
+                setTimeout(() => techniqueSearch.focus(), 100);
+            }
 
-                    // Ajouter la nouvelle classe (en minuscules)
-                    previewText.classList.add('technique-' + technique);
+            function closeTechniqueDropdown() {
+                techniqueTrigger.classList.remove('open');
+                techniqueDropdown.classList.remove('open');
+            }
 
-                    // Mettre à jour l'indicateur
-                    if (techniqueIndicator) {
-                        techniqueIndicator.textContent = techniqueLabels[technique] || technique.toUpperCase();
+            // Fermer au clic extérieur
+            document.addEventListener('click', function(e) {
+                if (techniqueSelector && !techniqueSelector.contains(e.target)) {
+                    closeTechniqueDropdown();
+                }
+            });
+
+            // Recherche de techniques
+            techniqueSearch.addEventListener('input', function() {
+                filterTechniques(this.value.toLowerCase());
+            });
+
+            function filterTechniques(query) {
+                const items = techniqueList.querySelectorAll('.technique-list-item');
+                items.forEach(item => {
+                    const name = item.dataset.label.toLowerCase();
+                    const desc = (item.dataset.description || '').toLowerCase();
+                    if (name.includes(query) || desc.includes(query)) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
                     }
                 });
+            }
+
+            // Sélection d'une technique
+            techniqueList.addEventListener('click', function(e) {
+                const item = e.target.closest('.technique-list-item');
+                if (!item) return;
+
+                const technique = item.dataset.technique;
+                const label = item.dataset.label;
+                const description = item.dataset.description || '';
+                const price = parseFloat(item.dataset.price) || 0;
+
+                // Mettre à jour l'input hidden
+                techniqueInput.value = technique;
+
+                // Mettre à jour le preview du trigger
+                techniquePreviewName.textContent = label;
+                techniquePreviewDesc.textContent = description;
+                techniquePreviewPrice.textContent = price === 0 ? 'Inclus' : '+' + formatPrice(price);
+
+                // Mettre à jour la sélection visuelle
+                techniqueList.querySelectorAll('.technique-list-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+
+                // Mettre à jour la classe technique sur le texte preview
+                const techLower = technique.toLowerCase();
+                previewText.className = previewText.className.replace(/\btechnique-\S+/g, '').trim();
+                previewText.classList.add('technique-' + techLower);
+
+                // Mettre à jour l'indicateur
+                if (techniqueIndicator) {
+                    techniqueIndicator.textContent = techniqueLabels[techLower] || techLower.toUpperCase();
+                }
+
+                // Fermer le dropdown
+                closeTechniqueDropdown();
             });
+
+            // Fonction helper pour formater le prix
+            function formatPrice(price) {
+                return price.toFixed(2).replace('.', ',') + ' €';
+            }
+
+            // Initialiser la technique depuis la première option sélectionnée
+            const firstTechnique = document.querySelector('.technique-list-item.selected');
+            if (firstTechnique) {
+                const technique = firstTechnique.dataset.technique.toLowerCase();
+                previewText.classList.add('technique-' + technique);
+                if (techniqueIndicator) {
+                    techniqueIndicator.textContent = techniqueLabels[technique] || technique.toUpperCase();
+                }
+            }
 
             // === QUANTITÉ ===
 
@@ -1929,9 +2161,9 @@ $cartCount = Cart::count();
             const realRenderBtn = document.getElementById('realRenderBtn');
             if (realRenderBtn && window.PersonnalyRealRender) {
                 realRenderBtn.addEventListener('click', function() {
-                    // Récupérer la technique sélectionnée
-                    const techEl = document.querySelector('.technique-option.selected');
-                    const technique = techEl ? techEl.dataset.technique : 'flex';
+                    // Récupérer la technique sélectionnée (nouveau dropdown)
+                    const techEl = document.querySelector('.technique-list-item.selected');
+                    const technique = techEl ? techEl.dataset.technique : (techniqueInput ? techniqueInput.value : 'flex');
 
                     // Ouvrir le modal avec les images de cette technique
                     PersonnalyRealRender.open(technique);
