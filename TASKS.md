@@ -100,16 +100,16 @@
 
 ### 3.1 — Architecture DB
 
-- [ ] **3.1.1** — Créer table `categories` (id, name, slug, description, image_url, sort_order, status)
-- [ ] **3.1.2** — Créer table `product_categories` (product_id, category_id) — relation N:N
-- [ ] **3.1.3** — Migration SQL
+- [x] **3.1.1** — Créer table `categories` (id, name, slug, description, image_url, sort_order, status) ✅
+- [x] **3.1.2** — Créer table `product_categories` (product_id, category_id) — relation N:N ✅
+- [x] **3.1.3** — Migration SQL ✅
 
 ### 3.2 — Admin CRUD Catégories
 
-- [ ] **3.2.1** — admin/categories.php (liste + réordonnancement)
-- [ ] **3.2.2** — admin/category-form.php (création/édition)
-- [ ] **3.2.3** — Lien sidebar admin
-- [ ] **3.2.4** — Dans product-form.php : checkboxes catégories
+- [x] **3.2.1** — admin/categories.php (liste + réordonnancement) ✅
+- [x] **3.2.2** — admin/category-form.php (création/édition) ✅
+- [x] **3.2.3** — Lien sidebar admin ✅
+- [x] **3.2.4** — Dans product-form.php : checkboxes catégories ✅
 
 ### 3.3 — Sections homepage avec catégories
 

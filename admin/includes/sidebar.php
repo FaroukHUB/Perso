@@ -48,6 +48,13 @@ function isActive($page, $current) {
             <span>Produits</span>
         </a>
 
+        <a href="/admin/categories.php" class="nav-item <?= isActive('categories.php', $currentPage) ?><?= isActive('category-form.php', $currentPage) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span>Catégories</span>
+        </a>
+
         <a href="/admin/packs.php" class="nav-item <?= isActive('packs.php', $currentPage) ?><?= isActive('pack-form.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>

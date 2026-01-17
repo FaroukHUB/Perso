@@ -12,6 +12,7 @@ require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/ProductColor.php';
 require_once __DIR__ . '/../app/models/ProductColorImage.php';
+require_once __DIR__ . '/../app/models/Category.php';
 
 Auth::requireAdmin();
 
@@ -19,7 +20,11 @@ $productModel = new Product();
 $orderModel = new Order();
 $productColorModel = new ProductColor();
 $productColorImageModel = new ProductColorImage();
+$categoryModel = new Category();
 $pendingOrders = $orderModel->countNew();
+
+// Récupérer toutes les catégories disponibles
+$allCategories = $categoryModel->findAllActive();
 
 // Mode édition ou création
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -32,6 +37,9 @@ $productColors = $isEdit ? $productColorModel->findAllByProduct($id) : [];
 // Récupérer les variantes couleur avec images (nouveau système)
 $colorVariants = $isEdit ? $productColorImageModel->findByProduct($id) : [];
 
+// Récupérer les catégories du produit si édition
+$productCategoryIds = $isEdit ? $categoryModel->getCategoryIdsByProduct($id) : [];
+
 $error = '';
 $formData = [
     'name' => $product['name'] ?? '',
@@ -43,8 +51,7 @@ $formData = [
     'image_back_url' => $product['image_back_url'] ?? '',
 ];
 
-// Catégories disponibles
-$categories = ['Homme', 'Femme', 'Enfant', 'Unisexe', 'Accessoire'];
+// Les catégories sont maintenant récupérées de la base de données ($allCategories)
 
 // Dossier d'upload
 $uploadDir = __DIR__ . '/../public/uploads/products/';
@@ -162,6 +169,10 @@ if (isPost()) {
                 } else {
                     $productId = $productModel->create($formData);
                 }
+
+                // Sauvegarder les catégories du produit
+                $selectedCategories = post('product_categories', []);
+                $categoryModel->setProductCategories($productId, array_map('intval', $selectedCategories));
 
                 // Sauvegarder les couleurs du produit (ancien système - pour compatibilité)
                 $colorNames = post('color_names', []);
@@ -360,6 +371,57 @@ if (isPost()) {
         }
         .switch-text {
             font-weight: 500;
+            color: var(--black-soft);
+        }
+
+        /* Categories Checkboxes */
+        .categories-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--gray-light);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .checkbox-label:hover {
+            background: var(--pink-light);
+        }
+        .checkbox-label input {
+            display: none;
+        }
+        .checkbox-custom {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .checkbox-label input:checked + .checkbox-custom {
+            background: var(--gradient-mint);
+            border-color: var(--mint-main);
+        }
+        .checkbox-label input:checked + .checkbox-custom::after {
+            content: '✓';
+            color: var(--black);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .checkbox-label input:checked ~ .checkbox-text {
+            color: var(--mint-dark);
+        }
+        .checkbox-text {
             color: var(--black-soft);
         }
 
@@ -820,15 +882,26 @@ if (isPost()) {
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="form-label" for="category">Catégorie</label>
-                                    <select id="category" name="category" class="form-input">
-                                        <option value="">Sélectionner...</option>
-                                        <?php foreach ($categories as $cat): ?>
-                                            <option value="<?= h($cat) ?>" <?= $formData['category'] === $cat ? 'selected' : '' ?>>
-                                                <?= h($cat) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                    <label class="form-label">Catégories</label>
+                                    <?php if (empty($allCategories)): ?>
+                                        <p class="text-muted" style="font-size: 13px;">
+                                            Aucune catégorie disponible.
+                                            <a href="/admin/category-form.php">Créer une catégorie</a>
+                                        </p>
+                                    <?php else: ?>
+                                        <div class="categories-checkboxes">
+                                            <?php foreach ($allCategories as $cat): ?>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox"
+                                                           name="product_categories[]"
+                                                           value="<?= $cat['id'] ?>"
+                                                           <?= in_array($cat['id'], $productCategoryIds) ? 'checked' : '' ?>>
+                                                    <span class="checkbox-custom"></span>
+                                                    <span class="checkbox-text"><?= h($cat['name']) ?></span>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
 

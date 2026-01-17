@@ -21,9 +21,9 @@
 
 **Date dernière mise à jour** : 2026-01-17
 
-**Phase actuelle** : P5 - PAGE D'ACCUEIL DYNAMIQUE ✅ TERMINÉ
+**Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 3 terminé)
 
-**Statut global** : 🟢 PRÊT - Page d'accueil dynamique implémentée
+**Statut global** : 🟢 STEP 1-3 terminés, STEP 3.3 (sections homepage catégories) en attente
 
 ---
 
@@ -691,6 +691,37 @@ foreach ($sections as $section) {
 - `app/helpers/functions.php` - Fonction picture()
 - `admin/homepage-section.php`, `admin/product-form.php`, `admin/blog-form.php`, `admin/pack-form.php`
 - `public/index.php` - Utilisation de picture() pour images
+
+### STEP 3 — Catégories Produits ✅ TERMINÉ
+
+**3.1 — Architecture DB** :
+- Table `categories` : id, name, slug, description, image_url, sort_order, status
+- Table `product_categories` : relation N:N (product_id, category_id)
+- Migration SQL créée : `sql/migrate_categories.sql`
+
+**3.2 — Admin CRUD Catégories** :
+- `app/models/Category.php` : Modèle complet avec CRUD, slug auto, réordonnancement
+- `admin/categories.php` : Liste avec drag & drop AJAX pour réordonner
+- `admin/category-form.php` : Formulaire création/édition avec upload image
+- Lien ajouté dans sidebar admin (entre Produits et Packs)
+- Checkboxes multi-sélection dans `product-form.php`
+
+**Fichiers créés** :
+- `sql/migrate_categories.sql`
+- `app/models/Category.php`
+- `admin/categories.php`
+- `admin/category-form.php`
+
+**Fichiers modifiés** :
+- `admin/includes/sidebar.php` - Lien "Catégories" ajouté
+- `admin/product-form.php` - Checkboxes catégories + CSS + backend sauvegarde
+
+**Fonctionnalités** :
+- Catégories avec image optionnelle (WebP auto-conversion)
+- Slug URL auto-généré (modifiable)
+- Statut actif/inactif
+- Ordre personnalisable (drag & drop)
+- Association produits N:N (un produit peut être dans plusieurs catégories)
 
 ---
 
