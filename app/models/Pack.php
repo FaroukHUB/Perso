@@ -206,6 +206,23 @@ class Pack
     }
 
     /**
+     * Récupère le premier produit d'un pack (pour le lien CTA)
+     */
+    public function getFirstProduct(int $packId): ?array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT p.*
+             FROM products p
+             INNER JOIN pack_products pp ON p.id = pp.product_id
+             WHERE pp.pack_id = ? AND p.active = 1
+             ORDER BY pp.sort_order ASC
+             LIMIT 1'
+        );
+        $stmt->execute([$packId]);
+        return $stmt->fetch() ?: null;
+    }
+
+    /**
      * Définit les produits d'un pack (remplace tous les existants)
      */
     public function setProducts(int $packId, array $productIds): void

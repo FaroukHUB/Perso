@@ -8,12 +8,17 @@ require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/helpers/Cart.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
+require_once __DIR__ . '/../app/models/Pack.php';
 
 $cartCount = Cart::count();
 
 // Récupération des produits actifs
 $productModel = new Product();
 $products = $productModel->findActive();
+
+// Récupération des packs actifs pour la section "Idées"
+$packModel = new Pack();
+$packs = $packModel->findActive();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -399,6 +404,147 @@ $products = $productModel->findActive();
             margin-bottom: var(--spacing-lg);
         }
 
+        /* Inspirations Section */
+        .inspirations-section {
+            padding: 100px 0;
+            background: var(--black-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .inspirations-section::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: var(--pink-main);
+            border-radius: 50%;
+            filter: blur(200px);
+            opacity: 0.08;
+            top: -100px;
+            left: -100px;
+        }
+
+        .inspirations-section .section-header h2,
+        .inspirations-section .section-header p {
+            color: var(--white);
+        }
+
+        .inspirations-section .section-header p {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .inspirations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        .inspiration-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: all var(--transition-normal);
+            backdrop-filter: blur(10px);
+        }
+
+        .inspiration-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--pink-main);
+            box-shadow: 0 20px 40px rgba(255, 105, 180, 0.15);
+        }
+
+        .inspiration-image {
+            aspect-ratio: 16/10;
+            background: linear-gradient(135deg, rgba(255,105,180,0.2) 0%, rgba(61,255,192,0.1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .inspiration-image::before {
+            content: '✨';
+            font-size: 3rem;
+            opacity: 0.5;
+        }
+
+        .inspiration-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .inspiration-image:has(img)::before {
+            display: none;
+        }
+
+        .inspiration-type {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 6px 12px;
+            border-radius: var(--radius-full);
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--white);
+            backdrop-filter: blur(4px);
+        }
+
+        .inspiration-type.type-technique { background: var(--pink-main); }
+        .inspiration-type.type-contextuel { background: var(--mint-dark); color: var(--black); }
+        .inspiration-type.type-thematique { background: #9b59b6; }
+        .inspiration-type.type-inspiration { background: #3498db; }
+
+        .inspiration-info {
+            padding: 20px;
+        }
+
+        .inspiration-info h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+
+        .inspiration-info p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .inspiration-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--gradient-pink);
+            color: var(--white);
+            padding: 10px 20px;
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all var(--transition-fast);
+        }
+
+        .inspiration-cta:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-pink);
+        }
+
+        .inspiration-cta svg {
+            width: 16px;
+            height: 16px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 { font-size: 2.5rem; }
@@ -414,6 +560,7 @@ $products = $productModel->findActive();
             <a href="/" class="navbar-brand">PERSONNALY</a>
             <div class="navbar-nav">
                 <a href="#produits">Produits</a>
+                <?php if (!empty($packs)): ?><a href="#inspirations">Idées</a><?php endif; ?>
                 <a href="#categories">Catégories</a>
                 <a href="#contact">Contact</a>
                 <a href="/public/cart.php" class="cart-nav-link">
@@ -504,6 +651,57 @@ $products = $productModel->findActive();
         </div>
     </section>
 
+    <!-- Inspirations / Idées -->
+    <?php if (!empty($packs)): ?>
+    <section class="inspirations-section" id="inspirations">
+        <div class="container">
+            <div class="section-header">
+                <h2>Nos <span class="text-gradient">Idées Tendance</span></h2>
+                <p>Laissez-vous inspirer par nos suggestions de personnalisation</p>
+            </div>
+
+            <div class="inspirations-grid">
+                <?php foreach ($packs as $pack):
+                    // Récupérer le premier produit pour le lien
+                    $firstProduct = $packModel->getFirstProduct($pack['id']);
+                    if (!$firstProduct) continue; // Skip si aucun produit actif
+
+                    // Labels des types
+                    $typeLabels = [
+                        'technique' => 'Technique',
+                        'contextuel' => 'Contextuel',
+                        'thematique' => 'Thématique',
+                        'inspiration' => 'Inspiration'
+                    ];
+                ?>
+                    <div class="inspiration-card">
+                        <div class="inspiration-image">
+                            <span class="inspiration-type type-<?= h($pack['type']) ?>">
+                                <?= h($typeLabels[$pack['type']] ?? 'Idée') ?>
+                            </span>
+                            <?php if (!empty($pack['cover_image_url'])): ?>
+                                <img src="/public<?= h($pack['cover_image_url']) ?>" alt="<?= h($pack['name']) ?>">
+                            <?php endif; ?>
+                        </div>
+                        <div class="inspiration-info">
+                            <h3><?= h($pack['name']) ?></h3>
+                            <?php if (!empty($pack['description'])): ?>
+                                <p><?= h($pack['description']) ?></p>
+                            <?php endif; ?>
+                            <a href="/public/product.php?id=<?= $firstProduct['id'] ?>&pack_id=<?= $pack['id'] ?>" class="inspiration-cta">
+                                Essayer cette idée
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
+
     <!-- Footer -->
     <footer class="footer" id="contact">
         <div class="container">
@@ -516,6 +714,7 @@ $products = $productModel->findActive();
                 <div class="footer-links">
                     <h4>Navigation</h4>
                     <a href="#produits">Produits</a>
+                    <?php if (!empty($packs)): ?><a href="#inspirations">Idées</a><?php endif; ?>
                     <a href="#categories">Catégories</a>
                     <a href="#">FAQ</a>
                 </div>

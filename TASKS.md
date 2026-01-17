@@ -43,12 +43,12 @@
 - [x] **P4.4.3** — Pré-remplissage JS du configurateur
 - [x] **P4.4.4** — Aucune option bloquée (tout reste modifiable)
 
-### P4.5 — Affichage Site (Section Inspirations)
+### P4.5 — Affichage Site (Section Inspirations) ✅
 
-- [ ] **P4.5.1** — Section "Nos idées tendance" sur index.php
-- [ ] **P4.5.2** — Cartes : image, nom, description, CTA
-- [ ] **P4.5.3** — Page dédiée /inspirations.php (optionnel)
-- [ ] **P4.5.4** — Filtres par type (technique, contextuel, thématique)
+- [x] **P4.5.1** — Section "Nos idées tendance" sur index.php
+- [x] **P4.5.2** — Cartes : image, nom, description, CTA
+- [ ] **P4.5.3** — Page dédiée /inspirations.php (optionnel - non implémenté)
+- [ ] **P4.5.4** — Filtres par type (optionnel - non implémenté)
 
 ### P4.6 — Tests & Validation
 
