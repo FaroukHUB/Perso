@@ -21,9 +21,9 @@
 
 **Date dernière mise à jour** : 2026-01-17
 
-**Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 3 terminé)
+**Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-3 terminés)
 
-**Statut global** : 🟢 STEP 1-3 terminés, STEP 3.3 (sections homepage catégories) en attente
+**Statut global** : 🟢 STEP 1-3 TERMINÉS - Prochaine étape : STEP 4 (Techniques rendu réel admin)
 
 ---
 
@@ -722,6 +722,18 @@ foreach ($sections as $section) {
 - Statut actif/inactif
 - Ordre personnalisable (drag & drop)
 - Association produits N:N (un produit peut être dans plusieurs catégories)
+
+**3.3 — Sections homepage avec catégories** :
+- Nouveau type de section `featured_category` dans HomepageSection
+- Admin : dropdown catégorie + limite de produits (4, 6, 8, 10, 12)
+- Front : affiche automatiquement les produits de la catégorie sélectionnée
+- Badge menthe avec nom de catégorie sur chaque produit
+- CTA optionnel pour voir tous les produits
+
+**Fichiers modifiés** :
+- `app/models/HomepageSection.php` - Type `featured_category` ajouté
+- `admin/homepage-section.php` - Formulaire sélection catégorie
+- `public/index.php` - Rendu section catégorie
 
 ---
 

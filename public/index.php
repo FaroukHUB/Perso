@@ -11,6 +11,7 @@ require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Pack.php';
 require_once __DIR__ . '/../app/models/HomepageSection.php';
 require_once __DIR__ . '/../app/models/BlogPost.php';
+require_once __DIR__ . '/../app/models/Category.php';
 
 $cartCount = Cart::count();
 
@@ -22,6 +23,7 @@ $sections = $sectionModel->findActive();
 $productModel = new Product();
 $packModel = new Pack();
 $blogModel = new BlogPost();
+$categoryModel = new Category();
 
 // Préparer les données pour chaque section
 foreach ($sections as &$section) {
@@ -74,6 +76,20 @@ foreach ($sections as &$section) {
             if (empty($section['posts'])) {
                 $limit = $section['config']['limit'] ?? 6;
                 $section['posts'] = $blogModel->findPublished($limit);
+            }
+            break;
+
+        case 'featured_category':
+            // Charger les produits de la catégorie
+            $section['category'] = null;
+            $section['category_products'] = [];
+            if (!empty($section['config']['category_id'])) {
+                $catId = (int) $section['config']['category_id'];
+                $section['category'] = $categoryModel->findById($catId);
+                if ($section['category'] && $section['category']['status'] === 'active') {
+                    $limit = $section['config']['products_limit'] ?? 8;
+                    $section['category_products'] = $categoryModel->getProducts($catId, $limit);
+                }
             }
             break;
     }
@@ -947,6 +963,57 @@ foreach ($sections as $s) {
                             </div>
                         </div>
                     <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php
+            break;
+
+            // ===== FEATURED CATEGORY =====
+            case 'featured_category':
+                if (empty($section['category']) || empty($section['category_products'])) break;
+                $cat = $section['category'];
+    ?>
+    <section class="category-section" id="categorie-<?= h($cat['slug']) ?>">
+        <div class="container">
+            <div class="section-header">
+                <h2><?= h($section['title'] ?: $cat['name']) ?></h2>
+                <?php if ($section['subtitle']): ?>
+                    <p><?= h($section['subtitle']) ?></p>
+                <?php elseif (!empty($cat['description'])): ?>
+                    <p><?= h($cat['description']) ?></p>
+                <?php endif; ?>
+            </div>
+
+            <div class="products-grid">
+                <?php foreach ($section['category_products'] as $product): ?>
+                    <div class="product-card">
+                        <div class="product-image">
+                            <span class="product-category badge badge-mint">
+                                <?= h($cat['name']) ?>
+                            </span>
+                            <?php if (!empty($product['image_front_url'])): ?>
+                                <?= picture($product['image_front_url'], $product['name']) ?>
+                            <?php endif; ?>
+                        </div>
+                        <div class="product-info">
+                            <h3><?= h($product['name']) ?></h3>
+                            <p><?= h($product['description'] ?? 'Personnalisable avec votre design') ?></p>
+                            <div class="product-footer">
+                                <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
+                                <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <?php if (!empty($section['cta_text']) && !empty($section['cta_url'])): ?>
+                <div class="section-cta" style="text-align: center; margin-top: 30px;">
+                    <a href="<?= h($section['cta_url']) ?>" class="btn btn-primary">
+                        <?= h($section['cta_text']) ?>
+                    </a>
                 </div>
             <?php endif; ?>
         </div>

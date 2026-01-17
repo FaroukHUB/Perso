@@ -12,6 +12,7 @@ require_once __DIR__ . '/../app/models/HomepageSection.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Pack.php';
 require_once __DIR__ . '/../app/models/BlogPost.php';
+require_once __DIR__ . '/../app/models/Category.php';
 
 Auth::requireAdmin();
 
@@ -19,6 +20,7 @@ $sectionModel = new HomepageSection();
 $productModel = new Product();
 $packModel = new Pack();
 $blogModel = new BlogPost();
+$categoryModel = new Category();
 
 $sectionId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $section = null;
@@ -166,6 +168,10 @@ if (isPost()) {
             foreach ($_POST['blog_ids'] as $bid) {
                 $items[] = ['type' => 'blog', 'id' => (int) $bid];
             }
+        } elseif ($data['type'] === 'featured_category' && !empty($_POST['category_id'])) {
+            // Stocker l'ID de la catégorie dans config
+            $data['config']['category_id'] = (int) $_POST['category_id'];
+            $data['config']['products_limit'] = (int) ($_POST['products_limit'] ?? 8);
         }
         $data['items'] = $items;
 
@@ -195,15 +201,19 @@ $types = $sectionModel->getTypes();
 $statuses = $sectionModel->getStatuses();
 $mediaTypes = $sectionModel->getMediaTypes();
 
-// Charger produits, packs et articles pour la sélection
+// Charger produits, packs, articles et catégories pour la sélection
 $products = $productModel->findActive();
 $packs = $packModel->findActive();
+$categories = $categoryModel->findAllActive();
 $blogPosts = $blogModel->findAll(); // Tous les articles (brouillon + publiés)
 
 // IDs des items sélectionnés
 $selectedProductIds = [];
 $selectedPackIds = [];
 $selectedBlogIds = [];
+$selectedCategoryId = 0;
+$productsLimit = 8;
+
 if ($section && !empty($section['items'])) {
     foreach ($section['items'] as $item) {
         if ($item['item_type'] === 'product') {
@@ -214,6 +224,14 @@ if ($section && !empty($section['items'])) {
             $selectedBlogIds[] = $item['item_id'];
         }
     }
+}
+
+// Récupérer la catégorie sélectionnée (pour featured_category)
+if ($section && !empty($section['config']['category_id'])) {
+    $selectedCategoryId = (int) $section['config']['category_id'];
+}
+if ($section && !empty($section['config']['products_limit'])) {
+    $productsLimit = (int) $section['config']['products_limit'];
 }
 ?>
 <!DOCTYPE html>
@@ -471,6 +489,56 @@ if ($section && !empty($section['items'])) {
                                 <?php endif; ?>
                             </div>
 
+                            <!-- Sélection catégorie -->
+                            <div id="categorySelection" style="display: none;">
+                                <p class="text-muted" style="margin-bottom: 15px;">
+                                    Sélectionnez une catégorie pour afficher ses produits.
+                                    <a href="/admin/categories.php" style="color: var(--pink-main);">Gérer les catégories</a>
+                                </p>
+                                <?php if (empty($categories)): ?>
+                                    <div class="info-box-blue">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                                        </svg>
+                                        <p>Aucune catégorie. <a href="/admin/category-form.php">Créer une catégorie</a>.</p>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="form-group">
+                                        <label for="category_id">Catégorie *</label>
+                                        <select name="category_id" id="category_id" class="form-select">
+                                            <option value="">-- Sélectionner une catégorie --</option>
+                                            <?php foreach ($categories as $cat): ?>
+                                                <option value="<?= $cat['id'] ?>" <?= $selectedCategoryId === (int)$cat['id'] ? 'selected' : '' ?>>
+                                                    <?= h($cat['name']) ?>
+                                                    <?php if (!empty($cat['description'])): ?>
+                                                        (<?= h(substr($cat['description'], 0, 30)) ?>...)
+                                                    <?php endif; ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="products_limit">Nombre de produits à afficher</label>
+                                        <select name="products_limit" id="products_limit" class="form-select">
+                                            <?php foreach ([4, 6, 8, 10, 12] as $limit): ?>
+                                                <option value="<?= $limit ?>" <?= $productsLimit === $limit ? 'selected' : '' ?>>
+                                                    <?= $limit ?> produits
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="info-box-mint" style="margin-top: 15px;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        <div>
+                                            <p><strong>Catégorie à la une</strong></p>
+                                            <p style="font-size: 13px;">Les produits de cette catégorie seront affichés automatiquement. Vous pouvez personnaliser le titre et le sous-titre de la section.</p>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
                             <!-- Newsletter info -->
                             <div id="newsletterInfo" style="display: none;">
                                 <div class="info-box-pink">
@@ -644,6 +712,17 @@ if ($section && !empty($section['items'])) {
         }
         .info-box-pink svg { flex-shrink: 0; color: var(--pink-main); }
         .info-box-pink p { margin: 0 0 5px; }
+        .info-box-mint {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(61, 255, 192, 0.1);
+            border-radius: 10px;
+            color: var(--mint-dark);
+            align-items: flex-start;
+        }
+        .info-box-mint svg { flex-shrink: 0; color: var(--mint-main); }
+        .info-box-mint p { margin: 0 0 5px; }
         .form-actions {
             display: flex;
             gap: 15px;
@@ -860,6 +939,7 @@ if ($section && !empty($section['items'])) {
         contentField.style.display = 'none';
         multiMediaField.style.display = 'none';
         document.getElementById('newsletterInfo').style.display = 'none';
+        document.getElementById('categorySelection').style.display = 'none';
 
         switch (type) {
             case 'hero':
@@ -895,6 +975,14 @@ if ($section && !empty($section['items'])) {
                 blogSelection.style.display = 'block';
                 itemsCardTitle.textContent = 'Articles de blog';
                 ctaFields.style.display = 'none';
+                mediaField.style.display = 'none';
+                break;
+
+            case 'featured_category':
+                itemsCard.style.display = 'block';
+                document.getElementById('categorySelection').style.display = 'block';
+                itemsCardTitle.textContent = 'Catégorie';
+                ctaFields.style.display = 'grid';
                 mediaField.style.display = 'none';
                 break;
 

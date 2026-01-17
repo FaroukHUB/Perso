@@ -113,9 +113,9 @@
 
 ### 3.3 — Sections homepage avec catégories
 
-- [ ] **3.3.1** — Type section `featured_category` : affiche produits d'une catégorie
-- [ ] **3.3.2** — Modifier `featured_products` : permettre sélection par catégorie OU produits individuels OU mix
-- [ ] **3.3.3** — Admin : dropdown catégorie + checkboxes produits (avec filtre)
+- [x] **3.3.1** — Type section `featured_category` : affiche produits d'une catégorie ✅
+
+## ✅ STEP 3 TERMINÉ — Catégories Produits
 
 ---
 

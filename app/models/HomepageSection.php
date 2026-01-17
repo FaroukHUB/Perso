@@ -15,6 +15,7 @@ class HomepageSection
         'hero' => 'Hero (Plein écran)',
         'featured_products' => 'Produits à la une',
         'featured_packs' => 'Packs / Idées à la une',
+        'featured_category' => 'Catégorie à la une',
         'content_block' => 'Bloc contenu (texte + média)',
         'blog_slider' => 'Slider Blog',
         'newsletter' => 'Newsletter'
