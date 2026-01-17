@@ -15,6 +15,7 @@ require_once __DIR__ . '/../app/models/Font.php';
 require_once __DIR__ . '/../app/models/ProductPrintZone.php';
 require_once __DIR__ . '/../app/models/ProductColor.php';
 require_once __DIR__ . '/../app/models/ProductColorImage.php';
+require_once __DIR__ . '/../app/models/Pack.php';
 
 // Récupération du produit
 $productId = (int) get('id', 0);
@@ -28,6 +29,33 @@ if (!$product || !$product['active']) {
 
 $success = '';
 $error = '';
+
+// === PACK / IDÉE : Chargement du preset ===
+$packId = (int) get('pack_id', 0);
+$pack = null;
+$preset = null;
+
+if ($packId > 0) {
+    $packModel = new Pack();
+    $pack = $packModel->findById($packId);
+
+    // Vérifier que le pack existe et est actif
+    if ($pack && $pack['status'] === 'active') {
+        // Décoder le preset JSON
+        $presetJson = $pack['preset_json'] ?? '{}';
+        $preset = is_string($presetJson) ? json_decode($presetJson, true) : $presetJson;
+
+        // Valeurs par défaut si le preset est incomplet
+        $preset = array_merge([
+            'text' => '',
+            'font' => '',
+            'text_color' => '',
+            'technique' => '',
+            'position' => ['x' => 50, 'y' => 50],
+            'view' => 'front'
+        ], $preset ?? []);
+    }
+}
 
 // Options de personnalisation depuis la base de données
 $optionModel = new CustomizationOption();
@@ -1306,13 +1334,66 @@ $cartCount = Cart::count();
                 <div class="alert alert-error" style="margin-bottom: 20px;"><?= h($error) ?></div>
             <?php endif; ?>
 
+            <?php if ($pack): ?>
+                <div class="pack-info-banner" style="margin-bottom: 20px; padding: 16px 20px; background: linear-gradient(135deg, rgba(255,105,180,0.08) 0%, rgba(61,255,192,0.08) 100%); border-radius: 12px; border-left: 4px solid var(--pink-main);">
+                    <strong>Idée : <?= h($pack['name']) ?></strong>
+                    <span style="display: block; font-size: 13px; color: var(--gray); margin-top: 4px;">
+                        Configuration pré-remplie — Vous pouvez tout modifier librement
+                    </span>
+                </div>
+            <?php endif; ?>
+
+            <?php
+            // === Calcul des indices par défaut pour le preset ===
+            $selectedFontIndex = 0;
+            $selectedTextColorIndex = 0;
+            $selectedTechniqueIndex = 0;
+
+            if ($preset) {
+                // Trouver l'index de la police du preset
+                if (!empty($preset['font'])) {
+                    foreach ($fonts as $idx => $f) {
+                        if ($f['value'] === $preset['font']) {
+                            $selectedFontIndex = $idx;
+                            break;
+                        }
+                    }
+                }
+
+                // Trouver l'index de la couleur de texte du preset
+                if (!empty($preset['text_color'])) {
+                    foreach ($textColors as $idx => $tc) {
+                        if ($tc['value'] === $preset['text_color']) {
+                            $selectedTextColorIndex = $idx;
+                            break;
+                        }
+                    }
+                }
+
+                // Trouver l'index de la technique du preset
+                if (!empty($preset['technique'])) {
+                    foreach ($techniques as $idx => $t) {
+                        if ($t['value'] === $preset['technique']) {
+                            $selectedTechniqueIndex = $idx;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Récupérer les valeurs sélectionnées
+            $selectedFont = $fonts[$selectedFontIndex] ?? $fonts[0] ?? ['value' => 'Poppins', 'label' => 'Poppins', 'category' => 'sans-serif'];
+            $selectedTextColor = $textColors[$selectedTextColorIndex] ?? $textColors[0] ?? ['value' => 'noir', 'label' => 'Noir', 'hex' => '#1A1A2E'];
+            $selectedTechnique = $techniques[$selectedTechniqueIndex] ?? $techniques[0] ?? ['value' => 'flex', 'label' => 'Flex', 'description' => '', 'price' => 0];
+            ?>
+
             <form method="post" id="customizationForm">
                 <?= csrfField() ?>
                 <input type="hidden" name="add_to_cart" value="1">
-                <input type="hidden" name="position_x" id="positionX" value="50">
-                <input type="hidden" name="position_y" id="positionY" value="50">
+                <input type="hidden" name="position_x" id="positionX" value="<?= $preset ? h($preset['position']['x'] ?? 50) : 50 ?>">
+                <input type="hidden" name="position_y" id="positionY" value="<?= $preset ? h($preset['position']['y'] ?? 50) : 50 ?>">
                 <input type="hidden" name="position_zone_id" id="positionZoneId" value="<?= $printZone['id'] ?>">
-                <input type="hidden" name="view" id="viewInput" value="front">
+                <input type="hidden" name="view" id="viewInput" value="<?= $preset ? h($preset['view'] ?? 'front') : 'front' ?>">
 
                 <div class="configurator-layout">
                     <!-- ========================================
@@ -1330,7 +1411,8 @@ $cartCount = Cart::count();
                                        id="customText"
                                        class="custom-text-input"
                                        placeholder="Ex: Famille Dupont, Team Papa..."
-                                       maxlength="<?= $printZone['max_chars'] ?? 50 ?>">
+                                       maxlength="<?= $printZone['max_chars'] ?? 50 ?>"
+                                       value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
                             </div>
                         </div>
 
@@ -1340,12 +1422,12 @@ $cartCount = Cart::count();
                             <div class="accordion-content">
                                 <h3 class="config-section-title">Style de police</h3>
                                 <div class="font-selector-wrapper" id="fontSelector">
-                                    <input type="hidden" name="font" id="fontInput" value="<?= h($fonts[0]['value'] ?? 'Poppins') ?>">
+                                    <input type="hidden" name="font" id="fontInput" value="<?= h($selectedFont['value']) ?>">
 
                                     <div class="font-selector-trigger" id="fontTrigger">
                                         <span class="font-selector-preview" id="fontPreview"
-                                              style="font-family: '<?= h($fonts[0]['value'] ?? 'Poppins') ?>', <?= h($fonts[0]['category'] ?? 'sans-serif') ?>">
-                                            <?= h($fonts[0]['label'] ?? 'Sélectionner une police') ?>
+                                              style="font-family: '<?= h($selectedFont['value']) ?>', <?= h($selectedFont['category'] ?? 'sans-serif') ?>">
+                                            <?= h($selectedFont['label']) ?>
                                         </span>
                                         <svg class="font-selector-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <polyline points="6 9 12 15 18 9"/>
@@ -1359,7 +1441,7 @@ $cartCount = Cart::count();
                                         </div>
                                         <div class="font-list" id="fontList">
                                             <?php foreach ($fonts as $index => $font): ?>
-                                                <div class="font-list-item <?= $index === 0 ? 'selected' : '' ?>"
+                                                <div class="font-list-item <?= $index === $selectedFontIndex ? 'selected' : '' ?>"
                                                      data-font="<?= h($font['value']) ?>"
                                                      data-label="<?= h($font['label']) ?>"
                                                      data-category="<?= h($font['category'] ?? 'sans-serif') ?>"
@@ -1381,11 +1463,11 @@ $cartCount = Cart::count();
                                 <h3 class="config-section-title">Couleur du texte</h3>
                                 <div class="text-color-options">
                                     <?php foreach ($textColors as $index => $tc): ?>
-                                        <label class="text-color-option <?= $index === 0 ? 'selected' : '' ?>"
+                                        <label class="text-color-option <?= $index === $selectedTextColorIndex ? 'selected' : '' ?>"
                                                style="background-color: <?= h($tc['hex']) ?>;"
                                                data-color="<?= h($tc['hex']) ?>"
                                                title="<?= h($tc['label']) ?>">
-                                            <input type="radio" name="text_color" value="<?= h($tc['value']) ?>" <?= $index === 0 ? 'checked' : '' ?>>
+                                            <input type="radio" name="text_color" value="<?= h($tc['value']) ?>" <?= $index === $selectedTextColorIndex ? 'checked' : '' ?>>
                                             <span class="color-label"><?= h($tc['label']) ?></span>
                                         </label>
                                     <?php endforeach; ?>
@@ -1399,20 +1481,20 @@ $cartCount = Cart::count();
                             <div class="accordion-content">
                                 <h3 class="config-section-title">Technique d'impression</h3>
                                 <div class="technique-selector-wrapper" id="techniqueSelector">
-                                    <input type="hidden" name="technique" id="techniqueInput" value="<?= h($techniques[0]['value'] ?? 'flex') ?>">
+                                    <input type="hidden" name="technique" id="techniqueInput" value="<?= h($selectedTechnique['value']) ?>">
 
                                     <div class="technique-selector-trigger" id="techniqueTrigger">
                                         <div class="technique-trigger-content">
                                             <span class="technique-selector-name" id="techniquePreviewName">
-                                                <?= h($techniques[0]['label'] ?? 'Sélectionner une technique') ?>
+                                                <?= h($selectedTechnique['label']) ?>
                                             </span>
                                             <span class="technique-selector-desc" id="techniquePreviewDesc">
-                                                <?= h($techniques[0]['description'] ?? '') ?>
+                                                <?= h($selectedTechnique['description'] ?? '') ?>
                                             </span>
                                         </div>
                                         <div class="technique-trigger-right">
                                             <span class="technique-selector-price" id="techniquePreviewPrice">
-                                                <?= ($techniques[0]['price'] ?? 0) == 0 ? 'Inclus' : '+' . formatPrice($techniques[0]['price']) ?>
+                                                <?= ($selectedTechnique['price'] ?? 0) == 0 ? 'Inclus' : '+' . formatPrice($selectedTechnique['price']) ?>
                                             </span>
                                             <svg class="technique-selector-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <polyline points="6 9 12 15 18 9"/>
@@ -1427,7 +1509,7 @@ $cartCount = Cart::count();
                                         </div>
                                         <div class="technique-list" id="techniqueList">
                                             <?php foreach ($techniques as $index => $tech): ?>
-                                                <div class="technique-list-item <?= $index === 0 ? 'selected' : '' ?>"
+                                                <div class="technique-list-item <?= $index === $selectedTechniqueIndex ? 'selected' : '' ?>"
                                                      data-technique="<?= h($tech['value']) ?>"
                                                      data-label="<?= h($tech['label']) ?>"
                                                      data-description="<?= h($tech['description'] ?? '') ?>"
@@ -1668,18 +1750,26 @@ $cartCount = Cart::count();
                 back: <?= $zones['back'] ? json_encode($zones['back']) : 'null' ?>
             };
 
+            // === PRESET PACK (si défini) ===
+            const preset = <?= $preset ? json_encode($preset) : 'null' ?>;
+
             // === ÉTAT ACTUEL ===
-            let currentView = 'front';
-            let zone = zones.front;
+            let currentView = preset?.view || 'front';
+            let zone = zones[currentView] || zones.front;
 
             // === ÉTAT DU DRAG ===
             let isDragging = false;
             let startX = 0, startY = 0;
             let currentX = 50, currentY = 50; // Position initiale (centre de la zone)
 
-            // Calculer le centre de la zone comme position par défaut
-            currentX = zone.x + (zone.width / 2);
-            currentY = zone.y + (zone.height / 2);
+            // Position initiale : depuis preset OU centre de la zone
+            if (preset && preset.position) {
+                currentX = parseFloat(preset.position.x) || zone.x + (zone.width / 2);
+                currentY = parseFloat(preset.position.y) || zone.y + (zone.height / 2);
+            } else {
+                currentX = zone.x + (zone.width / 2);
+                currentY = zone.y + (zone.height / 2);
+            }
 
             // Appliquer position initiale
             updateTextPosition();
@@ -1845,6 +1935,21 @@ $cartCount = Cart::count();
                     previewText.style.fontSize = '1.2rem';
                 } else {
                     previewText.style.fontSize = '1.5rem';
+                }
+            }
+
+            // === INITIALISATION PRESET (texte + vue) ===
+            // Déclencher l'événement input pour initialiser le preview si texte pré-rempli
+            if (customText.value.trim()) {
+                customText.dispatchEvent(new Event('input'));
+            }
+
+            // Initialiser la vue depuis preset (si back)
+            if (preset && preset.view === 'back' && zones.back) {
+                // Forcer la bascule sur la vue dos
+                const btnBack = document.getElementById('btnBack');
+                if (btnBack) {
+                    setTimeout(() => btnBack.click(), 100);
                 }
             }
 

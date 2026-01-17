@@ -36,12 +36,12 @@
 - [ ] **P4.3.3** — Preview live du preset dans admin (optionnel)
 - [x] **P4.3.4** — Validation JSON côté serveur
 
-### P4.4 — Injection Preset → Configurateur
+### P4.4 — Injection Preset → Configurateur ✅
 
-- [ ] **P4.4.1** — Route /product.php?pack_id=X
-- [ ] **P4.4.2** — Chargement preset depuis DB
-- [ ] **P4.4.3** — Pré-remplissage JS du configurateur
-- [ ] **P4.4.4** — Aucune option bloquée (tout reste modifiable)
+- [x] **P4.4.1** — Route /product.php?pack_id=X
+- [x] **P4.4.2** — Chargement preset depuis DB
+- [x] **P4.4.3** — Pré-remplissage JS du configurateur
+- [x] **P4.4.4** — Aucune option bloquée (tout reste modifiable)
 
 ### P4.5 — Affichage Site (Section Inspirations)
 
