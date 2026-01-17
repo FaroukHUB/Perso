@@ -653,6 +653,20 @@ foreach ($sections as $section) {
 - `additional_media[]` : nouveaux fichiers uploadés
 - Fusion automatique + limite à 10 images
 
+### STEP 1.2 bis — Fix affichage galerie front-end
+
+**Problème** : Les images additionnelles étaient affichées comme petites vignettes dans une seule carte, au lieu de cartes individuelles.
+
+**Solution** :
+- Mode galerie : si images additionnelles SANS image principale → grille de cartes
+- Chaque image a sa propre carte (style produit : shadow, hover, ratio 4:3)
+- Texte centré au-dessus de la galerie
+- CSS responsive : `grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))`
+
+**Fichiers modifiés** :
+- `public/index.php` - Nouveau CSS `.content-block-gallery` + `.gallery-card`
+- `public/index.php` - Logique PHP : `$isGalleryMode = $hasMultipleMedia && !$hasMainMedia`
+
 ---
 
 ## 🔴 AUDIT RECADRAGE - 2026-01-16
