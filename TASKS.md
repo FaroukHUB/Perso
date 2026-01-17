@@ -1,26 +1,77 @@
 # TASKS — PERSONNALY
 
 > **Fichier de suivi des tâches** — Complémentaire à PROGRESSION.md
-> - `[ ]` = à faire
-> - `[x]` = terminé
+> - `[ ]` = TODO
+> - `[~]` = DOING
+> - `[x]` = DONE
 > - 1 tâche = 1 ligne
 > - Mise à jour obligatoire à chaque fin de session
 
 ---
 
-## 🔴 PRIORITÉ HAUTE
+## 🔴 PHASE ACTUELLE : PACKS / IDÉES
+
+> **Vision** : Un pack = une suggestion inspirante, jamais une prison.
+> Le client peut tout modifier après pré-remplissage.
+
+### P4.1 — Architecture Admin (DB + UI) ✅
+
+- [x] **P4.1.1** — Créer table `packs` (migrate_packs.sql)
+- [x] **P4.1.2** — Créer table `pack_products` (migrate_packs.sql)
+- [x] **P4.1.3** — Preset JSON intégré dans table `packs` (simplifié)
+- [x] **P4.1.4** — Créer modèle Pack.php (CRUD + produits)
+- [x] **P4.1.5** — Créer page admin/packs.php (liste + toggle + delete)
+- [x] **P4.1.6** — Créer page admin/pack-form.php (création/édition + preset)
+
+### P4.2 — Gestion Multi-Produits ✅
+
+- [x] **P4.2.1** — Interface sélection produits dans pack-form.php (checkboxes grille)
+- [~] **P4.2.2** — Drag & drop réordonnancement produits (à améliorer)
+- [x] **P4.2.3** — Affichage produits liés dans liste packs (compteur)
+
+### P4.3 — Préconfiguration Design (Preset JSON) ✅
+
+- [x] **P4.3.1** — Interface édition preset JSON (formulaire visuel)
+- [x] **P4.3.2** — Champs : texte, police, couleur_texte, technique, position, vue
+- [ ] **P4.3.3** — Preview live du preset dans admin (optionnel)
+- [x] **P4.3.4** — Validation JSON côté serveur
+
+### P4.4 — Injection Preset → Configurateur
+
+- [ ] **P4.4.1** — Route /product.php?pack_id=X
+- [ ] **P4.4.2** — Chargement preset depuis DB
+- [ ] **P4.4.3** — Pré-remplissage JS du configurateur
+- [ ] **P4.4.4** — Aucune option bloquée (tout reste modifiable)
+
+### P4.5 — Affichage Site (Section Inspirations)
+
+- [ ] **P4.5.1** — Section "Nos idées tendance" sur index.php
+- [ ] **P4.5.2** — Cartes : image, nom, description, CTA
+- [ ] **P4.5.3** — Page dédiée /inspirations.php (optionnel)
+- [ ] **P4.5.4** — Filtres par type (technique, contextuel, thématique)
+
+### P4.6 — Tests & Validation
+
+- [ ] **P4.6.1** — Test création pack admin
+- [ ] **P4.6.2** — Test multi-produits
+- [ ] **P4.6.3** — Test injection preset
+- [ ] **P4.6.4** — Test parcours complet (pack → configurateur → panier → commande)
+- [ ] **P4.6.5** — Mise à jour TASKS.md + PROGRESSION.md
+
+---
+
+## ✅ GEL FONCTIONNEL — Tasks 01-05 terminées
 
 - [x] **Task 01** — Déplacer bouton "Voir le rendu réel" sous l'image produit ✅
 - [x] **Task 02** — Refonte sélecteur techniques (dropdown scalable comme polices) ✅
-- [x] **Task 03** — Audit UX complet configurateur (voir rapport ci-dessous)
-- [x] **Task 04** — Vérification parcours client complet (voir rapport ci-dessous) ✅
+- [x] **Task 03** — Audit UX complet configurateur ✅
+- [x] **Task 04** — Vérification parcours client complet ✅
 - [x] **Task 05** — Vérification drag & drop / lightbox en conditions réelles ✅
 
 ---
 
-## 🟡 PRIORITÉ MOYENNE
+## 🟡 PRIORITÉ MOYENNE (après P4)
 
-- [ ] Packs thématiques (P4)
 - [ ] Optimisation performance JS
 - [ ] Optimisation UX mobile avancée
 - [ ] Ajouter images de référence pour flex, flock, sublimation
