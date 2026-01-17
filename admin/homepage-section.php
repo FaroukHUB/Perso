@@ -52,31 +52,54 @@ if (isPost()) {
         // Upload image principale si fournie
         $uploadDir = __DIR__ . '/../public/uploads/homepage/';
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+            if (!mkdir($uploadDir, 0755, true)) {
+                $error = 'Impossible de créer le dossier uploads. Vérifiez les permissions.';
+            }
         }
 
-        if (!empty($_FILES['media_file']['tmp_name'])) {
-            $ext = strtolower(pathinfo($_FILES['media_file']['name'], PATHINFO_EXTENSION));
-            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm'];
+        if (!$error && !empty($_FILES['media_file']['tmp_name'])) {
+            // Vérifier les erreurs d'upload PHP
+            if ($_FILES['media_file']['error'] !== UPLOAD_ERR_OK) {
+                $uploadErrors = [
+                    UPLOAD_ERR_INI_SIZE => 'Fichier trop volumineux (limite PHP)',
+                    UPLOAD_ERR_FORM_SIZE => 'Fichier trop volumineux (limite formulaire)',
+                    UPLOAD_ERR_PARTIAL => 'Fichier partiellement uploadé',
+                    UPLOAD_ERR_NO_FILE => 'Aucun fichier uploadé',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Dossier temporaire manquant',
+                    UPLOAD_ERR_CANT_WRITE => 'Impossible d\'écrire le fichier',
+                    UPLOAD_ERR_EXTENSION => 'Extension PHP a bloqué l\'upload'
+                ];
+                $error = $uploadErrors[$_FILES['media_file']['error']] ?? 'Erreur upload inconnue';
+            } else {
+                $ext = strtolower(pathinfo($_FILES['media_file']['name'], PATHINFO_EXTENSION));
+                $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm'];
 
-            if (in_array($ext, $allowed)) {
-                $filename = 'section_' . time() . '_' . uniqid() . '.' . $ext;
-                if (move_uploaded_file($_FILES['media_file']['tmp_name'], $uploadDir . $filename)) {
-                    $data['media_url'] = '/uploads/homepage/' . $filename;
+                if (!in_array($ext, $allowed)) {
+                    $error = 'Format de fichier non autorisé. Utilisez : ' . implode(', ', $allowed);
+                } else {
+                    $filename = 'section_' . time() . '_' . uniqid() . '.' . $ext;
+                    $fullPath = $uploadDir . $filename;
 
-                    if (in_array($ext, ['mp4', 'webm'])) {
-                        $data['media_type'] = 'video';
+                    if (move_uploaded_file($_FILES['media_file']['tmp_name'], $fullPath)) {
+                        $data['media_url'] = '/uploads/homepage/' . $filename;
+
+                        if (in_array($ext, ['mp4', 'webm'])) {
+                            $data['media_type'] = 'video';
+                        } else {
+                            $data['media_type'] = 'image';
+                        }
                     } else {
-                        $data['media_type'] = 'image';
+                        $error = 'Échec de l\'upload. Vérifiez les permissions du dossier uploads.';
                     }
                 }
             }
-        } elseif ($isEdit && $section['media_url']) {
+        } elseif ($isEdit && !empty($section['media_url'])) {
             $data['media_url'] = $section['media_url'];
+            $data['media_type'] = $section['media_type'];
         }
 
         // Gestion des médias additionnels (content_block uniquement)
-        if ($data['type'] === 'content_block') {
+        if (!$error && $data['type'] === 'content_block') {
             $additionalMedia = [];
 
             // Conserver les médias existants (sauf ceux marqués pour suppression)
@@ -92,16 +115,18 @@ if (isPost()) {
             // Ajouter les nouveaux médias
             if (!empty($_FILES['additional_media']['tmp_name'][0])) {
                 $allowedImages = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                $uploadedCount = 0;
                 foreach ($_FILES['additional_media']['tmp_name'] as $idx => $tmpName) {
-                    if (!empty($tmpName)) {
+                    if (!empty($tmpName) && $_FILES['additional_media']['error'][$idx] === UPLOAD_ERR_OK) {
                         $ext = strtolower(pathinfo($_FILES['additional_media']['name'][$idx], PATHINFO_EXTENSION));
                         if (in_array($ext, $allowedImages)) {
-                            $filename = 'content_' . time() . '_' . uniqid() . '.' . $ext;
+                            $filename = 'content_' . time() . '_' . uniqid() . '_' . $idx . '.' . $ext;
                             if (move_uploaded_file($tmpName, $uploadDir . $filename)) {
                                 $additionalMedia[] = [
                                     'type' => 'image',
                                     'url' => '/uploads/homepage/' . $filename
                                 ];
+                                $uploadedCount++;
                             }
                         }
                     }
