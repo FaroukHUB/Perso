@@ -1,6 +1,7 @@
 /**
  * PERSONNALY - Modal "Rendu Réel" par technique
  * Affiche des photos macro réelles pour rassurer le client
+ * Charge les images depuis la base de données via API
  *
  * Usage:
  * PersonnalyRealRender.open('broderie');
@@ -10,32 +11,25 @@
 (function() {
     'use strict';
 
-    // Configuration des images par technique
-    // Les images doivent être dans /public/assets/references/techniques/{technique}/
-    const techniqueConfig = {
+    // Configuration de fallback (descriptions par défaut si API non disponible)
+    const fallbackConfig = {
         broderie: {
             label: 'Broderie',
-            images: ['broderie01.png', 'broderie02.png', 'broderie03.png'],
             description: 'Fil brodé directement sur le textile. Relief et durabilité premium.'
         },
         flex: {
             label: 'Flex',
-            images: ['flex01.png', 'flex02.png', 'flex03.png'],
             description: 'Film thermocollant découpé. Rendu lisse et brillant.'
         },
         flock: {
             label: 'Flock',
-            images: ['flock01.png', 'flock02.png', 'flock03.png'],
             description: 'Effet velours au toucher. Texture douce et mate.'
         },
         sublimation: {
             label: 'Sublimation',
-            images: ['sublimation01.png', 'sublimation02.png', 'sublimation03.png'],
             description: 'Impression intégrée au tissu. Idéal pour polyester.'
         }
     };
-
-    const basePath = '/public/assets/references/techniques/';
 
     // Créer le conteneur du modal
     function createModalContainer() {
@@ -321,8 +315,20 @@
         });
     }
 
+    // Charger les images depuis l'API
+    async function loadTechniqueImages(technique) {
+        try {
+            const response = await fetch('/api/technique-images.php?technique=' + encodeURIComponent(technique));
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Erreur chargement images technique:', error);
+            return null;
+        }
+    }
+
     // Ouvrir le modal
-    function openModal(technique) {
+    async function openModal(technique) {
         createModalContainer();
 
         const modal = document.getElementById('real-render-modal');
@@ -330,13 +336,77 @@
         const titleSpan = document.getElementById('rrm-technique-name');
         const descP = document.getElementById('rrm-technique-desc');
 
-        // Normaliser le nom de la technique
         const techKey = technique.toLowerCase();
-        const config = techniqueConfig[techKey];
+        const fallback = fallbackConfig[techKey] || { label: technique, description: '' };
 
-        if (!config) {
-            titleSpan.textContent = technique;
-            descP.textContent = 'Technique de personnalisation';
+        // Afficher le loading
+        titleSpan.textContent = fallback.label;
+        descP.textContent = fallback.description || 'Technique de personnalisation';
+        gallery.innerHTML = `
+            <div class="rrm-loading" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">
+                <div style="width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #FF69B4; border-radius: 50%; animation: rrm-spin 1s linear infinite; margin: 0 auto 12px;"></div>
+                <p>Chargement des images...</p>
+            </div>
+        `;
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Charger depuis l'API
+        const data = await loadTechniqueImages(technique);
+
+        if (data && data.success) {
+            titleSpan.textContent = data.label || fallback.label;
+            descP.textContent = data.description || fallback.description || 'Technique de personnalisation';
+
+            if (data.images && data.images.length > 0) {
+                const imagesHtml = data.images.map(imgUrl => {
+                    const fullPath = '/public' + imgUrl;
+                    return `
+                        <div class="rrm-image-container">
+                            <img src="${fullPath}" alt="${data.label} - exemple" class="rrm-image"
+                                 onerror="this.parentElement.style.display='none'">
+                            <button class="rrm-image-zoom" data-src="${fullPath}" aria-label="Agrandir">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                    <line x1="11" y1="8" x2="11" y2="14"/>
+                                    <line x1="8" y1="11" x2="14" y2="11"/>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+
+                gallery.innerHTML = imagesHtml;
+
+                // Événements zoom
+                gallery.querySelectorAll('.rrm-image-zoom').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        openFullscreen(this.dataset.src);
+                    });
+                });
+
+                gallery.querySelectorAll('.rrm-image').forEach(img => {
+                    img.addEventListener('click', function() {
+                        openFullscreen(this.src);
+                    });
+                    img.style.cursor = 'zoom-in';
+                });
+            } else {
+                gallery.innerHTML = `
+                    <div class="rrm-no-images">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21,15 16,10 5,21"/>
+                        </svg>
+                        <p>Images de référence bientôt disponibles pour cette technique.</p>
+                    </div>
+                `;
+            }
+        } else {
             gallery.innerHTML = `
                 <div class="rrm-no-images">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -347,50 +417,7 @@
                     <p>Images de référence non disponibles pour cette technique.</p>
                 </div>
             `;
-        } else {
-            titleSpan.textContent = config.label;
-            descP.textContent = config.description;
-
-            // Charger les images
-            const imagesHtml = config.images.map(img => {
-                const imgPath = basePath + techKey + '/' + img;
-                return `
-                    <div class="rrm-image-container">
-                        <img src="${imgPath}" alt="${config.label} - exemple" class="rrm-image"
-                             onerror="this.parentElement.style.display='none'">
-                        <button class="rrm-image-zoom" data-src="${imgPath}" aria-label="Agrandir">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"/>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                                <line x1="11" y1="8" x2="11" y2="14"/>
-                                <line x1="8" y1="11" x2="14" y2="11"/>
-                            </svg>
-                        </button>
-                    </div>
-                `;
-            }).join('');
-
-            gallery.innerHTML = imagesHtml;
-
-            // Événements zoom
-            gallery.querySelectorAll('.rrm-image-zoom').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    openFullscreen(this.dataset.src);
-                });
-            });
-
-            // Clic sur image = zoom
-            gallery.querySelectorAll('.rrm-image').forEach(img => {
-                img.addEventListener('click', function() {
-                    openFullscreen(this.src);
-                });
-                img.style.cursor = 'zoom-in';
-            });
         }
-
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
     }
 
     // Ouvrir en plein écran

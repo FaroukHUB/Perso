@@ -119,26 +119,26 @@
 
 ---
 
-## STEP 4 — TECHNIQUES : RENDU RÉEL ADMIN
+## STEP 4 — TECHNIQUES : RENDU RÉEL ADMIN ✅ TERMINÉ
 
 > Permettre à l'admin d'uploader les photos macro de rendu réel par technique.
 
 ### 4.1 — Architecture
 
-- [ ] **4.1.1** — Créer table `technique_images` (id, technique_id, image_url, sort_order)
-- [ ] **4.1.2** — Ou stocker dans config JSON de customization_options
+- [x] **4.1.1** — Colonne `images_json` dans customization_options ✅
+- [x] **4.1.2** — Méthodes addImage/removeImage/getImages dans le modèle ✅
 
 ### 4.2 — Admin upload images techniques
 
-- [ ] **4.2.1** — Dans admin/options.php (onglet Techniques) : section upload images
-- [ ] **4.2.2** — UI : 1 image à la fois, max 3 par technique
-- [ ] **4.2.3** — Affichage miniatures avec suppression
-- [ ] **4.2.4** — Stockage dans `/public/assets/references/techniques/{technique}/`
+- [x] **4.2.1** — Dans admin/options.php (onglet Techniques) : section upload images ✅
+- [x] **4.2.2** — UI : 1 image à la fois, max 3 par technique ✅
+- [x] **4.2.3** — Affichage miniatures avec suppression ✅
+- [x] **4.2.4** — Stockage dans `/public/uploads/techniques/` ✅
 
 ### 4.3 — Intégration modal rendu réel
 
-- [ ] **4.3.1** — real-render-modal.js : charger images depuis DB au lieu de chemins hardcodés
-- [ ] **4.3.2** — Fallback si aucune image : message "Images bientôt disponibles"
+- [x] **4.3.1** — API /api/technique-images.php pour charger images depuis DB ✅
+- [x] **4.3.2** — real-render-modal.js : fetch API avec fallback ✅
 
 ---
 

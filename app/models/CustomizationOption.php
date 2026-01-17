@@ -113,6 +113,55 @@ class CustomizationOption
     }
 
     /**
+     * Met à jour les images d'une technique
+     */
+    public function updateImages(int $id, array $images): bool
+    {
+        $stmt = $this->db->prepare(
+            'UPDATE customization_options SET images_json = ? WHERE id = ?'
+        );
+        return $stmt->execute([json_encode($images), $id]);
+    }
+
+    /**
+     * Récupère les images d'une technique
+     */
+    public function getImages(int $id): array
+    {
+        $option = $this->findById($id);
+        if ($option && !empty($option['images_json'])) {
+            return json_decode($option['images_json'], true) ?: [];
+        }
+        return [];
+    }
+
+    /**
+     * Ajoute une image à une technique
+     */
+    public function addImage(int $id, string $imageUrl): bool
+    {
+        $images = $this->getImages($id);
+        if (count($images) >= 3) {
+            return false; // Max 3 images par technique
+        }
+        $images[] = $imageUrl;
+        return $this->updateImages($id, $images);
+    }
+
+    /**
+     * Supprime une image d'une technique
+     */
+    public function removeImage(int $id, int $imageIndex): bool
+    {
+        $images = $this->getImages($id);
+        if (isset($images[$imageIndex])) {
+            array_splice($images, $imageIndex, 1);
+            return $this->updateImages($id, $images);
+        }
+        return false;
+    }
+
+    /**
      * Active/désactive une option
      */
     public function toggleActive(int $id): bool

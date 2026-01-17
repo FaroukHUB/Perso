@@ -23,7 +23,11 @@
 
 **Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-3 terminés)
 
-**Statut global** : 🟢 STEP 1-3 TERMINÉS - Prochaine étape : STEP 4 (Techniques rendu réel admin)
+**Statut global** : 🟢 STEP 1-3 TERMINÉS + Bugfixes admin catégories - Prochaine étape : STEP 4
+
+**Derniers correctifs** :
+- Fix categories.php : suppression includes header/footer inexistants
+- Fix category-form.php : ajout styles CSS ultra-modernes (inputs, selects, file upload)
 
 ---
 

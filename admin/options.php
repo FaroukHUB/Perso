@@ -92,6 +92,61 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
             $success = 'Option supprimée.';
         }
     }
+
+    // Upload image technique
+    if (isset($_POST['upload_technique_image'])) {
+        $id = (int) post('technique_id', 0);
+        if ($id && !empty($_FILES['technique_image']['tmp_name'])) {
+            $uploadDir = __DIR__ . '/../public/uploads/techniques/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $ext = strtolower(pathinfo($_FILES['technique_image']['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+
+            if (in_array($ext, $allowed)) {
+                $option = $optionModel->findById($id);
+                $filename = $option['value'] . '_' . time() . '_' . uniqid() . '.' . $ext;
+                $fullPath = $uploadDir . $filename;
+
+                if (move_uploaded_file($_FILES['technique_image']['tmp_name'], $fullPath)) {
+                    require_once __DIR__ . '/../app/helpers/ImageHelper.php';
+                    ImageHelper::convertToWebP($fullPath);
+
+                    if ($optionModel->addImage($id, '/uploads/techniques/' . $filename)) {
+                        $success = 'Image ajoutée avec succès.';
+                    } else {
+                        $error = 'Maximum 3 images par technique.';
+                        @unlink($fullPath);
+                    }
+                } else {
+                    $error = 'Erreur lors de l\'upload.';
+                }
+            } else {
+                $error = 'Format non autorisé. Utilisez JPG, PNG ou WebP.';
+            }
+        }
+    }
+
+    // Supprimer image technique
+    if (isset($_POST['delete_technique_image'])) {
+        $id = (int) post('technique_id', 0);
+        $imageIndex = (int) post('image_index', 0);
+        if ($id >= 0) {
+            $images = $optionModel->getImages($id);
+            if (isset($images[$imageIndex])) {
+                $imagePath = __DIR__ . '/../public' . $images[$imageIndex];
+                if (file_exists($imagePath)) {
+                    @unlink($imagePath);
+                    $webpPath = preg_replace('/\.[^.]+$/', '.webp', $imagePath);
+                    if (file_exists($webpPath)) @unlink($webpPath);
+                }
+            }
+            $optionModel->removeImage($id, $imageIndex);
+            $success = 'Image supprimée.';
+        }
+    }
 }
 
 // Récupérer les options du type actuel
@@ -368,6 +423,98 @@ $isTechniqueType = $currentType === 'technique';
             opacity: 0.4;
         }
 
+        /* Technique Images */
+        .technique-images-section {
+            background: var(--gray-light);
+            padding: 15px 25px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .technique-images-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .technique-images-header h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--black-soft);
+            margin: 0;
+        }
+        .technique-images-header span {
+            font-size: 11px;
+            color: var(--gray);
+        }
+        .technique-images-grid {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .technique-image-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .technique-image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .technique-image-delete {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(255, 105, 180, 0.9);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .technique-image-item:hover .technique-image-delete {
+            opacity: 1;
+        }
+        .technique-image-add {
+            width: 80px;
+            height: 80px;
+            border: 2px dashed var(--gray);
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: white;
+            transition: all 0.2s;
+            color: var(--gray);
+            font-size: 11px;
+            gap: 4px;
+        }
+        .technique-image-add:hover {
+            border-color: var(--pink-main);
+            color: var(--pink-main);
+            background: rgba(255, 105, 180, 0.05);
+        }
+        .technique-image-add svg {
+            width: 20px;
+            height: 20px;
+        }
+        .technique-images-empty {
+            font-size: 12px;
+            color: var(--gray);
+            font-style: italic;
+        }
+
         /* Edit Modal */
         .modal-overlay {
             display: none;
@@ -508,6 +655,53 @@ $isTechniqueType = $currentType === 'technique';
                                     </form>
                                 </div>
                             </div>
+
+                            <?php if ($isTechniqueType):
+                                $techniqueImages = $optionModel->getImages($option['id']);
+                            ?>
+                            <div class="technique-images-section">
+                                <div class="technique-images-header">
+                                    <h4>📸 Photos de rendu réel</h4>
+                                    <span><?= count($techniqueImages) ?>/3 images</span>
+                                </div>
+                                <div class="technique-images-grid">
+                                    <?php foreach ($techniqueImages as $idx => $imgUrl): ?>
+                                        <div class="technique-image-item">
+                                            <img src="/public<?= h($imgUrl) ?>" alt="Rendu <?= $option['label'] ?>">
+                                            <form method="post" style="display: contents;">
+                                                <?= csrfField() ?>
+                                                <input type="hidden" name="technique_id" value="<?= $option['id'] ?>">
+                                                <input type="hidden" name="image_index" value="<?= $idx ?>">
+                                                <button type="submit" name="delete_technique_image" value="1"
+                                                        class="technique-image-delete" title="Supprimer">×</button>
+                                            </form>
+                                        </div>
+                                    <?php endforeach; ?>
+
+                                    <?php if (count($techniqueImages) < 3): ?>
+                                        <label class="technique-image-add">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                            <span>Ajouter</span>
+                                            <form method="post" enctype="multipart/form-data" id="uploadForm_<?= $option['id'] ?>" style="display: none;">
+                                                <?= csrfField() ?>
+                                                <input type="hidden" name="technique_id" value="<?= $option['id'] ?>">
+                                                <input type="file" name="technique_image" accept="image/jpeg,image/png,image/webp"
+                                                       onchange="this.form.submit()">
+                                                <input type="hidden" name="upload_technique_image" value="1">
+                                            </form>
+                                            <input type="file" style="display: none;" accept="image/jpeg,image/png,image/webp"
+                                                   onchange="document.getElementById('uploadForm_<?= $option['id'] ?>').querySelector('input[type=file]').files = this.files; document.getElementById('uploadForm_<?= $option['id'] ?>').submit();">
+                                        </label>
+                                    <?php endif; ?>
+
+                                    <?php if (empty($techniqueImages)): ?>
+                                        <span class="technique-images-empty">Ajoutez des photos macro du rendu réel de cette technique</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
