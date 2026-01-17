@@ -629,6 +629,30 @@ foreach ($sections as $section) {
 - `admin/homepage-section.php` - Feedback erreurs upload (session précédente)
 - `TASKS.md` - STEP 1.1 marqué comme terminé
 
+### STEP 1.2 — UI Upload médias améliorée
+
+**Objectif** : Remplacer le multi-select Ctrl par une interface moderne et intuitive.
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| **1.2.1** - Input simple + bouton "+" | ✅ OK | Zone d'ajout avec icône + |
+| **1.2.2** - Bouton ❌ supprimer | ✅ OK | Au hover sur chaque image |
+| **1.2.3** - Drag & drop réordonnancement | ✅ OK | Handle 6 points + animation |
+| **1.2.4** - Appliquer à content_block | ✅ OK | Backend PHP mis à jour |
+
+**Nouvelle UI** :
+- Galerie visuelle avec vignettes 100x100px carrées
+- Bouton "+" pour ajouter une image à la fois
+- Bouton ❌ rose au hover pour supprimer instantanément
+- Handle drag (6 points) pour réordonner visuellement
+- Preview des nouvelles images avec badge "En attente"
+- Maximum 10 images par section
+
+**Backend** :
+- `existing_media_urls[]` : URLs existantes dans l'ordre souhaité
+- `additional_media[]` : nouveaux fichiers uploadés
+- Fusion automatique + limite à 10 images
+
 ---
 
 ## 🔴 AUDIT RECADRAGE - 2026-01-16
