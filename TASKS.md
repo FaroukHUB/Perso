@@ -9,54 +9,53 @@
 
 ---
 
-## 🔴 PHASE ACTUELLE : PACKS / IDÉES
+## ✅ PHASE P5 TERMINÉE — PAGE D'ACCUEIL DYNAMIQUE
 
-> **Vision** : Un pack = une suggestion inspirante, jamais une prison.
-> Le client peut tout modifier après pré-remplissage.
+> **Vision** : Page d'accueil ultra moderne, 100% administrable, scalable multi-marques.
+> Sections prédéfinies, pas de page builder.
 
-### P4.1 — Architecture Admin (DB + UI) ✅
+### P5.1 — Architecture DB
 
-- [x] **P4.1.1** — Créer table `packs` (migrate_packs.sql)
-- [x] **P4.1.2** — Créer table `pack_products` (migrate_packs.sql)
-- [x] **P4.1.3** — Preset JSON intégré dans table `packs` (simplifié)
-- [x] **P4.1.4** — Créer modèle Pack.php (CRUD + produits)
-- [x] **P4.1.5** — Créer page admin/packs.php (liste + toggle + delete)
-- [x] **P4.1.6** — Créer page admin/pack-form.php (création/édition + preset)
+- [x] **P5.1.1** — Créer table `homepage_sections` ✅
+- [x] **P5.1.2** — Créer table `homepage_section_items` ✅
+- [x] **P5.1.3** — Créer table `blog_posts` ✅
+- [x] **P5.1.4** — Migration SQL (migrate_homepage.sql) ✅
 
-### P4.2 — Gestion Multi-Produits ✅
+### P5.2 — Modèles PHP
 
-- [x] **P4.2.1** — Interface sélection produits dans pack-form.php (checkboxes grille)
-- [~] **P4.2.2** — Drag & drop réordonnancement produits (à améliorer)
-- [x] **P4.2.3** — Affichage produits liés dans liste packs (compteur)
+- [x] **P5.2.1** — HomepageSection.php (CRUD + items) ✅
+- [x] **P5.2.2** — BlogPost.php (CRUD + slug) ✅
 
-### P4.3 — Préconfiguration Design (Preset JSON) ✅
+### P5.3 — Admin Sections
 
-- [x] **P4.3.1** — Interface édition preset JSON (formulaire visuel)
-- [x] **P4.3.2** — Champs : texte, police, couleur_texte, technique, position, vue
-- [ ] **P4.3.3** — Preview live du preset dans admin (optionnel)
-- [x] **P4.3.4** — Validation JSON côté serveur
+- [x] **P5.3.1** — admin/homepage.php (liste + réordonnancement drag&drop) ✅
+- [x] **P5.3.2** — admin/homepage-section.php (formulaire type-spécifique) ✅
+- [x] **P5.3.3** — Sélection produits/packs via checkboxes ✅
+- [x] **P5.3.4** — Liens sidebar admin (Homepage + Blog) ✅
 
-### P4.4 — Injection Preset → Configurateur ✅
+### P5.4 — Admin Blog
 
-- [x] **P4.4.1** — Route /product.php?pack_id=X
-- [x] **P4.4.2** — Chargement preset depuis DB
-- [x] **P4.4.3** — Pré-remplissage JS du configurateur
-- [x] **P4.4.4** — Aucune option bloquée (tout reste modifiable)
+- [x] **P5.4.1** — admin/blog.php (liste articles) ✅
+- [x] **P5.4.2** — admin/blog-form.php (création/édition) ✅
+- [x] **P5.4.3** — Lien sidebar admin ✅
 
-### P4.5 — Affichage Site (Section Inspirations) ✅
+### P5.5 — Front Dynamique
 
-- [x] **P4.5.1** — Section "Nos idées tendance" sur index.php
-- [x] **P4.5.2** — Cartes : image, nom, description, CTA
-- [ ] **P4.5.3** — Page dédiée /inspirations.php (optionnel - non implémenté)
-- [ ] **P4.5.4** — Filtres par type (optionnel - non implémenté)
+- [x] **P5.5.1** — Refonte index.php (lecture sections DB) ✅
+- [x] **P5.5.2** — Composant hero dynamique ✅
+- [x] **P5.5.3** — Composant grille produits ✅
+- [x] **P5.5.4** — Composant grille packs ✅
+- [x] **P5.5.5** — Composant content_block ✅
+- [x] **P5.5.6** — Composant blog_slider ✅
+- [x] **P5.5.7** — Fallback si aucune section ✅
 
-### P4.6 — Tests & Validation ✅
+### P5.6 — Tests & Validation
 
-- [x] **P4.6.1** — Parcours fonctionnel (inspirations → preset → panier)
-- [x] **P4.6.2** — Cas limites (pack inactif, sans produit, produit non lié)
-- [x] **P4.6.3** — Régressions (configurateur sans pack, lightbox, drag&drop)
-- [x] **P4.6.4** — Qualité code (console clean, SEO basique)
-- [x] **P4.6.5** — Mise à jour TASKS.md + PROGRESSION.md
+- [ ] **P5.6.1** — Test création/édition sections (à tester en prod)
+- [ ] **P5.6.2** — Test réordonnancement (à tester en prod)
+- [ ] **P5.6.3** — Test rendu front (tous types)
+- [ ] **P5.6.4** — Test responsive
+- [x] **P5.6.5** — Mise à jour docs ✅
 
 ---
 

@@ -57,6 +57,22 @@ function isActive($page, $current) {
             <span>Packs / Idées</span>
         </a>
 
+        <a href="/admin/homepage.php" class="nav-item <?= isActive('homepage.php', $currentPage) ?><?= isActive('homepage-section.php', $currentPage) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            <span>Page d'accueil</span>
+        </a>
+
+        <a href="/admin/blog.php" class="nav-item <?= isActive('blog.php', $currentPage) ?><?= isActive('blog-form.php', $currentPage) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            <span>Blog</span>
+        </a>
+
         <a href="/admin/fonts.php" class="nav-item <?= isActive('fonts.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="4 7 4 4 20 4 20 7"/>

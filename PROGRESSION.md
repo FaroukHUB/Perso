@@ -21,9 +21,9 @@
 
 **Date dernière mise à jour** : 2026-01-17
 
-**Phase actuelle** : P4 - PACKS / IDÉES (P4.1-P4.4 terminés)
+**Phase actuelle** : P5 - PAGE D'ACCUEIL DYNAMIQUE ✅ TERMINÉ
 
-**Statut global** : 🟢 FONCTIONNEL - Injection preset opérationnelle
+**Statut global** : 🟢 PRÊT - Page d'accueil dynamique implémentée
 
 ---
 
@@ -468,6 +468,102 @@ Ce qui reste libre :
 ---
 
 ## 🟢 GEL FONCTIONNEL P4 — PACKS / IDÉES TERMINÉ
+
+---
+
+### 2026-01-17 - Session 15 (P5 - PAGE D'ACCUEIL DYNAMIQUE)
+
+**Objectif** : Refondre complètement la page d'accueil pour la rendre ultra moderne, 100% administrable, scalable multi-marques.
+
+**Principes** :
+- ❌ Pas de page builder type WordPress
+- ❌ Pas de drag & drop complexe
+- ❌ Pas de HTML libre non contrôlé
+- ✅ Sections prédéfinies, simples, efficaces
+- ✅ Admin choisit type → configure contenu → front rend automatiquement
+
+**Types de sections autorisés** :
+
+| Type | Description | Contenu |
+|------|-------------|---------|
+| `hero` | Section héro plein écran | Titre, sous-titre, CTA, image/vidéo |
+| `featured_products` | Grille produits | Titre + sélection produits |
+| `featured_packs` | Grille packs/idées | Titre + sélection packs |
+| `content_block` | Bloc texte + média | Titre, texte, image/vidéo |
+| `blog_slider` | Slider articles | Titre + articles auto |
+
+**Architecture technique** :
+
+```
+Tables:
+├── homepage_sections (type, title, subtitle, cta, media, config, sort_order, status)
+├── homepage_section_items (section_id, item_type, item_id, sort_order)
+└── blog_posts (title, slug, excerpt, content, cover_image, status)
+
+Admin:
+├── /admin/homepage.php (liste sections + ordre)
+├── /admin/homepage-section.php (création/édition)
+├── /admin/blog.php (liste articles)
+└── /admin/blog-form.php (création/édition)
+
+Front:
+└── /public/index.php (lecture sections DB → rendu automatique)
+```
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| **P5.1 - Migration SQL** | ✅ OK | Tables sections + items + blog |
+| **P5.2 - Modèles PHP** | ✅ OK | HomepageSection + BlogPost |
+| **P5.3 - Admin Sections** | ✅ OK | Liste + formulaire + drag&drop réordonnancement |
+| **P5.4 - Admin Blog** | ✅ OK | CRUD articles + sidebar links |
+| **P5.5 - Front dynamique** | ✅ OK | Refonte complète index.php |
+| **P5.6 - Tests** | 🟡 À TESTER | En production
+
+### 2026-01-17 - Session 16 (P5 - IMPLÉMENTATION COMPLÈTE)
+
+**Fichiers créés** :
+- `sql/migrate_homepage.sql` - Tables homepage_sections, homepage_section_items, blog_posts
+- `app/models/HomepageSection.php` - CRUD sections + gestion items (produits/packs)
+- `app/models/BlogPost.php` - CRUD articles + génération slug + toggle status
+- `admin/homepage.php` - Liste sections avec drag&drop AJAX
+- `admin/homepage-section.php` - Formulaire création/édition type-spécifique
+- `admin/blog.php` - Liste articles avec actions toggle/delete
+- `admin/blog-form.php` - Formulaire création/édition articles
+
+**Fichiers modifiés** :
+- `admin/includes/sidebar.php` - Ajout liens "Page d'accueil" et "Blog"
+- `public/index.php` - Refonte complète, rendu dynamique depuis DB
+
+**Fonctionnalités implémentées** :
+
+| Section Type | Admin | Front |
+|--------------|-------|-------|
+| `hero` | ✅ Titre, sous-titre, CTA, highlight | ✅ Rendu plein écran avec animations |
+| `featured_products` | ✅ Sélection produits via checkboxes | ✅ Grille responsive |
+| `featured_packs` | ✅ Sélection packs via checkboxes | ✅ Cards glassmorphism |
+| `content_block` | ✅ Texte + média (image/vidéo) | ✅ Layout 2 colonnes alternées |
+| `blog_slider` | ✅ Auto (articles publiés) | ✅ Slider horizontal scrollable |
+
+**Architecture front dynamique** :
+```php
+$sections = $sectionModel->findActive();
+foreach ($sections as $section) {
+    switch ($section['type']) {
+        case 'hero': // Render hero
+        case 'featured_products': // Render products grid
+        case 'featured_packs': // Render packs grid
+        case 'content_block': // Render text + media
+        case 'blog_slider': // Render blog carousel
+    }
+}
+```
+
+**Points clés** :
+- Réordonnancement drag&drop des sections (AJAX)
+- Formulaire admin dynamique selon type de section
+- Chargement conditionnel des données (produits/packs/articles)
+- Navbar/footer conservés statiques
+- Fallback si aucune section configurée
 
 ---
 
