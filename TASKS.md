@@ -13,7 +13,7 @@
 - [x] **Task 01** — Déplacer bouton "Voir le rendu réel" sous l'image produit ✅
 - [x] **Task 02** — Refonte sélecteur techniques (dropdown scalable comme polices) ✅
 - [x] **Task 03** — Audit UX complet configurateur (voir rapport ci-dessous)
-- [ ] **Task 04** — Vérification parcours client complet (produit → panier → commande)
+- [x] **Task 04** — Vérification parcours client complet (voir rapport ci-dessous) ✅
 - [ ] **Task 05** — Vérification drag & drop / lightbox en conditions réelles
 
 ---
@@ -144,4 +144,64 @@ MOBILE (<768px) - Stack + Accordions:
 
 ---
 
-**Dernière mise à jour** : 2026-01-17 — Task 02 terminée (dropdown techniques)
+## 📋 VÉRIFICATION PARCOURS CLIENT — Task 04 — 2026-01-17
+
+### Flux vérifié
+
+```
+PRODUIT (product.php) → PANIER (cart.php) → CHECKOUT (checkout.php) → SUCCÈS
+```
+
+### ✅ Étapes vérifiées
+
+| Étape | Page | Status | Détail |
+|-------|------|--------|--------|
+| 1. Configuration | product.php | ✅ OK | Texte, police, couleur, technique, position |
+| 2. Ajout panier | product.php | ✅ OK | CSRF, quantité, customization complète |
+| 3. Vue panier | cart.php | ✅ OK | Liste articles, quantité +/-, supprimer |
+| 4. Modification | cart.php | ✅ OK | Update qty, clear cart fonctionnels |
+| 5. Formulaire | checkout.php | ✅ OK | Validation email, champs obligatoires |
+| 6. Création commande | checkout.php | ✅ OK | Transaction DB, rollback si erreur |
+| 7. Email | checkout.php | ✅ OK | Confirmation client + notification admin |
+| 8. Succès | checkout.php | ✅ OK | Numéro commande affiché |
+
+### 🔒 Sécurité vérifiée
+
+| Aspect | Status | Implémentation |
+|--------|--------|----------------|
+| CSRF | ✅ OK | Token sur tous les formulaires |
+| Validation email | ✅ OK | `filter_var()` côté serveur |
+| Escape HTML | ✅ OK | Fonction `h()` partout |
+| Transaction DB | ✅ OK | `beginTransaction()` + `commit/rollback` |
+| Panier vide | ✅ OK | Redirect vers accueil |
+
+### 📦 Données transmises au panier
+
+```php
+$customization = [
+    'size' => 'M',
+    'color' => 'blanc',
+    'text' => 'Mon texte',
+    'text_color' => 'noir',
+    'font' => 'Poppins',
+    'technique' => 'flex',
+    'view' => 'front',
+    'position' => ['x' => 50.0, 'y' => 50.0, 'zone_id' => 1]
+];
+```
+
+### ⚠️ Points d'attention (non bloquants)
+
+| Point | Fichier | Détail |
+|-------|---------|--------|
+| Position affichée "centre" | cart.php:448 | Hardcodé, devrait afficher X/Y ou "Personnalisée" |
+| Image checkout | checkout.php:554 | Emoji 👕 au lieu de vraie image produit |
+
+### 🎯 Conclusion
+
+**Parcours client 100% fonctionnel.** Aucun bug bloquant détecté.
+Les points d'attention sont cosmétiques et n'impactent pas la conversion.
+
+---
+
+**Dernière mise à jour** : 2026-01-17 — Task 04 terminée (parcours client vérifié)
