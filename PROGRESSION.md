@@ -21,13 +21,15 @@
 
 **Date dernière mise à jour** : 2026-01-17
 
-**Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-3 terminés)
+**Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-4 terminés)
 
-**Statut global** : 🟢 STEP 1-3 TERMINÉS + Bugfixes admin catégories - Prochaine étape : STEP 4
+**Statut global** : 🟢 STEP 1-4 TERMINÉS - Prochaine étape : STEP 5 (Upsells)
 
 **Derniers correctifs** :
 - Fix categories.php : suppression includes header/footer inexistants
-- Fix category-form.php : ajout styles CSS ultra-modernes (inputs, selects, file upload)
+- Fix category-form.php : ajout styles CSS ultra-modernes
+- Fix API technique-images : recherche flexible value/label
+- UX admin options : message "enregistrement auto" + loading spinner
 
 ---
 
@@ -738,6 +740,35 @@ foreach ($sections as $section) {
 - `app/models/HomepageSection.php` - Type `featured_category` ajouté
 - `admin/homepage-section.php` - Formulaire sélection catégorie
 - `public/index.php` - Rendu section catégorie
+
+### STEP 4 — Techniques : Images Rendu Réel ✅ TERMINÉ
+
+**4.1 — Architecture** :
+- Colonne `images_json` dans table `customization_options`
+- Migration SQL : `sql/migrate_technique_images.sql`
+- Méthodes modèle : `addImage`, `removeImage`, `getImages`, `updateImages`
+
+**4.2 — Admin upload images** :
+- Section "📸 Photos de rendu réel" sous chaque technique dans options.php
+- Upload 1 image à la fois, max 3 par technique
+- Miniatures avec bouton ❌ suppression
+- Conversion WebP automatique
+- Message "enregistrement automatique" + loading spinner
+
+**4.3 — Intégration modal rendu réel** :
+- API `/api/technique-images.php` avec recherche flexible
+- `real-render-modal.js` : fetch API dynamique
+- Loading spinner pendant chargement
+- Fallback "Images bientôt disponibles" si vide
+
+**Fichiers créés** :
+- `sql/migrate_technique_images.sql`
+- `api/technique-images.php`
+
+**Fichiers modifiés** :
+- `app/models/CustomizationOption.php` - Méthodes gestion images
+- `admin/options.php` - Section upload images techniques
+- `public/assets/js/real-render-modal.js` - Fetch API
 
 ---
 
