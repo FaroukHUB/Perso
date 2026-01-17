@@ -110,7 +110,7 @@ $statuses = $blogModel->getStatuses();
                                         <div style="display: flex; align-items: center; gap: 12px;">
                                             <div class="post-cover" style="width: 60px; height: 45px; background: linear-gradient(135deg, rgba(255,105,180,0.15) 0%, rgba(61,255,192,0.15) 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; overflow: hidden;">
                                                 <?php if (!empty($post['cover_image_url'])): ?>
-                                                    <img src="<?= h($post['cover_image_url']) ?>" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                                                    <img src="/public<?= h($post['cover_image_url']) ?>" alt="" style="width: 100%; height: 100%; object-fit: cover;">
                                                 <?php else: ?>
                                                     📝
                                                 <?php endif; ?>

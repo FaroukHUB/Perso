@@ -1,7 +1,7 @@
 <?php
 /**
  * PERSONNALY - Admin : Formulaire Article de Blog
- * Création / Modification
+ * Création / Modification avec éditeur WYSIWYG
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
@@ -36,17 +36,39 @@ if (isPost()) {
         $data = [
             'title' => trim($_POST['title'] ?? ''),
             'excerpt' => trim($_POST['excerpt'] ?? ''),
-            'content' => trim($_POST['content'] ?? ''),
-            'cover_image_url' => trim($_POST['cover_image_url'] ?? ''),
+            'content' => $_POST['content'] ?? '', // HTML autorisé
             'status' => $_POST['status'] ?? 'draft'
         ];
+
+        // Upload image de couverture
+        if (!empty($_FILES['cover_image']['tmp_name'])) {
+            $uploadDir = __DIR__ . '/../public/uploads/blog/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $ext = strtolower(pathinfo($_FILES['cover_image']['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+            if (in_array($ext, $allowed)) {
+                $filename = 'blog_' . time() . '_' . uniqid() . '.' . $ext;
+                if (move_uploaded_file($_FILES['cover_image']['tmp_name'], $uploadDir . $filename)) {
+                    $data['cover_image_url'] = '/uploads/blog/' . $filename;
+                }
+            } else {
+                $error = 'Format d\'image non autorisé. Utilisez JPG, PNG, GIF ou WebP.';
+            }
+        } elseif ($editMode && !empty($post['cover_image_url'])) {
+            // Conserver l'image existante
+            $data['cover_image_url'] = $post['cover_image_url'];
+        }
 
         // Validation
         if (empty($data['title'])) {
             $error = 'Le titre est obligatoire.';
         } elseif (!array_key_exists($data['status'], $statuses)) {
             $error = 'Statut invalide.';
-        } else {
+        } elseif (empty($error)) {
             try {
                 if ($editMode) {
                     $blogModel->update($post['id'], $data);
@@ -81,12 +103,13 @@ $csrf = csrfToken();
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/admin.css">
+    <!-- TinyMCE WYSIWYG Editor -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 </head>
 <body>
     <div class="admin-wrapper">
         <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
-        <!-- Main Content -->
         <main class="main-content">
             <div class="page-header">
                 <h1 class="page-title">
@@ -113,7 +136,7 @@ $csrf = csrfToken();
                 <div class="alert alert-error"><?= h($error) ?></div>
             <?php endif; ?>
 
-            <form method="POST" class="admin-form">
+            <form method="POST" enctype="multipart/form-data" class="admin-form">
                 <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
 
                 <div class="form-grid">
@@ -137,12 +160,18 @@ $csrf = csrfToken();
                                               placeholder="Résumé court pour le slider blog"><?= h($post['excerpt'] ?? '') ?></textarea>
                                     <small class="form-hint">Ce texte sera affiché dans les cartes du slider blog (max ~150 caractères recommandés)</small>
                                 </div>
+                            </div>
+                        </div>
 
+                        <div class="data-card">
+                            <div class="data-card-header">
+                                <h3 class="data-card-title">Contenu de l'article</h3>
+                            </div>
+                            <div class="data-card-body">
                                 <div class="form-group">
-                                    <label for="content">Contenu complet (optionnel)</label>
-                                    <textarea id="content" name="content" rows="10"
-                                              placeholder="Contenu détaillé de l'article..."><?= h($post['content'] ?? '') ?></textarea>
-                                    <small class="form-hint">Pour une page article dédiée (future évolution)</small>
+                                    <label for="content">Contenu complet</label>
+                                    <textarea id="content" name="content"><?= $post['content'] ?? '' ?></textarea>
+                                    <small class="form-hint">Utilisez l'éditeur pour ajouter des titres (H1, H2, H3), images, liens, listes, etc.</small>
                                 </div>
                             </div>
                         </div>
@@ -188,16 +217,15 @@ $csrf = csrfToken();
                             </div>
                             <div class="data-card-body">
                                 <div class="form-group">
-                                    <label for="cover_image_url">URL de l'image</label>
-                                    <input type="url" id="cover_image_url" name="cover_image_url"
-                                           value="<?= h($post['cover_image_url'] ?? '') ?>"
-                                           placeholder="https://...">
-                                    <small class="form-hint">Image affichée dans le slider (ratio 16:9 recommandé)</small>
+                                    <label for="cover_image">Uploader une image</label>
+                                    <input type="file" id="cover_image" name="cover_image"
+                                           accept="image/jpeg,image/png,image/gif,image/webp">
+                                    <small class="form-hint">JPG, PNG, GIF ou WebP. Ratio 16:9 recommandé.</small>
                                 </div>
 
                                 <div class="image-preview" id="imagePreview">
                                     <?php if (!empty($post['cover_image_url'])): ?>
-                                        <img src="<?= h($post['cover_image_url']) ?>" alt="Aperçu">
+                                        <img src="/public<?= h($post['cover_image_url']) ?>" alt="Aperçu">
                                     <?php else: ?>
                                         <div class="preview-placeholder">
                                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -209,6 +237,12 @@ $csrf = csrfToken();
                                         </div>
                                     <?php endif; ?>
                                 </div>
+
+                                <?php if ($editMode && !empty($post['cover_image_url'])): ?>
+                                    <p class="text-muted" style="font-size: 12px; margin-top: 8px;">
+                                        Image actuelle : <?= basename($post['cover_image_url']) ?>
+                                    </p>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -237,23 +271,15 @@ $csrf = csrfToken();
             align-items: start;
         }
         @media (max-width: 1024px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
+            .form-grid { grid-template-columns: 1fr; }
         }
         .form-main .data-card,
         .form-sidebar .data-card {
             margin-bottom: 20px;
         }
-        .data-card-body {
-            padding: 20px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
+        .data-card-body { padding: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group:last-child { margin-bottom: 0; }
         .form-group label {
             display: block;
             font-weight: 600;
@@ -261,7 +287,7 @@ $csrf = csrfToken();
             color: var(--black);
         }
         .form-group input[type="text"],
-        .form-group input[type="url"],
+        .form-group input[type="file"],
         .form-group select,
         .form-group textarea {
             width: 100%;
@@ -277,10 +303,7 @@ $csrf = csrfToken();
             outline: none;
             border-color: var(--pink-main);
         }
-        .form-group textarea {
-            resize: vertical;
-            font-family: inherit;
-        }
+        .form-group textarea { resize: vertical; font-family: inherit; }
         .form-hint {
             display: block;
             margin-top: 6px;
@@ -317,13 +340,8 @@ $csrf = csrfToken();
             margin-top: 8px;
             font-size: 13px;
         }
-        .form-actions {
-            margin-top: 0;
-        }
-        .btn-block {
-            width: 100%;
-            justify-content: center;
-        }
+        .form-actions { margin-top: 0; }
+        .btn-block { width: 100%; justify-content: center; }
         .alert {
             padding: 16px 20px;
             border-radius: var(--radius-md);
@@ -340,27 +358,103 @@ $csrf = csrfToken();
             color: var(--pink-dark);
             border-left: 4px solid var(--pink-main);
         }
+        /* TinyMCE custom styling */
+        .tox-tinymce {
+            border: 2px solid var(--gray-light) !important;
+            border-radius: var(--radius-md) !important;
+        }
+        .tox .tox-edit-area__iframe {
+            background: #fff !important;
+        }
     </style>
 
     <script>
-    // Prévisualisation de l'image
-    document.getElementById('cover_image_url').addEventListener('input', function() {
-        const preview = document.getElementById('imagePreview');
-        const url = this.value.trim();
+    // TinyMCE WYSIWYG Editor
+    tinymce.init({
+        selector: '#content',
+        height: 500,
+        language: 'fr_FR',
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks | ' +
+            'bold italic underline strikethrough | forecolor backcolor | ' +
+            'alignleft aligncenter alignright alignjustify | ' +
+            'bullist numlist outdent indent | ' +
+            'link image media | ' +
+            'removeformat code fullscreen help',
+        block_formats: 'Paragraphe=p; Titre 1=h1; Titre 2=h2; Titre 3=h3; Titre 4=h4; Citation=blockquote',
+        menubar: 'file edit view insert format tools table help',
+        branding: false,
+        promotion: false,
+        content_style: `
+            body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                font-size: 16px;
+                line-height: 1.7;
+                color: #1a1a2e;
+                padding: 20px;
+            }
+            h1 { font-size: 2rem; font-weight: 700; margin: 1.5em 0 0.5em; }
+            h2 { font-size: 1.5rem; font-weight: 700; margin: 1.5em 0 0.5em; }
+            h3 { font-size: 1.25rem; font-weight: 600; margin: 1.5em 0 0.5em; }
+            h4 { font-size: 1.1rem; font-weight: 600; margin: 1.5em 0 0.5em; }
+            p { margin: 0 0 1em; }
+            a { color: #FF69B4; text-decoration: underline; }
+            img { max-width: 100%; height: auto; border-radius: 8px; }
+            blockquote {
+                border-left: 4px solid #FF69B4;
+                margin: 1.5em 0;
+                padding: 1em 1.5em;
+                background: #f9f9f9;
+                font-style: italic;
+            }
+            ul, ol { margin: 1em 0; padding-left: 2em; }
+            li { margin: 0.5em 0; }
+        `,
+        // Image upload handler
+        images_upload_handler: function (blobInfo, progress) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append('file', blobInfo.blob(), blobInfo.filename());
+                formData.append('csrf_token', '<?= $csrf ?>');
 
-        if (url) {
-            preview.innerHTML = '<img src="' + url + '" alt="Aperçu" onerror="this.parentElement.innerHTML=\'<div class=preview-placeholder><span>Image invalide</span></div>\'">';
-        } else {
-            preview.innerHTML = `
-                <div class="preview-placeholder">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                        <polyline points="21 15 16 10 5 21"/>
-                    </svg>
-                    <span>Aperçu de l'image</span>
-                </div>
-            `;
+                fetch('/admin/upload-image.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success && result.url) {
+                        resolve(result.url);
+                    } else {
+                        reject(result.error || 'Erreur upload');
+                    }
+                })
+                .catch(() => reject('Erreur réseau'));
+            });
+        },
+        file_picker_types: 'image',
+        automatic_uploads: true,
+        // Link options
+        link_default_target: '_blank',
+        link_assume_external_targets: true,
+        default_link_target: '_blank'
+    });
+
+    // Prévisualisation de l'image uploadée
+    document.getElementById('cover_image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const preview = document.getElementById('imagePreview');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = '<img src="' + e.target.result + '" alt="Aperçu">';
+            };
+            reader.readAsDataURL(file);
         }
     });
     </script>
