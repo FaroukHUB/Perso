@@ -16,7 +16,8 @@ class HomepageSection
         'featured_products' => 'Produits à la une',
         'featured_packs' => 'Packs / Idées à la une',
         'content_block' => 'Bloc contenu (texte + média)',
-        'blog_slider' => 'Slider Blog'
+        'blog_slider' => 'Slider Blog',
+        'newsletter' => 'Newsletter'
     ];
 
     const STATUSES = [

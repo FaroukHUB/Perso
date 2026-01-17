@@ -313,6 +313,26 @@ if ($section && !empty($section['items'])) {
                                     <p>Le slider blog affiche automatiquement les derniers articles publiés. <a href="/admin/blog.php">Gérer les articles</a>.</p>
                                 </div>
                             </div>
+
+                            <!-- Newsletter info -->
+                            <div id="newsletterInfo" style="display: none;">
+                                <div class="info-box-pink">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                        <polyline points="22,6 12,13 2,6"/>
+                                    </svg>
+                                    <div>
+                                        <p><strong>Section Newsletter</strong></p>
+                                        <p>Les visiteurs pourront s'inscrire à votre newsletter. Les emails sont stockés dans la base de données.</p>
+                                        <ul style="margin: 10px 0 0; padding-left: 20px; font-size: 13px;">
+                                            <li><strong>Titre</strong> : phrase principale</li>
+                                            <li><strong>Sous-titre</strong> : phrase secondaire (optionnel)</li>
+                                            <li><strong>Texte bouton</strong> : ex. "S'inscrire"</li>
+                                            <li><strong>Image</strong> : fond de la section</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -456,6 +476,17 @@ if ($section && !empty($section['items'])) {
         }
         .info-box-blue svg { flex-shrink: 0; }
         .info-box-blue a { color: var(--pink-main); font-weight: 600; }
+        .info-box-pink {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255, 105, 180, 0.1);
+            border-radius: 10px;
+            color: var(--pink-dark);
+            align-items: flex-start;
+        }
+        .info-box-pink svg { flex-shrink: 0; color: var(--pink-main); }
+        .info-box-pink p { margin: 0 0 5px; }
         .form-actions {
             display: flex;
             gap: 15px;
@@ -497,6 +528,7 @@ if ($section && !empty($section['items'])) {
         packsSelection.style.display = 'none';
         blogInfo.style.display = 'none';
         contentField.style.display = 'none';
+        document.getElementById('newsletterInfo').style.display = 'none';
 
         switch (type) {
             case 'hero':
@@ -532,6 +564,16 @@ if ($section && !empty($section['items'])) {
                 itemsCardTitle.textContent = 'Articles de blog';
                 ctaFields.style.display = 'none';
                 mediaField.style.display = 'none';
+                break;
+
+            case 'newsletter':
+                // Newsletter: titre + sous-titre + bouton CTA + image de fond
+                ctaFields.style.display = 'grid';
+                mediaField.style.display = 'block';
+                // Afficher info newsletter
+                itemsCard.style.display = 'block';
+                itemsCardTitle.textContent = 'Informations';
+                document.getElementById('newsletterInfo').style.display = 'block';
                 break;
         }
 

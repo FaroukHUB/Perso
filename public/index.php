@@ -589,6 +589,134 @@ foreach ($sections as $s) {
             margin-bottom: 8px;
         }
 
+        /* ===== NEWSLETTER SECTION ===== */
+        .newsletter-section {
+            position: relative;
+            padding: 100px 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: var(--black-soft);
+        }
+        .newsletter-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(13, 13, 13, 0.9) 0%, rgba(30, 30, 30, 0.85) 100%);
+            z-index: 0;
+        }
+        .newsletter-section .container {
+            position: relative;
+            z-index: 1;
+        }
+        .newsletter-content {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .newsletter-content h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: var(--spacing-md);
+        }
+        .newsletter-subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: var(--spacing-xl);
+            line-height: 1.6;
+        }
+        .newsletter-form {
+            margin-bottom: var(--spacing-lg);
+        }
+        .newsletter-input-group {
+            display: flex;
+            gap: 12px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .newsletter-input {
+            flex: 1;
+            padding: 16px 24px;
+            font-size: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--white);
+            outline: none;
+            transition: all var(--transition-fast);
+        }
+        .newsletter-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .newsletter-input:focus {
+            border-color: var(--pink-main);
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .newsletter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--white);
+            background: var(--gradient-pink);
+            border: none;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            white-space: nowrap;
+        }
+        .newsletter-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-pink);
+        }
+        .newsletter-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .newsletter-message {
+            margin-top: var(--spacing-md);
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            display: none;
+        }
+        .newsletter-message.show {
+            display: block;
+        }
+        .newsletter-message.success {
+            background: rgba(61, 255, 192, 0.15);
+            color: var(--mint-main);
+            border: 1px solid rgba(61, 255, 192, 0.3);
+        }
+        .newsletter-message.error {
+            background: rgba(255, 105, 180, 0.15);
+            color: var(--pink-main);
+            border: 1px solid rgba(255, 105, 180, 0.3);
+        }
+        .newsletter-privacy {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.4);
+            line-height: 1.6;
+        }
+        @media (max-width: 768px) {
+            .newsletter-content h2 {
+                font-size: 1.8rem;
+            }
+            .newsletter-input-group {
+                flex-direction: column;
+            }
+            .newsletter-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
         /* ===== FOOTER ===== */
         .footer {
             background: var(--gradient-dark);
@@ -907,6 +1035,47 @@ foreach ($sections as $s) {
     <?php
             break;
 
+            // ===== NEWSLETTER =====
+            case 'newsletter':
+                $newsletterStyle = '';
+                if ($section['media_type'] === 'image' && !empty($section['media_url'])) {
+                    $newsletterStyle = 'background-image: url(\'/public' . h($section['media_url']) . '\');';
+                }
+    ?>
+    <section class="newsletter-section" style="<?= $newsletterStyle ?>">
+        <div class="newsletter-overlay"></div>
+        <div class="container">
+            <div class="newsletter-content">
+                <?php if ($section['title']): ?>
+                    <h2><?= h($section['title']) ?></h2>
+                <?php endif; ?>
+                <?php if ($section['subtitle']): ?>
+                    <p class="newsletter-subtitle"><?= h($section['subtitle']) ?></p>
+                <?php endif; ?>
+
+                <form class="newsletter-form" id="newsletterForm" data-section-id="<?= $section['id'] ?>">
+                    <div class="newsletter-input-group">
+                        <input type="email" name="email" placeholder="Votre adresse email" required class="newsletter-input">
+                        <button type="submit" class="newsletter-btn" data-original-text="<?= h($section['cta_text'] ?: 'S\'inscrire') ?>">
+                            <?= h($section['cta_text'] ?: 'S\'inscrire') ?>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="newsletter-message" id="newsletterMessage"></div>
+                </form>
+
+                <p class="newsletter-privacy">
+                    En vous inscrivant, vous acceptez notre politique de confidentialité.<br>
+                    Désabonnement possible à tout moment.
+                </p>
+            </div>
+        </div>
+    </section>
+    <?php
+            break;
+
         endswitch;
     endforeach;
     ?>
@@ -948,5 +1117,60 @@ foreach ($sections as $s) {
             </div>
         </div>
     </footer>
+
+    <!-- Newsletter AJAX Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('newsletterForm');
+        if (!form) return;
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const emailInput = form.querySelector('input[name="email"]');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const messageDiv = document.getElementById('newsletterMessage');
+            const email = emailInput.value.trim();
+
+            if (!email) return;
+
+            // Disable form during submission
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Inscription en cours...';
+            messageDiv.className = 'newsletter-message';
+            messageDiv.textContent = '';
+
+            // AJAX request
+            fetch('/public/api/newsletter-subscribe.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    source: 'homepage'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                messageDiv.className = 'newsletter-message show ' + (data.success ? 'success' : 'error');
+                messageDiv.textContent = data.message;
+
+                if (data.success) {
+                    emailInput.value = '';
+                }
+            })
+            .catch(error => {
+                messageDiv.className = 'newsletter-message show error';
+                messageDiv.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                const originalText = submitBtn.getAttribute('data-original-text') || "S'inscrire";
+                submitBtn.innerHTML = originalText + ' <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+            });
+        });
+    });
+    </script>
 </body>
 </html>
