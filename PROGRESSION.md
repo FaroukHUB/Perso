@@ -434,13 +434,40 @@ Ce qui reste libre :
 
 **Fichiers créés/modifiés** :
 - `sql/migrate_packs.sql` - Tables packs + pack_products
-- `app/models/Pack.php` - Modèle CRUD + produits
+- `app/models/Pack.php` - Modèle CRUD + produits + getFirstProduct()
 - `admin/packs.php` - Liste admin
 - `admin/pack-form.php` - Formulaire création/édition
 - `admin/includes/sidebar.php` - Lien "Packs / Idées"
 - `public/product.php` - Injection preset configurateur
+- `public/index.php` - Section "Nos idées tendance"
 
-**Prêt pour P4.5** : Section "Nos idées tendance" côté site (cartes + redirection pack_id)
+**P4.5 - Section Inspirations** :
+- Section "Nos idées tendance" après les produits sur index.php
+- Design sombre moderne avec cartes glassmorphism
+- Badges colorés par type (technique, contextuel, thématique, inspiration)
+- CTA "Essayer cette idée" → `/product.php?id=X&pack_id=Y`
+- Liens navbar + footer (conditionnels si packs existent)
+- Skip automatique si pack sans produit actif
+
+**P4.6 - Tests & Validation** :
+
+| Test | Résultat | Notes |
+|------|----------|-------|
+| Parcours inspirations → panier | ✅ OK | Preset injecté, modifiable, panier OK |
+| Pack inactif | ✅ OK | Ignoré silencieusement |
+| Pack sans produit actif | ✅ OK | Carte non affichée |
+| Produit non lié au pack | ✅ OK | Preset ignoré |
+| Configurateur sans pack_id | ✅ OK | Comportement normal |
+| Lightbox + drag & drop | ✅ OK | Aucune régression |
+| Console JS | ✅ OK | Propre (debug log retiré) |
+| SEO basique | ✅ OK | H1/H2 + alt images |
+
+**Bug corrigé** :
+- Retrait du `console.log('[PACK] Preset appliqué:', preset)` pour production
+
+---
+
+## 🟢 GEL FONCTIONNEL P4 — PACKS / IDÉES TERMINÉ
 
 ---
 

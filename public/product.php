@@ -1975,8 +1975,6 @@ $cartCount = Cart::count();
                         setTimeout(() => btnBack.click(), 100);
                     }
                 }
-
-                console.log('[PACK] Preset appliqué:', preset);
             } else if (!preset) {
                 // Pas de preset : initialiser le texte si déjà rempli (cas normal)
                 if (customText.value.trim()) {

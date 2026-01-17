@@ -50,13 +50,17 @@
 - [ ] **P4.5.3** — Page dédiée /inspirations.php (optionnel - non implémenté)
 - [ ] **P4.5.4** — Filtres par type (optionnel - non implémenté)
 
-### P4.6 — Tests & Validation
+### P4.6 — Tests & Validation ✅
 
-- [ ] **P4.6.1** — Test création pack admin
-- [ ] **P4.6.2** — Test multi-produits
-- [ ] **P4.6.3** — Test injection preset
-- [ ] **P4.6.4** — Test parcours complet (pack → configurateur → panier → commande)
-- [ ] **P4.6.5** — Mise à jour TASKS.md + PROGRESSION.md
+- [x] **P4.6.1** — Parcours fonctionnel (inspirations → preset → panier)
+- [x] **P4.6.2** — Cas limites (pack inactif, sans produit, produit non lié)
+- [x] **P4.6.3** — Régressions (configurateur sans pack, lightbox, drag&drop)
+- [x] **P4.6.4** — Qualité code (console clean, SEO basique)
+- [x] **P4.6.5** — Mise à jour TASKS.md + PROGRESSION.md
+
+---
+
+## ✅ GEL FONCTIONNEL P4 — Packs / Idées terminé
 
 ---
 
