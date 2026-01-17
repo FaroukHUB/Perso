@@ -75,10 +75,10 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- =============================================
 -- DONNÉES DE DÉMONSTRATION (optionnel)
 -- =============================================
--- Exemple de pack
-INSERT INTO `packs` (`name`, `slug`, `description`, `type`, `preset_json`, `status`, `sort_order`) VALUES
-('Cadeau Personnalisé Élégant', 'cadeau-elegant', 'Une idée cadeau raffinée avec une police élégante', 'contextuel', '{"text": "Pour toi", "font": "Playfair Display", "text_color": "#D4AF37", "technique": "broderie"}', 'active', 1),
-('Team Family', 'team-family', 'Design moderne pour toute la famille', 'thematique', '{"text": "Team", "font": "Poppins", "text_color": "#FF1493", "technique": "flex"}', 'active', 2);
+-- Décommenter si vous voulez des exemples :
+-- INSERT INTO `packs` (`name`, `slug`, `description`, `type`, `preset_json`, `status`, `sort_order`) VALUES
+-- ('Cadeau Personnalisé Élégant', 'cadeau-elegant', 'Une idée cadeau raffinée avec une police élégante', 'contextuel', '{"text": "Pour toi", "font": "Playfair Display", "text_color": "or", "technique": "broderie"}', 'active', 1),
+-- ('Team Family', 'team-family', 'Design moderne pour toute la famille', 'thematique', '{"text": "Team", "font": "Poppins", "text_color": "rose", "technique": "flex"}', 'active', 2);
 
 -- =============================================
 -- FIN DE LA MIGRATION
