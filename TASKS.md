@@ -17,7 +17,7 @@
 | P1-P3 | ✅ TERMINÉ | Polices, Drag&Drop, Zones |
 | P4 | ✅ TERMINÉ | Packs / Idées |
 | P5 | ✅ TERMINÉ | Page d'accueil dynamique |
-| P6 STEP 1-5 | ✅ TERMINÉ | Correctifs, WebP, Catégories, Techniques, Upsells |
+| P6 STEP 1-5 | 🟡 EN COURS | Correctifs, WebP, Catégories, Techniques, Upsells+Codes Promo (CSS à refaire) |
 | P6 STEP 6-10 | 🔴 À FAIRE | Stats, Archives, Organisation, Marketing, Paiement |
 
 ---
@@ -143,35 +143,40 @@
 
 ---
 
-## ✅ STEP 5 — UPSELLS TERMINÉ
+## ✅ STEP 5 — UPSELLS & CODES PROMO TERMINÉ (REFACTORÉ v2)
 
-> Proposer des produits/options supplémentaires pour augmenter le panier moyen.
+> STEP 5 a été refactoré pour séparer clairement :
+> - **Upsells** : Suggestions de produits complémentaires ("Vous aimerez aussi")
+> - **Codes Promo** : Système classique avec saisie code par le client
 
-### 5.1 — Architecture DB
+### 5.A — VRAIS Upsells (Suggestions de produits)
 
-- [x] **5.1.1** — Créer table `upsells` (id, name, type, condition_type, condition_value, offer_type, offer_value, discount, priority, status) ✅
-- [x] **5.1.2** — Types de conditions : panier_min, produit_specifique, technique_specifique, categorie, quantite_min ✅
-- [x] **5.1.3** — Types d'offres : produit, option, reduction, livraison_gratuite ✅
+- [x] **5.A.1** — Table `product_upsells` + `upsell_settings` ✅
+- [x] **5.A.2** — admin/upsells.php (liste + paramètres) ✅
+- [x] **5.A.3** — admin/upsell-form.php (création/édition) ✅
+- [x] **5.A.4** — cart.php : section suggestions produits ✅
+- [ ] **5.A.5** — 🎨 **CSS admin/upsells.php** : refaire design ultra-moderne (TODO)
 
-### 5.2 — Admin CRUD Upsells
+### 5.B — Codes Promo (Saisie Client)
 
-- [x] **5.2.1** — admin/upsells.php (liste + toggle + delete + duplicate) ✅
-- [x] **5.2.2** — admin/upsell-form.php (création avec règles conditionnelles) ✅
-- [x] **5.2.3** — Interface : SI [condition] ALORS proposer [offre] ✅
-- [x] **5.2.4** — Lien sidebar admin ✅
-
-### 5.3 — Affichage client
-
-- [x] **5.3.1** — cart.php : section "Offres spéciales pour vous" basée sur règles ✅
-- [x] **5.3.2** — checkout.php : upsells dans récapitulatif avant validation ✅
-- [x] **5.3.3** — API /api/upsells.php pour récupération dynamique ✅
+- [x] **5.B.1** — Table `promo_codes` + `order_promo_codes` ✅
+- [x] **5.B.2** — app/models/PromoCode.php avec validateCode() ✅
+- [x] **5.B.3** — admin/promo-codes.php (liste ultra-moderne) ✅
+- [x] **5.B.4** — admin/promo-code-form.php (création/édition) ✅
+- [x] **5.B.5** — cart.php : champ saisie code promo + validation AJAX ✅
 
 **Fichiers créés** :
-- `sql/migrate_upsells.sql`
-- `app/models/Upsell.php`
-- `admin/upsells.php`
-- `admin/upsell-form.php`
-- `api/upsells.php`
+- `sql/migrate_real_upsells.sql`
+- `sql/migrate_promo_codes.sql`
+- `app/models/ProductUpsell.php`
+- `app/models/PromoCode.php`
+- `admin/promo-codes.php`
+- `admin/promo-code-form.php`
+
+**⚠️ À FAIRE** :
+- Le CSS de `admin/upsells.php` n'est pas ultra-moderne (voir screenshot)
+- Les styles ne sont pas appliqués correctement
+- À refaire demain avec design cohérent rose/menthe/noir
 
 ---
 
@@ -363,4 +368,4 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 ---
 
-**Dernière mise à jour** : 2026-01-17 — Audit complet + restructuration
+**Dernière mise à jour** : 2026-01-17 — STEP 5 refactoré (Upsells + Codes Promo), CSS upsells admin à refaire

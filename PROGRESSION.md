@@ -23,7 +23,7 @@
 
 **Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-5 terminés)
 
-**Statut global** : 🟢 STEP 1-5 TERMINÉS (refactoré) - Prochaine étape : STEP 6 (Stats Admin)
+**Statut global** : 🟡 STEP 5 en finalisation (CSS admin/upsells.php à refaire) - Ensuite : STEP 6 (Stats Admin)
 
 **Derniers correctifs** :
 - STEP 5 refactoré v2 : distinction claire entre Upsells et Codes Promo
@@ -856,6 +856,11 @@ foreach ($sections as $section) {
 - Titre de la section personnalisable
 - Nombre de produits à afficher (2-6)
 - Sous-titre optionnel
+
+**⚠️ À FAIRE (CSS)** :
+- `admin/upsells.php` : CSS non appliqué correctement, design pas ultra-moderne
+- Les styles sont dans le fichier mais ne s'affichent pas (voir screenshot)
+- À refaire avec design cohérent rose/menthe/noir comme promo-codes.php
 
 **Prévu (futur)** :
 - Intégration Brevo/WhatsApp pour diffusion codes promo
