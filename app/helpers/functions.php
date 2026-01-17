@@ -122,3 +122,21 @@ function slugify(string $string): string
     $string = preg_replace('/[\s-]+/', '-', $string);
     return strtolower(trim($string, '-'));
 }
+
+/**
+ * Génère une balise <picture> avec fallback WebP
+ * Utilise ImageHelper pour la logique
+ *
+ * @param string $url URL de l'image (sans /public)
+ * @param string $alt Texte alternatif
+ * @param string $class Classes CSS
+ * @return string HTML
+ */
+function picture(string $url, string $alt = '', string $class = ''): string
+{
+    // Charger ImageHelper si pas déjà fait
+    if (!class_exists('ImageHelper')) {
+        require_once __DIR__ . '/ImageHelper.php';
+    }
+    return ImageHelper::pictureTag($url, $alt, $class);
+}

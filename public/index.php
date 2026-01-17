@@ -934,7 +934,7 @@ foreach ($sections as $s) {
                                     <?= h($product['category'] ?? 'Textile') ?>
                                 </span>
                                 <?php if (!empty($product['image_front_url'])): ?>
-                                    <img src="/public<?= h($product['image_front_url']) ?>" alt="<?= h($product['name']) ?>">
+                                    <?= picture($product['image_front_url'], $product['name']) ?>
                                 <?php endif; ?>
                             </div>
                             <div class="product-info">
@@ -983,7 +983,7 @@ foreach ($sections as $s) {
                                 <?= h($typeLabels[$pack['type']] ?? 'Idée') ?>
                             </span>
                             <?php if (!empty($pack['cover_image_url'])): ?>
-                                <img src="/public<?= h($pack['cover_image_url']) ?>" alt="<?= h($pack['name']) ?>">
+                                <?= picture($pack['cover_image_url'], $pack['name']) ?>
                             <?php endif; ?>
                         </div>
                         <div class="inspiration-info">
@@ -1036,7 +1036,7 @@ foreach ($sections as $s) {
                     <div class="content-block-gallery">
                         <?php foreach ($additionalMedia as $media): ?>
                             <div class="gallery-card">
-                                <img src="/public<?= h($media['url']) ?>" alt="">
+                                <?= picture($media['url'], '') ?>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -1060,7 +1060,7 @@ foreach ($sections as $s) {
                             <?php if ($section['media_type'] === 'video'): ?>
                                 <video src="/public<?= h($section['media_url']) ?>" autoplay muted loop playsinline></video>
                             <?php else: ?>
-                                <img src="/public<?= h($section['media_url']) ?>" alt="<?= h($section['title']) ?>" class="main-media">
+                                <?= picture($section['media_url'], $section['title'], 'main-media') ?>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
@@ -1089,7 +1089,7 @@ foreach ($sections as $s) {
                     <div class="blog-card">
                         <div class="blog-card-image">
                             <?php if (!empty($post['cover_image_url'])): ?>
-                                <img src="/public<?= h($post['cover_image_url']) ?>" alt="<?= h($post['title']) ?>">
+                                <?= picture($post['cover_image_url'], $post['title']) ?>
                             <?php endif; ?>
                         </div>
                         <div class="blog-card-content">

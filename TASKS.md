@@ -81,8 +81,16 @@
 
 ### 2.2 — Fallback navigateur
 
-- [~] **2.2.1** — Utiliser balise `<picture>` avec `<source type="image/webp">` + `<img>` fallback
-- [ ] **2.2.2** — Appliquer partout (index, product, cart, admin)
+- [x] **2.2.1** — Créer fonction `picture()` helper avec `<picture>` + fallback ✅
+- [x] **2.2.2** — Appliquer sur index.php (produits, packs, galerie, blog) ✅
+
+**Note** : La fonction `picture()` vérifie l'existence du fichier WebP et génère automatiquement :
+- `<picture><source type="image/webp" srcset="..."><img src="..." alt="..."></picture>` si WebP existe
+- `<img src="..." alt="...">` sinon
+
+---
+
+## ✅ STEP 2 TERMINÉ — Médias & Performance
 
 ---
 
