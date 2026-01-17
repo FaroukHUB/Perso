@@ -8,7 +8,7 @@ require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/helpers/Cart.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
-require_once __DIR__ . '/../app/models/Upsell.php';
+require_once __DIR__ . '/../app/models/ProductUpsell.php';
 
 $success = '';
 $error = '';
@@ -45,50 +45,35 @@ $cartItems = Cart::getItemsWithProducts();
 $cartTotal = Cart::getTotal();
 $cartCount = Cart::count();
 
-// Récupérer les upsells applicables
-$applicableUpsells = [];
+// Récupérer les suggestions de produits (vrais upsells)
+$upsellSuggestions = [];
+$upsellSettings = [];
 if (!Cart::isEmpty()) {
-    $upsellModel = new Upsell();
-    $productModel = new Product();
+    $upsellModel = new ProductUpsell();
+    $upsellSettings = $upsellModel->getSettings();
 
-    // Construire le contexte
-    $products = [];
-    $techniques = [];
-    $quantity = 0;
+    // Vérifier si les upsells sont activés et affichés sur le panier
+    if (($upsellSettings['enabled'] ?? '1') === '1' && ($upsellSettings['show_on_cart'] ?? '1') === '1') {
+        // Récupérer les IDs des produits et catégories du panier
+        $cartProductIds = [];
+        $cartCategoryIds = [];
 
-    foreach ($cartItems as $item) {
-        $products[] = $item['product_id'];
-        $quantity += $item['quantity'];
-        if (!empty($item['customization']['technique'])) {
-            $techniques[] = $item['customization']['technique'];
-        }
-    }
-
-    $context = [
-        'cart_total' => $cartTotal,
-        'products' => array_unique($products),
-        'techniques' => array_unique($techniques),
-        'categories' => [],
-        'quantity' => $quantity
-    ];
-
-    $upsells = $upsellModel->findApplicable($context, 'cart');
-
-    // Enrichir avec les données produits
-    foreach ($upsells as $upsell) {
-        $data = $upsell;
-        if ($upsell['offer_type'] === 'produit' && !empty($upsell['offer_value'])) {
-            $product = $productModel->findById((int) $upsell['offer_value']);
-            if ($product) {
-                $data['product'] = $product;
-                if ($upsell['discount_type'] === 'pourcentage') {
-                    $data['product']['discounted_price'] = $product['price'] * (1 - $upsell['discount_value'] / 100);
-                } elseif ($upsell['discount_type'] === 'montant_fixe') {
-                    $data['product']['discounted_price'] = max(0, $product['price'] - $upsell['discount_value']);
-                }
+        foreach ($cartItems as $item) {
+            $cartProductIds[] = $item['product_id'];
+            if (!empty($item['product']['category_id'])) {
+                $cartCategoryIds[] = $item['product']['category_id'];
             }
         }
-        $applicableUpsells[] = $data;
+
+        $cartProductIds = array_unique($cartProductIds);
+        $cartCategoryIds = array_unique($cartCategoryIds);
+
+        // Récupérer les suggestions
+        $upsellSuggestions = $upsellModel->getSuggestionsForCart(
+            $cartProductIds,
+            $cartCategoryIds,
+            (int) ($upsellSettings['max_items'] ?? 4)
+        );
     }
 }
 ?>
@@ -448,6 +433,21 @@ if (!Cart::isEmpty()) {
             object-fit: cover;
             border-radius: 14px;
         }
+        .upsell-icon {
+            position: relative;
+        }
+        .upsell-badge-overlay {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--gradient-pink);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
         .upsell-content { flex: 1; min-width: 0; }
         .upsell-label {
             font-weight: 700;
@@ -642,64 +642,46 @@ if (!Cart::isEmpty()) {
                         <?php endforeach; ?>
                     </div>
 
-                    <!-- Upsells Section -->
-                    <?php if (!empty($applicableUpsells)): ?>
+                    <!-- Upsells Section (Suggestions de produits) -->
+                    <?php if (!empty($upsellSuggestions)): ?>
                         <div class="upsells-section" style="grid-column: 1 / -1; order: 10;">
                             <h3 class="upsells-title">
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                    <polyline points="7.5 4.21 12 6.81 16.5 4.21"/>
                                 </svg>
-                                Offres spéciales pour vous
+                                <?= h($upsellSettings['title'] ?? 'Vous aimerez aussi') ?>
                             </h3>
                             <div class="upsells-grid">
-                                <?php foreach ($applicableUpsells as $upsell): ?>
+                                <?php foreach ($upsellSuggestions as $suggestion): ?>
                                     <div class="upsell-card">
-                                        <?php if ($upsell['offer_type'] === 'produit' && !empty($upsell['product'])): ?>
-                                            <div class="upsell-icon">
-                                                <?php if (!empty($upsell['product']['image_front_url'])): ?>
-                                                    <img src="/public<?= h($upsell['product']['image_front_url']) ?>" alt="">
+                                        <div class="upsell-icon">
+                                            <?php if (!empty($suggestion['image'])): ?>
+                                                <img src="<?= h($suggestion['image']) ?>" alt="<?= h($suggestion['name']) ?>">
+                                            <?php else: ?>
+                                                <span style="font-size: 1.5rem;">👕</span>
+                                            <?php endif; ?>
+                                            <?php if (!empty($suggestion['badge'])): ?>
+                                                <span class="upsell-badge-overlay"><?= h($suggestion['badge']) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="upsell-content">
+                                            <div class="upsell-label"><?= h($suggestion['name']) ?></div>
+                                            <?php if (!empty($suggestion['description'])): ?>
+                                                <div class="upsell-desc"><?= h($suggestion['description']) ?></div>
+                                            <?php endif; ?>
+                                            <div class="upsell-product-price">
+                                                <?php if (!empty($suggestion['promo_price'])): ?>
+                                                    <span class="original"><?= formatPrice($suggestion['price']) ?></span>
+                                                    <span class="discounted"><?= formatPrice($suggestion['promo_price']) ?></span>
                                                 <?php else: ?>
-                                                    👕
+                                                    <span class="discounted"><?= formatPrice($suggestion['price']) ?></span>
                                                 <?php endif; ?>
                                             </div>
-                                            <div class="upsell-content">
-                                                <div class="upsell-label"><?= h($upsell['display_title'] ?: $upsell['name']) ?></div>
-                                                <div class="upsell-desc"><?= h($upsell['product']['name']) ?></div>
-                                                <?php if (isset($upsell['product']['discounted_price'])): ?>
-                                                    <div class="upsell-product-price">
-                                                        <span class="original"><?= formatPrice($upsell['product']['price']) ?></span>
-                                                        <span class="discounted"><?= formatPrice($upsell['product']['discounted_price']) ?></span>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-                                            <a href="/public/configurateur.php?id=<?= $upsell['product']['id'] ?>&upsell=<?= $upsell['id'] ?>" class="upsell-add-btn">
-                                                Ajouter
-                                            </a>
-                                        <?php elseif ($upsell['offer_type'] === 'reduction'): ?>
-                                            <div class="upsell-icon mint">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                                                </svg>
-                                            </div>
-                                            <div class="upsell-content">
-                                                <div class="upsell-label"><?= h($upsell['display_title'] ?: $upsell['name']) ?></div>
-                                                <div class="upsell-desc"><?= h($upsell['offer_label']) ?></div>
-                                                <span class="upsell-badge">
-                                                    -<?= h($upsell['discount_value']) ?><?= $upsell['discount_type'] === 'pourcentage' ? '%' : '€' ?>
-                                                </span>
-                                            </div>
-                                        <?php elseif ($upsell['offer_type'] === 'livraison_gratuite'): ?>
-                                            <div class="upsell-icon mint">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-                                                </svg>
-                                            </div>
-                                            <div class="upsell-content">
-                                                <div class="upsell-label"><?= h($upsell['display_title'] ?: 'Livraison offerte !') ?></div>
-                                                <div class="upsell-desc"><?= h($upsell['offer_label'] ?: 'La livraison est offerte sur votre commande') ?></div>
-                                                <span class="upsell-badge">Livraison gratuite</span>
-                                            </div>
-                                        <?php endif; ?>
+                                        </div>
+                                        <a href="/public/configurateur.php?id=<?= $suggestion['product_id'] ?>" class="upsell-add-btn">
+                                            Personnaliser
+                                        </a>
                                     </div>
                                 <?php endforeach; ?>
                             </div>

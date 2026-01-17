@@ -1,24 +1,22 @@
 <?php
 /**
  * PERSONNALY Admin - Formulaire Upsell
- * Création et édition d'upsells
+ * Création et édition de suggestions de produits
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/Auth.php';
-require_once __DIR__ . '/../app/models/Upsell.php';
+require_once __DIR__ . '/../app/models/ProductUpsell.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Category.php';
-require_once __DIR__ . '/../app/models/CustomizationOption.php';
 require_once __DIR__ . '/../app/models/Order.php';
 
 Auth::requireAdmin();
 
-$upsellModel = new Upsell();
+$upsellModel = new ProductUpsell();
 $productModel = new Product();
 $categoryModel = new Category();
-$optionModel = new CustomizationOption();
 $orderModel = new Order();
 $pendingOrders = $orderModel->countNew();
 
@@ -27,40 +25,34 @@ $upsell = $id ? $upsellModel->findById($id) : null;
 $isEdit = $upsell !== null;
 
 // Données pour les selects
-$products = $productModel->findAll(true); // actifs seulement
+$products = $productModel->findAll(true);
 $categories = $categoryModel->findAll();
-$techniques = $optionModel->getTechniques();
 
 $errors = [];
-$success = false;
 
 // Traitement du formulaire
 if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
     $data = [
         'name' => trim($_POST['name'] ?? ''),
-        'description' => trim($_POST['description'] ?? ''),
-        'condition_type' => $_POST['condition_type'] ?? 'panier_min',
-        'condition_value' => trim($_POST['condition_value'] ?? ''),
-        'offer_type' => $_POST['offer_type'] ?? 'reduction',
-        'offer_value' => trim($_POST['offer_value'] ?? ''),
-        'offer_label' => trim($_POST['offer_label'] ?? ''),
-        'discount_type' => $_POST['discount_type'] ?? 'aucun',
-        'discount_value' => (float) ($_POST['discount_value'] ?? 0),
-        'display_title' => trim($_POST['display_title'] ?? ''),
-        'display_position' => $_POST['display_position'] ?? 'both',
+        'trigger_type' => $_POST['trigger_type'] ?? 'any',
+        'trigger_value' => trim($_POST['trigger_value'] ?? ''),
+        'suggested_product_id' => (int) ($_POST['suggested_product_id'] ?? 0),
+        'custom_title' => trim($_POST['custom_title'] ?? ''),
+        'custom_description' => trim($_POST['custom_description'] ?? ''),
+        'badge_text' => trim($_POST['badge_text'] ?? ''),
+        'promo_price' => !empty($_POST['promo_price']) ? (float) $_POST['promo_price'] : null,
         'priority' => (int) ($_POST['priority'] ?? 0),
-        'max_uses' => !empty($_POST['max_uses']) ? (int) $_POST['max_uses'] : null,
-        'start_date' => !empty($_POST['start_date']) ? $_POST['start_date'] : null,
-        'end_date' => !empty($_POST['end_date']) ? $_POST['end_date'] : null,
         'active' => isset($_POST['active']) ? 1 : 0,
     ];
 
-    // Validation
     if (empty($data['name'])) {
         $errors[] = 'Le nom est requis';
     }
-    if (empty($data['condition_value'])) {
-        $errors[] = 'La valeur de condition est requise';
+    if (empty($data['suggested_product_id'])) {
+        $errors[] = 'Veuillez sélectionner un produit à suggérer';
+    }
+    if ($data['trigger_type'] !== 'any' && empty($data['trigger_value'])) {
+        $errors[] = 'Veuillez spécifier la valeur du déclencheur';
     }
 
     if (empty($errors)) {
@@ -70,16 +62,10 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
             } else {
                 $id = $upsellModel->create($data);
             }
-            redirect('/admin/upsells.php?success=1');
+            redirect('/admin/upsells.php?saved=1');
         } catch (Exception $e) {
             $errors[] = 'Erreur lors de la sauvegarde : ' . $e->getMessage();
         }
-    }
-
-    // Recharger les données
-    if (!$isEdit && $id) {
-        $upsell = $upsellModel->findById($id);
-        $isEdit = true;
     }
 }
 
@@ -137,145 +123,122 @@ $csrf = csrfToken();
                                 <label for="name">Nom interne <span class="required">*</span></label>
                                 <input type="text" id="name" name="name"
                                        value="<?= h($upsell['name'] ?? '') ?>"
-                                       placeholder="Ex: Promo livraison gratuite 80€"
+                                       placeholder="Ex: Casquette avec T-shirt"
                                        required>
-                                <small class="form-help">Visible uniquement dans l'admin</small>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="description">Description</label>
-                                <textarea id="description" name="description" rows="2"
-                                          placeholder="Notes internes..."><?= h($upsell['description'] ?? '') ?></textarea>
+                                <small class="form-help">Pour identifier cet upsell dans l'admin</small>
                             </div>
                         </div>
 
-                        <!-- Condition -->
+                        <!-- Produit suggéré -->
                         <div class="form-card">
                             <h3 class="form-card-title">
-                                <span class="step-badge">SI</span>
-                                Condition de déclenchement
+                                <span class="step-badge">1</span>
+                                Produit à suggérer
                             </h3>
 
-                            <div class="form-row">
-                                <div class="form-group" style="flex: 1;">
-                                    <label for="condition_type">Type de condition</label>
-                                    <select id="condition_type" name="condition_type" onchange="updateConditionUI()">
-                                        <?php foreach (Upsell::CONDITION_TYPES as $key => $label): ?>
-                                            <option value="<?= $key ?>" <?= ($upsell['condition_type'] ?? 'panier_min') === $key ? 'selected' : '' ?>>
-                                                <?= h($label) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-
-                                <div class="form-group" style="flex: 1;" id="condition-value-group">
-                                    <label for="condition_value">Valeur <span class="required">*</span></label>
-                                    <div class="input-with-suffix">
-                                        <input type="text" id="condition_value" name="condition_value"
-                                               value="<?= h($upsell['condition_value'] ?? '') ?>"
-                                               placeholder="50" required>
-                                        <span class="input-suffix" id="condition-suffix">€</span>
-                                    </div>
-                                </div>
+                            <div class="form-group">
+                                <label for="suggested_product_id">Sélectionner le produit <span class="required">*</span></label>
+                                <select id="suggested_product_id" name="suggested_product_id" required onchange="updateProductPreview()">
+                                    <option value="">-- Choisir un produit --</option>
+                                    <?php foreach ($products as $prod): ?>
+                                        <option value="<?= $prod['id'] ?>"
+                                                data-price="<?= h($prod['price']) ?>"
+                                                data-image="<?= h($prod['image_front_url'] ?? '') ?>"
+                                                <?= ($upsell['suggested_product_id'] ?? '') == $prod['id'] ? 'selected' : '' ?>>
+                                            <?= h($prod['name']) ?> - <?= number_format($prod['price'], 2, ',', ' ') ?>€
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
 
-                            <!-- Select dynamique pour produit/catégorie/technique -->
-                            <div class="form-group" id="condition-select-group" style="display: none;">
-                                <label id="condition-select-label">Sélectionner</label>
-                                <select id="condition_value_select" onchange="document.getElementById('condition_value').value = this.value">
+                            <div id="product-preview" class="product-preview" style="display: none;">
+                                <img id="preview-image" src="" alt="">
+                                <div class="preview-info">
+                                    <span id="preview-name"></span>
+                                    <span id="preview-price"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Déclencheur -->
+                        <div class="form-card">
+                            <h3 class="form-card-title">
+                                <span class="step-badge step-2">2</span>
+                                Quand suggérer ce produit ?
+                            </h3>
+
+                            <div class="form-group">
+                                <label for="trigger_type">Condition d'affichage</label>
+                                <select id="trigger_type" name="trigger_type" onchange="updateTriggerUI()">
+                                    <?php foreach (ProductUpsell::TRIGGER_TYPES as $key => $label): ?>
+                                        <option value="<?= $key ?>" <?= ($upsell['trigger_type'] ?? 'any') === $key ? 'selected' : '' ?>>
+                                            <?= h($label) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="trigger-value-group" style="display: none;">
+                                <label id="trigger-value-label">Valeur</label>
+                                <select id="trigger_value" name="trigger_value">
                                     <option value="">-- Choisir --</option>
                                 </select>
                             </div>
+
+                            <div class="trigger-info" id="trigger-info">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 16v-4M12 8h.01"/>
+                                </svg>
+                                <span>Ce produit sera suggéré à tous les clients.</span>
+                            </div>
                         </div>
 
-                        <!-- Offre -->
+                        <!-- Personnalisation -->
                         <div class="form-card">
                             <h3 class="form-card-title">
-                                <span class="step-badge step-then">ALORS</span>
-                                Offre proposée
+                                <span class="step-badge step-3">3</span>
+                                Personnalisation (optionnel)
                             </h3>
 
                             <div class="form-group">
-                                <label for="offer_type">Type d'offre</label>
-                                <select id="offer_type" name="offer_type" onchange="updateOfferUI()">
-                                    <?php foreach (Upsell::OFFER_TYPES as $key => $label): ?>
-                                        <option value="<?= $key ?>" <?= ($upsell['offer_type'] ?? 'reduction') === $key ? 'selected' : '' ?>>
-                                            <?= h($label) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <label for="custom_title">Titre personnalisé</label>
+                                <input type="text" id="custom_title" name="custom_title"
+                                       value="<?= h($upsell['custom_title'] ?? '') ?>"
+                                       placeholder="Laisser vide pour utiliser le nom du produit">
                             </div>
 
-                            <div class="form-group" id="offer-value-group">
-                                <label for="offer_value">Produit/Option à proposer</label>
-                                <select id="offer_value" name="offer_value">
-                                    <option value="">-- Aucun --</option>
-                                    <?php foreach ($products as $prod): ?>
-                                        <option value="<?= $prod['id'] ?>" <?= ($upsell['offer_value'] ?? '') == $prod['id'] ? 'selected' : '' ?>>
-                                            <?= h($prod['name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                            <div class="form-group">
+                                <label for="custom_description">Description courte</label>
+                                <textarea id="custom_description" name="custom_description" rows="2"
+                                          placeholder="Ex: Complétez votre look avec cette casquette assortie"><?= h($upsell['custom_description'] ?? '') ?></textarea>
                             </div>
 
-                            <div class="form-row" id="discount-group">
+                            <div class="form-row">
                                 <div class="form-group" style="flex: 1;">
-                                    <label for="discount_type">Type de réduction</label>
-                                    <select id="discount_type" name="discount_type">
-                                        <?php foreach (Upsell::DISCOUNT_TYPES as $key => $label): ?>
-                                            <option value="<?= $key ?>" <?= ($upsell['discount_type'] ?? 'aucun') === $key ? 'selected' : '' ?>>
-                                                <?= h($label) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                    <label for="badge_text">Badge</label>
+                                    <input type="text" id="badge_text" name="badge_text"
+                                           value="<?= h($upsell['badge_text'] ?? '') ?>"
+                                           placeholder="Ex: Bestseller, -20%, Nouveau">
+                                    <small class="form-help">S'affiche en overlay sur l'image</small>
                                 </div>
                                 <div class="form-group" style="flex: 1;">
-                                    <label for="discount_value">Montant</label>
+                                    <label for="promo_price">Prix promo</label>
                                     <div class="input-with-suffix">
-                                        <input type="number" id="discount_value" name="discount_value"
-                                               value="<?= h($upsell['discount_value'] ?? 0) ?>"
-                                               min="0" step="0.01">
-                                        <span class="input-suffix" id="discount-suffix">%</span>
+                                        <input type="number" id="promo_price" name="promo_price"
+                                               value="<?= h($upsell['promo_price'] ?? '') ?>"
+                                               min="0" step="0.01" placeholder="Optionnel">
+                                        <span class="input-suffix">€</span>
                                     </div>
+                                    <small class="form-help">Prix spécial pour cet upsell</small>
                                 </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="offer_label">Message de l'offre</label>
-                                <input type="text" id="offer_label" name="offer_label"
-                                       value="<?= h($upsell['offer_label'] ?? '') ?>"
-                                       placeholder="Ex: -15% sur votre commande !">
-                                <small class="form-help">Texte court affiché au client</small>
-                            </div>
-                        </div>
-
-                        <!-- Affichage -->
-                        <div class="form-card">
-                            <h3 class="form-card-title">Affichage client</h3>
-
-                            <div class="form-group">
-                                <label for="display_title">Titre affiché</label>
-                                <input type="text" id="display_title" name="display_title"
-                                       value="<?= h($upsell['display_title'] ?? '') ?>"
-                                       placeholder="Ex: Offre spéciale pour vous !">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="display_position">Où afficher ?</label>
-                                <select id="display_position" name="display_position">
-                                    <?php foreach (Upsell::DISPLAY_POSITIONS as $key => $label): ?>
-                                        <option value="<?= $key ?>" <?= ($upsell['display_position'] ?? 'both') === $key ? 'selected' : '' ?>>
-                                            <?= h($label) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
                             </div>
                         </div>
                     </div>
 
                     <!-- Colonne latérale -->
                     <div class="form-sidebar">
-                        <!-- Statut et publication -->
+                        <!-- Publication -->
                         <div class="form-card">
                             <h3 class="form-card-title">Publication</h3>
 
@@ -305,43 +268,14 @@ $csrf = csrfToken();
                             </button>
                         </div>
 
-                        <!-- Période de validité -->
+                        <!-- Aperçu -->
                         <div class="form-card">
-                            <h3 class="form-card-title">Période de validité</h3>
-
-                            <div class="form-group">
-                                <label for="start_date">Date de début</label>
-                                <input type="date" id="start_date" name="start_date"
-                                       value="<?= h($upsell['start_date'] ?? '') ?>">
-                                <small class="form-help">Laisser vide = immédiat</small>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="end_date">Date de fin</label>
-                                <input type="date" id="end_date" name="end_date"
-                                       value="<?= h($upsell['end_date'] ?? '') ?>">
-                                <small class="form-help">Laisser vide = illimité</small>
-                            </div>
-                        </div>
-
-                        <!-- Limite d'utilisation -->
-                        <div class="form-card">
-                            <h3 class="form-card-title">Limite d'utilisation</h3>
-
-                            <div class="form-group">
-                                <label for="max_uses">Nombre max d'utilisations</label>
-                                <input type="number" id="max_uses" name="max_uses"
-                                       value="<?= h($upsell['max_uses'] ?? '') ?>"
-                                       min="0" placeholder="Illimité">
-                                <small class="form-help">Laisser vide = illimité</small>
-                            </div>
-
-                            <?php if ($isEdit): ?>
-                                <div class="stat-box">
-                                    <span class="stat-value"><?= (int) ($upsell['current_uses'] ?? 0) ?></span>
-                                    <span class="stat-label">utilisations actuelles</span>
+                            <h3 class="form-card-title">Aperçu</h3>
+                            <div class="preview-card" id="preview-card">
+                                <div class="preview-placeholder">
+                                    Sélectionnez un produit pour voir l'aperçu
                                 </div>
-                            <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -350,102 +284,108 @@ $csrf = csrfToken();
     </div>
 
     <script>
-    // Données pour les selects dynamiques
-    const products = <?= json_encode(array_map(fn($p) => ['id' => $p['id'], 'name' => $p['name']], $products)) ?>;
+    const products = <?= json_encode(array_map(fn($p) => [
+        'id' => $p['id'],
+        'name' => $p['name'],
+        'price' => $p['price'],
+        'image' => $p['image_front_url'] ?? ''
+    ], $products)) ?>;
     const categories = <?= json_encode(array_map(fn($c) => ['id' => $c['id'], 'name' => $c['name']], $categories)) ?>;
-    const techniques = <?= json_encode(array_map(fn($t) => ['value' => $t['value'], 'label' => $t['label']], $techniques)) ?>;
 
-    function updateConditionUI() {
-        const type = document.getElementById('condition_type').value;
-        const valueInput = document.getElementById('condition_value');
-        const suffix = document.getElementById('condition-suffix');
-        const selectGroup = document.getElementById('condition-select-group');
-        const selectEl = document.getElementById('condition_value_select');
-        const selectLabel = document.getElementById('condition-select-label');
+    const currentTriggerValue = '<?= h($upsell['trigger_value'] ?? '') ?>';
 
-        // Reset
-        selectGroup.style.display = 'none';
-        valueInput.type = 'text';
+    function updateTriggerUI() {
+        const type = document.getElementById('trigger_type').value;
+        const valueGroup = document.getElementById('trigger-value-group');
+        const valueSelect = document.getElementById('trigger_value');
+        const valueLabel = document.getElementById('trigger-value-label');
+        const info = document.getElementById('trigger-info').querySelector('span');
 
-        switch (type) {
-            case 'panier_min':
-                suffix.textContent = '€';
-                valueInput.placeholder = '50';
-                valueInput.type = 'number';
-                break;
-            case 'quantite_min':
-                suffix.textContent = 'articles';
-                valueInput.placeholder = '3';
-                valueInput.type = 'number';
-                break;
-            case 'produit_specifique':
-                suffix.textContent = 'ID';
-                selectGroup.style.display = 'block';
-                selectLabel.textContent = 'Ou sélectionner un produit';
-                populateSelect(selectEl, products, 'id', 'name');
-                break;
-            case 'categorie':
-                suffix.textContent = 'ID';
-                selectGroup.style.display = 'block';
-                selectLabel.textContent = 'Ou sélectionner une catégorie';
-                populateSelect(selectEl, categories, 'id', 'name');
-                break;
-            case 'technique_specifique':
-                suffix.textContent = '';
-                selectGroup.style.display = 'block';
-                selectLabel.textContent = 'Ou sélectionner une technique';
-                populateSelect(selectEl, techniques, 'value', 'label');
-                break;
+        if (type === 'any') {
+            valueGroup.style.display = 'none';
+            info.textContent = 'Ce produit sera suggéré à tous les clients.';
+        } else if (type === 'product') {
+            valueGroup.style.display = 'block';
+            valueLabel.textContent = 'Si ce produit est au panier';
+            populateSelect(valueSelect, products, 'id', 'name', currentTriggerValue);
+            info.textContent = 'Suggéré uniquement si le produit sélectionné est au panier.';
+        } else if (type === 'category') {
+            valueGroup.style.display = 'block';
+            valueLabel.textContent = 'Si un produit de cette catégorie est au panier';
+            populateSelect(valueSelect, categories, 'id', 'name', currentTriggerValue);
+            info.textContent = 'Suggéré si un produit de cette catégorie est au panier.';
         }
     }
 
-    function populateSelect(selectEl, data, valueKey, labelKey) {
+    function populateSelect(selectEl, data, valueKey, labelKey, selectedValue) {
         selectEl.innerHTML = '<option value="">-- Choisir --</option>';
         data.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item[valueKey];
             opt.textContent = item[labelKey];
+            if (String(item[valueKey]) === String(selectedValue)) {
+                opt.selected = true;
+            }
             selectEl.appendChild(opt);
         });
     }
 
-    function updateOfferUI() {
-        const type = document.getElementById('offer_type').value;
-        const offerValueGroup = document.getElementById('offer-value-group');
-        const discountGroup = document.getElementById('discount-group');
-        const discountSuffix = document.getElementById('discount-suffix');
+    function updateProductPreview() {
+        const select = document.getElementById('suggested_product_id');
+        const option = select.options[select.selectedIndex];
+        const preview = document.getElementById('product-preview');
+        const previewCard = document.getElementById('preview-card');
 
-        switch (type) {
-            case 'reduction':
-                offerValueGroup.style.display = 'none';
-                discountGroup.style.display = 'flex';
-                break;
-            case 'livraison_gratuite':
-                offerValueGroup.style.display = 'none';
-                discountGroup.style.display = 'none';
-                break;
-            case 'produit':
-            case 'option':
-                offerValueGroup.style.display = 'block';
-                discountGroup.style.display = 'flex';
-                break;
+        if (!option.value) {
+            preview.style.display = 'none';
+            previewCard.innerHTML = '<div class="preview-placeholder">Sélectionnez un produit pour voir l\'aperçu</div>';
+            return;
         }
 
-        // Mise à jour du suffix selon le type de réduction
-        document.getElementById('discount_type').addEventListener('change', function() {
-            discountSuffix.textContent = this.value === 'pourcentage' ? '%' : '€';
-        });
+        const product = products.find(p => p.id == option.value);
+        if (!product) return;
+
+        // Mini preview
+        preview.style.display = 'flex';
+        document.getElementById('preview-image').src = product.image || '/public/assets/images/placeholder.png';
+        document.getElementById('preview-name').textContent = product.name;
+        document.getElementById('preview-price').textContent = parseFloat(product.price).toFixed(2).replace('.', ',') + '€';
+
+        // Full preview card
+        const customTitle = document.getElementById('custom_title').value || product.name;
+        const customDesc = document.getElementById('custom_description').value || '';
+        const badge = document.getElementById('badge_text').value || '';
+        const promoPrice = document.getElementById('promo_price').value;
+
+        let priceHtml = parseFloat(product.price).toFixed(2).replace('.', ',') + '€';
+        if (promoPrice) {
+            priceHtml = `<span class="old">${priceHtml}</span> <span class="promo">${parseFloat(promoPrice).toFixed(2).replace('.', ',')}€</span>`;
+        }
+
+        previewCard.innerHTML = `
+            <div class="preview-upsell-card">
+                <div class="preview-img">
+                    <img src="${product.image || '/public/assets/images/placeholder.png'}" alt="">
+                    ${badge ? `<span class="preview-badge">${badge}</span>` : ''}
+                </div>
+                <div class="preview-content">
+                    <div class="preview-title">${customTitle}</div>
+                    ${customDesc ? `<div class="preview-desc">${customDesc}</div>` : ''}
+                    <div class="preview-price">${priceHtml}</div>
+                    <button type="button" class="preview-btn">Ajouter</button>
+                </div>
+            </div>
+        `;
     }
 
-    // Init
-    document.addEventListener('DOMContentLoaded', function() {
-        updateConditionUI();
-        updateOfferUI();
+    // Mettre à jour l'aperçu quand les champs changent
+    ['custom_title', 'custom_description', 'badge_text', 'promo_price'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateProductPreview);
+    });
 
-        // Écouteur pour le type de réduction
-        document.getElementById('discount_type').addEventListener('change', function() {
-            document.getElementById('discount-suffix').textContent = this.value === 'pourcentage' ? '%' : '€';
-        });
+    document.addEventListener('DOMContentLoaded', function() {
+        updateTriggerUI();
+        updateProductPreview();
     });
     </script>
 
@@ -472,9 +412,7 @@ $csrf = csrfToken();
             gap: 24px;
         }
         @media (max-width: 1024px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
+            .form-grid { grid-template-columns: 1fr; }
         }
 
         .form-card {
@@ -498,15 +436,18 @@ $csrf = csrfToken();
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 4px 10px;
+            width: 24px;
+            height: 24px;
             background: linear-gradient(135deg, var(--pink-main) 0%, var(--pink-dark) 100%);
             color: white;
-            border-radius: 6px;
-            font-size: 11px;
+            border-radius: 50%;
+            font-size: 12px;
             font-weight: 700;
-            letter-spacing: 0.5px;
         }
-        .step-badge.step-then {
+        .step-badge.step-2 {
+            background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+        }
+        .step-badge.step-3 {
             background: linear-gradient(135deg, var(--mint-main) 0%, var(--mint-dark) 100%);
             color: var(--black-soft);
         }
@@ -514,23 +455,18 @@ $csrf = csrfToken();
         .form-group {
             margin-bottom: 16px;
         }
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
-        .form-group label {
+        .form-group:last-child { margin-bottom: 0; }
+        .form-group label:not(.toggle-label) {
             display: block;
             margin-bottom: 6px;
             font-size: 13px;
             font-weight: 600;
             color: var(--black-soft);
         }
-        .required {
-            color: var(--pink-main);
-        }
+        .required { color: var(--pink-main); }
 
         .form-group input[type="text"],
         .form-group input[type="number"],
-        .form-group input[type="date"],
         .form-group textarea,
         .form-group select {
             width: 100%;
@@ -555,19 +491,13 @@ $csrf = csrfToken();
             font-size: 12px;
             color: var(--gray);
         }
-
-        .form-row {
-            display: flex;
-            gap: 16px;
-        }
+        .form-row { display: flex; gap: 16px; }
 
         .input-with-suffix {
             position: relative;
             display: flex;
         }
-        .input-with-suffix input {
-            padding-right: 50px;
-        }
+        .input-with-suffix input { padding-right: 40px; }
         .input-suffix {
             position: absolute;
             right: 14px;
@@ -584,9 +514,7 @@ $csrf = csrfToken();
             gap: 12px;
             cursor: pointer;
         }
-        .toggle-label input {
-            display: none;
-        }
+        .toggle-label input { display: none; }
         .toggle-switch {
             width: 48px;
             height: 26px;
@@ -610,44 +538,131 @@ $csrf = csrfToken();
         .toggle-label input:checked + .toggle-switch {
             background: linear-gradient(135deg, var(--mint-main) 0%, var(--mint-dark) 100%);
         }
-        .toggle-label input:checked + .toggle-switch::after {
-            left: 25px;
+        .toggle-label input:checked + .toggle-switch::after { left: 25px; }
+
+        .btn-block { width: 100%; justify-content: center; }
+
+        .product-preview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--gray-light);
+            border-radius: 10px;
+            margin-top: 12px;
         }
-        .toggle-text {
-            font-size: 14px;
-            font-weight: 500;
+        .product-preview img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .preview-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        #preview-name {
+            font-size: 13px;
+            font-weight: 600;
             color: var(--black-soft);
         }
-
-        .btn-block {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .stat-box {
-            background: linear-gradient(135deg, rgba(255, 105, 180, 0.08) 0%, rgba(61, 255, 192, 0.08) 100%);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-        }
-        .stat-value {
-            display: block;
-            font-size: 32px;
+        #preview-price {
+            font-size: 14px;
             font-weight: 700;
             color: var(--pink-dark);
         }
-        .stat-label {
-            font-size: 12px;
+
+        .trigger-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(99, 102, 241, 0.08);
+            border-radius: 10px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #6366F1;
+        }
+        .trigger-info svg { flex-shrink: 0; margin-top: 1px; }
+
+        .preview-placeholder {
+            padding: 40px 20px;
+            text-align: center;
             color: var(--gray);
+            font-size: 13px;
         }
 
-        .alert {
-            padding: 16px 20px;
+        .preview-upsell-card {
+            border: 1px solid var(--gray-light);
             border-radius: 12px;
+            overflow: hidden;
         }
+        .preview-img {
+            position: relative;
+            height: 120px;
+            background: var(--gray-light);
+        }
+        .preview-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .preview-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: linear-gradient(135deg, var(--pink-main) 0%, var(--pink-dark) 100%);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .preview-content {
+            padding: 12px;
+        }
+        .preview-title {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .preview-desc {
+            font-size: 11px;
+            color: var(--gray);
+            margin-bottom: 8px;
+        }
+        .preview-price {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .preview-price .old {
+            text-decoration: line-through;
+            color: var(--gray);
+            font-weight: 400;
+            font-size: 12px;
+        }
+        .preview-price .promo {
+            color: var(--pink-dark);
+        }
+        .preview-btn {
+            width: 100%;
+            padding: 8px;
+            background: linear-gradient(135deg, var(--pink-main) 0%, var(--pink-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
         .alert-danger {
+            padding: 16px 20px;
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
             color: #DC2626;
         }
     </style>
