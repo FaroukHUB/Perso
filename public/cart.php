@@ -9,9 +9,57 @@ require_once __DIR__ . '/../app/helpers/Cart.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/ProductUpsell.php';
+require_once __DIR__ . '/../app/models/PromoCode.php';
 
 $success = '';
 $error = '';
+
+// AJAX: Validation code promo
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'validate_promo') {
+    header('Content-Type: application/json');
+
+    $code = trim($_POST['code'] ?? '');
+    $cartTotal = Cart::getTotal();
+
+    $promoModel = new PromoCode();
+    $result = $promoModel->validateCode($code, $cartTotal);
+
+    if ($result['valid']) {
+        // Stocker le code promo en session
+        $_SESSION['promo_code'] = [
+            'id' => $result['promo']['id'],
+            'code' => $result['promo']['code'],
+            'name' => $result['promo']['name'],
+            'discount_type' => $result['promo']['discount_type'],
+            'discount' => $result['discount'],
+            'free_shipping' => $result['promo']['discount_type'] === 'free_shipping'
+        ];
+        echo json_encode([
+            'success' => true,
+            'message' => 'Code promo appliqué !',
+            'discount' => $result['discount'],
+            'discount_label' => $promoModel->getDiscountLabel($result['promo']),
+            'free_shipping' => $result['promo']['discount_type'] === 'free_shipping'
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => $result['error']
+        ]);
+    }
+    exit;
+}
+
+// AJAX: Retirer code promo
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'remove_promo') {
+    header('Content-Type: application/json');
+    unset($_SESSION['promo_code']);
+    echo json_encode(['success' => true]);
+    exit;
+}
+
+// Récupérer le code promo actuel en session
+$appliedPromo = $_SESSION['promo_code'] ?? null;
 
 // Actions sur le panier
 if (isPost()) {
@@ -503,6 +551,124 @@ if (!Cart::isEmpty()) {
             box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
         }
 
+        /* Promo Code Section */
+        .promo-section {
+            margin: 20px 0;
+            padding: 20px 0;
+            border-top: 1px solid rgba(0,0,0,0.06);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .promo-input-wrapper label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--black-soft);
+            margin-bottom: 10px;
+        }
+        .promo-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .promo-input-group input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: border-color 0.2s;
+        }
+        .promo-input-group input:focus {
+            outline: none;
+            border-color: var(--pink-main);
+        }
+        .apply-promo-btn {
+            padding: 12px 20px;
+            background: var(--gradient-mint);
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--black-soft);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .apply-promo-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(61, 255, 192, 0.3);
+        }
+        .apply-promo-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .promo-error {
+            margin: 10px 0 0;
+            font-size: 13px;
+            color: #dc3545;
+            display: none;
+        }
+        .promo-error.show { display: block; }
+
+        .promo-applied {
+            animation: promoFadeIn 0.3s ease;
+        }
+        @keyframes promoFadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .promo-badge-applied {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, rgba(61, 255, 192, 0.15) 0%, rgba(61, 255, 192, 0.05) 100%);
+            border: 2px dashed var(--mint-main);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+        }
+        .promo-badge-applied svg {
+            color: var(--mint-dark);
+        }
+        .promo-code-text {
+            flex: 1;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--black-soft);
+        }
+        .remove-promo-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.08);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .remove-promo-btn:hover {
+            background: rgba(220, 53, 69, 0.15);
+            color: #dc3545;
+        }
+        .promo-success-text {
+            margin: 10px 0 0;
+            font-size: 13px;
+            color: var(--mint-dark);
+            font-weight: 500;
+        }
+
+        .discount-row {
+            color: var(--mint-dark);
+        }
+        .discount-value {
+            font-weight: 700;
+            color: var(--mint-dark);
+        }
+
         /* Responsive */
         @media (max-width: 968px) {
             .cart-layout { grid-template-columns: 1fr; }
@@ -516,6 +682,9 @@ if (!Cart::isEmpty()) {
             .item-image { margin: 0 auto; }
             .item-actions { align-items: center; }
             .upsells-grid { grid-template-columns: 1fr; }
+            .promo-input-group {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -701,9 +870,61 @@ if (!Cart::isEmpty()) {
                             <span style="color: var(--mint-dark);">Gratuite</span>
                         </div>
 
+                        <!-- Section Code Promo -->
+                        <div class="promo-section">
+                            <div class="promo-input-wrapper" id="promoInputWrapper" style="<?= $appliedPromo ? 'display:none;' : '' ?>">
+                                <label for="promoCode">Code promo</label>
+                                <div class="promo-input-group">
+                                    <input type="text" id="promoCode" placeholder="Entrez votre code"
+                                           style="text-transform: uppercase;">
+                                    <button type="button" id="applyPromoBtn" class="apply-promo-btn">
+                                        Appliquer
+                                    </button>
+                                </div>
+                                <p class="promo-error" id="promoError"></p>
+                            </div>
+
+                            <div class="promo-applied" id="promoApplied" style="<?= $appliedPromo ? '' : 'display:none;' ?>">
+                                <div class="promo-badge-applied">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                                        <line x1="7" y1="7" x2="7.01" y2="7"/>
+                                    </svg>
+                                    <span class="promo-code-text" id="appliedCodeText"><?= h($appliedPromo['code'] ?? '') ?></span>
+                                    <button type="button" class="remove-promo-btn" id="removePromoBtn" title="Retirer">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p class="promo-success-text" id="promoSuccessText">
+                                    <?php if ($appliedPromo): ?>
+                                        <?php if ($appliedPromo['free_shipping']): ?>
+                                            Livraison gratuite appliquée !
+                                        <?php else: ?>
+                                            Réduction de <?= formatPrice($appliedPromo['discount']) ?> appliquée !
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Afficher réduction si code promo appliqué -->
+                        <div class="summary-row discount-row" id="discountRow" style="<?= ($appliedPromo && $appliedPromo['discount'] > 0) ? '' : 'display:none;' ?>">
+                            <span>Réduction</span>
+                            <span class="discount-value" id="discountValue">-<?= formatPrice($appliedPromo['discount'] ?? 0) ?></span>
+                        </div>
+
+                        <?php
+                        $finalTotal = $cartTotal;
+                        if ($appliedPromo && $appliedPromo['discount'] > 0) {
+                            $finalTotal = max(0, $cartTotal - $appliedPromo['discount']);
+                        }
+                        ?>
+
                         <div class="summary-row total">
                             <span>Total</span>
-                            <span><?= formatPrice($cartTotal) ?></span>
+                            <span id="finalTotal"><?= formatPrice($finalTotal) ?></span>
                         </div>
 
                         <a href="/public/checkout.php" class="btn btn-primary checkout-btn">
@@ -741,6 +962,120 @@ if (!Cart::isEmpty()) {
                 technique: el.dataset.technique || 'flex'
             });
         }
+
+        // Gestion code promo
+        document.addEventListener('DOMContentLoaded', function() {
+            const promoInput = document.getElementById('promoCode');
+            const applyBtn = document.getElementById('applyPromoBtn');
+            const removeBtn = document.getElementById('removePromoBtn');
+            const promoError = document.getElementById('promoError');
+            const promoInputWrapper = document.getElementById('promoInputWrapper');
+            const promoApplied = document.getElementById('promoApplied');
+            const appliedCodeText = document.getElementById('appliedCodeText');
+            const promoSuccessText = document.getElementById('promoSuccessText');
+            const discountRow = document.getElementById('discountRow');
+            const discountValue = document.getElementById('discountValue');
+            const finalTotal = document.getElementById('finalTotal');
+
+            const cartTotal = <?= $cartTotal ?>;
+
+            // Appliquer code promo
+            if (applyBtn) {
+                applyBtn.addEventListener('click', async function() {
+                    const code = promoInput.value.trim().toUpperCase();
+
+                    if (!code) {
+                        showError('Veuillez entrer un code promo');
+                        return;
+                    }
+
+                    applyBtn.disabled = true;
+                    applyBtn.textContent = 'Vérification...';
+
+                    try {
+                        const formData = new FormData();
+                        formData.append('code', code);
+
+                        const response = await fetch('/public/cart.php?ajax=validate_promo', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Masquer input, afficher badge
+                            promoInputWrapper.style.display = 'none';
+                            promoApplied.style.display = 'block';
+                            appliedCodeText.textContent = code;
+
+                            if (data.free_shipping) {
+                                promoSuccessText.textContent = 'Livraison gratuite appliquée !';
+                                discountRow.style.display = 'none';
+                            } else {
+                                promoSuccessText.textContent = 'Réduction de ' + formatPrice(data.discount) + ' appliquée !';
+                                discountRow.style.display = 'flex';
+                                discountValue.textContent = '-' + formatPrice(data.discount);
+                                finalTotal.textContent = formatPrice(Math.max(0, cartTotal - data.discount));
+                            }
+
+                            hideError();
+                        } else {
+                            showError(data.message);
+                        }
+                    } catch (err) {
+                        showError('Erreur de connexion. Réessayez.');
+                    }
+
+                    applyBtn.disabled = false;
+                    applyBtn.textContent = 'Appliquer';
+                });
+            }
+
+            // Retirer code promo
+            if (removeBtn) {
+                removeBtn.addEventListener('click', async function() {
+                    try {
+                        await fetch('/public/cart.php?ajax=remove_promo', { method: 'POST' });
+
+                        // Réafficher input
+                        promoApplied.style.display = 'none';
+                        promoInputWrapper.style.display = 'block';
+                        promoInput.value = '';
+                        discountRow.style.display = 'none';
+                        finalTotal.textContent = formatPrice(cartTotal);
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                    }
+                });
+            }
+
+            // Validation sur Entrée
+            if (promoInput) {
+                promoInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyBtn.click();
+                    }
+                });
+            }
+
+            function showError(msg) {
+                promoError.textContent = msg;
+                promoError.classList.add('show');
+            }
+
+            function hideError() {
+                promoError.classList.remove('show');
+            }
+
+            function formatPrice(amount) {
+                return new Intl.NumberFormat('fr-FR', {
+                    style: 'currency',
+                    currency: 'EUR'
+                }).format(amount);
+            }
+        });
     </script>
 </body>
 </html>

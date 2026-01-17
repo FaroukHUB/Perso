@@ -26,11 +26,11 @@
 **Statut global** : 🟢 STEP 1-5 TERMINÉS (refactoré) - Prochaine étape : STEP 6 (Stats Admin)
 
 **Derniers correctifs** :
-- STEP 5 refactoré : distinction claire entre Règles Promo (ex-upsells) et VRAIS Upsells
-- Règles Promo : système conditionnel (SI panier >= X ALORS réduction Y)
-- Vrais Upsells : suggestions de produits complémentaires ("Vous aimerez aussi")
-- Admin : 2 entrées séparées dans sidebar (Upsells + Règles Promo)
-- Cart.php : affiche maintenant les vraies suggestions de produits
+- STEP 5 refactoré v2 : distinction claire entre Upsells et Codes Promo
+- Upsells : suggestions de produits complémentaires ("Vous aimerez aussi") sur page panier
+- Codes Promo : système classique avec saisie code par le client (BIENVENUE20, etc.)
+- Admin : 2 entrées séparées dans sidebar (Upsells + Codes Promo)
+- Cart.php : affiche suggestions + champ saisie code promo avec validation AJAX
 
 ---
 
@@ -771,71 +771,95 @@ foreach ($sections as $section) {
 - `admin/options.php` - Section upload images techniques
 - `public/assets/js/real-render-modal.js` - Fetch API
 
-### STEP 5 — Upsells & Règles Promotionnelles ✅ TERMINÉ (REFACTORÉ)
+### STEP 5 — Upsells & Codes Promo ✅ TERMINÉ (REFACTORÉ v2)
 
-> **IMPORTANT** : Le système initial "Upsells" était en fait un système de règles promotionnelles conditionnelles (SI condition ALORS offre). Il a été renommé et un VRAI système d'upsells (suggestions de produits) a été créé.
+> **IMPORTANT** : STEP 5 a été refactoré pour séparer clairement :
+> - **Upsells** : Suggestions de produits complémentaires ("Vous aimerez aussi")
+> - **Codes Promo** : Système classique avec saisie code par le client
 
-#### STEP 5.A — Règles Promotionnelles (ex-"Upsells")
-
-**Architecture DB** :
-- Table `promo_rules` : conditions + offres (panier_min, produit_specifique, etc.)
-- Table `order_promo_rules` : historique utilisation par commande
-- Migration SQL : `sql/migrate_promo_rules.sql`
-
-**Admin CRUD** :
-- `app/models/PromoRule.php` : Modèle complet avec CRUD, findApplicable(), calcul réductions
-- `admin/promo-rules.php` : Liste avec actions toggle/delete/duplicate
-- `admin/promo-rule-form.php` : Formulaire création/édition avec interface "SI condition ALORS offre"
-- Design violet/menthe pour différencier des upsells
-
-**Fonctionnalités** :
-- Conditions : panier_min, produit_specifique, technique_specifique, categorie, quantite_min
-- Offres : produit, option, reduction, livraison_gratuite
-- Période de validité (dates début/fin)
-- Limite d'utilisations avec compteur
-- Priorité d'affichage personnalisable
-
-#### STEP 5.B — VRAIS Upsells (Suggestions de produits)
+#### STEP 5.A — VRAIS Upsells (Suggestions de produits)
 
 **Concept** : Suggérer des produits complémentaires sur la page panier pour inciter le client à ajouter des articles.
 
 **Architecture DB** :
-- Table `product_upsells` : trigger_type (any/product/category), suggested_product_id, badge, promo_price
-- Table `upsell_settings` : paramètres globaux (enabled, title, max_items, show_on_cart, etc.)
+- Table `product_upsells` : produits à suggérer avec badge, prix promo optionnel
+- Table `upsell_settings` : paramètres globaux (enabled, title, max_items, etc.)
 - Migration SQL : `sql/migrate_real_upsells.sql`
 
 **Admin** :
 - `app/models/ProductUpsell.php` : Modèle avec CRUD + getSuggestionsForCart()
-- `admin/upsells.php` : Liste des suggestions + paramètres globaux
-- `admin/upsell-form.php` : Formulaire création avec aperçu en temps réel
-- Interface intuitive : 1) Produit à suggérer → 2) Quand suggérer → 3) Personnalisation
+- `admin/upsells.php` : Liste des suggestions + paramètres globaux (design ultra-moderne)
+- `admin/upsell-form.php` : Formulaire création/édition avec aperçu en temps réel
+- Interface intuitive : Panel paramètres + grille produits suggérés
 
 **Client** :
-- `public/cart.php` : Section "Vous aimerez aussi" avec produits suggérés
-- Suggestions basées sur : produits configurés, ou fallback sur même catégorie
+- `public/cart.php` : Section suggestions avec produits configurés
 - Cards avec image, nom, prix (+ prix promo optionnel), badge optionnel
 - CTA "Personnaliser" vers configurateur
 
+#### STEP 5.B — Codes Promo (Saisie Client)
+
+**Concept** : Système classique de codes promo que le client saisit sur la page panier.
+
+**Architecture DB** :
+- Table `promo_codes` : code, nom, type réduction (%, montant fixe, livraison gratuite)
+- Table `order_promo_codes` : historique utilisation par commande
+- Migration SQL : `sql/migrate_promo_codes.sql`
+
+**Types de réduction** :
+- `percentage` : Pourcentage de réduction (ex: -20%)
+- `fixed_amount` : Montant fixe (ex: -10€)
+- `free_shipping` : Livraison gratuite
+
+**Admin CRUD** :
+- `app/models/PromoCode.php` : Modèle complet avec CRUD, validateCode(), calculateDiscount()
+- `admin/promo-codes.php` : Liste avec actions toggle/delete/duplicate (design ultra-moderne)
+- `admin/promo-code-form.php` : Formulaire création/édition avec aperçu en temps réel
+- Interface intuitive : Code + type réduction + conditions + période validité
+
+**Client** :
+- `public/cart.php` : Champ saisie code promo dans le récapitulatif
+- Validation AJAX en temps réel
+- Affichage réduction appliquée
+- Bouton retirer le code
+
+**Fonctionnalités Admin** :
+- Génération automatique de codes aléatoires
+- Copier le code en un clic
+- Statuts visuels : Actif, Inactif, Expiré, Épuisé, Programmé
+- Conditions : montant minimum, limite utilisations, période validité
+- Plafond réduction max pour les pourcentages
+- Duplication de codes existants
+
+**Fonctionnalités Client** :
+- Input stylé avec validation en temps réel
+- Feedback visuel succès/erreur
+- Réduction affichée dans le récapitulatif
+- Total mis à jour dynamiquement
+
 **Fichiers créés** :
-- `sql/migrate_promo_rules.sql`
 - `sql/migrate_real_upsells.sql`
-- `app/models/PromoRule.php`
+- `sql/migrate_promo_codes.sql`
 - `app/models/ProductUpsell.php`
-- `admin/promo-rules.php`
-- `admin/promo-rule-form.php`
-- `admin/upsells.php` (refait)
-- `admin/upsell-form.php` (refait)
+- `app/models/PromoCode.php`
+- `admin/upsells.php` (design ultra-moderne)
+- `admin/upsell-form.php`
+- `admin/promo-codes.php` (nouveau)
+- `admin/promo-code-form.php` (nouveau)
 
 **Fichiers modifiés** :
-- `admin/includes/sidebar.php` - Liens "Upsells" + "Règles Promo"
-- `public/cart.php` - Nouveau système suggestions produits
+- `admin/includes/sidebar.php` - Liens "Upsells" + "Codes Promo"
+- `public/cart.php` - Suggestions + champ code promo avec validation AJAX
 
 **Paramètres globaux upsells** :
 - Activer/désactiver les upsells
 - Titre de la section personnalisable
-- Nombre de produits à afficher (1-8)
-- Afficher sur panier / checkout
-- Fallback automatique vers produits même catégorie
+- Nombre de produits à afficher (2-6)
+- Sous-titre optionnel
+
+**Prévu (futur)** :
+- Intégration Brevo/WhatsApp pour diffusion codes promo
+- Statistiques d'utilisation des codes
 
 ---
 

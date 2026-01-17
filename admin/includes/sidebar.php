@@ -76,11 +76,12 @@ function isActive($page, $current) {
             <span>Upsells</span>
         </a>
 
-        <a href="/admin/promo-rules.php" class="nav-item <?= isActive('promo-rules.php', $currentPage) ?><?= isActive('promo-rule-form.php', $currentPage) ?>">
+        <a href="/admin/promo-codes.php" class="nav-item <?= isActive('promo-codes.php', $currentPage) ?><?= isActive('promo-code-form.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                <line x1="7" y1="7" x2="7.01" y2="7"/>
             </svg>
-            <span>Règles Promo</span>
+            <span>Codes Promo</span>
         </a>
 
         <a href="/admin/homepage.php" class="nav-item <?= isActive('homepage.php', $currentPage) ?><?= isActive('homepage-section.php', $currentPage) ?>">
