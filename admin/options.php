@@ -514,6 +514,39 @@ $isTechniqueType = $currentType === 'technique';
             color: var(--gray);
             font-style: italic;
         }
+        .technique-images-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: rgba(61, 255, 192, 0.1);
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            color: var(--mint-dark);
+        }
+        .technique-images-info svg {
+            flex-shrink: 0;
+            color: var(--mint-main);
+        }
+        .technique-image-add.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .technique-image-add.loading svg {
+            animation: spin 1s linear infinite;
+        }
+        .technique-image-add.loading span {
+            display: none;
+        }
+        .technique-image-add.loading::after {
+            content: 'Envoi...';
+            font-size: 11px;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
         /* Edit Modal */
         .modal-overlay {
@@ -679,7 +712,7 @@ $isTechniqueType = $currentType === 'technique';
                                     <?php endforeach; ?>
 
                                     <?php if (count($techniqueImages) < 3): ?>
-                                        <label class="technique-image-add">
+                                        <label class="technique-image-add" id="addBtn_<?= $option['id'] ?>">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                                             </svg>
@@ -688,17 +721,23 @@ $isTechniqueType = $currentType === 'technique';
                                                 <?= csrfField() ?>
                                                 <input type="hidden" name="technique_id" value="<?= $option['id'] ?>">
                                                 <input type="file" name="technique_image" accept="image/jpeg,image/png,image/webp"
-                                                       onchange="this.form.submit()">
+                                                       onchange="showUploadLoading(<?= $option['id'] ?>); this.form.submit();">
                                                 <input type="hidden" name="upload_technique_image" value="1">
                                             </form>
                                             <input type="file" style="display: none;" accept="image/jpeg,image/png,image/webp"
-                                                   onchange="document.getElementById('uploadForm_<?= $option['id'] ?>').querySelector('input[type=file]').files = this.files; document.getElementById('uploadForm_<?= $option['id'] ?>').submit();">
+                                                   onchange="document.getElementById('uploadForm_<?= $option['id'] ?>').querySelector('input[type=file]').files = this.files; showUploadLoading(<?= $option['id'] ?>); document.getElementById('uploadForm_<?= $option['id'] ?>').submit();">
                                         </label>
                                     <?php endif; ?>
 
                                     <?php if (empty($techniqueImages)): ?>
                                         <span class="technique-images-empty">Ajoutez des photos macro du rendu réel de cette technique</span>
                                     <?php endif; ?>
+                                </div>
+                                <div class="technique-images-info">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                                    </svg>
+                                    <span>Les images sont enregistrées automatiquement après sélection</span>
                                 </div>
                             </div>
                             <?php endif; ?>
@@ -854,6 +893,14 @@ $isTechniqueType = $currentType === 'technique';
         document.getElementById('editModal').addEventListener('click', function(e) {
             if (e.target === this) closeEditModal();
         });
+
+        // Loading state pour upload images techniques
+        function showUploadLoading(optionId) {
+            const btn = document.getElementById('addBtn_' + optionId);
+            if (btn) {
+                btn.classList.add('loading');
+            }
+        }
     </script>
 </body>
 </html>

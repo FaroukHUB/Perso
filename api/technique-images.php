@@ -22,9 +22,31 @@ if (empty($technique)) {
 $optionModel = new CustomizationOption();
 $techniques = $optionModel->findByType('technique');
 
+// Recherche flexible : par value OU par label (insensible à la casse)
+$techLower = strtolower($technique);
 $found = null;
+
 foreach ($techniques as $tech) {
-    if (strtolower($tech['value']) === strtolower($technique)) {
+    $valueLower = strtolower($tech['value']);
+    $labelLower = strtolower($tech['label']);
+
+    // Match exact sur value
+    if ($valueLower === $techLower) {
+        $found = $tech;
+        break;
+    }
+    // Match si le label contient la technique recherchée
+    if (strpos($labelLower, $techLower) !== false) {
+        $found = $tech;
+        break;
+    }
+    // Match si la value contient la technique recherchée
+    if (strpos($valueLower, $techLower) !== false) {
+        $found = $tech;
+        break;
+    }
+    // Match inversé : si la technique recherchée contient la value
+    if (strpos($techLower, $valueLower) !== false) {
         $found = $tech;
         break;
     }
