@@ -41,12 +41,21 @@
 
 ### 1.2 — UI Upload médias améliorée
 
-> Actuellement multi-select Ctrl. User veut : 1 image à la fois + bouton "+".
+> Interface modernisée pour les médias additionnels (content_block).
 
-- [ ] **1.2.1** — Remplacer input `multiple` par input simple + bouton "+ Ajouter une image"
-- [ ] **1.2.2** — Afficher les images uploadées avec bouton ❌ supprimer
-- [ ] **1.2.3** — Permettre réordonnancement drag&drop des images
-- [ ] **1.2.4** — Appliquer à content_block + autres sections si pertinent
+- [x] **1.2.1** — Remplacer input `multiple` par input simple + bouton "+ Ajouter une image" ✅
+- [x] **1.2.2** — Afficher les images uploadées avec bouton ❌ supprimer ✅
+- [x] **1.2.3** — Permettre réordonnancement drag&drop des images ✅
+- [x] **1.2.4** — Appliquer à content_block (fait) ✅
+
+**Implémentation** :
+- Galerie visuelle avec vignettes 100x100px
+- Bouton "+" pour ajouter une image à la fois
+- Bouton ❌ au hover pour supprimer
+- Handle drag pour réordonner (6 points)
+- Preview des nouvelles images "En attente"
+- Backend PHP mis à jour pour `existing_media_urls[]` + `additional_media[]`
+- Maximum 10 images
 
 ---
 

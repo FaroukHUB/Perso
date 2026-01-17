@@ -102,23 +102,31 @@ if (isPost()) {
         if (!$error && $data['type'] === 'content_block') {
             $additionalMedia = [];
 
-            // Conserver les médias existants (sauf ceux marqués pour suppression)
-            if ($isEdit && !empty($section['config']['additional_media'])) {
-                $removeIndexes = $_POST['remove_media'] ?? [];
-                foreach ($section['config']['additional_media'] as $idx => $media) {
-                    if (!in_array((string)$idx, $removeIndexes)) {
-                        $additionalMedia[] = $media;
+            // 1. Conserver les médias existants (dans l'ordre du formulaire)
+            if (!empty($_POST['existing_media_urls'])) {
+                foreach ($_POST['existing_media_urls'] as $url) {
+                    if (!empty($url)) {
+                        $additionalMedia[] = [
+                            'type' => 'image',
+                            'url' => $url
+                        ];
                     }
                 }
             }
 
-            // Ajouter les nouveaux médias
-            if (!empty($_FILES['additional_media']['tmp_name'][0])) {
+            // 2. Ajouter les nouveaux médias uploadés
+            if (!empty($_FILES['additional_media']['tmp_name'])) {
                 $allowedImages = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                $uploadedCount = 0;
-                foreach ($_FILES['additional_media']['tmp_name'] as $idx => $tmpName) {
-                    if (!empty($tmpName) && $_FILES['additional_media']['error'][$idx] === UPLOAD_ERR_OK) {
-                        $ext = strtolower(pathinfo($_FILES['additional_media']['name'][$idx], PATHINFO_EXTENSION));
+                $files = $_FILES['additional_media'];
+
+                // Gérer input simple ou multiple
+                $tmpNames = is_array($files['tmp_name']) ? $files['tmp_name'] : [$files['tmp_name']];
+                $names = is_array($files['name']) ? $files['name'] : [$files['name']];
+                $errors = is_array($files['error']) ? $files['error'] : [$files['error']];
+
+                foreach ($tmpNames as $idx => $tmpName) {
+                    if (!empty($tmpName) && $errors[$idx] === UPLOAD_ERR_OK) {
+                        $ext = strtolower(pathinfo($names[$idx], PATHINFO_EXTENSION));
                         if (in_array($ext, $allowedImages)) {
                             $filename = 'content_' . time() . '_' . uniqid() . '_' . $idx . '.' . $ext;
                             if (move_uploaded_file($tmpName, $uploadDir . $filename)) {
@@ -126,12 +134,14 @@ if (isPost()) {
                                     'type' => 'image',
                                     'url' => '/uploads/homepage/' . $filename
                                 ];
-                                $uploadedCount++;
                             }
                         }
                     }
                 }
             }
+
+            // Limiter à 10 images maximum
+            $additionalMedia = array_slice($additionalMedia, 0, 10);
 
             $data['config']['additional_media'] = $additionalMedia;
         }
@@ -320,22 +330,40 @@ if ($section && !empty($section['items'])) {
                                     $additionalMedia = $section['config']['additional_media'];
                                 }
                                 ?>
-                                <?php if (!empty($additionalMedia)): ?>
-                                    <div class="current-media-gallery">
+                                <div class="media-gallery-container" id="mediaGalleryContainer">
+                                    <div class="media-gallery-grid" id="mediaGalleryGrid">
                                         <?php foreach ($additionalMedia as $idx => $media): ?>
-                                            <div class="media-thumb">
+                                            <div class="media-gallery-item" draggable="true" data-index="<?= $idx ?>">
                                                 <img src="/public<?= h($media['url']) ?>" alt="Media <?= $idx + 1 ?>">
-                                                <label class="remove-media">
-                                                    <input type="checkbox" name="remove_media[]" value="<?= $idx ?>">
-                                                    <span>Supprimer</span>
-                                                </label>
+                                                <input type="hidden" name="existing_media_urls[]" value="<?= h($media['url']) ?>">
+                                                <button type="button" class="media-delete-btn" onclick="removeMediaItem(this)" title="Supprimer">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                                    </svg>
+                                                </button>
+                                                <div class="media-drag-handle" title="Glisser pour réordonner">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                        <circle cx="9" cy="6" r="2"/><circle cx="15" cy="6" r="2"/>
+                                                        <circle cx="9" cy="12" r="2"/><circle cx="15" cy="12" r="2"/>
+                                                        <circle cx="9" cy="18" r="2"/><circle cx="15" cy="18" r="2"/>
+                                                    </svg>
+                                                </div>
                                             </div>
                                         <?php endforeach; ?>
+                                        <!-- Zone d'ajout -->
+                                        <div class="media-add-zone" id="mediaAddZone">
+                                            <input type="file" name="additional_media[]" id="additionalMediaInput" accept="image/*" style="display: none;">
+                                            <button type="button" class="media-add-btn" onclick="document.getElementById('additionalMediaInput').click()">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                                </svg>
+                                                <span>Ajouter</span>
+                                            </button>
+                                        </div>
                                     </div>
-                                <?php endif; ?>
-                                <input type="file" name="additional_media[]" id="additional_media" multiple
-                                       accept="image/*">
-                                <small class="form-hint">Vous pouvez sélectionner plusieurs images (Ctrl+clic). Ces images seront affichées en galerie/slider.</small>
+                                    <div class="media-pending-uploads" id="mediaPendingUploads"></div>
+                                </div>
+                                <small class="form-hint">Cliquez sur + pour ajouter une image. Glissez-déposez pour réordonner. Maximum 10 images.</small>
                             </div>
 
                             <div class="form-group">
@@ -643,39 +671,165 @@ if ($section && !empty($section['items'])) {
         .status-draft {
             color: var(--gray);
         }
-        /* Multi-media gallery */
-        .current-media-gallery {
+        /* Multi-media gallery - Nouvelle UI */
+        .media-gallery-container {
+            margin-top: 10px;
+        }
+        .media-gallery-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            margin-bottom: 15px;
             padding: 15px;
             background: var(--gray-light);
             border-radius: var(--radius-md);
+            min-height: 110px;
         }
-        .media-thumb {
+        .media-gallery-item {
             position: relative;
             width: 100px;
+            height: 100px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            cursor: grab;
+            background: white;
         }
-        .media-thumb img {
-            width: 100px;
-            height: 80px;
+        .media-gallery-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .media-gallery-item.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        .media-gallery-item.drag-over {
+            border: 2px dashed var(--pink-main);
+        }
+        .media-gallery-item img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid white;
         }
-        .remove-media {
-            display: block;
-            margin-top: 5px;
-            font-size: 11px;
+        .media-delete-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 105, 180, 0.9);
+            border: none;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            opacity: 0;
+            transition: all 0.2s ease;
+            z-index: 2;
         }
-        .remove-media input {
-            margin-right: 4px;
+        .media-gallery-item:hover .media-delete-btn {
+            opacity: 1;
         }
-        .remove-media input:checked + span {
+        .media-delete-btn:hover {
+            background: var(--pink-dark);
+            transform: scale(1.1);
+        }
+        .media-drag-handle {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            width: 20px;
+            height: 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 2;
+        }
+        .media-gallery-item:hover .media-drag-handle {
+            opacity: 1;
+        }
+        .media-add-zone {
+            width: 100px;
+            height: 100px;
+        }
+        .media-add-btn {
+            width: 100%;
+            height: 100%;
+            border: 2px dashed var(--gray);
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--gray);
+            transition: all 0.2s ease;
+        }
+        .media-add-btn:hover {
+            border-color: var(--pink-main);
             color: var(--pink-main);
+            background: rgba(255, 105, 180, 0.05);
+        }
+        .media-add-btn span {
+            font-size: 11px;
             font-weight: 600;
+        }
+        .media-pending-uploads {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .media-pending-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid var(--mint-main);
+        }
+        .media-pending-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .media-pending-item .pending-badge {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--mint-main);
+            color: var(--black);
+            font-size: 9px;
+            font-weight: 600;
+            text-align: center;
+            padding: 2px;
+        }
+        .media-pending-item .pending-remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(255, 105, 180, 0.9);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            line-height: 1;
         }
     </style>
 
@@ -781,7 +935,198 @@ if ($section && !empty($section['items'])) {
         document.querySelectorAll('.item-checkbox input').forEach(cb => {
             cb.addEventListener('change', updateItemsCount);
         });
+
+        // Initialiser la galerie de médias
+        initMediaGallery();
     });
+
+    // ========== GESTION GALERIE MÉDIAS ==========
+
+    let pendingFiles = [];
+    let draggedItem = null;
+
+    function initMediaGallery() {
+        const fileInput = document.getElementById('additionalMediaInput');
+        const grid = document.getElementById('mediaGalleryGrid');
+
+        if (!fileInput || !grid) return;
+
+        // Écouter les ajouts de fichiers
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag & drop pour réordonner
+        initDragAndDrop();
+    }
+
+    function handleFileSelect(e) {
+        const files = Array.from(e.target.files);
+        const pendingContainer = document.getElementById('mediaPendingUploads');
+        const grid = document.getElementById('mediaGalleryGrid');
+        const existingCount = grid.querySelectorAll('.media-gallery-item').length;
+        const maxImages = 10;
+
+        files.forEach((file, idx) => {
+            if (existingCount + pendingFiles.length + idx >= maxImages) {
+                alert('Maximum ' + maxImages + ' images autorisées.');
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                alert('Seules les images sont autorisées.');
+                return;
+            }
+
+            // Créer preview
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const pendingItem = document.createElement('div');
+                pendingItem.className = 'media-pending-item';
+                pendingItem.innerHTML = `
+                    <img src="${ev.target.result}" alt="Preview">
+                    <div class="pending-badge">En attente</div>
+                    <button type="button" class="pending-remove" onclick="removePendingFile(this, ${pendingFiles.length})">×</button>
+                `;
+                pendingContainer.appendChild(pendingItem);
+            };
+            reader.readAsDataURL(file);
+
+            pendingFiles.push(file);
+        });
+
+        // Recréer l'input file pour permettre plusieurs sélections successives
+        updateFileInput();
+
+        // Réinitialiser l'input
+        e.target.value = '';
+    }
+
+    function removePendingFile(btn, index) {
+        // Supprimer visuellement
+        btn.closest('.media-pending-item').remove();
+        // Marquer comme null dans le tableau (on ne peut pas changer l'ordre facilement)
+        pendingFiles[index] = null;
+        updateFileInput();
+    }
+
+    function updateFileInput() {
+        // Recréer un DataTransfer avec les fichiers valides
+        const validFiles = pendingFiles.filter(f => f !== null);
+
+        // Créer un nouvel input file pour remplacer
+        const oldInput = document.getElementById('additionalMediaInput');
+        const newInput = oldInput.cloneNode(true);
+        newInput.addEventListener('change', handleFileSelect);
+
+        // Pour soumettre les fichiers, on utilise des inputs cachés
+        const pendingInputsContainer = document.getElementById('mediaPendingUploads');
+        pendingInputsContainer.querySelectorAll('input[type="file"]').forEach(i => i.remove());
+
+        // Créer un nouvel input avec les fichiers
+        if (validFiles.length > 0) {
+            const dt = new DataTransfer();
+            validFiles.forEach(f => dt.items.add(f));
+            newInput.files = dt.files;
+        }
+
+        oldInput.parentNode.replaceChild(newInput, oldInput);
+    }
+
+    function removeMediaItem(btn) {
+        const item = btn.closest('.media-gallery-item');
+        item.style.transform = 'scale(0.8)';
+        item.style.opacity = '0';
+        setTimeout(() => {
+            item.remove();
+            updateMediaOrder();
+        }, 200);
+    }
+
+    // ========== DRAG & DROP ==========
+
+    function initDragAndDrop() {
+        const grid = document.getElementById('mediaGalleryGrid');
+        if (!grid) return;
+
+        grid.addEventListener('dragstart', handleDragStart);
+        grid.addEventListener('dragend', handleDragEnd);
+        grid.addEventListener('dragover', handleDragOver);
+        grid.addEventListener('drop', handleDrop);
+        grid.addEventListener('dragleave', handleDragLeave);
+    }
+
+    function handleDragStart(e) {
+        if (!e.target.classList.contains('media-gallery-item')) return;
+        draggedItem = e.target;
+        e.target.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragEnd(e) {
+        if (draggedItem) {
+            draggedItem.classList.remove('dragging');
+            draggedItem = null;
+        }
+        document.querySelectorAll('.media-gallery-item').forEach(item => {
+            item.classList.remove('drag-over');
+        });
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+
+        const target = e.target.closest('.media-gallery-item');
+        if (target && target !== draggedItem && !target.classList.contains('media-add-zone')) {
+            document.querySelectorAll('.media-gallery-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+            target.classList.add('drag-over');
+        }
+    }
+
+    function handleDragLeave(e) {
+        const target = e.target.closest('.media-gallery-item');
+        if (target) {
+            target.classList.remove('drag-over');
+        }
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        const target = e.target.closest('.media-gallery-item');
+
+        if (target && draggedItem && target !== draggedItem) {
+            const grid = document.getElementById('mediaGalleryGrid');
+            const items = Array.from(grid.querySelectorAll('.media-gallery-item'));
+            const draggedIndex = items.indexOf(draggedItem);
+            const targetIndex = items.indexOf(target);
+
+            if (draggedIndex < targetIndex) {
+                target.after(draggedItem);
+            } else {
+                target.before(draggedItem);
+            }
+
+            updateMediaOrder();
+        }
+
+        document.querySelectorAll('.media-gallery-item').forEach(item => {
+            item.classList.remove('drag-over');
+        });
+    }
+
+    function updateMediaOrder() {
+        const grid = document.getElementById('mediaGalleryGrid');
+        const items = grid.querySelectorAll('.media-gallery-item');
+
+        items.forEach((item, idx) => {
+            item.dataset.index = idx;
+            const input = item.querySelector('input[name="existing_media_urls[]"]');
+            if (input) {
+                // L'ordre des inputs détermine l'ordre final
+            }
+        });
+    }
     </script>
 </body>
 </html>
