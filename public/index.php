@@ -58,9 +58,23 @@ foreach ($sections as &$section) {
             break;
 
         case 'blog_slider':
-            // Charger les articles publiés
-            $limit = $section['config']['limit'] ?? 6;
-            $section['posts'] = $blogModel->findPublished($limit);
+            // Charger les articles sélectionnés
+            $section['posts'] = [];
+            if (!empty($section['items'])) {
+                foreach ($section['items'] as $item) {
+                    if ($item['item_type'] === 'blog' && $item['item_active']) {
+                        $post = $blogModel->findById($item['item_id']);
+                        if ($post && $post['status'] === 'published') {
+                            $section['posts'][] = $post;
+                        }
+                    }
+                }
+            }
+            // Fallback: si aucun article sélectionné, charger les derniers publiés
+            if (empty($section['posts'])) {
+                $limit = $section['config']['limit'] ?? 6;
+                $section['posts'] = $blogModel->findPublished($limit);
+            }
             break;
     }
 }
@@ -521,6 +535,34 @@ foreach ($sections as $s) {
             width: 100%;
             display: block;
         }
+        .content-block-media.has-gallery {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .content-block-media .main-media {
+            border-radius: var(--radius-lg);
+        }
+        .content-block-media .media-gallery {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        .content-block-media .gallery-thumb {
+            width: 100px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            flex-shrink: 0;
+            opacity: 0.7;
+            transition: all var(--transition-fast);
+        }
+        .content-block-media .gallery-thumb:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
 
         /* ===== BLOG SLIDER SECTION ===== */
         .blog-section {
@@ -967,6 +1009,8 @@ foreach ($sections as $s) {
                 $contentBlockIndex++;
                 $altBg = ($contentBlockIndex % 2 === 0) ? 'alt-bg' : '';
                 $mediaLeft = ($section['config']['media_position'] ?? 'right') === 'left';
+                $additionalMedia = $section['config']['additional_media'] ?? [];
+                $hasMultipleMedia = !empty($additionalMedia);
     ?>
     <section class="content-block-section <?= $altBg ?>">
         <div class="container">
@@ -983,11 +1027,19 @@ foreach ($sections as $s) {
                     <?php endif; ?>
                 </div>
                 <?php if ($section['media_type'] !== 'none' && $section['media_url']): ?>
-                    <div class="content-block-media">
+                    <div class="content-block-media <?= $hasMultipleMedia ? 'has-gallery' : '' ?>">
                         <?php if ($section['media_type'] === 'video'): ?>
                             <video src="/public<?= h($section['media_url']) ?>" autoplay muted loop playsinline></video>
                         <?php else: ?>
-                            <img src="/public<?= h($section['media_url']) ?>" alt="<?= h($section['title']) ?>">
+                            <img src="/public<?= h($section['media_url']) ?>" alt="<?= h($section['title']) ?>" class="main-media">
+                        <?php endif; ?>
+
+                        <?php if ($hasMultipleMedia): ?>
+                            <div class="media-gallery">
+                                <?php foreach ($additionalMedia as $media): ?>
+                                    <img src="/public<?= h($media['url']) ?>" alt="" class="gallery-thumb">
+                                <?php endforeach; ?>
+                            </div>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>

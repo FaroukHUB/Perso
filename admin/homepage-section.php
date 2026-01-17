@@ -10,12 +10,14 @@ require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/HomepageSection.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Pack.php';
+require_once __DIR__ . '/../app/models/BlogPost.php';
 
 Auth::requireAdmin();
 
 $sectionModel = new HomepageSection();
 $productModel = new Product();
 $packModel = new Pack();
+$blogModel = new BlogPost();
 
 $sectionId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $section = null;
@@ -47,13 +49,13 @@ if (isPost()) {
             'config' => []
         ];
 
-        // Upload image si fournie
-        if (!empty($_FILES['media_file']['tmp_name'])) {
-            $uploadDir = __DIR__ . '/../public/uploads/homepage/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
+        // Upload image principale si fournie
+        $uploadDir = __DIR__ . '/../public/uploads/homepage/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
 
+        if (!empty($_FILES['media_file']['tmp_name'])) {
             $ext = strtolower(pathinfo($_FILES['media_file']['name'], PATHINFO_EXTENSION));
             $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm'];
 
@@ -73,7 +75,43 @@ if (isPost()) {
             $data['media_url'] = $section['media_url'];
         }
 
-        // Gestion des items (produits/packs)
+        // Gestion des médias additionnels (content_block uniquement)
+        if ($data['type'] === 'content_block') {
+            $additionalMedia = [];
+
+            // Conserver les médias existants (sauf ceux marqués pour suppression)
+            if ($isEdit && !empty($section['config']['additional_media'])) {
+                $removeIndexes = $_POST['remove_media'] ?? [];
+                foreach ($section['config']['additional_media'] as $idx => $media) {
+                    if (!in_array((string)$idx, $removeIndexes)) {
+                        $additionalMedia[] = $media;
+                    }
+                }
+            }
+
+            // Ajouter les nouveaux médias
+            if (!empty($_FILES['additional_media']['tmp_name'][0])) {
+                $allowedImages = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                foreach ($_FILES['additional_media']['tmp_name'] as $idx => $tmpName) {
+                    if (!empty($tmpName)) {
+                        $ext = strtolower(pathinfo($_FILES['additional_media']['name'][$idx], PATHINFO_EXTENSION));
+                        if (in_array($ext, $allowedImages)) {
+                            $filename = 'content_' . time() . '_' . uniqid() . '.' . $ext;
+                            if (move_uploaded_file($tmpName, $uploadDir . $filename)) {
+                                $additionalMedia[] = [
+                                    'type' => 'image',
+                                    'url' => '/uploads/homepage/' . $filename
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+
+            $data['config']['additional_media'] = $additionalMedia;
+        }
+
+        // Gestion des items (produits/packs/articles)
         $items = [];
         if ($data['type'] === 'featured_products' && !empty($_POST['product_ids'])) {
             foreach ($_POST['product_ids'] as $pid) {
@@ -82,6 +120,10 @@ if (isPost()) {
         } elseif ($data['type'] === 'featured_packs' && !empty($_POST['pack_ids'])) {
             foreach ($_POST['pack_ids'] as $pid) {
                 $items[] = ['type' => 'pack', 'id' => (int) $pid];
+            }
+        } elseif ($data['type'] === 'blog_slider' && !empty($_POST['blog_ids'])) {
+            foreach ($_POST['blog_ids'] as $bid) {
+                $items[] = ['type' => 'blog', 'id' => (int) $bid];
             }
         }
         $data['items'] = $items;
@@ -112,19 +154,23 @@ $types = $sectionModel->getTypes();
 $statuses = $sectionModel->getStatuses();
 $mediaTypes = $sectionModel->getMediaTypes();
 
-// Charger produits et packs pour la sélection
+// Charger produits, packs et articles pour la sélection
 $products = $productModel->findActive();
 $packs = $packModel->findActive();
+$blogPosts = $blogModel->findAll(); // Tous les articles (brouillon + publiés)
 
 // IDs des items sélectionnés
 $selectedProductIds = [];
 $selectedPackIds = [];
+$selectedBlogIds = [];
 if ($section && !empty($section['items'])) {
     foreach ($section['items'] as $item) {
         if ($item['item_type'] === 'product') {
             $selectedProductIds[] = $item['item_id'];
         } elseif ($item['item_type'] === 'pack') {
             $selectedPackIds[] = $item['item_id'];
+        } elseif ($item['item_type'] === 'blog') {
+            $selectedBlogIds[] = $item['item_id'];
         }
     }
 }
@@ -240,6 +286,33 @@ if ($section && !empty($section['items'])) {
                                 <small class="form-hint">Formats : JPG, PNG, GIF, WebP, MP4, WebM</small>
                             </div>
 
+                            <!-- Multi-médias pour content_block -->
+                            <div class="form-group multi-media-field" style="display: none;">
+                                <label>Médias additionnels</label>
+                                <?php
+                                $additionalMedia = [];
+                                if ($section && !empty($section['config']['additional_media'])) {
+                                    $additionalMedia = $section['config']['additional_media'];
+                                }
+                                ?>
+                                <?php if (!empty($additionalMedia)): ?>
+                                    <div class="current-media-gallery">
+                                        <?php foreach ($additionalMedia as $idx => $media): ?>
+                                            <div class="media-thumb">
+                                                <img src="/public<?= h($media['url']) ?>" alt="Media <?= $idx + 1 ?>">
+                                                <label class="remove-media">
+                                                    <input type="checkbox" name="remove_media[]" value="<?= $idx ?>">
+                                                    <span>Supprimer</span>
+                                                </label>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                                <input type="file" name="additional_media[]" id="additional_media" multiple
+                                       accept="image/*">
+                                <small class="form-hint">Vous pouvez sélectionner plusieurs images (Ctrl+clic). Ces images seront affichées en galerie/slider.</small>
+                            </div>
+
                             <div class="form-group">
                                 <label for="status">Statut</label>
                                 <select name="status" id="status">
@@ -304,14 +377,39 @@ if ($section && !empty($section['items'])) {
                                 </div>
                             </div>
 
-                            <!-- Blog info -->
-                            <div id="blogInfo" style="display: none;">
-                                <div class="info-box-blue">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-                                    </svg>
-                                    <p>Le slider blog affiche automatiquement les derniers articles publiés. <a href="/admin/blog.php">Gérer les articles</a>.</p>
-                                </div>
+                            <!-- Articles de blog -->
+                            <div id="blogSelection" style="display: none;">
+                                <p class="text-muted" style="margin-bottom: 15px;">
+                                    Sélectionnez les articles à afficher. <a href="/admin/blog.php" style="color: var(--pink-main);">Gérer les articles</a>
+                                </p>
+                                <?php if (empty($blogPosts)): ?>
+                                    <div class="info-box-blue">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                                        </svg>
+                                        <p>Aucun article de blog. <a href="/admin/blog-form.php">Créer un article</a>.</p>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="items-grid">
+                                        <?php foreach ($blogPosts as $post): ?>
+                                            <label class="item-checkbox">
+                                                <input type="checkbox" name="blog_ids[]" value="<?= $post['id'] ?>"
+                                                       <?= in_array($post['id'], $selectedBlogIds) ? 'checked' : '' ?>>
+                                                <div class="item-card <?= $post['status'] === 'draft' ? 'item-draft' : '' ?>">
+                                                    <?php if (!empty($post['cover_image_url'])): ?>
+                                                        <img src="/public<?= h($post['cover_image_url']) ?>" alt="">
+                                                    <?php else: ?>
+                                                        <div class="item-placeholder">📝</div>
+                                                    <?php endif; ?>
+                                                    <span class="item-name"><?= h($post['title']) ?></span>
+                                                    <span class="item-type <?= $post['status'] === 'published' ? 'status-published' : 'status-draft' ?>">
+                                                        <?= $post['status'] === 'published' ? '✓ Publié' : '⏳ Brouillon' ?>
+                                                    </span>
+                                                </div>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
 
                             <!-- Newsletter info -->
@@ -508,6 +606,52 @@ if ($section && !empty($section['items'])) {
             color: var(--pink-dark);
             border-left: 4px solid var(--pink-main);
         }
+        /* Blog article status */
+        .item-draft {
+            opacity: 0.7;
+            border-style: dashed;
+        }
+        .status-published {
+            color: var(--mint-dark);
+            font-weight: 600;
+        }
+        .status-draft {
+            color: var(--gray);
+        }
+        /* Multi-media gallery */
+        .current-media-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: var(--gray-light);
+            border-radius: var(--radius-md);
+        }
+        .media-thumb {
+            position: relative;
+            width: 100px;
+        }
+        .media-thumb img {
+            width: 100px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid white;
+        }
+        .remove-media {
+            display: block;
+            margin-top: 5px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .remove-media input {
+            margin-right: 4px;
+        }
+        .remove-media input:checked + span {
+            color: var(--pink-main);
+            font-weight: 600;
+        }
     </style>
 
     <script>
@@ -516,18 +660,20 @@ if ($section && !empty($section['items'])) {
         const itemsCard = document.getElementById('itemsCard');
         const productsSelection = document.getElementById('productsSelection');
         const packsSelection = document.getElementById('packsSelection');
-        const blogInfo = document.getElementById('blogInfo');
+        const blogSelection = document.getElementById('blogSelection');
         const contentField = document.querySelector('.content-field');
         const ctaFields = document.querySelector('.cta-fields');
         const mediaField = document.querySelector('.media-field');
+        const multiMediaField = document.querySelector('.multi-media-field');
         const itemsCardTitle = document.getElementById('itemsCardTitle');
 
         // Reset
         itemsCard.style.display = 'none';
         productsSelection.style.display = 'none';
         packsSelection.style.display = 'none';
-        blogInfo.style.display = 'none';
+        blogSelection.style.display = 'none';
         contentField.style.display = 'none';
+        multiMediaField.style.display = 'none';
         document.getElementById('newsletterInfo').style.display = 'none';
 
         switch (type) {
@@ -556,11 +702,12 @@ if ($section && !empty($section['items'])) {
                 contentField.style.display = 'block';
                 ctaFields.style.display = 'grid';
                 mediaField.style.display = 'block';
+                multiMediaField.style.display = 'block';
                 break;
 
             case 'blog_slider':
                 itemsCard.style.display = 'block';
-                blogInfo.style.display = 'block';
+                blogSelection.style.display = 'block';
                 itemsCardTitle.textContent = 'Articles de blog';
                 ctaFields.style.display = 'none';
                 mediaField.style.display = 'none';
@@ -593,8 +740,12 @@ if ($section && !empty($section['items'])) {
             count = document.querySelectorAll('#packsSelection input:checked').length;
             itemsCountBadge.style.display = 'inline-flex';
             itemsCountBadge.textContent = count + ' sélectionné(s)';
+        } else if (type === 'blog_slider') {
+            count = document.querySelectorAll('#blogSelection input:checked').length;
+            itemsCountBadge.style.display = 'inline-flex';
+            itemsCountBadge.textContent = count + ' sélectionné(s)';
         } else {
-            // Masquer le badge pour blog_slider et newsletter
+            // Masquer le badge pour newsletter
             itemsCountBadge.style.display = 'none';
         }
     }
