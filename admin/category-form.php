@@ -130,6 +130,177 @@ $csrf = csrfToken();
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/admin.css">
+    <style>
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 24px;
+            align-items: start;
+        }
+        @media (max-width: 1024px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        .data-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .data-card-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .data-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--black);
+            margin: 0;
+        }
+        .data-card-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--black);
+            font-size: 14px;
+        }
+        .form-group .required {
+            color: var(--pink-main);
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="email"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-family: inherit;
+            background: var(--white);
+            transition: all 0.2s ease;
+            color: var(--black);
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--pink-main);
+            box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.1);
+        }
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--gray);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        .form-group select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 48px;
+        }
+        .form-text {
+            display: block;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--gray);
+        }
+        .form-text strong {
+            color: var(--pink-main);
+        }
+
+        /* File input moderne */
+        .form-group input[type="file"] {
+            padding: 12px 16px;
+            border: 2px dashed var(--gray-light);
+            border-radius: var(--radius-md);
+            background: var(--gray-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .form-group input[type="file"]:hover {
+            border-color: var(--pink-main);
+            background: rgba(255, 105, 180, 0.05);
+        }
+        .form-group input[type="file"]::file-selector-button {
+            padding: 8px 16px;
+            margin-right: 12px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--gradient-pink);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .form-group input[type="file"]::file-selector-button:hover {
+            transform: scale(1.02);
+        }
+
+        /* Image preview */
+        .current-image {
+            background: var(--gray-light);
+            padding: 15px;
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+        .current-image img {
+            max-height: 200px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Bouton principal */
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+            padding: 16px 24px;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .alert-success {
+            background: rgba(61, 255, 192, 0.15);
+            color: var(--mint-dark);
+            border-left: 4px solid var(--mint-main);
+        }
+        .alert-error {
+            background: rgba(255, 105, 180, 0.15);
+            color: var(--pink-dark);
+            border-left: 4px solid var(--pink-main);
+        }
+    </style>
 </head>
 <body>
     <div class="admin-wrapper">
