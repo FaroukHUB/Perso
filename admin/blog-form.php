@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
+require_once __DIR__ . '/../app/helpers/ImageHelper.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/BlogPost.php';
@@ -52,7 +53,10 @@ if (isPost()) {
 
             if (in_array($ext, $allowed)) {
                 $filename = 'blog_' . time() . '_' . uniqid() . '.' . $ext;
-                if (move_uploaded_file($_FILES['cover_image']['tmp_name'], $uploadDir . $filename)) {
+                $fullPath = $uploadDir . $filename;
+                if (move_uploaded_file($_FILES['cover_image']['tmp_name'], $fullPath)) {
+                    // Générer version WebP
+                    ImageHelper::convertToWebP($fullPath);
                     $data['cover_image_url'] = '/uploads/blog/' . $filename;
                 }
             } else {

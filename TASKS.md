@@ -65,14 +65,23 @@
 
 ### 2.1 — Conversion WebP automatique
 
-- [ ] **2.1.1** — Créer fonction `convertToWebP($imagePath)` dans helpers
-- [ ] **2.1.2** — Appliquer à l'upload (products, homepage, blog)
-- [ ] **2.1.3** — Conserver original + générer version WebP
-- [ ] **2.1.4** — Mettre à jour chemins en DB (ou logique dynamique)
+- [x] **2.1.1** — Créer classe `ImageHelper` avec `convertToWebP()` ✅
+- [x] **2.1.2** — Appliquer à l'upload (products, homepage, blog, packs) ✅
+- [x] **2.1.3** — Conserver original + générer version WebP automatiquement ✅
+- [x] **2.1.4** — Logique dynamique : WebP généré à l'upload, chemins DB inchangés ✅
+
+**Fichiers créés** :
+- `app/helpers/ImageHelper.php` - Classe avec convertToWebP(), pictureTag(), getImageUrls()
+
+**Fichiers modifiés** :
+- `admin/homepage-section.php` - WebP pour images sections
+- `admin/product-form.php` - WebP pour images produits
+- `admin/blog-form.php` - WebP pour images blog
+- `admin/pack-form.php` - WebP pour images packs
 
 ### 2.2 — Fallback navigateur
 
-- [ ] **2.2.1** — Utiliser balise `<picture>` avec `<source type="image/webp">` + `<img>` fallback
+- [~] **2.2.1** — Utiliser balise `<picture>` avec `<source type="image/webp">` + `<img>` fallback
 - [ ] **2.2.2** — Appliquer partout (index, product, cart, admin)
 
 ---

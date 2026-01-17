@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
+require_once __DIR__ . '/../app/helpers/ImageHelper.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/Pack.php';
@@ -95,11 +96,19 @@ function handlePackImageUpload(array $file, string $uploadDir, ?string $oldImage
         throw new Exception('Erreur lors de l\'upload de l\'image.');
     }
 
+    // Générer version WebP pour performance
+    ImageHelper::convertToWebP($filePath);
+
     // Supprimer l'ancienne image si elle existe
     if (!empty($oldImage)) {
         $oldFile = __DIR__ . '/../public' . $oldImage;
         if (file_exists($oldFile)) {
             @unlink($oldFile);
+            // Supprimer aussi la version WebP
+            $oldWebp = preg_replace('/\.[^.]+$/', '.webp', $oldFile);
+            if (file_exists($oldWebp)) {
+                @unlink($oldWebp);
+            }
         }
     }
 

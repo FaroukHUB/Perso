@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
+require_once __DIR__ . '/../app/helpers/ImageHelper.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/HomepageSection.php';
@@ -87,6 +88,8 @@ if (isPost()) {
                             $data['media_type'] = 'video';
                         } else {
                             $data['media_type'] = 'image';
+                            // Générer version WebP pour les images
+                            ImageHelper::convertToWebP($fullPath);
                         }
                     } else {
                         $error = 'Échec de l\'upload. Vérifiez les permissions du dossier uploads.';
@@ -129,7 +132,10 @@ if (isPost()) {
                         $ext = strtolower(pathinfo($names[$idx], PATHINFO_EXTENSION));
                         if (in_array($ext, $allowedImages)) {
                             $filename = 'content_' . time() . '_' . uniqid() . '_' . $idx . '.' . $ext;
-                            if (move_uploaded_file($tmpName, $uploadDir . $filename)) {
+                            $fullPath = $uploadDir . $filename;
+                            if (move_uploaded_file($tmpName, $fullPath)) {
+                                // Générer version WebP
+                                ImageHelper::convertToWebP($fullPath);
                                 $additionalMedia[] = [
                                     'type' => 'image',
                                     'url' => '/uploads/homepage/' . $filename
