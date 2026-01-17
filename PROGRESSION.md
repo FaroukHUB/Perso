@@ -667,6 +667,31 @@ foreach ($sections as $section) {
 - `public/index.php` - Nouveau CSS `.content-block-gallery` + `.gallery-card`
 - `public/index.php` - Logique PHP : `$isGalleryMode = $hasMultipleMedia && !$hasMainMedia`
 
+### STEP 2 — Médias & Performance ✅ TERMINÉ
+
+**2.1 — Conversion WebP automatique** :
+- Classe `ImageHelper` créée avec :
+  - `convertToWebP()` - Convertit JPG/PNG/GIF en WebP via GD
+  - `pictureTag()` - Génère balise `<picture>` avec fallback
+  - `getImageUrls()` - Retourne URLs original + WebP
+  - `processUpload()` - Upload + conversion automatique
+- Intégré à tous les uploads admin (homepage, products, blog, packs)
+- Original conservé + version .webp générée côte à côte
+
+**2.2 — Fallback navigateur** :
+- Fonction `picture()` dans functions.php (wrapper de ImageHelper)
+- Appliquée sur index.php : produits, packs, galerie content_block, blog
+- Génère automatiquement `<picture><source type="webp"><img></picture>` si WebP existe
+- Fallback vers `<img>` simple sinon
+
+**Fichiers créés** :
+- `app/helpers/ImageHelper.php`
+
+**Fichiers modifiés** :
+- `app/helpers/functions.php` - Fonction picture()
+- `admin/homepage-section.php`, `admin/product-form.php`, `admin/blog-form.php`, `admin/pack-form.php`
+- `public/index.php` - Utilisation de picture() pour images
+
 ---
 
 ## 🔴 AUDIT RECADRAGE - 2026-01-16
