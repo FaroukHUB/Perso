@@ -1,334 +1,329 @@
 # TASKS — PERSONNALY
 
-> **Fichier de suivi des tâches** — Complémentaire à PROGRESSION.md
+> **Fichier de suivi des tâches structuré**
 > - `[ ]` = TODO
-> - `[~]` = DOING
-> - `[x]` = DONE
-> - 1 tâche = 1 ligne
-> - Mise à jour obligatoire à chaque fin de session
+> - `[~]` = EN COURS
+> - `[x]` = TERMINÉ
+> - 1 tâche = 1 implémentation
+> - Validation humaine AVANT chaque implémentation
+> - Mise à jour TASKS.md + PROGRESSION.md après chaque tâche
 
 ---
 
-## ✅ PHASE P5 TERMINÉE — PAGE D'ACCUEIL DYNAMIQUE
+## 📊 ÉTAT GLOBAL — 2026-01-17
 
-> **Vision** : Page d'accueil ultra moderne, 100% administrable, scalable multi-marques.
-> Sections prédéfinies, pas de page builder.
-
-### P5.1 — Architecture DB
-
-- [x] **P5.1.1** — Créer table `homepage_sections` ✅
-- [x] **P5.1.2** — Créer table `homepage_section_items` ✅
-- [x] **P5.1.3** — Créer table `blog_posts` ✅
-- [x] **P5.1.4** — Migration SQL (migrate_homepage.sql) ✅
-
-### P5.2 — Modèles PHP
-
-- [x] **P5.2.1** — HomepageSection.php (CRUD + items) ✅
-- [x] **P5.2.2** — BlogPost.php (CRUD + slug) ✅
-
-### P5.3 — Admin Sections
-
-- [x] **P5.3.1** — admin/homepage.php (liste + réordonnancement drag&drop) ✅
-- [x] **P5.3.2** — admin/homepage-section.php (formulaire type-spécifique) ✅
-- [x] **P5.3.3** — Sélection produits/packs via checkboxes ✅
-- [x] **P5.3.4** — Liens sidebar admin (Homepage + Blog) ✅
-
-### P5.4 — Admin Blog
-
-- [x] **P5.4.1** — admin/blog.php (liste articles) ✅
-- [x] **P5.4.2** — admin/blog-form.php (création/édition) ✅
-- [x] **P5.4.3** — Lien sidebar admin ✅
-
-### P5.5 — Front Dynamique
-
-- [x] **P5.5.1** — Refonte index.php (lecture sections DB) ✅
-- [x] **P5.5.2** — Composant hero dynamique ✅
-- [x] **P5.5.3** — Composant grille produits ✅
-- [x] **P5.5.4** — Composant grille packs ✅
-- [x] **P5.5.5** — Composant content_block ✅
-- [x] **P5.5.6** — Composant blog_slider ✅
-- [x] **P5.5.7** — Fallback si aucune section ✅
-
-### P5.6 — Tests & Validation
-
-- [ ] **P5.6.1** — Test création/édition sections (à tester en prod)
-- [ ] **P5.6.2** — Test réordonnancement (à tester en prod)
-- [ ] **P5.6.3** — Test rendu front (tous types)
-- [ ] **P5.6.4** — Test responsive
-- [x] **P5.6.5** — Mise à jour docs ✅
+| Phase | Statut | Détail |
+|-------|--------|--------|
+| P1-P3 | ✅ TERMINÉ | Polices, Drag&Drop, Zones |
+| P4 | ✅ TERMINÉ | Packs / Idées |
+| P5 | ✅ TERMINÉ | Page d'accueil dynamique |
+| P6 | 🔴 À FAIRE | Voir ci-dessous |
 
 ---
 
-## ✅ GEL FONCTIONNEL P4 — Packs / Idées terminé
+# 🔴 PHASE P6 — FONCTIONNALITÉS RESTANTES
 
 ---
 
-## ✅ GEL FONCTIONNEL — Tasks 01-05 terminées
+## STEP 1 — CORRECTIFS & FONDATIONS (PRIORITÉ HAUTE)
 
-- [x] **Task 01** — Déplacer bouton "Voir le rendu réel" sous l'image produit ✅
-- [x] **Task 02** — Refonte sélecteur techniques (dropdown scalable comme polices) ✅
-- [x] **Task 03** — Audit UX complet configurateur ✅
-- [x] **Task 04** — Vérification parcours client complet ✅
-- [x] **Task 05** — Vérification drag & drop / lightbox en conditions réelles ✅
+> Corriger les bugs existants avant d'ajouter des features.
 
----
+### 1.1 — Debug chemins images uploads
 
-## 🟡 PRIORITÉ MOYENNE (après P4)
+- [ ] **1.1.1** — Investiguer pourquoi les images uploadées (hero, content_block) ne s'affichent pas côté site
+- [ ] **1.1.2** — Vérifier cohérence chemins : admin enregistre `/uploads/homepage/` mais front attend `/public/uploads/homepage/`
+- [ ] **1.1.3** — Tester upload + affichage sur o2switch (permissions 755)
+- [ ] **1.1.4** — Documenter la solution
 
-- [ ] Optimisation performance JS
-- [ ] Optimisation UX mobile avancée
-- [ ] Ajouter images de référence pour flex, flock, sublimation
+### 1.2 — UI Upload médias améliorée
 
----
+> Actuellement multi-select Ctrl. User veut : 1 image à la fois + bouton "+".
 
-## 🟢 PRIORITÉ BASSE
-
-- [ ] Connexion client
-- [ ] Paiement en ligne
-- [ ] Historique commandes client
+- [ ] **1.2.1** — Remplacer input `multiple` par input simple + bouton "+ Ajouter une image"
+- [ ] **1.2.2** — Afficher les images uploadées avec bouton ❌ supprimer
+- [ ] **1.2.3** — Permettre réordonnancement drag&drop des images
+- [ ] **1.2.4** — Appliquer à content_block + autres sections si pertinent
 
 ---
 
-## 📦 BACKLOG (non planifié)
+## STEP 2 — MÉDIAS & PERFORMANCE
 
-- [ ] Export image personnalisée pour email/PDF
-- [ ] Pinch-zoom mobile amélioré
-- [ ] Mode sombre admin
-- [ ] Statistiques avancées dashboard
+> Optimisation des images pour performance web.
 
----
+### 2.1 — Conversion WebP automatique
 
-## 📋 AUDIT UX CONFIGURATEUR — 2026-01-17
+- [ ] **2.1.1** — Créer fonction `convertToWebP($imagePath)` dans helpers
+- [ ] **2.1.2** — Appliquer à l'upload (products, homepage, blog)
+- [ ] **2.1.3** — Conserver original + générer version WebP
+- [ ] **2.1.4** — Mettre à jour chemins en DB (ou logique dynamique)
 
-### Structure actuelle
+### 2.2 — Fallback navigateur
 
-```
-DESKTOP (>1024px) - Layout 3 colonnes:
-┌────────────────────────────────────────────────────────────────────┐
-│ GAUCHE (300px)    │   CENTRE (flex)       │   DROITE (320px)      │
-│ sticky            │                       │   sticky              │
-├───────────────────┼───────────────────────┼───────────────────────┤
-│ • Texte perso     │   • Toggle Face/Dos   │   • Nom produit       │
-│ • Police (dropdown)│   • Preview 450px    │   • Prix              │
-│ • Couleur texte   │   • Zone impression   │   • Taille            │
-│ • Technique       │   • Zoom btn          │   • Couleur produit   │
-│   └─ Rendu réel   │   • Drag hint         │   • Quantité          │
-│      (bouton)     │                       │   • Ajouter panier    │
-└────────────────────────────────────────────────────────────────────┘
-
-MOBILE (<768px) - Stack + Accordions:
-┌─────────────────────────────┐
-│ PREVIEW (350px)             │
-│ Toggle Face/Dos + Zoom      │
-├─────────────────────────────┤
-│ [Accordion] Votre texte     │
-│ [Accordion] Police          │
-│ [Accordion] Couleur texte   │
-│ [Accordion] Technique       │
-│ [Accordion] Taille          │
-│ [Accordion] Couleur         │
-│ [Accordion] Quantité        │
-├─────────────────────────────┤
-│ STICKY CTA: Prix + Ajouter  │
-└─────────────────────────────┘
-```
-
-### ✅ Points positifs
-
-| Élément | Status | Détail |
-|---------|--------|--------|
-| Layout 3 colonnes | ✅ OK | Grid responsive, colonnes sticky |
-| Preview produit | ✅ OK | 450px desktop, 350px mobile |
-| Zone d'impression | ✅ OK | Visible en overlay, positionnement % |
-| Sélecteur polices | ✅ OK | Dropdown scalable, recherche, preview |
-| Couleurs texte | ✅ OK | Pastilles avec preview temps réel |
-| Toggle Face/Dos | ✅ OK | Visible si image dos existe |
-| Sticky CTA mobile | ✅ OK | Prix + bouton fixe en bas |
-| Accordéons mobile | ✅ OK | Collapsible, animation fluide |
-| Drag & drop | ✅ OK | Touch + Mouse, contraint zone |
-
-### ❌ Problèmes identifiés
-
-#### 1. Bouton "Voir le rendu réel" — MAUVAISE POSITION
-- **Actuel**: Dans section technique (ligne 1288), caché dans accordion mobile
-- **Attendu**: Sous l'image produit, visible en permanence
-- **Impact**: Client ne voit pas l'option, pas rassuré
-- **Fichier**: `public/product.php` lignes 1287-1295
-
-#### 2. Sélecteur techniques — UX OBSOLÈTE
-- **Actuel**: Liste de radio buttons en colonne (`technique-options`)
-- **Attendu**: Dropdown scalable comme sélecteur polices
-- **Impact**: Non scalable (20+ techniques = scroll énorme)
-- **Fichier**: `public/product.php` lignes 1269-1286, styles 830-872
-
-#### 3. Comportement bouton "Rendu réel" si aucune technique
-- **Actuel**: Ouvre modal vide ou technique par défaut
-- **Attendu**: Message "Sélectionnez une technique pour voir le rendu réel"
-- **Fichier**: `public/assets/js/real-render-modal.js`
-
-### 🧪 À tester en conditions réelles
-
-| Test | Méthode | Résultat attendu |
-|------|---------|------------------|
-| Drag & drop mobile | Touch sur preview | Texte suit le doigt |
-| Lightbox position | Clic zoom | Position texte = configurateur |
-| Lightbox drag | Drag dans lightbox | Position synchro avec config |
-| Parcours panier | Ajouter → Panier | Personnalisation visible |
-| Responsive 600px | Viewport mobile | Preview lisible, CTA visible |
-
-### 📐 Dimensions clés
-
-| Breakpoint | Layout | Preview | Notes |
-|------------|--------|---------|-------|
-| >1200px | 3 cols (300-flex-320) | 450px | Full desktop |
-| 1024-1200px | 3 cols (280-flex-280) | 450px | Tablet landscape |
-| 768-1024px | Stack (1 col) | 450px | Tablet portrait |
-| <768px | Stack + accordions | 350px | Mobile + sticky CTA |
-| <600px | Stack + accordions | 300px | Petit mobile |
+- [ ] **2.2.1** — Utiliser balise `<picture>` avec `<source type="image/webp">` + `<img>` fallback
+- [ ] **2.2.2** — Appliquer partout (index, product, cart, admin)
 
 ---
 
-## ✅ TERMINÉ (Session 13)
+## STEP 3 — CATÉGORIES PRODUITS (IMPORTANT)
 
-- [x] Fix Lightbox v2 (position + drag + zone impression + sync)
-- [x] Modal "Voir le rendu réel" par technique
-- [x] Nettoyage CSS techniques (suppression effets fake)
-- [x] Retrait SVG Filters de toutes les pages
-- [x] Mise à jour PROGRESSION.md
+> Organiser les produits en catégories pour filtrage et sections homepage.
+
+### 3.1 — Architecture DB
+
+- [ ] **3.1.1** — Créer table `categories` (id, name, slug, description, image_url, sort_order, status)
+- [ ] **3.1.2** — Créer table `product_categories` (product_id, category_id) — relation N:N
+- [ ] **3.1.3** — Migration SQL
+
+### 3.2 — Admin CRUD Catégories
+
+- [ ] **3.2.1** — admin/categories.php (liste + réordonnancement)
+- [ ] **3.2.2** — admin/category-form.php (création/édition)
+- [ ] **3.2.3** — Lien sidebar admin
+- [ ] **3.2.4** — Dans product-form.php : checkboxes catégories
+
+### 3.3 — Sections homepage avec catégories
+
+- [ ] **3.3.1** — Type section `featured_category` : affiche produits d'une catégorie
+- [ ] **3.3.2** — Modifier `featured_products` : permettre sélection par catégorie OU produits individuels OU mix
+- [ ] **3.3.3** — Admin : dropdown catégorie + checkboxes produits (avec filtre)
 
 ---
 
-## 📋 VÉRIFICATION PARCOURS CLIENT — Task 04 — 2026-01-17
+## STEP 4 — TECHNIQUES : RENDU RÉEL ADMIN
 
-### Flux vérifié
+> Permettre à l'admin d'uploader les photos macro de rendu réel par technique.
 
-```
-PRODUIT (product.php) → PANIER (cart.php) → CHECKOUT (checkout.php) → SUCCÈS
-```
+### 4.1 — Architecture
 
-### ✅ Étapes vérifiées
+- [ ] **4.1.1** — Créer table `technique_images` (id, technique_id, image_url, sort_order)
+- [ ] **4.1.2** — Ou stocker dans config JSON de customization_options
 
-| Étape | Page | Status | Détail |
-|-------|------|--------|--------|
-| 1. Configuration | product.php | ✅ OK | Texte, police, couleur, technique, position |
-| 2. Ajout panier | product.php | ✅ OK | CSRF, quantité, customization complète |
-| 3. Vue panier | cart.php | ✅ OK | Liste articles, quantité +/-, supprimer |
-| 4. Modification | cart.php | ✅ OK | Update qty, clear cart fonctionnels |
-| 5. Formulaire | checkout.php | ✅ OK | Validation email, champs obligatoires |
-| 6. Création commande | checkout.php | ✅ OK | Transaction DB, rollback si erreur |
-| 7. Email | checkout.php | ✅ OK | Confirmation client + notification admin |
-| 8. Succès | checkout.php | ✅ OK | Numéro commande affiché |
+### 4.2 — Admin upload images techniques
 
-### 🔒 Sécurité vérifiée
+- [ ] **4.2.1** — Dans admin/options.php (onglet Techniques) : section upload images
+- [ ] **4.2.2** — UI : 1 image à la fois, max 3 par technique
+- [ ] **4.2.3** — Affichage miniatures avec suppression
+- [ ] **4.2.4** — Stockage dans `/public/assets/references/techniques/{technique}/`
 
-| Aspect | Status | Implémentation |
-|--------|--------|----------------|
-| CSRF | ✅ OK | Token sur tous les formulaires |
-| Validation email | ✅ OK | `filter_var()` côté serveur |
-| Escape HTML | ✅ OK | Fonction `h()` partout |
-| Transaction DB | ✅ OK | `beginTransaction()` + `commit/rollback` |
-| Panier vide | ✅ OK | Redirect vers accueil |
+### 4.3 — Intégration modal rendu réel
 
-### 📦 Données transmises au panier
+- [ ] **4.3.1** — real-render-modal.js : charger images depuis DB au lieu de chemins hardcodés
+- [ ] **4.3.2** — Fallback si aucune image : message "Images bientôt disponibles"
 
-```php
-$customization = [
-    'size' => 'M',
-    'color' => 'blanc',
-    'text' => 'Mon texte',
-    'text_color' => 'noir',
-    'font' => 'Poppins',
-    'technique' => 'flex',
-    'view' => 'front',
-    'position' => ['x' => 50.0, 'y' => 50.0, 'zone_id' => 1]
-];
-```
+---
 
-### ⚠️ Points d'attention (non bloquants)
+## STEP 5 — UPSELLS (TRÈS IMPORTANT)
 
-| Point | Fichier | Détail |
+> Proposer des produits/options supplémentaires pour augmenter le panier moyen.
+
+### 5.1 — Architecture DB
+
+- [ ] **5.1.1** — Créer table `upsells` (id, name, type, condition_type, condition_value, offer_type, offer_value, discount, priority, status)
+- [ ] **5.1.2** — Types de conditions : panier_min, produit_specifique, technique_specifique, categorie
+- [ ] **5.1.3** — Types d'offres : produit, option, reduction
+
+### 5.2 — Admin CRUD Upsells
+
+- [ ] **5.2.1** — admin/upsells.php (liste)
+- [ ] **5.2.2** — admin/upsell-form.php (création avec règles conditionnelles)
+- [ ] **5.2.3** — Interface : SI [condition] ALORS proposer [offre]
+- [ ] **5.2.4** — Lien sidebar admin
+
+### 5.3 — Affichage client
+
+- [ ] **5.3.1** — cart.php : section "Vous aimerez aussi" basée sur règles
+- [ ] **5.3.2** — checkout.php : upsells avant validation
+- [ ] **5.3.3** — Ajout rapide au panier depuis upsell
+
+---
+
+## STEP 6 — STATS ADMIN (RESTREINT)
+
+> Dashboard analytics pour Owner/Manager uniquement.
+
+### 6.1 — Architecture
+
+- [ ] **6.1.1** — Ajouter colonne `role` dans table users (admin, owner, manager, staff)
+- [ ] **6.1.2** — Ou créer table `user_roles`
+
+### 6.2 — Onglet Stats
+
+- [ ] **6.2.1** — admin/stats.php (accès restreint Owner/Manager)
+- [ ] **6.2.2** — Middleware vérification rôle
+- [ ] **6.2.3** — Lien sidebar conditionnel
+
+### 6.3 — Métriques
+
+- [ ] **6.3.1** — CA (jour, semaine, mois, année)
+- [ ] **6.3.2** — Nombre commandes + panier moyen
+- [ ] **6.3.3** — Nouveaux clients
+- [ ] **6.3.4** — Top produits
+- [ ] **6.3.5** — Stats personnalisations (techniques populaires, polices)
+
+### 6.4 — Messages business
+
+- [ ] **6.4.1** — Règles simples : "CA en hausse de X%" / "Technique broderie très demandée"
+- [ ] **6.4.2** — Alertes : stock bas, commande en retard
+
+---
+
+## STEP 7 — ARCHIVE COMMANDES
+
+> Gérer les commandes terminées sans encombrer la liste principale.
+
+### 7.1 — Architecture
+
+- [ ] **7.1.1** — Ajouter colonne `archived_at` dans orders
+- [ ] **7.1.2** — Ou créer table `orders_archive`
+
+### 7.2 — Fonctionnalités
+
+- [ ] **7.2.1** — Bouton "Archiver" sur commandes livrées/annulées
+- [ ] **7.2.2** — admin/orders-archive.php (liste archives)
+- [ ] **7.2.3** — Export CSV (filtré par date, statut)
+- [ ] **7.2.4** — Restauration (désarchiver)
+- [ ] **7.2.5** — Suppression définitive (confirmation double)
+
+---
+
+## STEP 8 — ORGANISATION INTERNE
+
+> Outils pour gérer l'équipe et le workflow.
+
+### 8.1 — Notes internes commandes
+
+- [ ] **8.1.1** — Table `order_notes` (order_id, user_id, note, created_at)
+- [ ] **8.1.2** — Interface dans admin/order.php (timeline notes)
+- [ ] **8.1.3** — Mention @user (notification)
+
+### 8.2 — Tags commandes
+
+- [ ] **8.2.1** — Table `order_tags` (id, name, color)
+- [ ] **8.2.2** — Table `order_tag_assignments` (order_id, tag_id)
+- [ ] **8.2.3** — Admin : gestion tags + assignation
+- [ ] **8.2.4** — Filtrage par tag dans liste commandes
+
+### 8.3 — Assignation staff
+
+- [ ] **8.3.1** — Colonne `assigned_to` dans orders
+- [ ] **8.3.2** — Dropdown assignation dans order.php
+- [ ] **8.3.3** — Filtrage "Mes commandes" dans liste
+
+### 8.4 — Alertes retard
+
+- [ ] **8.4.1** — Définir délais par statut (ex: pending > 24h = alerte)
+- [ ] **8.4.2** — Badge visuel dans liste commandes
+- [ ] **8.4.3** — Notification email (optionnel)
+
+---
+
+## STEP 9 — MARKETING & FIDÉLITÉ
+
+> Outils pour fidéliser et relancer les clients.
+
+### 9.1 — Points fidélité
+
+- [ ] **9.1.1** — Table `loyalty_points` (customer_id, points, source, order_id, created_at)
+- [ ] **9.1.2** — Règles : 1€ = X points
+- [ ] **9.1.3** — Affichage points dans compte client
+- [ ] **9.1.4** — Utilisation points = réduction
+
+### 9.2 — Relances automatiques
+
+- [ ] **9.2.1** — Table `email_automations` (type, delay, template, status)
+- [ ] **9.2.2** — Panier abandonné (24h, 48h, 72h)
+- [ ] **9.2.3** — Client inactif (30j, 60j, 90j)
+- [ ] **9.2.4** — Cron job pour envoi
+
+### 9.3 — Cross-sell post-commande
+
+- [ ] **9.3.1** — Email "Complétez votre look" après commande
+- [ ] **9.3.2** — Suggestions basées sur achat
+
+---
+
+## STEP 10 — PAIEMENT & LIVRAISON (DERNIER)
+
+> Intégration paiement en ligne et transporteurs.
+
+### 10.1 — Stripe
+
+- [ ] **10.1.1** — Créer compte Stripe + API keys
+- [ ] **10.1.2** — Intégration Stripe Checkout ou Elements
+- [ ] **10.1.3** — Webhook pour confirmation paiement
+- [ ] **10.1.4** — Mise à jour statut commande automatique
+- [ ] **10.1.5** — Gestion remboursements admin
+
+### 10.2 — Livraison intelligente
+
+- [ ] **10.2.1** — Intégration API Mondial Relay (points relais)
+- [ ] **10.2.2** — Intégration API Colissimo (domicile)
+- [ ] **10.2.3** — Calcul frais selon poids/destination
+- [ ] **10.2.4** — Choix transporteur checkout
+- [ ] **10.2.5** — Tracking commande
+
+---
+
+# ✅ PHASES TERMINÉES
+
+## ✅ P5 — PAGE D'ACCUEIL DYNAMIQUE
+
+| Tâche | Statut |
+|-------|--------|
+| P5.1 — Architecture DB | ✅ OK |
+| P5.2 — Modèles PHP | ✅ OK |
+| P5.3 — Admin Sections | ✅ OK |
+| P5.4 — Admin Blog | ✅ OK |
+| P5.5 — Front Dynamique | ✅ OK |
+| P5.6 — Newsletter | ✅ OK |
+| P5.7 — Éditeur Quill | ✅ OK |
+| P5.8 — Sélection articles blog | ✅ OK |
+| P5.9 — Multi-médias content_block | ✅ OK |
+| P5.10 — Fix getItems() blog | ✅ OK |
+
+## ✅ P4 — PACKS / IDÉES
+
+| Tâche | Statut |
+|-------|--------|
+| P4.1 — Architecture DB | ✅ OK |
+| P4.2 — Admin CRUD | ✅ OK |
+| P4.3 — Preset JSON | ✅ OK |
+| P4.4 — Injection configurateur | ✅ OK |
+| P4.5 — Section inspirations | ✅ OK |
+| P4.6 — Tests validation | ✅ OK |
+
+## ✅ P1-P3 — FONDATIONS
+
+| Phase | Contenu | Statut |
 |-------|---------|--------|
-| Position affichée "centre" | cart.php:448 | Hardcodé, devrait afficher X/Y ou "Personnalisée" |
-| Image checkout | checkout.php:554 | Emoji 👕 au lieu de vraie image produit |
-
-### 🎯 Conclusion
-
-**Parcours client 100% fonctionnel.** Aucun bug bloquant détecté.
-Les points d'attention sont cosmétiques et n'impactent pas la conversion.
+| P1 | Polices administrables | ✅ OK |
+| P2 | Drag & drop preview | ✅ OK |
+| P3 | Zones d'impression | ✅ OK |
 
 ---
 
-## 📋 VÉRIFICATION DRAG & DROP / LIGHTBOX — Task 05 — 2026-01-17
-
-### Synchronisation bidirectionnelle
+# 📋 ORDRE D'IMPLÉMENTATION RECOMMANDÉ
 
 ```
-CONFIGURATEUR ─────────────────────────────────────► LIGHTBOX
-   │                                                    │
-   │  textX: currentX                                   │
-   │  textY: currentY                                   │
-   │  printZone: {x, y, width, height}                 │
-   │  onPositionChange: callback                        │
-   │                                                    │
-   │◄─────────────────────────────────────────────────  │
-   │                                                    │
-   │  onPositionChange(newX, newY)                      │
-   │  → currentX = newX                                 │
-   │  → currentY = newY                                 │
-   │  → updateTextPosition()                            │
-   │  → hidden inputs mis à jour                        │
-   └────────────────────────────────────────────────────┘
+STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STEP 8 → STEP 9 → STEP 10
+   │         │         │         │         │
+   │         │         │         │         └── Upsells (boost CA)
+   │         │         │         └── Rendu réel admin (UX)
+   │         │         └── Catégories (organisation)
+   │         └── WebP (performance)
+   └── Correctifs (stabilité)
 ```
 
-### ✅ Points vérifiés
-
-| Critère | Fichier | Status | Implémentation |
-|---------|---------|--------|----------------|
-| Position transmise Config→LB | product.php:2166-2167 | ✅ OK | `textX: currentX, textY: currentY` |
-| Zone transmise Config→LB | product.php:2170-2176 | ✅ OK | `printZone: {x, y, width, height}` |
-| Callback sync LB→Config | product.php:2178-2182 | ✅ OK | `onPositionChange(newX, newY)` |
-| Contrainte zone Config | product.php:1750-1762 | ✅ OK | `constrainToZone(x, y)` |
-| Contrainte zone Lightbox | lightbox.js:359-371 | ✅ OK | `constrainToZone(x, y)` |
-| Hidden inputs synchro | product.php:1746-1747 | ✅ OK | `positionX.value, positionY.value` |
-
-### 🖱️ Desktop — Événements vérifiés
-
-| Événement | Configurateur | Lightbox |
-|-----------|---------------|----------|
-| `mousedown` | product.php:1816 ✅ | lightbox.js:434 ✅ |
-| `mousemove` | product.php:1817 ✅ | lightbox.js:435 ✅ |
-| `mouseup` | product.php:1818 ✅ | lightbox.js:436 ✅ |
-| `dragstart` (prevent) | product.php:1821 ✅ | lightbox.js:439 ✅ |
-
-### 📱 Mobile — Événements vérifiés
-
-| Événement | Configurateur | Lightbox |
-|-----------|---------------|----------|
-| `touchstart` | product.php:1811 ✅ | lightbox.js:429 ✅ |
-| `touchmove` | product.php:1812 ✅ | lightbox.js:430 ✅ |
-| `touchend` | product.php:1813 ✅ | lightbox.js:431 ✅ |
-| `{ passive: false }` | ✅ | ✅ |
-
-### 🎨 UX CSS vérifié
-
-| État | Configurateur | Lightbox |
-|------|---------------|----------|
-| Curseur repos | `cursor: grab` ✅ | `cursor: grab` ✅ |
-| Curseur drag | `cursor: grabbing` ✅ | `cursor: grabbing` ✅ |
-| Visual feedback | `.dragging` scale(1.05) ✅ | `.dragging` scale(1.02) ✅ |
-| Zone visible au drag | `.active` border dashed ✅ | `.active` border dashed ✅ |
-
-### 🎯 Conclusion
-
-**Implémentation complète et fonctionnelle.**
-
-- Position strictement conservée entre configurateur ↔ lightbox
-- Drag & drop actif et contraint dans les deux contextes
-- Synchronisation bidirectionnelle opérationnelle
-- Events touch + mouse correctement configurés
-
-**Prêt pour gel fonctionnel.**
+**Justification** :
+1. **Step 1** : Corriger bugs existants = stabilité
+2. **Step 2** : Performance = meilleure UX
+3. **Step 3** : Catégories = organisation nécessaire avant upsells
+4. **Step 4** : Rendu réel = finalise l'UX configurateur
+5. **Step 5** : Upsells = augmente CA avant lancement
+6. **Step 6-9** : Outils internes = scalabilité équipe
+7. **Step 10** : Paiement = dernier car nécessite tout le reste stable
 
 ---
 
-**Dernière mise à jour** : 2026-01-17 — Task 05 terminée (drag & drop / lightbox vérifié)
+**Dernière mise à jour** : 2026-01-17 — Audit complet + restructuration
