@@ -909,6 +909,18 @@ $cartCount = Cart::count();
         .technique-selector-dropdown.open {
             display: block;
         }
+        /* Dropdown intelligent : ouverture vers le haut si pas d'espace */
+        .technique-selector-dropdown.open-up {
+            top: auto;
+            bottom: 100%;
+            border-top: 2px solid var(--pink-main);
+            border-bottom: none;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+        }
+        .technique-selector-trigger.open-up {
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+        }
         .technique-search-box {
             padding: 12px 15px;
             border-bottom: 1px solid rgba(0,0,0,0.08);
@@ -2016,16 +2028,31 @@ $cartCount = Cart::count();
             });
 
             function openTechniqueDropdown() {
+                // Détection intelligente : ouvrir vers le haut si pas assez d'espace en bas
+                const triggerRect = techniqueTrigger.getBoundingClientRect();
+                const dropdownHeight = 320; // max-height du dropdown
+                const spaceBelow = window.innerHeight - triggerRect.bottom;
+                const spaceAbove = triggerRect.top;
+
+                // Ouvrir vers le haut si pas assez d'espace en bas ET assez en haut
+                const openUp = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
+
                 techniqueTrigger.classList.add('open');
                 techniqueDropdown.classList.add('open');
+
+                if (openUp) {
+                    techniqueTrigger.classList.add('open-up');
+                    techniqueDropdown.classList.add('open-up');
+                }
+
                 techniqueSearch.value = '';
                 filterTechniques('');
                 setTimeout(() => techniqueSearch.focus(), 100);
             }
 
             function closeTechniqueDropdown() {
-                techniqueTrigger.classList.remove('open');
-                techniqueDropdown.classList.remove('open');
+                techniqueTrigger.classList.remove('open', 'open-up');
+                techniqueDropdown.classList.remove('open', 'open-up');
             }
 
             // Fermer au clic extérieur
