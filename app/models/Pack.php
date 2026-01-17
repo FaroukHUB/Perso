@@ -8,7 +8,7 @@ require_once __DIR__ . '/../core/Database.php';
 
 class Pack
 {
-    private PDO $db;
+    private $db;
 
     public function __construct()
     {
