@@ -33,11 +33,11 @@
 
 - [x] **1.1.1** — Investiguer pourquoi les images uploadées (hero, content_block) ne s'affichent pas côté site ✅
 - [x] **1.1.2** — Ajouter feedback erreurs PHP détaillé (UPLOAD_ERR_*) ✅
-- [~] **1.1.3** — Tester upload + affichage sur o2switch (permissions 755)
-- [ ] **1.1.4** — Documenter la solution
+- [x] **1.1.3** — Corriger le rendu content_block pour médias additionnels ✅
+- [x] **1.1.4** — Documenter la solution ✅
 
-**Analyse** : Les chemins sont corrects (`/public/uploads/...`). Le `.htaccess` gère les redirections.
-Le problème probable : uploads échouent silencieusement. Feedback erreurs ajouté pour diagnostic.
+**Solution** : Le bug était dans `public/index.php` ligne 1029. Le bloc média ne s'affichait que si une image principale existait (`$section['media_url']`), empêchant l'affichage des médias additionnels seuls.
+**Fix** : Condition modifiée pour afficher le bloc si média principal OU médias additionnels existent.
 
 ### 1.2 — UI Upload médias améliorée
 

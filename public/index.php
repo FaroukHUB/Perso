@@ -1026,12 +1026,18 @@ foreach ($sections as $s) {
                         <a href="<?= h($section['cta_url']) ?>" class="btn btn-primary"><?= h($section['cta_text']) ?></a>
                     <?php endif; ?>
                 </div>
-                <?php if ($section['media_type'] !== 'none' && $section['media_url']): ?>
+                <?php
+                // Afficher le bloc média si : média principal existe OU médias additionnels existent
+                $hasMainMedia = $section['media_type'] !== 'none' && !empty($section['media_url']);
+                if ($hasMainMedia || $hasMultipleMedia):
+                ?>
                     <div class="content-block-media <?= $hasMultipleMedia ? 'has-gallery' : '' ?>">
-                        <?php if ($section['media_type'] === 'video'): ?>
-                            <video src="/public<?= h($section['media_url']) ?>" autoplay muted loop playsinline></video>
-                        <?php else: ?>
-                            <img src="/public<?= h($section['media_url']) ?>" alt="<?= h($section['title']) ?>" class="main-media">
+                        <?php if ($hasMainMedia): ?>
+                            <?php if ($section['media_type'] === 'video'): ?>
+                                <video src="/public<?= h($section['media_url']) ?>" autoplay muted loop playsinline></video>
+                            <?php else: ?>
+                                <img src="/public<?= h($section['media_url']) ?>" alt="<?= h($section['title']) ?>" class="main-media">
+                            <?php endif; ?>
                         <?php endif; ?>
 
                         <?php if ($hasMultipleMedia): ?>
