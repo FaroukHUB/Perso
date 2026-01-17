@@ -582,15 +582,21 @@ if ($section && !empty($section['items'])) {
 
     function updateItemsCount() {
         const type = document.getElementById('type').value;
+        const itemsCountBadge = document.getElementById('itemsCount');
         let count = 0;
 
         if (type === 'featured_products') {
             count = document.querySelectorAll('#productsSelection input:checked').length;
+            itemsCountBadge.style.display = 'inline-flex';
+            itemsCountBadge.textContent = count + ' sélectionné(s)';
         } else if (type === 'featured_packs') {
             count = document.querySelectorAll('#packsSelection input:checked').length;
+            itemsCountBadge.style.display = 'inline-flex';
+            itemsCountBadge.textContent = count + ' sélectionné(s)';
+        } else {
+            // Masquer le badge pour blog_slider et newsletter
+            itemsCountBadge.style.display = 'none';
         }
-
-        document.getElementById('itemsCount').textContent = count + ' sélectionné(s)';
     }
 
     document.addEventListener('DOMContentLoaded', function() {

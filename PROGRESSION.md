@@ -543,6 +543,7 @@ Front:
 | `featured_packs` | ✅ Sélection packs via checkboxes | ✅ Cards glassmorphism |
 | `content_block` | ✅ Texte + média (image/vidéo) | ✅ Layout 2 colonnes alternées |
 | `blog_slider` | ✅ Auto (articles publiés) | ✅ Slider horizontal scrollable |
+| `newsletter` | ✅ Titre, sous-titre, CTA, image fond | ✅ Formulaire inscription AJAX |
 
 **Architecture front dynamique** :
 ```php
@@ -554,6 +555,7 @@ foreach ($sections as $section) {
         case 'featured_packs': // Render packs grid
         case 'content_block': // Render text + media
         case 'blog_slider': // Render blog carousel
+        case 'newsletter': // Render newsletter form
     }
 }
 ```
@@ -564,6 +566,47 @@ foreach ($sections as $section) {
 - Chargement conditionnel des données (produits/packs/articles)
 - Navbar/footer conservés statiques
 - Fallback si aucune section configurée
+
+### 2026-01-17 - Session 17 (P5 - CORRECTIONS & NEWSLETTER)
+
+**Corrections apportées** :
+
+| Bug | Cause | Fix |
+|-----|-------|-----|
+| HTTP 500 admin/homepage.php | `requireAuth()` au lieu de `Auth::requireAdmin()` | Réécriture complète |
+| HTTP 500 admin/homepage-section.php | Même problème + includes inexistants | Réécriture complète |
+| Hero image non affichée | Code ne gérait pas `media_url` en background | Ajout style inline + CSS `.hero-with-bg` |
+| TinyMCE nécessite clé API | CDN payant | **Remplacé par Quill** (gratuit) |
+
+**Section Newsletter (P5.8)** :
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Migration SQL | ✅ OK | `sql/migrate_newsletter.sql` |
+| Type 'newsletter' HomepageSection | ✅ OK | Ajouté au model + ENUM |
+| Admin formulaire | ✅ OK | Champs titre, sous-titre, CTA, image fond |
+| Front rendu | ✅ OK | Section responsive avec overlay |
+| API AJAX inscription | ✅ OK | `/public/api/newsletter-subscribe.php` |
+| Table newsletter_subscribers | ✅ OK | email, source, status, created_at |
+
+**Fichiers créés** :
+- `sql/migrate_newsletter.sql` - ALTER ENUM + table newsletter_subscribers
+- `public/api/newsletter-subscribe.php` - Endpoint AJAX inscription
+
+**Fichiers modifiés** :
+- `app/models/HomepageSection.php` - Type 'newsletter' ajouté
+- `admin/homepage-section.php` - Formulaire newsletter + info box
+- `public/index.php` - Rendu section newsletter + CSS + JS AJAX
+- `admin/blog-form.php` - TinyMCE → Quill (éditeur gratuit)
+
+**Éditeur Blog - Quill** :
+- Titres H1, H2, H3
+- Gras, italique, souligné, barré
+- Couleurs texte/fond
+- Listes ordonnées/puces
+- Citations (blockquote)
+- Liens + Images (upload via AJAX)
+- 100% gratuit, sans clé API
 
 ---
 
