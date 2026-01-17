@@ -364,9 +364,6 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
     </style>
 </head>
 <body>
-    <!-- SVG Filters pour techniques de personnalisation -->
-    <?php include __DIR__ . '/../public/assets/includes/svg-filters.php'; ?>
-
     <div class="admin-layout">
         <?php include __DIR__ . '/includes/sidebar-alt.php'; ?>
 

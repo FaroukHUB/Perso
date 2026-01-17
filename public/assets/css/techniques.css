@@ -1,222 +1,48 @@
 /**
- * PERSONNALY - Styles visuels par technique de personnalisation
- * Chaque technique produit un rendu visuel immédiatement identifiable
+ * PERSONNALY - Styles de texte pour personnalisation
  *
- * IMPORTANT: Nécessite l'inclusion de /public/assets/includes/svg-filters.php
- * dans le <body> de chaque page utilisant ces styles.
- *
- * SWITCH A/B BRODERIE:
- * - Par défaut: Variante A (sobre/premium)
- * - Pour tester B: ajouter classe .broderie-variant-b sur <body> ou parent
+ * CHANGEMENT DE DIRECTION (2026-01):
+ * - Le configurateur est INDICATIF, pas photoréaliste
+ * - Aucun effet matière CSS (broderie, flex, flock, sublimation)
+ * - Texte propre, lisible, position fidèle
+ * - Le rendu matière réel passe par des photos dans un modal séparé
  */
 
 /* ============================================
    BASE - Texte de personnalisation
+   Style propre, lisible sur tous fonds
    ============================================ */
 .preview-text,
 .lightbox-text {
-    transition: all 0.3s ease;
-}
+    /* Transitions fluides */
+    transition: all 0.2s ease;
 
-/* ============================================
-   BRODERIE VARIANTE A - Premium / Sobre
-   Inspiré des références réelles:
-   - Relief subtil mais crédible
-   - Texture fil légère (grain)
-   - Direction satin stitch simulée
-   - Brillance naturelle du fil
-   ============================================ */
-.technique-broderie,
-.technique-Broderie {
-    /* Relief principal - ombre portée réaliste (fil qui monte du tissu) */
+    /* Ombre légère pour lisibilité sur tous fonds */
     text-shadow:
-        /* Ombre interne haute (creux du tissu) */
-        0 -0.5px 0 rgba(0, 0, 0, 0.1),
-        /* Ombre principale portée (direction lumière haut-gauche) */
-        1px 1.5px 0 rgba(0, 0, 0, 0.25),
-        1.5px 2px 0.5px rgba(0, 0, 0, 0.2),
-        /* Profondeur supplémentaire */
-        2px 2.5px 1px rgba(0, 0, 0, 0.12),
-        /* Highlight subtil (brillance fil) */
-        -0.5px -0.5px 0 rgba(255, 255, 255, 0.15);
+        0 1px 2px rgba(0, 0, 0, 0.1),
+        0 0 1px rgba(255, 255, 255, 0.5);
 
-    /* Filtre SVG pour texture et relief */
-    filter: url(#broderie-a);
-
-    /* Contour léger simulant l'épaisseur du fil */
-    -webkit-text-stroke: 0.3px currentColor;
-    paint-order: stroke fill;
-
-    /* Police adaptée broderie (plus grasse, espacement) */
-    font-weight: 700;
-    letter-spacing: 0.8px;
-
-    /* Légère transformation 3D pour profondeur */
-    transform: translateZ(0);
-    backface-visibility: hidden;
-}
-
-/* Fallback si SVG filter non supporté */
-@supports not (filter: url(#broderie-a)) {
-    .technique-broderie,
-    .technique-Broderie {
-        text-shadow:
-            0 -0.5px 0 rgba(0, 0, 0, 0.1),
-            1px 1.5px 0 rgba(0, 0, 0, 0.3),
-            2px 2.5px 1px rgba(0, 0, 0, 0.2),
-            2.5px 3px 2px rgba(0, 0, 0, 0.1),
-            -0.5px -0.5px 0 rgba(255, 255, 255, 0.2);
-        filter: contrast(1.05);
-    }
-}
-
-/* Ajustement pour fonds sombres */
-.dark-background .technique-broderie,
-.dark-background .technique-Broderie,
-[style*="background-color: #1"] .technique-broderie,
-[style*="background-color: #1"] .technique-Broderie,
-[style*="background-color: #0"] .technique-broderie,
-[style*="background-color: #0"] .technique-Broderie {
-    text-shadow:
-        0 -0.5px 0 rgba(255, 255, 255, 0.05),
-        1px 1.5px 0 rgba(0, 0, 0, 0.5),
-        2px 2.5px 1px rgba(0, 0, 0, 0.35),
-        -0.5px -0.5px 0 rgba(255, 255, 255, 0.25);
-}
-
-/* ============================================
-   BRODERIE VARIANTE B - Texture marquée
-   Plus de relief, grain plus visible
-   Activer avec: .broderie-variant-b sur parent
-   ============================================ */
-.broderie-variant-b .technique-broderie,
-.broderie-variant-b .technique-Broderie,
-.technique-broderie.variant-b,
-.technique-Broderie.variant-b {
-    /* Relief plus prononcé */
-    text-shadow:
-        /* Ombre interne */
-        0 -1px 0 rgba(0, 0, 0, 0.15),
-        /* Ombres portées multiples (effet cousu en relief) */
-        0.5px 1px 0 rgba(0, 0, 0, 0.2),
-        1px 1.5px 0 rgba(0, 0, 0, 0.25),
-        1.5px 2px 0 rgba(0, 0, 0, 0.22),
-        2px 2.5px 0.5px rgba(0, 0, 0, 0.18),
-        2.5px 3px 1px rgba(0, 0, 0, 0.12),
-        /* Highlight marqué */
-        -0.5px -1px 0 rgba(255, 255, 255, 0.25),
-        0 -0.5px 0 rgba(255, 255, 255, 0.1);
-
-    /* Filtre SVG variante B (plus de texture) */
-    filter: url(#broderie-b);
-
-    /* Contour plus épais */
-    -webkit-text-stroke: 0.5px currentColor;
-
-    /* Police encore plus grasse */
-    font-weight: 800;
-    letter-spacing: 1px;
-}
-
-/* ============================================
-   FLEX - Vinyle plat, lisse, brillant
-   Bords très nets, aspect plastique premium
-   ============================================ */
-.technique-flex {
-    /* Pas d'ombre portée - aspect plat collé */
-    text-shadow: none;
-
-    /* Bords ultra nets */
+    /* Police nette et lisible */
+    font-weight: 600;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-
-    /* Léger reflet brillant (gradient subtil) */
-    background: linear-gradient(
-        175deg,
-        currentColor 0%,
-        currentColor 40%,
-        rgba(255, 255, 255, 0.2) 50%,
-        currentColor 60%,
-        currentColor 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-
-    /* Filtre SVG pour brillance */
-    filter: url(#flex-shine);
-
-    /* Police standard, très lisible */
-    font-weight: 600;
-    letter-spacing: 0.3px;
 }
 
-/* Fallback si background-clip non supporté */
-@supports not (-webkit-background-clip: text) {
-    .technique-flex {
-        background: none;
-        filter: brightness(1.05) contrast(1.02);
-    }
+/* État vide / placeholder */
+.preview-text.empty {
+    opacity: 0.5;
+    font-style: italic;
 }
 
-/* ============================================
-   FLOCK - Velours mat, texture douce
-   Aspect textile doux, pas de brillance
-   ============================================ */
-.technique-flock {
-    /* Ombre douce diffuse - effet velours posé */
-    text-shadow:
-        0 0 3px currentColor,
-        0 1px 2px rgba(0, 0, 0, 0.15);
-
-    /* Filtre velours */
-    filter: url(#flock-velvet);
-
-    /* Légère opacité pour aspect mat */
-    opacity: 0.95;
-
-    /* Police légèrement arrondie */
-    font-weight: 600;
-    letter-spacing: 0.4px;
-}
-
-/* Fallback */
-@supports not (filter: url(#flock-velvet)) {
-    .technique-flock {
-        filter: blur(0.2px) contrast(0.95);
-    }
-}
-
-/* ============================================
-   SUBLIMATION - Intégré au tissu, diffus
-   Couleur fondue dans le textile
-   ============================================ */
-.technique-sublimation {
-    /* Pas de relief, intégré au tissu */
-    text-shadow: none;
-
-    /* Opacité réduite - fondu dans le tissu */
-    opacity: 0.85;
-
-    /* Léger flou pour effet diffusion encre */
-    filter: blur(0.3px) saturate(0.9);
-
-    /* Blend mode pour intégration tissu */
-    mix-blend-mode: multiply;
-
-    /* Police standard */
-    font-weight: 500;
-    letter-spacing: 0.2px;
-}
-
-/* Correction pour fonds sombres */
-.dark-background .technique-sublimation {
-    mix-blend-mode: screen;
-    opacity: 0.8;
+/* État en drag */
+.preview-text.dragging {
+    cursor: grabbing;
+    transform: translate(-50%, -50%) scale(1.02);
 }
 
 /* ============================================
    INDICATEUR VISUEL DE TECHNIQUE
-   Petit badge montrant la technique active
+   Simple badge informatif
    ============================================ */
 .technique-indicator {
     position: absolute;
@@ -237,49 +63,42 @@
     backdrop-filter: blur(4px);
 }
 
-/* Couleurs par technique */
-.technique-broderie ~ .technique-indicator,
-.technique-broderie + .technique-indicator,
-.technique-Broderie ~ .technique-indicator,
-.technique-Broderie + .technique-indicator {
-    background: linear-gradient(135deg, rgba(139, 69, 19, 0.9), rgba(160, 82, 45, 0.9));
-}
-.technique-flex ~ .technique-indicator,
-.technique-flex + .technique-indicator {
-    background: linear-gradient(135deg, rgba(255, 105, 180, 0.9), rgba(255, 20, 147, 0.9));
-}
-.technique-flock ~ .technique-indicator,
-.technique-flock + .technique-indicator {
-    background: linear-gradient(135deg, rgba(147, 112, 219, 0.9), rgba(138, 43, 226, 0.9));
-}
-.technique-sublimation ~ .technique-indicator,
-.technique-sublimation + .technique-indicator {
-    background: linear-gradient(135deg, rgba(0, 191, 255, 0.9), rgba(30, 144, 255, 0.9));
-}
-
+/* Affichage au hover */
 .product-preview:hover .technique-indicator,
 .lightbox-image-container:hover .technique-indicator {
     opacity: 1;
 }
 
-/* ============================================
-   DEV: Switch A/B pour comparaison broderie
-   Ajouter ?broderie=b dans l'URL ou
-   classe .broderie-variant-b sur body
-   ============================================ */
+/* Couleurs par technique - simple différenciation visuelle */
+.technique-indicator[data-technique="broderie"],
+.technique-indicator.broderie {
+    background: linear-gradient(135deg, rgba(139, 69, 19, 0.9), rgba(160, 82, 45, 0.9));
+}
 
-/* Indicateur visuel du mode actif (dev only) */
-body.broderie-variant-b::after {
-    content: 'BRODERIE: Variante B';
-    position: fixed;
-    bottom: 10px;
-    left: 10px;
-    background: #8B4513;
-    color: white;
-    padding: 5px 10px;
-    font-size: 11px;
-    font-weight: bold;
-    border-radius: 4px;
-    z-index: 9999;
-    pointer-events: none;
+.technique-indicator[data-technique="flex"],
+.technique-indicator.flex {
+    background: linear-gradient(135deg, rgba(255, 105, 180, 0.9), rgba(255, 20, 147, 0.9));
+}
+
+.technique-indicator[data-technique="flock"],
+.technique-indicator.flock {
+    background: linear-gradient(135deg, rgba(147, 112, 219, 0.9), rgba(138, 43, 226, 0.9));
+}
+
+.technique-indicator[data-technique="sublimation"],
+.technique-indicator.sublimation {
+    background: linear-gradient(135deg, rgba(0, 191, 255, 0.9), rgba(30, 144, 255, 0.9));
+}
+
+/* ============================================
+   COMPATIBILITÉ - Classes legacy
+   Pour éviter les erreurs si ancien code utilise
+   ces classes (elles n'ont plus d'effet visuel)
+   ============================================ */
+.technique-broderie,
+.technique-Broderie,
+.technique-flex,
+.technique-flock,
+.technique-sublimation {
+    /* Pas d'effet spécial - rendu indicatif uniquement */
 }

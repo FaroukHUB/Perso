@@ -871,6 +871,36 @@ $cartCount = Cart::count();
             color: var(--mint-main);
         }
 
+        /* Bouton Voir le rendu réel */
+        .real-render-btn {
+            width: 100%;
+            padding: 12px 20px;
+            margin-top: 12px;
+            background: linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%);
+            border: 2px dashed #ddd;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .real-render-btn:hover {
+            background: linear-gradient(135deg, rgba(255,105,180,0.1) 0%, rgba(61,255,192,0.1) 100%);
+            border-color: var(--pink-main);
+            color: var(--pink-dark);
+        }
+        .real-render-btn svg {
+            transition: transform 0.2s;
+        }
+        .real-render-btn:hover svg {
+            transform: scale(1.1);
+        }
+
         /* Text Input */
         .custom-text-input {
             width: 100%;
@@ -1109,10 +1139,7 @@ $cartCount = Cart::count();
         .product-grid { display: none; }
     </style>
 </head>
-<body<?php echo (isset($_GET['broderie']) && $_GET['broderie'] === 'b') ? ' class="broderie-variant-b"' : ''; ?>>
-    <!-- SVG Filters pour techniques de personnalisation -->
-    <?php include __DIR__ . '/assets/includes/svg-filters.php'; ?>
-
+<body>
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
@@ -1257,6 +1284,15 @@ $cartCount = Cart::count();
                                         </label>
                                     <?php endforeach; ?>
                                 </div>
+                                <!-- Bouton pour voir le rendu réel -->
+                                <button type="button" class="real-render-btn" id="realRenderBtn">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                                        <polyline points="21,15 16,10 5,21"/>
+                                    </svg>
+                                    Voir le rendu réel
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1441,6 +1477,8 @@ $cartCount = Cart::count();
 
     <!-- Lightbox Component (chargé AVANT le JS inline qui l'utilise) -->
     <script src="/public/assets/js/lightbox.js"></script>
+    <!-- Modal Rendu Réel par technique -->
+    <script src="/public/assets/js/real-render-modal.js"></script>
 
     <script>
         // ============================================
@@ -1847,11 +1885,7 @@ $cartCount = Cart::count();
                     const font = fontEl ? fontEl.dataset.font : (fontInput ? fontInput.value : 'Poppins');
                     const category = fontEl ? (fontEl.dataset.category || 'sans-serif') : 'sans-serif';
 
-                    // Récupérer la technique sélectionnée
-                    const techEl = document.querySelector('.technique-option.selected');
-                    const technique = techEl ? techEl.dataset.technique : 'flex';
-
-                    // Ouvrir la lightbox
+                    // Ouvrir la lightbox avec zone d'impression et callback de synchronisation
                     PersonnalyLightbox.open({
                         imageSrc: imgSrc,
                         imageAlt: '<?= h($product['name']) ?>',
@@ -1861,8 +1895,34 @@ $cartCount = Cart::count();
                         textX: currentX,
                         textY: currentY,
                         textColor: previewText.style.color || '#FF1493',
-                        technique: technique
+                        // Zone d'impression pour contraindre le drag
+                        printZone: {
+                            x: zone.x,
+                            y: zone.y,
+                            width: zone.width,
+                            height: zone.height,
+                            label: zone.label || 'Zone d\'impression'
+                        },
+                        // Callback de synchronisation : met à jour le configurateur principal
+                        onPositionChange: function(newX, newY) {
+                            currentX = newX;
+                            currentY = newY;
+                            updateTextPosition();
+                        }
                     });
+                });
+            }
+
+            // === MODAL RENDU RÉEL ===
+            const realRenderBtn = document.getElementById('realRenderBtn');
+            if (realRenderBtn && window.PersonnalyRealRender) {
+                realRenderBtn.addEventListener('click', function() {
+                    // Récupérer la technique sélectionnée
+                    const techEl = document.querySelector('.technique-option.selected');
+                    const technique = techEl ? techEl.dataset.technique : 'flex';
+
+                    // Ouvrir le modal avec les images de cette technique
+                    PersonnalyRealRender.open(technique);
                 });
             }
 

@@ -19,26 +19,30 @@
 
 ## État Actuel
 
-**Date dernière mise à jour** : 2026-01-16
+**Date dernière mise à jour** : 2026-01-17
 
-**Phase actuelle** : RECADRAGE TERMINÉ - Toutes les priorités HAUTE complétées
+**Phase actuelle** : PIVOT UX VALIDÉ - Configurateur indicatif + Modal rendu réel
 
-**Statut global** : 🟢 COMPLET - Phase haute priorité terminée, prêt pour déploiement
+**Statut global** : 🟢 FONCTIONNEL - Nouveau paradigme implémenté
 
 ---
 
-## 🎯 VISION PERSONNALY (RAPPEL PERMANENT)
+## 🎯 VISION PERSONNALY (RAPPEL PERMANENT - MISE À JOUR 2026-01-17)
 
 **PERSONNALY EST** :
 - Un outil de personnalisation **moderne et visuel** (2026)
-- Une expérience **rassurante** pour le client (zoom, preview fidèle)
+- Une expérience **rassurante** pour le client (zoom fidèle, photos réelles)
 - Un système **administrable** sans code
-- Une preview **réaliste** (pas cosmétique)
+- Un configurateur **INDICATIF** (position, police, couleur, technique)
 
 **PERSONNALY N'EST PAS** :
+- Un simulateur de rendu matière photoréaliste
+- Un outil qui "promet" un rendu visuel trompeur
 - Un formulaire figé "qui marche"
-- Un site e-commerce basique
-- Une solution "année 2000"
+
+**RÈGLE CLÉ** :
+> Le configurateur montre **OÙ** et **COMMENT** sera le texte.
+> Le modal "Voir le rendu réel" montre **QUOI** (photos macro réelles).
 
 ---
 
@@ -348,6 +352,44 @@ CREATE TABLE product_colors (
 3. Brillance naturelle via feSpecularLighting
 4. Contour légèrement irrégulier (pas plastique)
 5. Fonctionne sur fonds clairs ET sombres
+
+> ⚠️ **SESSION 12 ABANDONNÉE** : Approche CSS "fake" abandonnée au profit du paradigme "configurateur indicatif + photos réelles" (voir Session 13)
+
+### 2026-01-17 - Session 13 (PIVOT UX - PARADIGME INDICATIF)
+
+**Changement de direction validé** : Le configurateur ne simule plus les techniques visuellement.
+
+**Nouveau paradigme** :
+1. **Configurateur = INDICATIF** : Positionner, choisir police/couleur/technique. Rendu propre et lisible.
+2. **Rendu matière = MODAL SÉPARÉ** : Photos macro réelles par technique (pas de promesse CSS trompeuse)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| **Fix Lightbox v2** | ✅ OK | Position conservée + drag actif + zone d'impression + callback sync |
+| **Modal "Voir le rendu réel"** | ✅ OK | Photos macro par technique + disclaimer client |
+| **Nettoyage CSS techniques** | ✅ OK | Suppression effets fake, style propre indicatif |
+| **Retrait SVG Filters** | ✅ OK | Include retiré de toutes les pages |
+
+**Fichiers modifiés** :
+- `public/assets/js/lightbox.js` - Refonte complète v2 (zone impression, drag, sync)
+- `public/assets/js/real-render-modal.js` (NOUVEAU) - Modal photos macro réelles
+- `public/assets/css/techniques.css` - Nettoyé, style indicatif uniquement
+- `public/product.php` - Bouton "Voir le rendu réel" + intégration modal
+- `public/cart.php` - Retrait SVG filters
+- `admin/order.php` - Retrait SVG filters
+
+**Nouveau composant - Modal Rendu Réel** :
+- Bouton "Voir le rendu réel" dans section technique
+- Galerie photos macro (jusqu'à 3 images par technique)
+- Zoom plein écran au clic
+- Disclaimer rassurant : "Le rendu final peut varier..."
+- Images stockées dans `/public/assets/references/techniques/{technique}/`
+
+**Lightbox v2 - Améliorations** :
+- Zone d'impression visible (bordure dashed au drag)
+- Drag & drop actif dans la lightbox
+- Position synchronisée avec le configurateur (callback)
+- Hint visuel "Glissez le texte pour ajuster"
 
 ---
 
