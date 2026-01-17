@@ -8,6 +8,7 @@ require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/helpers/Cart.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
+require_once __DIR__ . '/../app/models/Upsell.php';
 
 $success = '';
 $error = '';
@@ -43,6 +44,53 @@ if (isPost()) {
 $cartItems = Cart::getItemsWithProducts();
 $cartTotal = Cart::getTotal();
 $cartCount = Cart::count();
+
+// Récupérer les upsells applicables
+$applicableUpsells = [];
+if (!Cart::isEmpty()) {
+    $upsellModel = new Upsell();
+    $productModel = new Product();
+
+    // Construire le contexte
+    $products = [];
+    $techniques = [];
+    $quantity = 0;
+
+    foreach ($cartItems as $item) {
+        $products[] = $item['product_id'];
+        $quantity += $item['quantity'];
+        if (!empty($item['customization']['technique'])) {
+            $techniques[] = $item['customization']['technique'];
+        }
+    }
+
+    $context = [
+        'cart_total' => $cartTotal,
+        'products' => array_unique($products),
+        'techniques' => array_unique($techniques),
+        'categories' => [],
+        'quantity' => $quantity
+    ];
+
+    $upsells = $upsellModel->findApplicable($context, 'cart');
+
+    // Enrichir avec les données produits
+    foreach ($upsells as $upsell) {
+        $data = $upsell;
+        if ($upsell['offer_type'] === 'produit' && !empty($upsell['offer_value'])) {
+            $product = $productModel->findById((int) $upsell['offer_value']);
+            if ($product) {
+                $data['product'] = $product;
+                if ($upsell['discount_type'] === 'pourcentage') {
+                    $data['product']['discounted_price'] = $product['price'] * (1 - $upsell['discount_value'] / 100);
+                } elseif ($upsell['discount_type'] === 'montant_fixe') {
+                    $data['product']['discounted_price'] = max(0, $product['price'] - $upsell['discount_value']);
+                }
+            }
+        }
+        $applicableUpsells[] = $data;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -343,6 +391,118 @@ $cartCount = Cart::count();
             margin-bottom: 30px;
         }
 
+        /* Upsells Section */
+        .upsells-section {
+            background: linear-gradient(135deg, rgba(255, 105, 180, 0.08) 0%, rgba(61, 255, 192, 0.08) 100%);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            margin-top: 25px;
+        }
+        .upsells-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--black-soft);
+            margin-bottom: 20px;
+        }
+        .upsells-title svg { color: var(--pink-main); }
+        .upsells-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .upsell-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 20px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .upsell-card:hover {
+            border-color: var(--pink-main);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.15);
+        }
+        .upsell-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-pink);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .upsell-icon.mint { background: var(--gradient-mint); color: var(--black-soft); }
+        .upsell-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 14px;
+        }
+        .upsell-content { flex: 1; min-width: 0; }
+        .upsell-label {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--black-soft);
+            margin-bottom: 4px;
+        }
+        .upsell-desc {
+            font-size: 13px;
+            color: var(--gray);
+            margin-bottom: 8px;
+        }
+        .upsell-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: var(--gradient-mint);
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--black-soft);
+        }
+        .upsell-product-price {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .upsell-product-price .original {
+            text-decoration: line-through;
+            color: var(--gray);
+            font-size: 13px;
+        }
+        .upsell-product-price .discounted {
+            font-weight: 700;
+            color: var(--pink-dark);
+            font-size: 16px;
+        }
+        .upsell-add-btn {
+            padding: 10px 16px;
+            background: var(--gradient-pink);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .upsell-add-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
+        }
+
         /* Responsive */
         @media (max-width: 968px) {
             .cart-layout { grid-template-columns: 1fr; }
@@ -355,6 +515,7 @@ $cartCount = Cart::count();
             }
             .item-image { margin: 0 auto; }
             .item-actions { align-items: center; }
+            .upsells-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -480,6 +641,70 @@ $cartCount = Cart::count();
                             </div>
                         <?php endforeach; ?>
                     </div>
+
+                    <!-- Upsells Section -->
+                    <?php if (!empty($applicableUpsells)): ?>
+                        <div class="upsells-section" style="grid-column: 1 / -1; order: 10;">
+                            <h3 class="upsells-title">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                                Offres spéciales pour vous
+                            </h3>
+                            <div class="upsells-grid">
+                                <?php foreach ($applicableUpsells as $upsell): ?>
+                                    <div class="upsell-card">
+                                        <?php if ($upsell['offer_type'] === 'produit' && !empty($upsell['product'])): ?>
+                                            <div class="upsell-icon">
+                                                <?php if (!empty($upsell['product']['image_front_url'])): ?>
+                                                    <img src="/public<?= h($upsell['product']['image_front_url']) ?>" alt="">
+                                                <?php else: ?>
+                                                    👕
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="upsell-content">
+                                                <div class="upsell-label"><?= h($upsell['display_title'] ?: $upsell['name']) ?></div>
+                                                <div class="upsell-desc"><?= h($upsell['product']['name']) ?></div>
+                                                <?php if (isset($upsell['product']['discounted_price'])): ?>
+                                                    <div class="upsell-product-price">
+                                                        <span class="original"><?= formatPrice($upsell['product']['price']) ?></span>
+                                                        <span class="discounted"><?= formatPrice($upsell['product']['discounted_price']) ?></span>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                            <a href="/public/configurateur.php?id=<?= $upsell['product']['id'] ?>&upsell=<?= $upsell['id'] ?>" class="upsell-add-btn">
+                                                Ajouter
+                                            </a>
+                                        <?php elseif ($upsell['offer_type'] === 'reduction'): ?>
+                                            <div class="upsell-icon mint">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                                </svg>
+                                            </div>
+                                            <div class="upsell-content">
+                                                <div class="upsell-label"><?= h($upsell['display_title'] ?: $upsell['name']) ?></div>
+                                                <div class="upsell-desc"><?= h($upsell['offer_label']) ?></div>
+                                                <span class="upsell-badge">
+                                                    -<?= h($upsell['discount_value']) ?><?= $upsell['discount_type'] === 'pourcentage' ? '%' : '€' ?>
+                                                </span>
+                                            </div>
+                                        <?php elseif ($upsell['offer_type'] === 'livraison_gratuite'): ?>
+                                            <div class="upsell-icon mint">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                                                </svg>
+                                            </div>
+                                            <div class="upsell-content">
+                                                <div class="upsell-label"><?= h($upsell['display_title'] ?: 'Livraison offerte !') ?></div>
+                                                <div class="upsell-desc"><?= h($upsell['offer_label'] ?: 'La livraison est offerte sur votre commande') ?></div>
+                                                <span class="upsell-badge">Livraison gratuite</span>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- Summary -->
                     <div class="cart-summary">

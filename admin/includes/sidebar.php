@@ -64,6 +64,13 @@ function isActive($page, $current) {
             <span>Packs / Idées</span>
         </a>
 
+        <a href="/admin/upsells.php" class="nav-item <?= isActive('upsells.php', $currentPage) ?><?= isActive('upsell-form.php', $currentPage) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            <span>Upsells</span>
+        </a>
+
         <a href="/admin/homepage.php" class="nav-item <?= isActive('homepage.php', $currentPage) ?><?= isActive('homepage-section.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>

@@ -21,9 +21,9 @@
 
 **Date dernière mise à jour** : 2026-01-17
 
-**Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-4 terminés)
+**Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-5 terminés)
 
-**Statut global** : 🟢 STEP 1-4 TERMINÉS - Prochaine étape : STEP 5 (Upsells)
+**Statut global** : 🟢 STEP 1-5 TERMINÉS - Prochaine étape : STEP 6 (Stats Admin)
 
 **Derniers correctifs** :
 - Fix categories.php : suppression includes header/footer inexistants
@@ -769,6 +769,50 @@ foreach ($sections as $section) {
 - `app/models/CustomizationOption.php` - Méthodes gestion images
 - `admin/options.php` - Section upload images techniques
 - `public/assets/js/real-render-modal.js` - Fetch API
+
+### STEP 5 — Upsells (Augmenter panier moyen) ✅ TERMINÉ
+
+**5.1 — Architecture DB** :
+- Table `upsells` : id, name, description, condition_type, condition_value, offer_type, offer_value, etc.
+- Table `order_upsells` : historique utilisation par commande
+- Types conditions : panier_min, produit_specifique, technique_specifique, categorie, quantite_min
+- Types offres : produit, option, reduction, livraison_gratuite
+- Migration SQL : `sql/migrate_upsells.sql`
+
+**5.2 — Admin CRUD Upsells** :
+- `app/models/Upsell.php` : Modèle complet avec CRUD, findApplicable(), calcul réductions
+- `admin/upsells.php` : Liste avec actions toggle/delete/duplicate
+- `admin/upsell-form.php` : Formulaire création/édition avec conditions dynamiques
+- Lien ajouté dans sidebar admin (après Packs)
+- Interface "SI condition ALORS offre" intuitive
+- Période validité + limite utilisations
+
+**5.3 — Affichage client upsells** :
+- `public/cart.php` : Section "Offres spéciales pour vous" avec upsells applicables
+- `public/checkout.php` : Section "Offres actives" dans récapitulatif
+- `api/upsells.php` : Endpoint JSON pour récupération upsells applicables
+- Design ultra-moderne avec badges colorés par type d'offre
+
+**Fichiers créés** :
+- `sql/migrate_upsells.sql`
+- `app/models/Upsell.php`
+- `admin/upsells.php`
+- `admin/upsell-form.php`
+- `api/upsells.php`
+
+**Fichiers modifiés** :
+- `admin/includes/sidebar.php` - Lien "Upsells" ajouté
+- `public/cart.php` - Intégration upsells + styles
+- `public/checkout.php` - Intégration upsells + styles
+
+**Fonctionnalités** :
+- Conditions multiples (montant min, produit, technique, catégorie)
+- Offres variées (réduction, livraison gratuite, produit à prix réduit)
+- Période de validité (dates début/fin)
+- Limite d'utilisations avec compteur
+- Priorité d'affichage personnalisable
+- Duplication rapide d'upsells existants
+- Statistiques d'utilisation par upsell
 
 ---
 

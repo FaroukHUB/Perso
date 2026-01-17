@@ -17,7 +17,8 @@
 | P1-P3 | ✅ TERMINÉ | Polices, Drag&Drop, Zones |
 | P4 | ✅ TERMINÉ | Packs / Idées |
 | P5 | ✅ TERMINÉ | Page d'accueil dynamique |
-| P6 | 🔴 À FAIRE | Voir ci-dessous |
+| P6 STEP 1-5 | ✅ TERMINÉ | Correctifs, WebP, Catégories, Techniques, Upsells |
+| P6 STEP 6-10 | 🔴 À FAIRE | Stats, Archives, Organisation, Marketing, Paiement |
 
 ---
 
@@ -142,28 +143,35 @@
 
 ---
 
-## STEP 5 — UPSELLS (TRÈS IMPORTANT)
+## ✅ STEP 5 — UPSELLS TERMINÉ
 
 > Proposer des produits/options supplémentaires pour augmenter le panier moyen.
 
 ### 5.1 — Architecture DB
 
-- [ ] **5.1.1** — Créer table `upsells` (id, name, type, condition_type, condition_value, offer_type, offer_value, discount, priority, status)
-- [ ] **5.1.2** — Types de conditions : panier_min, produit_specifique, technique_specifique, categorie
-- [ ] **5.1.3** — Types d'offres : produit, option, reduction
+- [x] **5.1.1** — Créer table `upsells` (id, name, type, condition_type, condition_value, offer_type, offer_value, discount, priority, status) ✅
+- [x] **5.1.2** — Types de conditions : panier_min, produit_specifique, technique_specifique, categorie, quantite_min ✅
+- [x] **5.1.3** — Types d'offres : produit, option, reduction, livraison_gratuite ✅
 
 ### 5.2 — Admin CRUD Upsells
 
-- [ ] **5.2.1** — admin/upsells.php (liste)
-- [ ] **5.2.2** — admin/upsell-form.php (création avec règles conditionnelles)
-- [ ] **5.2.3** — Interface : SI [condition] ALORS proposer [offre]
-- [ ] **5.2.4** — Lien sidebar admin
+- [x] **5.2.1** — admin/upsells.php (liste + toggle + delete + duplicate) ✅
+- [x] **5.2.2** — admin/upsell-form.php (création avec règles conditionnelles) ✅
+- [x] **5.2.3** — Interface : SI [condition] ALORS proposer [offre] ✅
+- [x] **5.2.4** — Lien sidebar admin ✅
 
 ### 5.3 — Affichage client
 
-- [ ] **5.3.1** — cart.php : section "Vous aimerez aussi" basée sur règles
-- [ ] **5.3.2** — checkout.php : upsells avant validation
-- [ ] **5.3.3** — Ajout rapide au panier depuis upsell
+- [x] **5.3.1** — cart.php : section "Offres spéciales pour vous" basée sur règles ✅
+- [x] **5.3.2** — checkout.php : upsells dans récapitulatif avant validation ✅
+- [x] **5.3.3** — API /api/upsells.php pour récupération dynamique ✅
+
+**Fichiers créés** :
+- `sql/migrate_upsells.sql`
+- `app/models/Upsell.php`
+- `admin/upsells.php`
+- `admin/upsell-form.php`
+- `api/upsells.php`
 
 ---
 

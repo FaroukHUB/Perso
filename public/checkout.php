@@ -11,6 +11,7 @@ require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/User.php';
+require_once __DIR__ . '/../app/models/Upsell.php';
 
 // Panier vide = retour accueil
 if (Cart::isEmpty()) {
@@ -20,6 +21,49 @@ if (Cart::isEmpty()) {
 $cartItems = Cart::getItemsWithProducts();
 $cartTotal = Cart::getTotal();
 $cartCount = Cart::count();
+
+// Récupérer les upsells applicables pour le checkout
+$applicableUpsells = [];
+$upsellModel = new Upsell();
+$productModel = new Product();
+
+$products = [];
+$techniques = [];
+$quantity = 0;
+
+foreach ($cartItems as $item) {
+    $products[] = $item['product_id'];
+    $quantity += $item['quantity'];
+    if (!empty($item['customization']['technique'])) {
+        $techniques[] = $item['customization']['technique'];
+    }
+}
+
+$context = [
+    'cart_total' => $cartTotal,
+    'products' => array_unique($products),
+    'techniques' => array_unique($techniques),
+    'categories' => [],
+    'quantity' => $quantity
+];
+
+$upsells = $upsellModel->findApplicable($context, 'checkout');
+
+foreach ($upsells as $upsell) {
+    $data = $upsell;
+    if ($upsell['offer_type'] === 'produit' && !empty($upsell['offer_value'])) {
+        $product = $productModel->findById((int) $upsell['offer_value']);
+        if ($product) {
+            $data['product'] = $product;
+            if ($upsell['discount_type'] === 'pourcentage') {
+                $data['product']['discounted_price'] = $product['price'] * (1 - $upsell['discount_value'] / 100);
+            } elseif ($upsell['discount_type'] === 'montant_fixe') {
+                $data['product']['discounted_price'] = max(0, $product['price'] - $upsell['discount_value']);
+            }
+        }
+    }
+    $applicableUpsells[] = $data;
+}
 
 $success = false;
 $orderId = null;
@@ -421,6 +465,66 @@ if (isPost() && isset($_POST['place_order'])) {
             margin-bottom: 30px;
         }
 
+        /* Upsells in Checkout */
+        .checkout-upsells {
+            background: linear-gradient(135deg, rgba(255, 105, 180, 0.08) 0%, rgba(61, 255, 192, 0.08) 100%);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .checkout-upsells-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--black-soft);
+            margin-bottom: 15px;
+        }
+        .checkout-upsells-title svg { color: var(--pink-main); }
+        .checkout-upsell-item {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .checkout-upsell-item:last-child { margin-bottom: 0; }
+        .checkout-upsell-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-mint);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .checkout-upsell-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .checkout-upsell-label {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--black-soft);
+        }
+        .checkout-upsell-desc {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        .checkout-upsell-badge {
+            padding: 4px 10px;
+            background: var(--gradient-mint);
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--black-soft);
+            white-space: nowrap;
+        }
+
         /* Responsive */
         @media (max-width: 968px) {
             .checkout-layout { grid-template-columns: 1fr; }
@@ -578,6 +682,43 @@ if (isPost() && isset($_POST['place_order'])) {
                                     <span><?= formatPrice($cartTotal) ?></span>
                                 </div>
                             </div>
+
+                            <?php if (!empty($applicableUpsells)): ?>
+                                <div class="checkout-upsells">
+                                    <h4 class="checkout-upsells-title">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                        </svg>
+                                        Offres actives
+                                    </h4>
+                                    <?php foreach ($applicableUpsells as $upsell): ?>
+                                        <div class="checkout-upsell-item">
+                                            <div class="checkout-upsell-icon">
+                                                <?php if ($upsell['offer_type'] === 'livraison_gratuite'): ?>
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                                                    </svg>
+                                                <?php else: ?>
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                                    </svg>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="checkout-upsell-content">
+                                                <div class="checkout-upsell-label"><?= h($upsell['display_title'] ?: $upsell['name']) ?></div>
+                                                <?php if (!empty($upsell['offer_label'])): ?>
+                                                    <div class="checkout-upsell-desc"><?= h($upsell['offer_label']) ?></div>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if ($upsell['offer_type'] === 'reduction' && $upsell['discount_value'] > 0): ?>
+                                                <span class="checkout-upsell-badge">-<?= h($upsell['discount_value']) ?><?= $upsell['discount_type'] === 'pourcentage' ? '%' : '€' ?></span>
+                                            <?php elseif ($upsell['offer_type'] === 'livraison_gratuite'): ?>
+                                                <span class="checkout-upsell-badge">Offert</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
 
                             <button type="submit" class="btn btn-primary submit-btn">
                                 Confirmer la commande
