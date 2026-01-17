@@ -608,6 +608,27 @@ foreach ($sections as $section) {
 - Liens + Images (upload via AJAX)
 - 100% gratuit, sans clé API
 
+### 2026-01-17 - Session 18 (P6 - CORRECTIFS)
+
+**Objectif** : Phase P6 STEP 1.1 - Debug affichage images uploads
+
+**Bug résolu** :
+- Les images uploadées (content_block) visibles en admin mais PAS sur le site
+- **Cause** : Dans `public/index.php`, la condition `$section['media_type'] !== 'none' && $section['media_url']` empêchait l'affichage de la galerie d'images additionnelles si aucune image principale n'était définie
+- **Fix** : Modifier la condition pour afficher le bloc média si image principale OU images additionnelles existent
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| **STEP 1.1.1** - Investiguer le bug | ✅ OK | Analyse des chemins, permissions, .htaccess |
+| **STEP 1.1.2** - Feedback erreurs PHP | ✅ OK | UPLOAD_ERR_* dans admin |
+| **STEP 1.1.3** - Corriger le rendu | ✅ OK | Condition modifiée public/index.php |
+| **STEP 1.1.4** - Documenter | ✅ OK | TASKS.md + PROGRESSION.md |
+
+**Fichiers modifiés** :
+- `public/index.php` - Condition rendu content_block (ligne 1029-1051)
+- `admin/homepage-section.php` - Feedback erreurs upload (session précédente)
+- `TASKS.md` - STEP 1.1 marqué comme terminé
+
 ---
 
 ## 🔴 AUDIT RECADRAGE - 2026-01-16
