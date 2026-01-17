@@ -871,34 +871,38 @@ $cartCount = Cart::count();
             color: var(--mint-main);
         }
 
-        /* Bouton Voir le rendu réel */
+        /* Bouton Voir le rendu réel - Position sous l'image produit */
         .real-render-btn {
             width: 100%;
-            padding: 12px 20px;
-            margin-top: 12px;
-            background: linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%);
-            border: 2px dashed #ddd;
-            border-radius: var(--radius-md);
-            font-size: 14px;
+            max-width: 320px;
+            margin: 20px auto 0;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
+            border: 2px solid var(--pink-light);
+            border-radius: var(--radius-full);
+            font-size: 15px;
             font-weight: 600;
-            color: #666;
+            color: var(--pink-dark);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
+            gap: 10px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.15);
         }
         .real-render-btn:hover {
-            background: linear-gradient(135deg, rgba(255,105,180,0.1) 0%, rgba(61,255,192,0.1) 100%);
-            border-color: var(--pink-main);
-            color: var(--pink-dark);
+            background: var(--gradient-pink);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 105, 180, 0.3);
         }
         .real-render-btn svg {
             transition: transform 0.2s;
         }
         .real-render-btn:hover svg {
-            transform: scale(1.1);
+            transform: scale(1.15);
         }
 
         /* Text Input */
@@ -1133,6 +1137,13 @@ $cartCount = Cart::count();
             .preview-product-img { max-height: 240px; }
             .view-btn { padding: 10px 16px; font-size: 13px; }
             .drag-hint { font-size: 12px; padding: 10px; }
+            /* Bouton rendu réel - compact sur mobile */
+            .real-render-btn {
+                margin-top: 15px;
+                padding: 12px 20px;
+                font-size: 14px;
+                max-width: 100%;
+            }
         }
 
         /* Legacy grid fallback - kept for reference */
@@ -1284,15 +1295,6 @@ $cartCount = Cart::count();
                                         </label>
                                     <?php endforeach; ?>
                                 </div>
-                                <!-- Bouton pour voir le rendu réel -->
-                                <button type="button" class="real-render-btn" id="realRenderBtn">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                                        <polyline points="21,15 16,10 5,21"/>
-                                    </svg>
-                                    Voir le rendu réel
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -1366,6 +1368,16 @@ $cartCount = Cart::count();
                                 </svg>
                                 Glissez pour positionner
                             </div>
+
+                            <!-- Bouton Voir le rendu réel - TOUJOURS VISIBLE -->
+                            <button type="button" class="real-render-btn" id="realRenderBtn">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21,15 16,10 5,21"/>
+                                </svg>
+                                Voir le rendu réel (photos)
+                            </button>
                         </div>
                     </div>
 

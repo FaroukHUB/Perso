@@ -10,7 +10,7 @@
 
 ## 🔴 PRIORITÉ HAUTE
 
-- [ ] **Task 01** — Déplacer bouton "Voir le rendu réel" sous l'image produit
+- [x] **Task 01** — Déplacer bouton "Voir le rendu réel" sous l'image produit ✅
 - [ ] **Task 02** — Refonte sélecteur techniques (dropdown scalable comme polices)
 - [x] **Task 03** — Audit UX complet configurateur (voir rapport ci-dessous)
 - [ ] **Task 04** — Vérification parcours client complet (produit → panier → commande)
@@ -144,4 +144,4 @@ MOBILE (<768px) - Stack + Accordions:
 
 ---
 
-**Dernière mise à jour** : 2026-01-17 — Audit UX ajouté
+**Dernière mise à jour** : 2026-01-17 — Task 01 terminée (bouton sous image)
