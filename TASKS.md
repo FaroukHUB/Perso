@@ -31,10 +31,13 @@
 
 ### 1.1 — Debug chemins images uploads
 
-- [ ] **1.1.1** — Investiguer pourquoi les images uploadées (hero, content_block) ne s'affichent pas côté site
-- [ ] **1.1.2** — Vérifier cohérence chemins : admin enregistre `/uploads/homepage/` mais front attend `/public/uploads/homepage/`
-- [ ] **1.1.3** — Tester upload + affichage sur o2switch (permissions 755)
+- [x] **1.1.1** — Investiguer pourquoi les images uploadées (hero, content_block) ne s'affichent pas côté site ✅
+- [x] **1.1.2** — Ajouter feedback erreurs PHP détaillé (UPLOAD_ERR_*) ✅
+- [~] **1.1.3** — Tester upload + affichage sur o2switch (permissions 755)
 - [ ] **1.1.4** — Documenter la solution
+
+**Analyse** : Les chemins sont corrects (`/public/uploads/...`). Le `.htaccess` gère les redirections.
+Le problème probable : uploads échouent silencieusement. Feedback erreurs ajouté pour diagnostic.
 
 ### 1.2 — UI Upload médias améliorée
 
