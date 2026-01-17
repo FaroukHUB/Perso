@@ -21,9 +21,9 @@
 
 **Date dernière mise à jour** : 2026-01-17
 
-**Phase actuelle** : PIVOT UX VALIDÉ - Configurateur indicatif + Modal rendu réel
+**Phase actuelle** : P4 - PACKS / IDÉES (P4.1-P4.4 terminés)
 
-**Statut global** : 🟢 FONCTIONNEL - Nouveau paradigme implémenté
+**Statut global** : 🟢 FONCTIONNEL - Injection preset opérationnelle
 
 ---
 
@@ -68,7 +68,7 @@
 | **Styles visuels par technique** | ✅ OK | CSS distinct par technique |
 | **Zoom/lightbox images** | ✅ OK | Composant réutilisable + technique |
 | **Preview fidèle panier** | ✅ OK | Lightbox + texte personnalisé |
-| **Packs thématiques** | ❌ NON | P4 non commencé |
+| **Packs thématiques** | ⚠️ EN COURS | P4.1-P4.4 terminés, P4.5-P4.6 en attente |
 
 ### Ce qui est FAIT ✅
 
@@ -113,7 +113,7 @@
 | ~~6~~ | ~~Techniques côté client + prix~~ | ~~HAUTE~~ | ✅ TERMINÉ |
 | ~~7~~ | ~~Lightbox/zoom~~ | ~~HAUTE~~ | ✅ TERMINÉ |
 | ~~8~~ | ~~Preview panier fidèle~~ | ~~HAUTE~~ | ✅ TERMINÉ |
-| 9 | Packs thématiques (P4) | BASSE | Haute |
+| 9 | ~~Packs thématiques (P4)~~ | ~~BASSE~~ | ✅ P4.1-P4.4 TERMINÉS |
 
 ---
 
@@ -390,6 +390,57 @@ CREATE TABLE product_colors (
 - Drag & drop actif dans la lightbox
 - Position synchronisée avec le configurateur (callback)
 - Hint visuel "Glissez le texte pour ajuster"
+
+### 2026-01-17 - Session 14 (P4 - PACKS / IDÉES)
+
+**Objectif** : Système de packs / suggestions de personnalisation.
+
+**Vision** : Un pack = une suggestion inspirante, jamais une prison. Le client peut tout modifier après pré-remplissage.
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| **P4.1 - Architecture DB** | ✅ OK | Tables `packs` + `pack_products` |
+| **P4.1 - Modèle Pack.php** | ✅ OK | CRUD + gestion produits liés |
+| **P4.1 - Admin packs.php** | ✅ OK | Liste + toggle status + delete |
+| **P4.1 - Admin pack-form.php** | ✅ OK | Création/édition + preset JSON |
+| **P4.2 - Multi-produits** | ✅ OK | Checkboxes grille + compteur |
+| **P4.3 - Preset JSON** | ✅ OK | Formulaire visuel (texte, police, couleur, technique, position, vue) |
+| **P4.4 - Injection Preset** | ✅ OK | Route `/product.php?id=X&pack_id=Y` |
+
+**P4.4 - Injection Preset → Configurateur** :
+
+Route : `/product.php?id=PRODUCT_ID&pack_id=PACK_ID`
+
+Vérifications silencieuses :
+1. Pack existe et est actif
+2. Produit courant ∈ pack_products (ou pack universel si vide)
+3. Si invalide → ignoré silencieusement
+
+Champs injectés (ONE-SHOT) :
+- `text` → champ texte personnalisé
+- `font` → sélecteur police
+- `text_color` → pastille couleur texte
+- `technique` → dropdown technique
+- `position.x`, `position.y` → coordonnées drag & drop
+- `view` → face/dos
+
+Flag JS : `window.__PACK_PRESET_APPLIED = true` (évite ré-application)
+
+Ce qui reste libre :
+- Taille
+- Couleur produit
+- Quantité
+- Toutes les options restent modifiables après injection
+
+**Fichiers créés/modifiés** :
+- `sql/migrate_packs.sql` - Tables packs + pack_products
+- `app/models/Pack.php` - Modèle CRUD + produits
+- `admin/packs.php` - Liste admin
+- `admin/pack-form.php` - Formulaire création/édition
+- `admin/includes/sidebar.php` - Lien "Packs / Idées"
+- `public/product.php` - Injection preset configurateur
+
+**Prêt pour P4.5** : Section "Nos idées tendance" côté site (cartes + redirection pack_id)
 
 ---
 

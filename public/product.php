@@ -30,7 +30,7 @@ if (!$product || !$product['active']) {
 $success = '';
 $error = '';
 
-// === PACK / IDÉE : Chargement du preset ===
+// === PACK / IDÉE : Chargement du preset (ONE-SHOT) ===
 $packId = (int) get('pack_id', 0);
 $pack = null;
 $preset = null;
@@ -39,8 +39,24 @@ if ($packId > 0) {
     $packModel = new Pack();
     $pack = $packModel->findById($packId);
 
-    // Vérifier que le pack existe et est actif
+    // Vérifications silencieuses :
+    // 1. Pack existe
+    // 2. Pack actif
+    // 3. Produit courant ∈ pack_products (ou pack sans produits = universel)
+    $isValidPack = false;
+
     if ($pack && $pack['status'] === 'active') {
+        // Vérifier si le produit courant appartient au pack
+        $packProducts = $packModel->getProducts($packId);
+        $packProductIds = array_column($packProducts, 'id');
+
+        // Pack valide si : aucun produit lié (universel) OU produit courant dans la liste
+        if (empty($packProductIds) || in_array($productId, $packProductIds)) {
+            $isValidPack = true;
+        }
+    }
+
+    if ($isValidPack) {
         // Décoder le preset JSON
         $presetJson = $pack['preset_json'] ?? '{}';
         $preset = is_string($presetJson) ? json_decode($presetJson, true) : $presetJson;
@@ -54,6 +70,10 @@ if ($packId > 0) {
             'position' => ['x' => 50, 'y' => 50],
             'view' => 'front'
         ], $preset ?? []);
+    } else {
+        // Pack invalide → ignorer silencieusement
+        $pack = null;
+        $preset = null;
     }
 }
 
@@ -1938,18 +1958,29 @@ $cartCount = Cart::count();
                 }
             }
 
-            // === INITIALISATION PRESET (texte + vue) ===
-            // Déclencher l'événement input pour initialiser le preview si texte pré-rempli
-            if (customText.value.trim()) {
-                customText.dispatchEvent(new Event('input'));
-            }
+            // === INITIALISATION PRESET (ONE-SHOT) ===
+            // Flag global pour éviter toute ré-application du preset après interaction
+            if (preset && !window.__PACK_PRESET_APPLIED) {
+                window.__PACK_PRESET_APPLIED = true;
 
-            // Initialiser la vue depuis preset (si back)
-            if (preset && preset.view === 'back' && zones.back) {
-                // Forcer la bascule sur la vue dos
-                const btnBack = document.getElementById('btnBack');
-                if (btnBack) {
-                    setTimeout(() => btnBack.click(), 100);
+                // Déclencher l'événement input pour initialiser le preview si texte pré-rempli
+                if (customText.value.trim()) {
+                    customText.dispatchEvent(new Event('input'));
+                }
+
+                // Initialiser la vue depuis preset (si back)
+                if (preset.view === 'back' && zones.back) {
+                    const btnBack = document.getElementById('btnBack');
+                    if (btnBack) {
+                        setTimeout(() => btnBack.click(), 100);
+                    }
+                }
+
+                console.log('[PACK] Preset appliqué:', preset);
+            } else if (!preset) {
+                // Pas de preset : initialiser le texte si déjà rempli (cas normal)
+                if (customText.value.trim()) {
+                    customText.dispatchEvent(new Event('input'));
                 }
             }
 
