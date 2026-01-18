@@ -874,9 +874,9 @@
     background: white;
     border-radius: 12px;
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
-    padding: 24px;
+    padding: 16px;
     width: 100%;
-    max-width: 650px;
+    max-width: 450px;
 }
 
 .cfg-canvas-stage {
