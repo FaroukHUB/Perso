@@ -2014,8 +2014,8 @@ $cartCount = Cart::count();
                                 </p>
                             </div>
                             <div class="cfg-add-buttons">
-                                <button type="button" class="cfg-add-btn" id="cfgAddText">+ Texte</button>
-                                <button type="button" class="cfg-add-btn" id="cfgAddPhoto">+ Photo</button>
+                                <button type="button" class="cfg-add-btn" id="cfgAddTextLayer">+ Texte</button>
+                                <button type="button" class="cfg-add-btn" id="cfgAddPhotoLayer">+ Photo</button>
                             </div>
                         </div>
                     </div>

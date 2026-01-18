@@ -52,24 +52,35 @@
     // INITIALIZATION
     // ===========================================
     function init() {
+        console.log('[Configurator] Starting init...');
+
         // Check if Konva is loaded
         if (typeof Konva === 'undefined') {
-            console.warn('[Configurator] Konva.js not loaded, using fallback mode');
+            console.error('[Configurator] Konva.js NOT LOADED!');
             initFallbackMode();
             return;
         }
+        console.log('[Configurator] Konva.js loaded OK');
 
         // Cache DOM elements
         cacheDOM();
+        console.log('[Configurator] DOM cached, stageContainer:', DOM.stageContainer);
+
+        if (!DOM.stageContainer) {
+            console.error('[Configurator] stageContainer NOT FOUND!');
+            return;
+        }
 
         // Initialize Konva stage
         initKonvaStage();
+        console.log('[Configurator] Stage initialized:', state.stage);
 
         // Load product image
         loadProductImage();
 
         // Setup event listeners
         setupEventListeners();
+        console.log('[Configurator] Event listeners setup');
 
         // Load draft from localStorage
         loadDraft();
@@ -77,7 +88,7 @@
         // Start autosave
         startAutoSave();
 
-        console.log('[Configurator] Initialized successfully');
+        console.log('[Configurator] ✅ Initialized successfully');
     }
 
     function cacheDOM() {
@@ -265,13 +276,23 @@
     // ELEMENT MANAGEMENT
     // ===========================================
     function addTextElement(text, options = {}) {
+        console.log('[Configurator] addTextElement called with:', text);
+        console.log('[Configurator] state.stage:', state.stage);
+        console.log('[Configurator] state.layer:', state.layer);
+
         if (state.elements.length >= CONFIG.maxElements) {
             showNotification('Maximum ' + CONFIG.maxElements + ' éléments atteint', 'error');
             return null;
         }
 
+        if (!state.stage || !state.layer) {
+            console.error('[Configurator] Stage or layer not initialized!');
+            return null;
+        }
+
         const stageWidth = state.stage.width();
         const stageHeight = state.stage.height();
+        console.log('[Configurator] Stage size:', stageWidth, 'x', stageHeight);
 
         // Get values from controls if not specified in options
         const fontFamily = options.fontFamily || DOM.fontSelect?.value || 'Inter';
@@ -1040,9 +1061,14 @@
 
         // Add text button
         DOM.addTextBtn?.addEventListener('click', () => {
+            console.log('[Configurator] Add text button clicked');
             const text = DOM.textInput?.value.trim() || 'Nouveau texte';
-            addTextElement(text);
+            console.log('[Configurator] Text to add:', text);
+            const element = addTextElement(text);
+            console.log('[Configurator] Element created:', element);
         });
+
+        console.log('[Configurator] addTextBtn found:', DOM.addTextBtn);
 
         // Delete element button
         DOM.deleteBtn?.addEventListener('click', () => {
