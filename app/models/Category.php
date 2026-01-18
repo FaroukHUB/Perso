@@ -172,6 +172,22 @@ class Category
     }
 
     /**
+     * Récupère les noms des catégories d'un produit
+     */
+    public function getCategoryNamesByProduct(int $productId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT c.name
+            FROM categories c
+            INNER JOIN product_categories pc ON c.id = pc.category_id
+            WHERE pc.product_id = ?
+            ORDER BY c.name
+        ");
+        $stmt->execute([$productId]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    /**
      * Définit les catégories d'un produit
      */
     public function setProductCategories(int $productId, array $categoryIds): bool

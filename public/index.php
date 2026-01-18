@@ -36,6 +36,8 @@ foreach ($sections as &$section) {
                     if ($item['item_type'] === 'product' && $item['item_active']) {
                         $product = $productModel->findById($item['item_id']);
                         if ($product && $product['active']) {
+                            // Ajouter les noms des catégories du produit
+                            $product['category_names'] = $categoryModel->getCategoryNamesByProduct($product['id']);
                             $section['products'][] = $product;
                         }
                     }
@@ -946,9 +948,11 @@ foreach ($sections as $s) {
                     <?php foreach ($section['products'] as $product): ?>
                         <div class="product-card">
                             <div class="product-image">
-                                <span class="product-category badge badge-pink">
-                                    <?= h($product['category'] ?? 'Textile') ?>
-                                </span>
+                                <?php if (!empty($product['category_names'])): ?>
+                                    <span class="product-category badge badge-mint">
+                                        <?= h($product['category_names'][0]) ?>
+                                    </span>
+                                <?php endif; ?>
                                 <?php if (!empty($product['image_front_url'])): ?>
                                     <?= picture($product['image_front_url'], $product['name']) ?>
                                 <?php endif; ?>

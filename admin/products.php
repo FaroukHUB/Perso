@@ -8,11 +8,13 @@ require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Order.php';
+require_once __DIR__ . '/../app/models/Category.php';
 
 Auth::requireAdmin();
 
 $productModel = new Product();
 $orderModel = new Order();
+$categoryModel = new Category();
 
 // Messages flash
 $success = $_GET['success'] ?? '';
@@ -119,7 +121,15 @@ $pendingOrders = $orderModel->countNew();
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge badge-pink"><?= h($product['category'] ?? 'Non classé') ?></span>
+                                        <?php
+                                        $productCategories = $categoryModel->getCategoryNamesByProduct($product['id']);
+                                        if (!empty($productCategories)):
+                                            foreach ($productCategories as $catName): ?>
+                                                <span class="badge badge-mint" style="margin-right: 4px; margin-bottom: 4px;"><?= h($catName) ?></span>
+                                            <?php endforeach;
+                                        else: ?>
+                                            <span class="badge badge-gray">Non classé</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <strong style="color: var(--pink-dark);"><?= formatPrice($product['base_price']) ?></strong>
