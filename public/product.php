@@ -1998,31 +1998,36 @@ $cartCount = Cart::count();
                             <!-- Technique de personnalisation -->
                             <div class="cfg-section-divider"></div>
                             <div class="cfg-option-row">
-                                <div class="cfg-option-label">Technique</div>
+                                <div class="cfg-option-label">Technique de marquage</div>
                             </div>
-                            <div class="cfg-technique-list" id="cfgTechniqueList">
+
+                            <!-- Sélecteur de techniques (pills) -->
+                            <div class="cfg-technique-selector" id="cfgTechniqueList">
                                 <?php foreach ($techniques as $index => $tech): ?>
-                                <label class="cfg-technique-item <?= $index === 0 ? 'selected' : '' ?>"
-                                       data-technique="<?= h($tech['value']) ?>"
-                                       data-price="<?= h($tech['price']) ?>">
-                                    <input type="radio" name="cfg_technique" value="<?= h($tech['value']) ?>"
-                                           <?= $index === 0 ? 'checked' : '' ?>>
-                                    <div class="cfg-technique-info">
-                                        <span class="cfg-technique-name"><?= h($tech['label']) ?></span>
-                                        <span class="cfg-technique-desc"><?= h($tech['description']) ?></span>
-                                    </div>
-                                    <button type="button" class="cfg-technique-preview" data-technique="<?= h($tech['value']) ?>" title="Voir un aperçu réel">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="3"/>
-                                            <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
-                                        </svg>
-                                    </button>
-                                    <span class="cfg-technique-price">
-                                        <?= $tech['price'] > 0 ? '+' . number_format($tech['price'], 2, ',', ' ') . ' €' : 'Inclus' ?>
-                                    </span>
-                                </label>
+                                <button type="button"
+                                        class="cfg-technique-pill <?= $index === 0 ? 'selected' : '' ?>"
+                                        data-technique="<?= h($tech['value']) ?>"
+                                        data-price="<?= h($tech['price']) ?>"
+                                        data-desc="<?= h($tech['description']) ?>">
+                                    <span class="pill-name"><?= h($tech['label']) ?></span>
+                                    <span class="pill-price"><?= $tech['price'] > 0 ? '+' . number_format($tech['price'], 2, ',', ' ') . ' €' : 'Inclus' ?></span>
+                                </button>
                                 <?php endforeach; ?>
                             </div>
+
+                            <!-- Description de la technique sélectionnée -->
+                            <div class="cfg-technique-details" id="cfgTechniqueDetails">
+                                <p class="technique-description"><?= h($techniques[0]['description'] ?? '') ?></p>
+                            </div>
+
+                            <!-- Bouton aperçu bien visible -->
+                            <button type="button" class="cfg-technique-preview-btn" id="cfgTechniquePreviewBtn" data-technique="<?= h($techniques[0]['value'] ?? 'flex') ?>">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
+                                </svg>
+                                Voir le rendu réel de cette technique
+                            </button>
                         </div>
 
                         <!-- Panel: Photo -->

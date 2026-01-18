@@ -1447,13 +1447,19 @@ $colorImages['Original'] = ['front' => $product['image_front_url'], 'back' => $p
 - `public/assets/js/configurator.js` — Initialisation technique, handler preview
 - `public/assets/css/configurator.css` — Styles .cfg-technique-preview
 
-#### Admin Options - Techniques (EN COURS)
+#### Admin Options - Techniques ✅ TERMINÉ
 
 | Tâche | Statut | Notes |
 |-------|--------|-------|
-| Restaurer menu Options dans sidebar | 🔄 EN COURS | Uniquement Techniques pour l'instant |
-| CRUD Techniques | 🔄 EN COURS | Liste, ajouter, modifier, supprimer |
-| Gestion tailles dans variantes produit | ⏳ À FAIRE | Remplace sélection couleur séparée |
+| Restaurer menu Options dans sidebar | ✅ OK | Uniquement Techniques pour l'instant |
+| CRUD Techniques | ✅ OK | Liste, ajouter, modifier, supprimer, images |
+| Gestion tailles dans variantes produit | ✅ OK | Colonne `size` ajoutée, formulaire mis à jour |
+
+**Fichiers modifiés** :
+- `admin/options.php` — Simplifié pour n'afficher que Techniques
+- `admin/product-form.php` — Section couleurs supprimée, taille ajoutée aux variantes
+- `app/models/ProductColorImage.php` — Support du champ `size`
+- `sql/migrate_variant_size.sql` — Migration ajout colonne size
 
 ---
 

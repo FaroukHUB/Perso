@@ -132,9 +132,9 @@
         console.log('[Configurator] DOM cached, stageContainer:', DOM.stageContainer);
 
         // Initialize default technique
-        const firstTechnique = DOM.techniqueItems?.[0];
-        if (firstTechnique) {
-            window.__SELECTED_TECHNIQUE = firstTechnique.dataset.technique;
+        const firstTechniquePill = document.querySelector('.cfg-technique-pill.selected');
+        if (firstTechniquePill) {
+            window.__SELECTED_TECHNIQUE = firstTechniquePill.dataset.technique;
         }
 
         if (!DOM.stageContainer) {
@@ -1459,30 +1459,40 @@
             });
         });
 
-        // Technique selection
-        DOM.techniqueItems?.forEach(item => {
-            item.addEventListener('click', (e) => {
-                // Don't select if clicking the preview button
-                if (e.target.closest('.cfg-technique-preview')) return;
+        // Technique selection (pill selector)
+        const techniquePills = document.querySelectorAll('.cfg-technique-pill');
+        const techniqueDetails = document.getElementById('cfgTechniqueDetails');
+        const techniquePreviewBtn = document.getElementById('cfgTechniquePreviewBtn');
 
-                DOM.techniqueItems.forEach(i => i.classList.remove('selected'));
-                item.classList.add('selected');
+        techniquePills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                // Update selection
+                techniquePills.forEach(p => p.classList.remove('selected'));
+                pill.classList.add('selected');
+
+                // Update description
+                if (techniqueDetails) {
+                    const desc = pill.dataset.desc || '';
+                    techniqueDetails.querySelector('.technique-description').textContent = desc;
+                }
+
+                // Update preview button
+                if (techniquePreviewBtn) {
+                    techniquePreviewBtn.dataset.technique = pill.dataset.technique;
+                }
+
                 // Store selected technique in state
-                window.__SELECTED_TECHNIQUE = item.dataset.technique;
+                window.__SELECTED_TECHNIQUE = pill.dataset.technique;
                 updatePrice();
             });
         });
 
-        // Technique preview buttons
-        document.querySelectorAll('.cfg-technique-preview').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const technique = btn.dataset.technique;
-                if (window.PersonnalyRealRender) {
-                    window.PersonnalyRealRender.open(technique);
-                }
-            });
+        // Technique preview button (bottom)
+        techniquePreviewBtn?.addEventListener('click', () => {
+            const technique = techniquePreviewBtn.dataset.technique;
+            if (window.PersonnalyRealRender) {
+                window.PersonnalyRealRender.open(technique);
+            }
         });
 
         // Drawer close
