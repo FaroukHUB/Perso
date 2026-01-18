@@ -474,28 +474,61 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 ---
 
-## DESIGN — Personnalisation Produit (À VENIR)
+## DESIGN — Personnalisation Produit
 
 ### E.1 — Refonte UX configurateur (inspiration Canva / Yoursurprise)
 > Objectif : moderniser l'expérience de personnalisation produit.
 
-#### STEP DESIGN-0 — Architecture UX/UI (EN COURS)
-- [~] **E.1.0.1** — Layout structurel Desktop (3 colonnes)
-- [~] **E.1.0.2** — Layout structurel Mobile (canvas + bottom bars)
-- [~] **E.1.0.3** — Liste composants UI
-- [~] **E.1.0.4** — Flow utilisateur (arrivée → panier)
-- [~] **E.1.0.5** — Points à valider (UX/Technique/Business)
-- [ ] **E.1.0.6** — Validation humaine des choix
+#### ✅ STEP DESIGN-0 — Architecture UX/UI (VALIDÉ)
+- [x] **E.1.0.1** — Layout structurel Desktop (3 colonnes)
+- [x] **E.1.0.2** — Layout structurel Mobile (canvas + bottom bars)
+- [x] **E.1.0.3** — Liste composants UI
+- [x] **E.1.0.4** — Flow utilisateur (arrivée → panier)
+- [x] **E.1.0.5** — Points à valider (UX/Technique/Business)
+- [x] **E.1.0.6** — Validation humaine des choix ✅
 
-#### STEP DESIGN-1 — Implémentation (À VENIR)
-- [ ] **E.1.1** — Structure HTML/CSS canvas central
-- [ ] **E.1.2** — Panneau outils (texte, image, design)
-- [ ] **E.1.3** — Drag & drop éléments
-- [ ] **E.1.4** — Panneau propriétés dynamique
-- [ ] **E.1.5** — Gestion calques
-- [ ] **E.1.6** — Responsive mobile
-- [ ] **E.1.7** — Admin designs prédéfinis
+**Décisions validées (2026-01-18) :**
+
+| Catégorie | Décision | Valeur |
+|-----------|----------|--------|
+| UX | Panneau outils Desktop | Gauche (240px) |
+| UX | Panneau outils Mobile | Bottom toolbar |
+| UX | Panneau propriétés | Drawer contextuel (sur sélection) |
+| UX | Panneau calques | Dédié (séparé des propriétés) |
+| UX | Snap magnétique | Soft (centre/bords zone) + toggle |
+| UX | Limite éléments | MAX 10 |
+| UX | Undo/Redo | Phase 2 |
+| UX | Autosave brouillon | localStorage (JSON) |
+| UX | Preview rendu réel | Modal séparée |
+| Tech | Librairie rendu | Konva.js (fallback DOM overlay) |
+| Tech | Format sérialisation | JSON obligatoire (source vérité) |
+| Tech | Export panier | JSON + image preview |
+| Tech | Compression upload | Client-side resize + serveur WebP |
+| Business | Designs premium | NON (tous gratuits) |
+| Business | Upload client | OUI (10 Mo max + resize) |
+| Business | Export PNG | OUI (partage social) |
+
+#### STEP DESIGN-1 — Wireframes & Spécifications (EN COURS)
+- [~] **E.1.1.1** — Wireframe Desktop avec états (Texte/Photo/Design/Calques)
+- [~] **E.1.1.2** — Wireframe Mobile avec bottom toolbar 2 parties
+- [~] **E.1.1.3** — Mapping interactions drag/drop tactile
+- [ ] **E.1.1.4** — Validation humaine wireframes
+
+#### STEP DESIGN-2 — Implémentation (À VENIR)
+- [ ] **E.1.2.1** — Structure HTML/CSS canvas central
+- [ ] **E.1.2.2** — Panneau outils (texte, image, design)
+- [ ] **E.1.2.3** — Drag & drop éléments (Konva.js)
+- [ ] **E.1.2.4** — Drawer propriétés contextuel
+- [ ] **E.1.2.5** — Panneau calques dédié
+- [ ] **E.1.2.6** — Responsive mobile bottom toolbar
+- [ ] **E.1.2.7** — Sérialisation JSON + localStorage
+- [ ] **E.1.2.8** — Export image preview
+
+#### STEP DESIGN-3 — Admin Designs (APRÈS DESIGN-2)
+- [ ] **E.1.3.1** — Table design_templates + CRUD
+- [ ] **E.1.3.2** — Admin création designs
+- [ ] **E.1.3.3** — Grille templates côté client
 
 **Priorité** : 🔴 HAUTE (prochaine phase majeure)
 
-**Statut** : 🟡 STEP DESIGN-0 en cours — En attente validation architecture
+**Statut** : 🟡 STEP DESIGN-1 en cours — Wireframes & Spécifications

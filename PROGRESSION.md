@@ -1024,7 +1024,251 @@ CREATE TABLE design_templates (
 **Fichiers mis à jour** :
 - `TASKS.md` — Section E.1 DESIGN avec STEP DESIGN-0 et DESIGN-1
 
-**Statut** : 🟡 EN ATTENTE VALIDATION — Répondre aux 10 questions avant STEP DESIGN-1
+**Statut** : ✅ VALIDÉ — Décisions enregistrées, passage à DESIGN-1
+
+---
+
+### 2026-01-18 - Session 20 ter (STEP DESIGN-0 VALIDÉ + DESIGN-1 WIREFRAMES)
+
+**Objectif** : Valider DESIGN-0 et produire les wireframes DESIGN-1.
+
+#### Décisions DESIGN-0 validées
+
+| # | Catégorie | Décision | Valeur |
+|---|-----------|----------|--------|
+| 1 | UX | Panneau outils Desktop | Gauche (240px) |
+| 2 | UX | Panneau outils Mobile | Bottom toolbar (Canva-like) |
+| 3 | UX | Panneau propriétés | Drawer contextuel (sur sélection) |
+| 4 | UX | Panneau calques | Dédié (séparé des propriétés) |
+| 5 | UX | Snap magnétique | Soft (centre/bords zone) + toggle ON desktop |
+| 6 | UX | Limite éléments | MAX 10 |
+| 7 | UX | Undo/Redo | Phase 2 (planifié) |
+| 8 | UX | Autosave brouillon | localStorage JSON (sans compte) |
+| 9 | UX | Preview rendu réel | Modal séparée (bouton "Voir le rendu") |
+| 10 | Tech | Librairie rendu | Konva.js (fallback DOM overlay si blocage) |
+| 11 | Tech | Format sérialisation | JSON obligatoire (source de vérité) |
+| 12 | Tech | Export panier | JSON + image preview |
+| 13 | Tech | Compression upload | Client-side resize/webp + serveur fallback |
+| 14 | Business | Designs premium | NON (tous gratuits au lancement) |
+| 15 | Business | Upload client | OUI (10 Mo max + resize auto) |
+| 16 | Business | Export PNG | OUI (partage social) |
+
+---
+
+#### WIREFRAME DESKTOP — États du panneau outils
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ÉTAT: TEXTE             │   CANVAS                 │   DRAWER PROPRIÉTÉS    │
+│  ─────────────────────   │   ──────────────────     │   (apparaît sur clic)  │
+│  [📝] [🖼️] [🎨] [📦]    │                          │   ┌────────────────┐   │
+│  ─────────────────────   │   ┌────────────────┐     │   │ TEXTE          │   │
+│  Votre texte:            │   │   T-shirt +    │     │   │ ────────────── │   │
+│  ┌─────────────────┐     │   │   "PAPA" texte │     │   │ Police: [▼]    │   │
+│  │ Tapez ici...    │     │   │   (sélectionné)│     │   │ Taille: ─●──── │   │
+│  └─────────────────┘     │   └────────────────┘     │   │ Couleur: ●●●●  │   │
+│                          │   Face | Dos  🔍+/-      │   │ Rotation: 0°   │   │
+│  Police:                 │                          │   │ Opacité: 100%  │   │
+│  ┌─────────────────┐     │                          │   │                │   │
+│  │ Inter        ▼  │     │                          │   │ [🗑️ Supprimer] │   │
+│  └─────────────────┘     │                          │   └────────────────┘   │
+│                          │                          │                        │
+│  Couleur:                │                          │                        │
+│  ● ● ● ● ● ●             │                          │                        │
+│  [+ custom]              │                          │                        │
+│                          │                          │                        │
+│  Technique:              │                          │                        │
+│  ○ Broderie (+8€)        │                          │                        │
+│  ● Flex (+0€)            │                          │                        │
+│  ○ Flock (+2€)           │                          │                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+│  ← Annuler  |  Snap: ✓  |  💾 Brouillon  |  Prix: 35,00€  |  🛒 AJOUTER    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ÉTAT: PHOTO             │   CANVAS                 │   DRAWER PROPRIÉTÉS    │
+│  ─────────────────────   │   ──────────────────     │   (masqué si rien      │
+│  [📝] [🖼️] [🎨] [📦]    │                          │    sélectionné)        │
+│  ─────────────────────   │   ┌────────────────┐     │                        │
+│                          │   │   T-shirt      │     │                        │
+│  ┌─────────────────┐     │   │                │     │                        │
+│  │  📤 IMPORTER    │     │   │                │     │                        │
+│  │  une image      │     │   └────────────────┘     │                        │
+│  │  (max 10 Mo)    │     │   Face | Dos  🔍+/-      │                        │
+│  └─────────────────┘     │                          │                        │
+│                          │                          │                        │
+│  Formats: JPG, PNG, WebP │                          │                        │
+│  Redimensionnement auto  │                          │                        │
+│                          │                          │                        │
+│  ─────────────────────   │                          │                        │
+│  Récents:                │                          │                        │
+│  [vide]                  │                          │                        │
+│                          │                          │                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ÉTAT: DESIGN            │   CANVAS                 │   DRAWER PROPRIÉTÉS    │
+│  ─────────────────────   │   ──────────────────     │   (apparaît sur clic)  │
+│  [📝] [🖼️] [🎨] [📦]    │                          │   ┌────────────────┐   │
+│  ─────────────────────   │   ┌────────────────┐     │   │ DESIGN #3      │   │
+│                          │   │   T-shirt +    │     │   │ ────────────── │   │
+│  Catégorie: [Tous    ▼]  │   │   🌟 design    │     │   │ Taille: ─●──── │   │
+│                          │   │   ajouté       │     │   │ Rotation: 0°   │   │
+│  ┌────┐ ┌────┐ ┌────┐    │   └────────────────┘     │   │ Opacité: 100%  │   │
+│  │ 🌟 │ │ ⚽ │ │ 🎂 │    │   Face | Dos  🔍+/-      │   │ Flip H/V       │   │
+│  └────┘ └────┘ └────┘    │                          │   │                │   │
+│  ┌────┐ ┌────┐ ┌────┐    │                          │   │ [🗑️ Supprimer] │   │
+│  │ 💖 │ │ 🏆 │ │ 🎄 │    │                          │   └────────────────┘   │
+│  └────┘ └────┘ └────┘    │                          │                        │
+│                          │                          │                        │
+│  ───────────────────     │                          │                        │
+│  Les designs sont        │                          │                        │
+│  fournis par PERSONNALY  │                          │                        │
+│                          │                          │                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ÉTAT: CALQUES           │   CANVAS                 │   DRAWER PROPRIÉTÉS    │
+│  ─────────────────────   │   ──────────────────     │                        │
+│  [📝] [🖼️] [🎨] [📦]    │                          │                        │
+│  ─────────────────────   │   ┌────────────────┐     │                        │
+│                          │   │   T-shirt +    │     │                        │
+│  📦 CALQUES (3/10)       │   │   éléments     │     │                        │
+│  ─────────────────────   │   │                │     │                        │
+│  ┌─────────────────────┐ │   └────────────────┘     │                        │
+│  │ ≡ Texte "PAPA"  👁️ │ │   Face | Dos  🔍+/-      │                        │
+│  └─────────────────────┘ │                          │                        │
+│  ┌─────────────────────┐ │                          │                        │
+│  │ ≡ Logo.png      👁️ │ │                          │                        │
+│  └─────────────────────┘ │                          │                        │
+│  ┌─────────────────────┐ │                          │                        │
+│  │ ≡ Design ⚽     👁️ │ │                          │                        │
+│  └─────────────────────┘ │                          │                        │
+│                          │                          │                        │
+│  ↑ Monter  ↓ Descendre   │                          │                        │
+│  [+ Texte] [+ Photo]     │                          │                        │
+│                          │                          │                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### WIREFRAME MOBILE — Bottom Toolbar 2 parties
+
+```
+┌─────────────────────────────────────────────┐
+│              CANVAS (100% - 130px)          │
+│                                             │
+│         ┌─────────────────────┐             │
+│         │                     │             │
+│         │     T-SHIRT +       │             │
+│         │     "PAPA"          │             │
+│         │     (draggable)     │             │
+│         │                     │             │
+│         └─────────────────────┘             │
+│                                             │
+│         [ Face ]  [ Dos ]   🔍              │
+│                                             │
+├─────────────────────────────────────────────┤
+│  TOOLBAR HAUTE (50px) — Onglets outils      │
+│  ┌────────────────────────────────────────┐ │
+│  │  📝    │   🖼️   │   🎨   │   📦      │ │
+│  │ Texte  │  Photo │ Design │ Calques   │ │
+│  └────────────────────────────────────────┘ │
+├─────────────────────────────────────────────┤
+│  TOOLBAR BASSE (80px) — Prix + CTA          │
+│  ┌────────────────────────────────────────┐ │
+│  │  Total: 35,00€        [ 🛒 AJOUTER ]  │ │
+│  │  Broderie +8€                          │ │
+│  └────────────────────────────────────────┘ │
+└─────────────────────────────────────────────┘
+```
+
+**Comportement tap sur onglet :**
+
+```
+┌─────────────────────────────────────────────┐
+│           CANVAS (réduit 60%)               │
+│                                             │
+│         ┌───────────────┐                   │
+│         │   T-SHIRT     │                   │
+│         └───────────────┘                   │
+│                                             │
+├─────────────────────────────────────────────┤
+│  DRAWER OUTIL (slide up 40%)                │
+│  ┌────────────────────────────────────────┐ │
+│  │  📝 TEXTE                    [×]      │ │
+│  │  ─────────────────────────────────     │ │
+│  │  Votre texte:                          │ │
+│  │  ┌────────────────────────────────┐    │ │
+│  │  │ Tapez ici...                   │    │ │
+│  │  └────────────────────────────────┘    │ │
+│  │                                        │ │
+│  │  Police:     [Inter           ▼]      │ │
+│  │  Couleur:    ● ● ● ● ● ●              │ │
+│  │  Technique:  ○ Broderie  ● Flex       │ │
+│  │                                        │ │
+│  │         [ ✓ APPLIQUER ]               │ │
+│  └────────────────────────────────────────┘ │
+├─────────────────────────────────────────────┤
+│  35,00€                    [ 🛒 AJOUTER ]   │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+#### MAPPING INTERACTIONS DRAG/DROP
+
+| Plateforme | Geste | Action | Feedback |
+|------------|-------|--------|----------|
+| Desktop | Clic élément | Sélection | Poignées resize + rotation + drawer propriétés |
+| Desktop | Drag élément | Déplacement | Snap guides (si toggle ON) |
+| Desktop | Clic + drag coin | Resize proportionnel | Preview temps réel |
+| Desktop | Clic + drag cercle | Rotation | Angle affiché |
+| Desktop | Double-clic texte | Mode édition inline | Curseur texte |
+| Desktop | Clic zone vide | Déselection | Drawer fermé |
+| Desktop | Suppr / Backspace | Suppression élément | Confirmation si texte |
+| Mobile | Tap élément | Sélection | Poignées + drawer slide up |
+| Mobile | Drag 1 doigt | Déplacement | Vibration tactile si snap |
+| Mobile | Pinch 2 doigts | Resize | Preview temps réel |
+| Mobile | Rotate 2 doigts | Rotation | Angle affiché |
+| Mobile | Long press | Menu contextuel | Dupliquer / Supprimer |
+| Mobile | Swipe down drawer | Fermer drawer | Animation slide |
+| Mobile | Tap zone vide | Déselection | Drawer fermé |
+
+**Snap magnétique (soft) :**
+- Centre horizontal zone impression
+- Centre vertical zone impression
+- Bords zone impression (gauche, droite, haut, bas)
+- Centre produit (optionnel)
+- Résistance légère : 5px de "magnétisme"
+- Guide visuel : ligne pointillée rose apparaît au snap
+
+**Limites zone impression :**
+- Élément ne peut PAS sortir de la zone
+- Si drag vers l'extérieur : élément reste au bord
+- Feedback visuel : bordure zone devient rouge
+
+---
+
+#### Récapitulatif technique (rappel)
+
+| Élément | Choix | Raison |
+|---------|-------|--------|
+| Rendu canvas | Konva.js | Lib mature, gère touch, export PNG natif |
+| Fallback | DOM + CSS transform | Si Konva bloque (perf mobile anciens) |
+| Sérialisation | JSON | Portable, localStorage, DB compatible |
+| Images upload | Client resize → serveur WebP | Déjà en place (ImageHelper) |
+| Autosave | localStorage | Pas de compte requis, UX moderne |
+| Undo/Redo | Phase 2 | Complexité différée |
+
+**Statut** : 🟡 EN ATTENTE VALIDATION WIREFRAMES — Avant STEP DESIGN-2
 
 ---
 
