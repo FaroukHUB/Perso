@@ -41,6 +41,11 @@ if (isset($_GET['action'])) {
 }
 
 // Ajout rapide d'un produit
+if (isPost()) {
+    echo '<pre>';
+    var_dump($_POST);
+    exit;
+}
 if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
     if (isset($_POST['add_product'])) {
         $productId = (int) $_POST['product_id'];
