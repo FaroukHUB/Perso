@@ -1298,6 +1298,25 @@
             state.selectedProductColor = initialColorSwatch.dataset.color;
         }
 
+        // Size selection
+        const sizeButtons = document.querySelectorAll('.cfg-size-btn');
+        sizeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                sizeButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                state.selectedSize = btn.dataset.size;
+                saveDraft();
+            });
+        });
+
+        // Initialize selected size from DOM
+        const initialSizeBtn = document.querySelector('.cfg-size-btn.selected');
+        if (initialSizeBtn) {
+            state.selectedSize = initialSizeBtn.dataset.size;
+        } else {
+            state.selectedSize = 'M'; // Default
+        }
+
         // Style buttons (Bold / Italic)
         DOM.styleBtns?.forEach(btn => {
             btn.addEventListener('click', () => {

@@ -412,6 +412,38 @@
     margin-bottom: 8px;
 }
 
+/* Size selector */
+.cfg-size-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.cfg-size-btn {
+    min-width: 42px;
+    height: 36px;
+    padding: 0 12px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    background: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--black-soft);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cfg-size-btn:hover {
+    border-color: var(--pink-light);
+    background: rgba(255, 105, 180, 0.05);
+}
+
+.cfg-size-btn.selected {
+    border-color: var(--pink-main);
+    background: var(--pink-main);
+    color: white;
+}
+
 .cfg-coming-soon-text {
     font-size: 0.85rem;
     color: var(--gray);

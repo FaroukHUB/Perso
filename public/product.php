@@ -2062,6 +2062,22 @@ $cartCount = Cart::count();
                                 </div>
                             </div>
 
+                            <!-- Taille du produit -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Taille</div>
+                                <div class="cfg-option-controls">
+                                    <div class="cfg-size-selector" id="cfgSizeSelector">
+                                        <?php foreach ($sizes as $size): ?>
+                                        <button type="button"
+                                                class="cfg-size-btn <?= $size === 'M' ? 'selected' : '' ?>"
+                                                data-size="<?= h($size) ?>">
+                                            <?= h($size) ?>
+                                        </button>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="cfg-section-divider"></div>
 
                             <!-- Designs pré-faits (Coming Soon) -->

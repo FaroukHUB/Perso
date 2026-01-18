@@ -501,6 +501,77 @@ if (isPost()) {
             border-top: 1px solid rgba(0,0,0,0.08);
         }
 
+        /* === Tailles disponibles === */
+        .sizes-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(61, 255, 192, 0.05), rgba(255, 105, 180, 0.05));
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        .sizes-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--black-soft);
+            margin: 0 0 20px 0;
+        }
+        .size-presets {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .size-preset-btn {
+            padding: 10px 18px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: var(--radius-full);
+            background: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .size-preset-btn:hover {
+            border-color: var(--pink-light);
+            background: rgba(255, 105, 180, 0.05);
+        }
+        .size-preset-btn.active {
+            background: var(--gradient-pink);
+            color: white;
+            border-color: transparent;
+        }
+        .size-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .size-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: white;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .size-checkbox:has(input:checked) {
+            border-color: var(--mint-main);
+            background: rgba(61, 255, 192, 0.1);
+        }
+        .size-checkbox input {
+            accent-color: var(--mint-main);
+        }
+        .sizes-hint {
+            font-size: 13px;
+            color: var(--gray);
+            margin: 0;
+        }
+
         /* === Variantes produit (couleur + taille + images) === */
         .variants-section {
             margin-top: 40px;
@@ -883,6 +954,37 @@ if (isPost()) {
                         </div>
                     </div>
 
+                    <!-- Tailles disponibles pour ce produit -->
+                    <div class="sizes-section">
+                        <div class="sizes-header">
+                            <h3>📏 Tailles disponibles</h3>
+                        </div>
+                        <div class="size-presets">
+                            <button type="button" class="size-preset-btn active" data-preset="letters" onclick="selectSizePreset('letters')">
+                                S - XXL
+                            </button>
+                            <button type="button" class="size-preset-btn" data-preset="numeric" onclick="selectSizePreset('numeric')">
+                                36 - 46
+                            </button>
+                            <button type="button" class="size-preset-btn" data-preset="kids" onclick="selectSizePreset('kids')">
+                                Enfants
+                            </button>
+                            <button type="button" class="size-preset-btn" data-preset="baby" onclick="selectSizePreset('baby')">
+                                Bébé
+                            </button>
+                        </div>
+                        <div class="size-checkboxes" id="sizeCheckboxes">
+                            <!-- Tailles lettres (défaut) -->
+                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="XS" checked> XS</label>
+                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="S" checked> S</label>
+                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="M" checked> M</label>
+                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="L" checked> L</label>
+                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="XL" checked> XL</label>
+                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="XXL" checked> XXL</label>
+                        </div>
+                        <p class="sizes-hint">Sélectionnez les tailles disponibles pour ce produit. Vous pouvez aussi définir des tailles par variante.</p>
+                    </div>
+
                     <!-- Variantes produit (couleur + taille + images) -->
                     <div class="variants-section">
                         <div class="variants-header">
@@ -982,6 +1084,31 @@ if (isPost()) {
     </div>
 
     <script>
+        // Presets de tailles
+        const sizePresets = {
+            letters: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+            numeric: ['36', '38', '40', '42', '44', '46', '48'],
+            kids: ['2A', '4A', '6A', '8A', '10A', '12A', '14A'],
+            baby: ['0-3M', '3-6M', '6-12M', '12-18M', '18-24M', '2-3A']
+        };
+
+        function selectSizePreset(preset) {
+            // Update active button
+            document.querySelectorAll('.size-preset-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.preset === preset);
+            });
+
+            // Generate new checkboxes
+            const container = document.getElementById('sizeCheckboxes');
+            const sizes = sizePresets[preset] || sizePresets.letters;
+
+            container.innerHTML = sizes.map(size => `
+                <label class="size-checkbox">
+                    <input type="checkbox" name="available_sizes[]" value="${size}" checked> ${size}
+                </label>
+            `).join('');
+        }
+
         // Preview images on select
         function setupImagePreview(inputId) {
             const input = document.getElementById(inputId);
