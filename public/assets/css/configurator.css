@@ -328,6 +328,49 @@
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
+/* Product color selector */
+.cfg-product-colors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.cfg-product-color-swatch {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.cfg-product-color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.cfg-product-color-swatch.selected {
+    border-color: var(--black-soft);
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--pink-main);
+}
+
+.cfg-product-color-swatch[data-color="blanc"],
+.cfg-product-color-swatch[data-color="white"] {
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.cfg-product-color-swatch[data-color="blanc"].selected,
+.cfg-product-color-swatch[data-color="white"].selected {
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1), 0 0 0 2px white, 0 0 0 4px var(--pink-main);
+}
+
+/* Section divider */
+.cfg-section-divider {
+    height: 1px;
+    background: var(--cfg-border);
+    margin: 20px 0;
+}
+
 /* Technique selector */
 .cfg-technique-list {
     display: flex;

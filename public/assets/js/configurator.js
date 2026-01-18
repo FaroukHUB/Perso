@@ -27,6 +27,67 @@
     };
 
     // ===========================================
+    // FONT LOADING
+    // ===========================================
+    const loadedFonts = new Set(['Inter', 'Arial', 'Helvetica', 'sans-serif', 'serif']);
+
+    /**
+     * Load a Google Font dynamically
+     * @param {string} fontFamily - The font family name
+     * @returns {Promise} - Resolves when font is loaded
+     */
+    function loadGoogleFont(fontFamily) {
+        if (loadedFonts.has(fontFamily)) {
+            return Promise.resolve();
+        }
+
+        return new Promise((resolve, reject) => {
+            const familyEncoded = fontFamily.replace(/\s+/g, '+');
+            const url = `https://fonts.googleapis.com/css2?family=${familyEncoded}:wght@400;500;600;700&display=swap`;
+
+            // Check if already loaded
+            const existingLink = document.querySelector(`link[href*="${familyEncoded}"]`);
+            if (existingLink) {
+                loadedFonts.add(fontFamily);
+                resolve();
+                return;
+            }
+
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = url;
+
+            link.onload = () => {
+                console.log(`[Configurator] Font loaded: ${fontFamily}`);
+                loadedFonts.add(fontFamily);
+                resolve();
+            };
+
+            link.onerror = () => {
+                console.warn(`[Configurator] Failed to load font: ${fontFamily}`);
+                reject(new Error(`Failed to load font: ${fontFamily}`));
+            };
+
+            document.head.appendChild(link);
+        });
+    }
+
+    /**
+     * Preload all fonts from __FONTS_DATA
+     */
+    function preloadFonts() {
+        const fonts = window.__FONTS_DATA || [];
+        console.log('[Configurator] Preloading fonts:', fonts.map(f => f.value || f.family));
+
+        fonts.forEach(font => {
+            const family = font.value || font.family;
+            if (family && !loadedFonts.has(family)) {
+                loadGoogleFont(family).catch(() => {});
+            }
+        });
+    }
+
+    // ===========================================
     // STATE
     // ===========================================
     const state = {
@@ -36,7 +97,8 @@
         elements: [],
         selectedElement: null,
         currentView: 'front', // 'front' or 'back'
-        currentTool: 'text', // 'text', 'photo', 'design', 'layers'
+        currentTool: 'design', // 'design', 'photo', 'text', 'layers'
+        selectedProductColor: null, // Current product color name
         isDragging: false,
         zoomLevel: 1,
         printZone: null,
@@ -61,6 +123,9 @@
             return;
         }
         console.log('[Configurator] Konva.js loaded OK');
+
+        // Preload all fonts
+        preloadFonts();
 
         // Cache DOM elements
         cacheDOM();
@@ -120,6 +185,8 @@
             // Photo upload
             uploadZone: document.getElementById('cfgUploadZone'),
             imageUpload: document.getElementById('cfgImageUpload'),
+            // Product color
+            productColors: document.querySelectorAll('.cfg-product-color-swatch'),
             // Legacy
             colorSwatches: document.querySelectorAll('.cfg-color-swatch'),
             techniqueItems: document.querySelectorAll('.cfg-technique-item'),
@@ -234,6 +301,53 @@
             drawPrintZone();
 
             state.layer.batchDraw();
+        });
+    }
+
+    /**
+     * Change the product image (used when switching color variants)
+     */
+    function changeProductImage(imageUrl, colorName) {
+        if (!imageUrl) {
+            console.warn('[Configurator] No image URL for color:', colorName);
+            return;
+        }
+
+        console.log('[Configurator] Loading product image:', imageUrl);
+
+        Konva.Image.fromURL(imageUrl, (image) => {
+            // Remove old product image
+            if (state.productImage) {
+                state.productImage.destroy();
+            }
+
+            // Scale image to fit stage
+            const stageWidth = state.stage.width();
+            const stageHeight = state.stage.height();
+            const scale = Math.min(
+                (stageWidth * 0.85) / image.width(),
+                (stageHeight * 0.85) / image.height()
+            );
+
+            image.setAttrs({
+                x: (stageWidth - image.width() * scale) / 2,
+                y: (stageHeight - image.height() * scale) / 2,
+                scaleX: scale,
+                scaleY: scale,
+                listening: false,
+            });
+
+            state.productImage = image;
+            state.layer.add(image);
+            image.moveToBottom();
+
+            // Redraw print zone
+            drawPrintZone();
+
+            state.layer.batchDraw();
+            console.log('[Configurator] Product image changed to:', colorName);
+        }, (err) => {
+            console.error('[Configurator] Failed to load product image:', err);
         });
     }
 
@@ -1078,9 +1192,19 @@
         });
 
         // Font select
-        DOM.fontSelect?.addEventListener('change', (e) => {
+        DOM.fontSelect?.addEventListener('change', async (e) => {
             if (state.selectedElement && state.selectedElement.type === 'text') {
                 const fontFamily = e.target.value;
+                console.log('[Configurator] Changing font to:', fontFamily);
+
+                // Load font first (if not already loaded)
+                try {
+                    await loadGoogleFont(fontFamily);
+                } catch (err) {
+                    console.warn('[Configurator] Font load failed, applying anyway');
+                }
+
+                // Apply font
                 state.selectedElement.properties.fontFamily = fontFamily;
                 state.selectedElement.konvaNode.fontFamily(fontFamily);
                 state.selectedElement.konvaNode.offsetX(state.selectedElement.konvaNode.width() / 2);
@@ -1120,6 +1244,40 @@
                 DOM.colorDropdown.style.display = 'none';
             });
         });
+
+        // Product color swatches
+        DOM.productColors?.forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                const colorName = swatch.dataset.color;
+                const frontImage = swatch.dataset.front;
+                const backImage = swatch.dataset.back;
+
+                console.log('[Configurator] Changing product color to:', colorName);
+
+                // Track selected color
+                state.selectedProductColor = colorName;
+
+                // Mark selected
+                DOM.productColors.forEach(s => s.classList.remove('selected'));
+                swatch.classList.add('selected');
+
+                // Update product image if variant images are available
+                if (frontImage || backImage) {
+                    changeProductImage(
+                        state.currentView === 'front' ? frontImage : backImage,
+                        colorName
+                    );
+                }
+
+                saveDraft();
+            });
+        });
+
+        // Initialize selected product color from DOM
+        const initialColorSwatch = document.querySelector('.cfg-product-color-swatch.selected');
+        if (initialColorSwatch) {
+            state.selectedProductColor = initialColorSwatch.dataset.color;
+        }
 
         // Style buttons (Bold / Italic)
         DOM.styleBtns?.forEach(btn => {
@@ -1375,8 +1533,19 @@
             el.transformer.visible(shouldShow && state.selectedElement === el);
         });
 
-        // Load new product image
-        loadProductImage();
+        // Load new product image - use color-specific image if available
+        const colorImages = window.__COLOR_IMAGES || {};
+        if (state.selectedProductColor && colorImages[state.selectedProductColor]) {
+            const colorImg = colorImages[state.selectedProductColor];
+            const imageUrl = view === 'front' ? colorImg.front : colorImg.back;
+            if (imageUrl) {
+                changeProductImage(imageUrl, state.selectedProductColor);
+            } else {
+                loadProductImage();
+            }
+        } else {
+            loadProductImage();
+        }
 
         // Update layers panel
         updateLayersPanel();

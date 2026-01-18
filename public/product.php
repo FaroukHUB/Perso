@@ -313,7 +313,7 @@ $cartCount = Cart::count();
     if ($useNewConfigurator):
     ?>
     <!-- Nouveau Configurateur v2 (Konva.js) -->
-    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=3">
+    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=4">
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <?php endif; ?>
     <style>
@@ -1823,7 +1823,7 @@ $cartCount = Cart::count();
                 <div class="configurator-v2" id="configuratorV2">
                     <!-- Barre Onglets Verticale (far left) -->
                     <div class="cfg-tabs-bar">
-                        <button type="button" class="cfg-tab active" data-tool="text" title="Texte">
+                        <button type="button" class="cfg-tab active" data-tool="design" title="Design">
                             <span class="cfg-tab-icon">🎨</span>
                             <span class="cfg-tab-label">Design</span>
                         </button>
@@ -1852,7 +1852,7 @@ $cartCount = Cart::count();
                         </div>
 
                         <!-- Panel: Texte -->
-                        <div class="cfg-tool-panel active" data-tool="text">
+                        <div class="cfg-tool-panel" data-tool="text">
                             <div class="cfg-text-input-wrapper">
                                 <input type="text" class="cfg-text-input" id="cfgTextInput"
                                        placeholder="Saisissez votre texte ici"
@@ -1980,7 +1980,33 @@ $cartCount = Cart::count();
                         </div>
 
                         <!-- Panel: Design -->
-                        <div class="cfg-tool-panel" data-tool="design">
+                        <div class="cfg-tool-panel active" data-tool="design">
+                            <!-- Couleur du produit -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Couleur du produit</div>
+                                <div class="cfg-option-controls">
+                                    <div class="cfg-product-colors" id="cfgProductColors">
+                                        <?php foreach ($colors as $colorName => $hexCode): ?>
+                                        <div class="cfg-product-color-swatch <?= $colorName === $defaultColorKey ? 'selected' : '' ?>"
+                                             style="background-color: <?= h($hexCode) ?>"
+                                             data-color="<?= h($colorName) ?>"
+                                             data-hex="<?= h($hexCode) ?>"
+                                             <?php if ($hasColorVariants && isset($colorImages[$colorName])): ?>
+                                             data-front="<?= h($colorImages[$colorName]['front'] ?? '') ?>"
+                                             data-back="<?= h($colorImages[$colorName]['back'] ?? '') ?>"
+                                             <?php endif; ?>
+                                             title="<?= h(ucfirst($colorName)) ?>"></div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="cfg-section-divider"></div>
+
+                            <!-- Designs pré-faits -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Designs</div>
+                            </div>
                             <div class="cfg-design-category">
                                 <select id="cfgDesignCategory">
                                     <option value="">Tous les designs</option>
@@ -3593,13 +3619,16 @@ $cartCount = Cart::count();
             'front' => $zones['front'] ?? null,
             'back' => $zones['back'] ?? null
         ],
-        'maxChars' => $printZone['max_chars'] ?? 50
+        'maxChars' => $printZone['max_chars'] ?? 50,
+        'hasColorVariants' => $hasColorVariants ?? false
     ]) ?>;
     window.__FONTS_DATA = <?= json_encode($fonts ?? []) ?>;
     window.__TEXT_COLORS_DATA = <?= json_encode($textColors ?? []) ?>;
     window.__TECHNIQUES_DATA = <?= json_encode($techniques ?? []) ?>;
+    window.__PRODUCT_COLORS = <?= json_encode($colors ?? []) ?>;
+    window.__COLOR_IMAGES = <?= json_encode($colorImages ?? []) ?>;
     </script>
-    <script src="/public/assets/js/configurator.js?v=5"></script>
+    <script src="/public/assets/js/configurator.js?v=6"></script>
     <?php endif; ?>
 </body>
 </html>
