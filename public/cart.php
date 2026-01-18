@@ -102,24 +102,16 @@ if (!Cart::isEmpty()) {
 
     // Vérifier si les upsells sont activés et affichés sur le panier
     if (($upsellSettings['enabled'] ?? '1') === '1' && ($upsellSettings['show_on_cart'] ?? '1') === '1') {
-        // Récupérer les IDs des produits et catégories du panier
+        // Récupérer les IDs des produits du panier (à exclure des suggestions)
         $cartProductIds = [];
-        $cartCategoryIds = [];
-
         foreach ($cartItems as $item) {
             $cartProductIds[] = $item['product_id'];
-            if (!empty($item['product']['category_id'])) {
-                $cartCategoryIds[] = $item['product']['category_id'];
-            }
         }
-
         $cartProductIds = array_unique($cartProductIds);
-        $cartCategoryIds = array_unique($cartCategoryIds);
 
-        // Récupérer les suggestions
-        $upsellSuggestions = $upsellModel->getSuggestionsForCart(
+        // Récupérer les suggestions (exclut les produits déjà dans le panier)
+        $upsellSuggestions = $upsellModel->getSuggestions(
             $cartProductIds,
-            $cartCategoryIds,
             (int) ($upsellSettings['max_items'] ?? 4)
         );
     }
