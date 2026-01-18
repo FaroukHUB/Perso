@@ -965,6 +965,28 @@
         });
 
         DOM.mobileDrawerClose?.addEventListener('click', closeMobileDrawer);
+
+        // Form submission - populate hidden fields
+        const form = document.getElementById('customizationForm');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                // Get cart data (JSON + preview image)
+                const cartData = getCartData();
+
+                // Populate hidden fields
+                const jsonInput = document.getElementById('customizationJson');
+                const previewInput = document.getElementById('previewImage');
+
+                if (jsonInput && cartData.json) {
+                    jsonInput.value = cartData.json;
+                }
+                if (previewInput && cartData.preview) {
+                    previewInput.value = cartData.preview;
+                }
+
+                console.log('[Configurator] Form submitted with cart data');
+            });
+        }
     }
 
     function switchTool(tool) {
