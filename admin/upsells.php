@@ -251,16 +251,33 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
                     <?php endif; ?>
                 </div>
             </div>
+
+            <!-- Info box -->
+            <div class="info-box">
+                <div class="info-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/>
+                        <path d="M12 8h.01"/>
+                    </svg>
+                </div>
+                <div class="info-content">
+                    <h4>Comment ça marche ?</h4>
+                    <p>Les produits suggérés s'affichent automatiquement sur la page panier. Les clients peuvent les ajouter en un clic. Vous pouvez personnaliser le titre, la description et même proposer un prix promotionnel spécial pour inciter à l'achat.</p>
+                </div>
+            </div>
         </main>
     </div>
 
     <style>
+        /* ===== Page Header ===== */
         .page-subtitle {
             color: var(--gray);
             font-size: 14px;
             margin-top: 4px;
         }
 
+        /* ===== Alerts ===== */
         .alert {
             padding: 14px 20px;
             border-radius: 12px;
@@ -274,76 +291,114 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
             color: var(--mint-dark);
         }
 
+        /* ===== Layout Grid ===== */
         .upsells-layout {
             display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 24px;
+            grid-template-columns: 320px 1fr;
+            gap: 28px;
             align-items: start;
+            margin-bottom: 32px;
         }
         @media (max-width: 1024px) {
             .upsells-layout { grid-template-columns: 1fr; }
         }
 
+        /* ===== Settings Panel (Ultra-Moderne) ===== */
         .settings-panel {
             background: white;
-            border-radius: 20px;
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
         }
+        .settings-panel:hover {
+            border-color: rgba(255, 105, 180, 0.15);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
+
         .panel-header {
             padding: 20px 24px;
-            border-bottom: 1px solid var(--gray-light);
+            background: linear-gradient(135deg, rgba(255, 105, 180, 0.08) 0%, rgba(61, 255, 192, 0.08) 100%);
+            border-bottom: 1px solid rgba(0,0,0,0.04);
         }
         .panel-header h3 {
             margin: 0;
             font-size: 15px;
             font-weight: 700;
             color: var(--black-soft);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .panel-body {
-            padding: 20px 24px;
+        .panel-header h3::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(180deg, var(--pink-main) 0%, var(--mint-main) 100%);
+            border-radius: 2px;
         }
 
+        .panel-body {
+            padding: 24px;
+        }
+
+        /* ===== Toggle Switch (Ultra-Moderne) ===== */
         .toggle-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 0;
+            padding: 16px;
             cursor: pointer;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(61, 255, 192, 0.06) 0%, rgba(255, 105, 180, 0.06) 100%);
+            border-radius: 14px;
+            border: 1px solid rgba(61, 255, 192, 0.15);
+            transition: all 0.2s;
+        }
+        .toggle-row:hover {
+            border-color: rgba(61, 255, 192, 0.3);
+            background: linear-gradient(135deg, rgba(61, 255, 192, 0.1) 0%, rgba(255, 105, 180, 0.1) 100%);
         }
         .toggle-row span:first-child {
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
+            color: var(--black-soft);
         }
         .toggle-row input { display: none; }
         .toggle {
-            width: 44px;
-            height: 24px;
-            background: var(--gray-light);
-            border-radius: 12px;
+            width: 52px;
+            height: 28px;
+            background: #e0e0e0;
+            border-radius: 14px;
             position: relative;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
         .toggle::after {
             content: '';
             position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
             background: white;
             border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .toggle-row input:checked + .toggle {
-            background: linear-gradient(135deg, var(--mint-main) 0%, var(--mint-dark) 100%);
+            background: linear-gradient(135deg, var(--mint-main) 0%, #2dd4bf 100%);
+            box-shadow: 0 4px 12px rgba(61, 255, 192, 0.4);
         }
-        .toggle-row input:checked + .toggle::after { left: 22px; }
+        .toggle-row input:checked + .toggle::after {
+            left: 27px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
 
+        /* ===== Form Groups ===== */
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
         .form-group label {
             display: block;
@@ -355,78 +410,109 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 12px 14px;
+            padding: 14px 16px;
             border: 2px solid var(--gray-light);
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 14px;
             transition: all 0.2s;
+            background: #fafafa;
         }
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
             border-color: var(--pink-main);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.1);
+        }
+        .form-group input::placeholder {
+            color: #aaa;
         }
 
-        .btn-full { width: 100%; justify-content: center; }
+        /* ===== Buttons ===== */
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+        }
         .btn-secondary {
-            background: var(--gray-light);
+            background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
             color: var(--black-soft);
+            border: none;
+            gap: 8px;
         }
         .btn-secondary:hover {
-            background: var(--pink-light);
+            background: linear-gradient(135deg, var(--pink-light) 0%, rgba(255, 105, 180, 0.2) 100%);
             color: var(--pink-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 105, 180, 0.2);
         }
 
+        /* ===== Empty State ===== */
         .empty-state {
             background: white;
-            border-radius: 20px;
-            padding: 60px 40px;
+            border-radius: 24px;
+            padding: 80px 40px;
             text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
         }
         .empty-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, rgba(255, 105, 180, 0.1) 0%, rgba(61, 255, 192, 0.1) 100%);
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, rgba(255, 105, 180, 0.15) 0%, rgba(61, 255, 192, 0.15) 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            margin: 0 auto 24px;
             color: var(--pink-main);
         }
         .empty-state h3 {
             margin: 0 0 8px;
-            font-size: 18px;
+            font-size: 20px;
+            font-weight: 700;
             color: var(--black-soft);
         }
         .empty-state p {
             margin: 0;
             color: var(--gray);
-            font-size: 14px;
+            font-size: 15px;
+            max-width: 320px;
+            margin: 0 auto;
         }
 
+        /* ===== Upsells Grid ===== */
         .upsells-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
         }
 
+        /* ===== Upsell Cards (Ultra-Moderne) ===== */
         .upsell-card {
             background: white;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-            transition: all 0.3s;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
         .upsell-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+            transform: translateY(-6px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+            border-color: rgba(255, 105, 180, 0.2);
         }
-        .upsell-card.inactive { opacity: 0.6; }
+        .upsell-card.inactive {
+            opacity: 0.65;
+            filter: grayscale(30%);
+        }
+        .upsell-card.inactive:hover {
+            opacity: 0.8;
+            filter: grayscale(0%);
+        }
 
+        /* ===== Card Image ===== */
         .upsell-image {
             position: relative;
-            height: 180px;
+            height: 200px;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             overflow: hidden;
         }
@@ -434,6 +520,10 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+        .upsell-card:hover .upsell-image img {
+            transform: scale(1.05);
         }
         .no-image {
             width: 100%;
@@ -442,92 +532,169 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
             align-items: center;
             justify-content: center;
             color: var(--gray);
+            background: linear-gradient(135deg, rgba(255, 105, 180, 0.05) 0%, rgba(61, 255, 192, 0.05) 100%);
         }
+
+        /* ===== Badges ===== */
         .upsell-badge {
             position: absolute;
-            top: 12px;
-            left: 12px;
+            top: 14px;
+            left: 14px;
             background: linear-gradient(135deg, var(--pink-main) 0%, var(--pink-dark) 100%);
             color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
+            padding: 8px 14px;
+            border-radius: 24px;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(255, 105, 180, 0.4);
         }
         .status-badge {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            background: rgba(0,0,0,0.6);
+            top: 14px;
+            right: 14px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
             color: white;
-            padding: 4px 10px;
-            border-radius: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
             font-size: 11px;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
+        /* ===== Card Info ===== */
         .upsell-info {
-            padding: 20px;
+            padding: 20px 24px;
+            background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(248,249,250,0.5) 100%);
         }
         .upsell-info h4 {
-            margin: 0 0 8px;
-            font-size: 16px;
+            margin: 0 0 10px;
+            font-size: 17px;
             font-weight: 700;
             color: var(--black-soft);
-            line-height: 1.3;
+            line-height: 1.35;
         }
         .upsell-info .description {
-            margin: 0 0 12px;
+            margin: 0 0 14px;
             font-size: 13px;
             color: var(--gray);
-            line-height: 1.5;
+            line-height: 1.55;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
+
+        /* ===== Price Row ===== */
         .price-row {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
         .price {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 800;
             color: var(--black-soft);
         }
         .old-price {
-            font-size: 14px;
+            font-size: 15px;
             color: var(--gray);
             text-decoration: line-through;
         }
         .promo-price {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 800;
-            color: var(--pink-dark);
+            background: linear-gradient(135deg, var(--pink-main) 0%, var(--pink-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
+        /* ===== Card Actions ===== */
         .upsell-actions {
             display: flex;
-            gap: 8px;
-            padding: 0 20px 20px;
+            gap: 10px;
+            padding: 16px 24px 24px;
+            background: var(--gray-light);
+            border-top: 1px solid rgba(0,0,0,0.04);
         }
         .btn-icon {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--gray-light);
-            border-radius: 10px;
+            background: white;
+            border-radius: 12px;
             color: var(--black-soft);
             transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
         .btn-icon:hover {
             background: var(--pink-light);
             color: var(--pink-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 105, 180, 0.2);
         }
         .btn-icon.btn-danger:hover {
             background: rgba(239, 68, 68, 0.1);
             color: #EF4444;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
+        /* ===== Info Box ===== */
+        .info-box {
+            display: flex;
+            gap: 16px;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(61, 255, 192, 0.08) 0%, rgba(255, 105, 180, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(61, 255, 192, 0.2);
+            margin-top: 8px;
+        }
+        .info-icon {
+            width: 44px;
+            height: 44px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mint-dark);
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(61, 255, 192, 0.2);
+        }
+        .info-content h4 {
+            margin: 0 0 6px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--black-soft);
+        }
+        .info-content p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* ===== Responsive Mobile ===== */
+        @media (max-width: 768px) {
+            .upsells-grid {
+                grid-template-columns: 1fr;
+            }
+            .upsell-image {
+                height: 180px;
+            }
+            .info-box {
+                flex-direction: column;
+                text-align: center;
+            }
+            .info-icon {
+                margin: 0 auto;
+            }
         }
     </style>
 </body>
