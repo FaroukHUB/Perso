@@ -316,6 +316,7 @@ $cartCount = Cart::count();
     <!-- Polices personnalisation (chargées dynamiquement depuis admin) -->
     <?= FontLoader::renderHead() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
+    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=<?= time() ?>">
     <link rel="stylesheet" href="/public/assets/css/techniques.css?v=3">
     <style>
         body { background: var(--gray-light); }
@@ -2348,6 +2349,8 @@ $cartCount = Cart::count();
     <script src="/public/assets/js/lightbox.js"></script>
     <!-- Modal Rendu Réel par technique -->
     <script src="/public/assets/js/real-render-modal.js"></script>
+    <!-- Configurator V2 Modern 2026 -->
+    <script src="/public/assets/js/configurator.js?v=<?= time() ?>"></script>
 
     <script>
         // ============================================
