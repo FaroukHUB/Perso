@@ -1,0 +1,1197 @@
+/**
+ * PERSONNALY - Configurateur de personnalisation produit
+ * Version: 2.0 (DESIGN-2)
+ * Date: 2026-01-18
+ *
+ * Architecture:
+ * - Layout 3 colonnes Desktop (Outils | Canvas | Drawer)
+ * - Bottom toolbar Mobile (Onglets + CTA)
+ * - Konva.js pour le canvas
+ */
+
+/* ===========================================
+   CSS VARIABLES (Configurator-specific)
+   =========================================== */
+:root {
+    --cfg-tools-width: 240px;
+    --cfg-drawer-width: 280px;
+    --cfg-drawer-width-closed: 0px;
+    --cfg-toolbar-height: 50px;
+    --cfg-cta-height: 80px;
+    --cfg-gap: 20px;
+    --cfg-radius: 16px;
+    --cfg-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --cfg-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===========================================
+   MAIN LAYOUT - Desktop 3 columns
+   =========================================== */
+.configurator-v2 {
+    display: grid;
+    grid-template-columns: var(--cfg-tools-width) 1fr var(--cfg-drawer-width-closed);
+    grid-template-rows: 1fr auto;
+    gap: var(--cfg-gap);
+    min-height: calc(100vh - 80px);
+    padding: var(--cfg-gap);
+    transition: grid-template-columns var(--cfg-transition);
+}
+
+.configurator-v2.drawer-open {
+    grid-template-columns: var(--cfg-tools-width) 1fr var(--cfg-drawer-width);
+}
+
+/* ===========================================
+   TOOLS PANEL (Left column)
+   =========================================== */
+.cfg-tools {
+    background: white;
+    border-radius: var(--cfg-radius);
+    box-shadow: var(--cfg-shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.cfg-tools-tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.cfg-tab {
+    flex: 1;
+    padding: 14px 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--gray);
+    transition: all 0.2s;
+    position: relative;
+}
+
+.cfg-tab:hover {
+    color: var(--pink-main);
+    background: rgba(255, 105, 180, 0.05);
+}
+
+.cfg-tab.active {
+    color: var(--pink-main);
+    background: white;
+}
+
+.cfg-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-pink);
+}
+
+.cfg-tab-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+/* Tool panel content */
+.cfg-tool-panel {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: none;
+}
+
+.cfg-tool-panel.active {
+    display: block;
+}
+
+/* ===========================================
+   TOOL PANEL: TEXT
+   =========================================== */
+.cfg-text-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    margin-bottom: 20px;
+}
+
+.cfg-text-input:focus {
+    outline: none;
+    border-color: var(--pink-main);
+}
+
+.cfg-text-input::placeholder {
+    color: var(--gray);
+    opacity: 0.6;
+}
+
+/* Font selector */
+.cfg-font-selector {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.cfg-font-dropdown {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cfg-font-dropdown:hover {
+    border-color: var(--pink-light);
+}
+
+.cfg-font-preview {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cfg-font-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+}
+
+.cfg-font-list.open {
+    display: block;
+}
+
+.cfg-font-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.cfg-font-item:hover {
+    background: rgba(255, 105, 180, 0.08);
+}
+
+.cfg-font-item.selected {
+    background: var(--pink-light);
+    color: white;
+}
+
+/* Color palette */
+.cfg-section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cfg-section-label::before {
+    content: '';
+    width: 3px;
+    height: 12px;
+    background: var(--gradient-pink);
+    border-radius: 2px;
+}
+
+.cfg-color-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.cfg-color-swatch {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.cfg-color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.cfg-color-swatch.selected {
+    border-color: var(--black-soft);
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--pink-main);
+}
+
+.cfg-color-swatch[data-color="blanc"],
+.cfg-color-swatch[data-color="white"] {
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Technique selector */
+.cfg-technique-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cfg-technique-item {
+    padding: 14px 16px;
+    border: 2px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cfg-technique-item:hover {
+    border-color: var(--pink-light);
+    background: rgba(255, 105, 180, 0.03);
+}
+
+.cfg-technique-item.selected {
+    border-color: var(--pink-main);
+    background: rgba(255, 105, 180, 0.08);
+}
+
+.cfg-technique-name {
+    font-weight: 600;
+    color: var(--black-soft);
+}
+
+.cfg-technique-price {
+    font-size: 0.85rem;
+    color: var(--mint-dark);
+    font-weight: 600;
+}
+
+.cfg-technique-price::before {
+    content: '+';
+}
+
+/* ===========================================
+   TOOL PANEL: PHOTO
+   =========================================== */
+.cfg-upload-zone {
+    border: 2px dashed rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-md);
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+}
+
+.cfg-upload-zone:hover {
+    border-color: var(--pink-main);
+    background: rgba(255, 105, 180, 0.03);
+}
+
+.cfg-upload-zone.dragover {
+    border-color: var(--pink-main);
+    background: rgba(255, 105, 180, 0.08);
+    transform: scale(1.02);
+}
+
+.cfg-upload-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    color: var(--pink-main);
+}
+
+.cfg-upload-text {
+    font-weight: 600;
+    color: var(--black-soft);
+    margin-bottom: 4px;
+}
+
+.cfg-upload-hint {
+    font-size: 0.8rem;
+    color: var(--gray);
+}
+
+/* ===========================================
+   TOOL PANEL: DESIGN (Templates)
+   =========================================== */
+.cfg-design-category {
+    margin-bottom: 16px;
+}
+
+.cfg-design-category select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    background: white;
+}
+
+.cfg-design-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.cfg-design-item {
+    aspect-ratio: 1;
+    border: 2px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.cfg-design-item:hover {
+    border-color: var(--pink-main);
+    transform: scale(1.05);
+}
+
+.cfg-design-item img {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+}
+
+.cfg-design-item .placeholder {
+    font-size: 1.5rem;
+    color: var(--gray);
+}
+
+/* ===========================================
+   TOOL PANEL: LAYERS
+   =========================================== */
+.cfg-layers-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.cfg-layers-count {
+    font-size: 0.8rem;
+    color: var(--gray);
+    font-weight: 600;
+}
+
+.cfg-layers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cfg-layer-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: var(--radius-md);
+    cursor: grab;
+    transition: all 0.2s;
+}
+
+.cfg-layer-item:hover {
+    background: rgba(255, 105, 180, 0.08);
+}
+
+.cfg-layer-item.selected {
+    background: rgba(255, 105, 180, 0.15);
+    box-shadow: inset 0 0 0 2px var(--pink-main);
+}
+
+.cfg-layer-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.cfg-layer-handle {
+    color: var(--gray);
+    font-size: 0.9rem;
+    cursor: grab;
+}
+
+.cfg-layer-icon {
+    font-size: 1.1rem;
+}
+
+.cfg-layer-name {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cfg-layer-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.cfg-layer-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--gray);
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cfg-layer-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--black-soft);
+}
+
+.cfg-layer-btn.hidden {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+/* Add element buttons */
+.cfg-add-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.cfg-add-btn {
+    flex: 1;
+    padding: 10px;
+    border: 2px dashed rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-md);
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray);
+    transition: all 0.2s;
+}
+
+.cfg-add-btn:hover {
+    border-color: var(--pink-main);
+    color: var(--pink-main);
+    background: rgba(255, 105, 180, 0.05);
+}
+
+/* ===========================================
+   CANVAS (Center column)
+   =========================================== */
+.cfg-canvas-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.cfg-view-toggle {
+    display: flex;
+    gap: 10px;
+}
+
+.cfg-view-btn {
+    padding: 10px 20px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-full);
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--gray);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cfg-view-btn:hover {
+    border-color: var(--pink-light);
+    color: var(--pink-main);
+}
+
+.cfg-view-btn.active {
+    background: var(--gradient-pink);
+    border-color: transparent;
+    color: white;
+    box-shadow: var(--shadow-pink);
+}
+
+.cfg-canvas-wrapper {
+    position: relative;
+    background: white;
+    border-radius: var(--cfg-radius);
+    box-shadow: var(--cfg-shadow);
+    padding: 20px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.cfg-canvas-stage {
+    width: 100%;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
+    border-radius: var(--radius-md);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Konva canvas container */
+.cfg-canvas-stage .konvajs-content {
+    border-radius: var(--radius-md);
+}
+
+/* Print zone indicator */
+.cfg-print-zone {
+    position: absolute;
+    border: 2px dashed rgba(255, 105, 180, 0.4);
+    border-radius: 8px;
+    pointer-events: none;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+
+.cfg-print-zone.active {
+    border-color: rgba(255, 105, 180, 0.7);
+    background: rgba(255, 105, 180, 0.05);
+}
+
+.cfg-print-zone-label {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    font-size: 10px;
+    color: var(--pink-main);
+    background: white;
+    padding: 2px 8px;
+    border-radius: 4px 4px 0 0;
+    font-weight: 600;
+}
+
+/* Zoom controls */
+.cfg-zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.cfg-zoom-btn {
+    width: 36px;
+    height: 36px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    background: white;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: var(--gray);
+    transition: all 0.2s;
+}
+
+.cfg-zoom-btn:hover {
+    border-color: var(--pink-main);
+    color: var(--pink-main);
+}
+
+.cfg-zoom-level {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gray);
+    min-width: 50px;
+    text-align: center;
+}
+
+/* Drag hint */
+.cfg-drag-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(255, 105, 180, 0.08);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    color: var(--gray);
+}
+
+.cfg-drag-hint svg {
+    color: var(--pink-main);
+}
+
+/* ===========================================
+   DRAWER (Right column - Properties)
+   =========================================== */
+.cfg-drawer {
+    background: white;
+    border-radius: var(--cfg-radius);
+    box-shadow: var(--cfg-shadow);
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity var(--cfg-transition), transform var(--cfg-transition);
+    pointer-events: none;
+}
+
+.configurator-v2.drawer-open .cfg-drawer {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.cfg-drawer-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cfg-drawer-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--black-soft);
+}
+
+.cfg-drawer-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--gray);
+    font-size: 1.2rem;
+    transition: all 0.15s;
+}
+
+.cfg-drawer-close:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--black-soft);
+}
+
+.cfg-drawer-content {
+    padding: 20px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+/* Property controls */
+.cfg-prop-group {
+    margin-bottom: 20px;
+}
+
+.cfg-prop-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray);
+    margin-bottom: 10px;
+}
+
+.cfg-prop-row {
+    display: flex;
+    gap: 10px;
+}
+
+.cfg-prop-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.cfg-prop-input:focus {
+    outline: none;
+    border-color: var(--pink-main);
+}
+
+.cfg-prop-input-label {
+    font-size: 0.7rem;
+    color: var(--gray);
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* Slider */
+.cfg-slider {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.1);
+    outline: none;
+}
+
+.cfg-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--gradient-pink);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(255, 105, 180, 0.4);
+}
+
+.cfg-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--gradient-pink);
+    cursor: pointer;
+    border: none;
+}
+
+/* Delete button */
+.cfg-delete-btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 20px;
+    border: 2px solid rgba(220, 53, 69, 0.3);
+    border-radius: var(--radius-md);
+    background: rgba(220, 53, 69, 0.05);
+    color: #dc3545;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.cfg-delete-btn:hover {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.5);
+}
+
+/* ===========================================
+   ACTION BAR (Bottom)
+   =========================================== */
+.cfg-actions {
+    grid-column: 1 / -1;
+    background: white;
+    border-radius: var(--cfg-radius);
+    box-shadow: var(--cfg-shadow);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.cfg-actions-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.cfg-action-btn {
+    padding: 10px 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--gray);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cfg-action-btn:hover:not(:disabled) {
+    border-color: var(--pink-main);
+    color: var(--pink-main);
+}
+
+.cfg-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cfg-snap-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--gray);
+}
+
+.cfg-snap-toggle input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--pink-main);
+}
+
+.cfg-actions-center {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cfg-save-btn {
+    padding: 12px 20px;
+    border: 2px solid var(--mint-main);
+    border-radius: var(--radius-md);
+    background: rgba(61, 255, 192, 0.1);
+    color: var(--mint-dark);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cfg-save-btn:hover {
+    background: rgba(61, 255, 192, 0.2);
+}
+
+.cfg-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.cfg-price-display {
+    text-align: right;
+}
+
+.cfg-price-label {
+    font-size: 0.75rem;
+    color: var(--gray);
+    text-transform: uppercase;
+}
+
+.cfg-price-value {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--pink-dark);
+}
+
+.cfg-add-cart-btn {
+    padding: 14px 28px;
+    background: var(--gradient-pink);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--shadow-pink);
+}
+
+.cfg-add-cart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+}
+
+/* ===========================================
+   RESPONSIVE - Tablet
+   =========================================== */
+@media (max-width: 1200px) {
+    :root {
+        --cfg-tools-width: 200px;
+        --cfg-drawer-width: 260px;
+    }
+
+    .cfg-design-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ===========================================
+   RESPONSIVE - Mobile (Bottom Toolbar)
+   =========================================== */
+@media (max-width: 768px) {
+    .configurator-v2 {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        padding-bottom: calc(var(--cfg-toolbar-height) + var(--cfg-cta-height));
+        min-height: 100vh;
+    }
+
+    /* Hide desktop tools panel */
+    .cfg-tools {
+        display: none;
+    }
+
+    /* Hide desktop drawer */
+    .cfg-drawer {
+        display: none;
+    }
+
+    /* Hide desktop action bar */
+    .cfg-actions {
+        display: none;
+    }
+
+    /* Canvas full width */
+    .cfg-canvas-container {
+        flex: 1;
+        padding: 16px;
+    }
+
+    .cfg-canvas-wrapper {
+        max-width: 100%;
+    }
+
+    /* Mobile toolbar - fixed bottom */
+    .cfg-mobile-toolbar {
+        display: flex;
+        position: fixed;
+        bottom: var(--cfg-cta-height);
+        left: 0;
+        right: 0;
+        height: var(--cfg-toolbar-height);
+        background: white;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        z-index: 100;
+    }
+
+    .cfg-mobile-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        color: var(--gray);
+        transition: color 0.2s;
+    }
+
+    .cfg-mobile-tab.active {
+        color: var(--pink-main);
+    }
+
+    .cfg-mobile-tab-icon {
+        font-size: 1.3rem;
+    }
+
+    .cfg-mobile-tab-label {
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    /* Mobile CTA bar */
+    .cfg-mobile-cta {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--cfg-cta-height);
+        background: white;
+        padding: 12px 16px;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .cfg-mobile-price {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .cfg-mobile-price-label {
+        font-size: 0.7rem;
+        color: var(--gray);
+    }
+
+    .cfg-mobile-price-value {
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--pink-dark);
+    }
+
+    .cfg-mobile-cart-btn {
+        padding: 14px 24px;
+        background: var(--gradient-pink);
+        border: none;
+        border-radius: var(--radius-md);
+        color: white;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: var(--shadow-pink);
+    }
+
+    /* Mobile drawer (slide up) */
+    .cfg-mobile-drawer {
+        display: none;
+        position: fixed;
+        bottom: calc(var(--cfg-toolbar-height) + var(--cfg-cta-height));
+        left: 0;
+        right: 0;
+        max-height: 50vh;
+        background: white;
+        border-radius: var(--cfg-radius) var(--cfg-radius) 0 0;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+        z-index: 99;
+        overflow: hidden;
+        transform: translateY(100%);
+        transition: transform var(--cfg-transition);
+    }
+
+    .cfg-mobile-drawer.open {
+        display: block;
+        transform: translateY(0);
+    }
+
+    .cfg-mobile-drawer-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .cfg-mobile-drawer-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cfg-mobile-drawer-close {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1.2rem;
+        color: var(--gray);
+    }
+
+    .cfg-mobile-drawer-content {
+        padding: 20px;
+        max-height: calc(50vh - 60px);
+        overflow-y: auto;
+    }
+
+    .cfg-mobile-drawer-apply {
+        width: 100%;
+        padding: 14px;
+        margin-top: 16px;
+        background: var(--gradient-pink);
+        border: none;
+        border-radius: var(--radius-md);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+    }
+}
+
+/* Hide mobile elements on desktop */
+@media (min-width: 769px) {
+    .cfg-mobile-toolbar,
+    .cfg-mobile-cta,
+    .cfg-mobile-drawer {
+        display: none !important;
+    }
+}
+
+/* ===========================================
+   SNAP GUIDES
+   =========================================== */
+.cfg-snap-guide {
+    position: absolute;
+    background: var(--pink-main);
+    z-index: 50;
+    pointer-events: none;
+}
+
+.cfg-snap-guide.horizontal {
+    height: 1px;
+    left: 0;
+    right: 0;
+}
+
+.cfg-snap-guide.vertical {
+    width: 1px;
+    top: 0;
+    bottom: 0;
+}
+
+/* ===========================================
+   LOADING STATE
+   =========================================== */
+.cfg-loading {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.cfg-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 105, 180, 0.2);
+    border-top-color: var(--pink-main);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

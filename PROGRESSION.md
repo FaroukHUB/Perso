@@ -1268,7 +1268,34 @@ CREATE TABLE design_templates (
 | Autosave | localStorage | Pas de compte requis, UX moderne |
 | Undo/Redo | Phase 2 | Complexité différée |
 
-**Statut** : 🟡 EN ATTENTE VALIDATION WIREFRAMES — Avant STEP DESIGN-2
+**Statut** : ✅ VALIDÉ — Passage à STEP DESIGN-2
+
+---
+
+### 2026-01-18 - Session 21 (STEP DESIGN-2 - IMPLÉMENTATION)
+
+**Objectif** : Implémenter le nouveau configurateur de personnalisation basé sur les wireframes validés.
+
+#### E.1.2.1 — Structure HTML/CSS canvas central
+
+**Fichiers à créer/modifier** :
+- `public/product.php` — Refonte layout 3 colonnes
+- `public/assets/css/configurator.css` — Nouveau fichier CSS dédié
+- `public/assets/js/configurator.js` — Nouveau fichier JS orchestrateur
+
+**Architecture CSS** :
+```css
+.configurator-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr 0; /* 0 = drawer fermé */
+    grid-template-rows: 1fr auto;
+    min-height: calc(100vh - 80px);
+}
+
+.configurator-layout.drawer-open {
+    grid-template-columns: 240px 1fr 280px;
+}
+```
 
 ---
 

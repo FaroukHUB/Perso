@@ -1,0 +1,1383 @@
+/**
+ * PERSONNALY - Configurateur de personnalisation produit (Konva.js)
+ * Version: 2.0 (DESIGN-2)
+ * Date: 2026-01-18
+ *
+ * Features:
+ * - Canvas Konva.js pour drag & drop
+ * - Panneau outils avec onglets
+ * - Drawer propriétés contextuel
+ * - Snap magnétique soft
+ * - Sérialisation JSON + localStorage
+ * - Export image preview
+ */
+
+(function() {
+    'use strict';
+
+    // ===========================================
+    // CONFIGURATION
+    // ===========================================
+    const CONFIG = {
+        maxElements: 10,
+        snapThreshold: 5, // px
+        snapEnabled: true,
+        autoSaveKey: 'personnaly_design_draft',
+        autoSaveInterval: 5000, // ms
+    };
+
+    // ===========================================
+    // STATE
+    // ===========================================
+    const state = {
+        stage: null,
+        layer: null,
+        productImage: null,
+        elements: [],
+        selectedElement: null,
+        currentView: 'front', // 'front' or 'back'
+        currentTool: 'text', // 'text', 'photo', 'design', 'layers'
+        isDragging: false,
+        zoomLevel: 1,
+        printZone: null,
+        snapGuides: { horizontal: null, vertical: null },
+    };
+
+    // ===========================================
+    // DOM REFERENCES
+    // ===========================================
+    let DOM = {};
+
+    // ===========================================
+    // INITIALIZATION
+    // ===========================================
+    function init() {
+        // Check if Konva is loaded
+        if (typeof Konva === 'undefined') {
+            console.warn('[Configurator] Konva.js not loaded, using fallback mode');
+            initFallbackMode();
+            return;
+        }
+
+        // Cache DOM elements
+        cacheDOM();
+
+        // Initialize Konva stage
+        initKonvaStage();
+
+        // Load product image
+        loadProductImage();
+
+        // Setup event listeners
+        setupEventListeners();
+
+        // Load draft from localStorage
+        loadDraft();
+
+        // Start autosave
+        startAutoSave();
+
+        console.log('[Configurator] Initialized successfully');
+    }
+
+    function cacheDOM() {
+        DOM = {
+            configurator: document.querySelector('.configurator-v2'),
+            stageContainer: document.querySelector('.cfg-canvas-stage'),
+            toolTabs: document.querySelectorAll('.cfg-tab'),
+            toolPanels: document.querySelectorAll('.cfg-tool-panel'),
+            viewBtns: document.querySelectorAll('.cfg-view-btn'),
+            drawer: document.querySelector('.cfg-drawer'),
+            drawerTitle: document.querySelector('.cfg-drawer-title'),
+            drawerContent: document.querySelector('.cfg-drawer-content'),
+            drawerClose: document.querySelector('.cfg-drawer-close'),
+            textInput: document.querySelector('.cfg-text-input'),
+            fontDropdown: document.querySelector('.cfg-font-dropdown'),
+            fontList: document.querySelector('.cfg-font-list'),
+            colorSwatches: document.querySelectorAll('.cfg-color-swatch'),
+            techniqueItems: document.querySelectorAll('.cfg-technique-item'),
+            layersList: document.querySelector('.cfg-layers-list'),
+            layersCount: document.querySelector('.cfg-layers-count'),
+            zoomIn: document.querySelector('.cfg-zoom-btn[data-action="zoom-in"]'),
+            zoomOut: document.querySelector('.cfg-zoom-btn[data-action="zoom-out"]'),
+            zoomReset: document.querySelector('.cfg-zoom-btn[data-action="zoom-reset"]'),
+            zoomLevel: document.querySelector('.cfg-zoom-level'),
+            snapToggle: document.querySelector('.cfg-snap-toggle input'),
+            undoBtn: document.querySelector('.cfg-action-btn[data-action="undo"]'),
+            redoBtn: document.querySelector('.cfg-action-btn[data-action="redo"]'),
+            saveBtn: document.querySelector('.cfg-save-btn'),
+            addCartBtn: document.querySelector('.cfg-add-cart-btn'),
+            priceValue: document.querySelector('.cfg-price-value'),
+            // Mobile
+            mobileTabs: document.querySelectorAll('.cfg-mobile-tab'),
+            mobileDrawer: document.querySelector('.cfg-mobile-drawer'),
+            mobileDrawerTitle: document.querySelector('.cfg-mobile-drawer-title'),
+            mobileDrawerContent: document.querySelector('.cfg-mobile-drawer-content'),
+            mobileDrawerClose: document.querySelector('.cfg-mobile-drawer-close'),
+            mobileCartBtn: document.querySelector('.cfg-mobile-cart-btn'),
+            mobilePriceValue: document.querySelector('.cfg-mobile-price-value'),
+        };
+    }
+
+    // ===========================================
+    // KONVA STAGE
+    // ===========================================
+    function initKonvaStage() {
+        if (!DOM.stageContainer) return;
+
+        const containerWidth = DOM.stageContainer.offsetWidth;
+        const containerHeight = DOM.stageContainer.offsetHeight || containerWidth;
+
+        state.stage = new Konva.Stage({
+            container: DOM.stageContainer,
+            width: containerWidth,
+            height: containerHeight,
+        });
+
+        state.layer = new Konva.Layer();
+        state.stage.add(state.layer);
+
+        // Handle window resize
+        window.addEventListener('resize', debounce(handleResize, 250));
+    }
+
+    function handleResize() {
+        if (!state.stage || !DOM.stageContainer) return;
+
+        const containerWidth = DOM.stageContainer.offsetWidth;
+        const containerHeight = DOM.stageContainer.offsetHeight || containerWidth;
+
+        state.stage.width(containerWidth);
+        state.stage.height(containerHeight);
+
+        // Reposition elements proportionally
+        repositionElements(containerWidth, containerHeight);
+    }
+
+    function repositionElements(width, height) {
+        state.elements.forEach(el => {
+            if (el.konvaNode) {
+                // Convert percentage position to pixels
+                const x = (el.position.x / 100) * width;
+                const y = (el.position.y / 100) * height;
+                el.konvaNode.position({ x, y });
+            }
+        });
+        state.layer.batchDraw();
+    }
+
+    // ===========================================
+    // PRODUCT IMAGE
+    // ===========================================
+    function loadProductImage() {
+        const productData = window.__PRODUCT_DATA || {};
+        const imageUrl = state.currentView === 'front'
+            ? productData.imageFront
+            : productData.imageBack;
+
+        if (!imageUrl) return;
+
+        Konva.Image.fromURL(imageUrl, (image) => {
+            // Remove old product image
+            if (state.productImage) {
+                state.productImage.destroy();
+            }
+
+            // Scale image to fit stage
+            const stageWidth = state.stage.width();
+            const stageHeight = state.stage.height();
+            const scale = Math.min(
+                (stageWidth * 0.85) / image.width(),
+                (stageHeight * 0.85) / image.height()
+            );
+
+            image.setAttrs({
+                x: (stageWidth - image.width() * scale) / 2,
+                y: (stageHeight - image.height() * scale) / 2,
+                scaleX: scale,
+                scaleY: scale,
+                listening: false, // Product image is not interactive
+            });
+
+            state.productImage = image;
+            state.layer.add(image);
+            image.moveToBottom();
+
+            // Draw print zone
+            drawPrintZone();
+
+            state.layer.batchDraw();
+        });
+    }
+
+    function drawPrintZone() {
+        const productData = window.__PRODUCT_DATA || {};
+        const zones = productData.printZones || {};
+        const zoneData = zones[state.currentView];
+
+        if (!zoneData || !state.productImage) return;
+
+        // Remove old print zone
+        if (state.printZone) {
+            state.printZone.destroy();
+        }
+
+        const imgX = state.productImage.x();
+        const imgY = state.productImage.y();
+        const imgWidth = state.productImage.width() * state.productImage.scaleX();
+        const imgHeight = state.productImage.height() * state.productImage.scaleY();
+
+        state.printZone = new Konva.Rect({
+            x: imgX + (zoneData.x / 100) * imgWidth,
+            y: imgY + (zoneData.y / 100) * imgHeight,
+            width: (zoneData.width / 100) * imgWidth,
+            height: (zoneData.height / 100) * imgHeight,
+            stroke: 'rgba(255, 105, 180, 0.4)',
+            strokeWidth: 2,
+            dash: [8, 4],
+            listening: false,
+        });
+
+        state.layer.add(state.printZone);
+        state.printZone.moveToBottom();
+        if (state.productImage) {
+            state.printZone.moveAbove(state.productImage);
+        }
+    }
+
+    // ===========================================
+    // ELEMENT MANAGEMENT
+    // ===========================================
+    function addTextElement(text, options = {}) {
+        if (state.elements.length >= CONFIG.maxElements) {
+            showNotification('Maximum ' + CONFIG.maxElements + ' éléments atteint', 'error');
+            return null;
+        }
+
+        const stageWidth = state.stage.width();
+        const stageHeight = state.stage.height();
+
+        const textNode = new Konva.Text({
+            x: options.x || stageWidth / 2,
+            y: options.y || stageHeight / 2,
+            text: text || 'Votre texte',
+            fontSize: options.fontSize || 24,
+            fontFamily: options.fontFamily || 'Inter',
+            fill: options.fill || '#1A1A2E',
+            draggable: true,
+            offsetX: 0,
+            offsetY: 0,
+        });
+
+        // Center offset
+        textNode.offsetX(textNode.width() / 2);
+        textNode.offsetY(textNode.height() / 2);
+
+        // Add transformer for selection
+        const transformer = new Konva.Transformer({
+            nodes: [textNode],
+            enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
+            rotateEnabled: true,
+            borderStroke: '#FF69B4',
+            anchorStroke: '#FF69B4',
+            anchorFill: '#FFFFFF',
+            anchorSize: 10,
+            visible: false,
+        });
+
+        state.layer.add(textNode);
+        state.layer.add(transformer);
+
+        const element = {
+            id: generateId(),
+            type: 'text',
+            konvaNode: textNode,
+            transformer: transformer,
+            position: {
+                x: (textNode.x() / stageWidth) * 100,
+                y: (textNode.y() / stageHeight) * 100,
+            },
+            properties: {
+                text: text || 'Votre texte',
+                fontFamily: options.fontFamily || 'Inter',
+                fontSize: options.fontSize || 24,
+                fill: options.fill || '#1A1A2E',
+                rotation: 0,
+                opacity: 1,
+            },
+            view: state.currentView,
+            visible: true,
+        };
+
+        state.elements.push(element);
+
+        // Setup drag events
+        setupElementEvents(element);
+
+        // Select this element
+        selectElement(element);
+
+        // Update layers panel
+        updateLayersPanel();
+
+        state.layer.batchDraw();
+
+        return element;
+    }
+
+    function addImageElement(imageUrl, options = {}) {
+        if (state.elements.length >= CONFIG.maxElements) {
+            showNotification('Maximum ' + CONFIG.maxElements + ' éléments atteint', 'error');
+            return null;
+        }
+
+        Konva.Image.fromURL(imageUrl, (image) => {
+            const stageWidth = state.stage.width();
+            const stageHeight = state.stage.height();
+
+            // Scale image
+            const maxSize = Math.min(stageWidth, stageHeight) * 0.3;
+            const scale = Math.min(maxSize / image.width(), maxSize / image.height());
+
+            image.setAttrs({
+                x: options.x || stageWidth / 2,
+                y: options.y || stageHeight / 2,
+                scaleX: scale,
+                scaleY: scale,
+                draggable: true,
+                offsetX: image.width() / 2,
+                offsetY: image.height() / 2,
+            });
+
+            const transformer = new Konva.Transformer({
+                nodes: [image],
+                enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
+                rotateEnabled: true,
+                borderStroke: '#FF69B4',
+                anchorStroke: '#FF69B4',
+                anchorFill: '#FFFFFF',
+                anchorSize: 10,
+                visible: false,
+            });
+
+            state.layer.add(image);
+            state.layer.add(transformer);
+
+            const element = {
+                id: generateId(),
+                type: 'image',
+                konvaNode: image,
+                transformer: transformer,
+                position: {
+                    x: (image.x() / stageWidth) * 100,
+                    y: (image.y() / stageHeight) * 100,
+                },
+                properties: {
+                    url: imageUrl,
+                    rotation: 0,
+                    opacity: 1,
+                    scaleX: scale,
+                    scaleY: scale,
+                },
+                view: state.currentView,
+                visible: true,
+            };
+
+            state.elements.push(element);
+            setupElementEvents(element);
+            selectElement(element);
+            updateLayersPanel();
+            state.layer.batchDraw();
+        });
+    }
+
+    function setupElementEvents(element) {
+        const node = element.konvaNode;
+
+        node.on('click tap', () => {
+            selectElement(element);
+        });
+
+        node.on('dragstart', () => {
+            state.isDragging = true;
+            node.moveToTop();
+            element.transformer.moveToTop();
+        });
+
+        node.on('dragmove', () => {
+            // Snap to guides
+            if (CONFIG.snapEnabled) {
+                applySnap(element);
+            }
+
+            // Constrain to print zone
+            constrainToPrintZone(element);
+        });
+
+        node.on('dragend', () => {
+            state.isDragging = false;
+            hideSnapGuides();
+
+            // Update position in percentage
+            const stageWidth = state.stage.width();
+            const stageHeight = state.stage.height();
+            element.position.x = (node.x() / stageWidth) * 100;
+            element.position.y = (node.y() / stageHeight) * 100;
+
+            // Save draft
+            saveDraft();
+        });
+
+        node.on('transformend', () => {
+            element.properties.rotation = node.rotation();
+            element.properties.scaleX = node.scaleX();
+            element.properties.scaleY = node.scaleY();
+            saveDraft();
+        });
+
+        // Double-click to edit text
+        if (element.type === 'text') {
+            node.on('dblclick dbltap', () => {
+                editTextInline(element);
+            });
+        }
+    }
+
+    function selectElement(element) {
+        // Deselect previous
+        if (state.selectedElement && state.selectedElement.transformer) {
+            state.selectedElement.transformer.visible(false);
+        }
+
+        state.selectedElement = element;
+
+        if (element) {
+            element.transformer.visible(true);
+            openDrawer(element);
+            highlightLayerItem(element.id);
+        } else {
+            closeDrawer();
+        }
+
+        state.layer.batchDraw();
+    }
+
+    function deleteElement(element) {
+        if (!element) return;
+
+        const index = state.elements.indexOf(element);
+        if (index > -1) {
+            state.elements.splice(index, 1);
+        }
+
+        element.konvaNode.destroy();
+        element.transformer.destroy();
+
+        if (state.selectedElement === element) {
+            state.selectedElement = null;
+            closeDrawer();
+        }
+
+        updateLayersPanel();
+        state.layer.batchDraw();
+        saveDraft();
+    }
+
+    // ===========================================
+    // SNAP GUIDES
+    // ===========================================
+    function applySnap(element) {
+        if (!state.printZone) return;
+
+        const node = element.konvaNode;
+        const zoneX = state.printZone.x();
+        const zoneY = state.printZone.y();
+        const zoneWidth = state.printZone.width();
+        const zoneHeight = state.printZone.height();
+        const zoneCenterX = zoneX + zoneWidth / 2;
+        const zoneCenterY = zoneY + zoneHeight / 2;
+
+        let snappedX = node.x();
+        let snappedY = node.y();
+        let showHGuide = false;
+        let showVGuide = false;
+
+        // Snap to center X
+        if (Math.abs(node.x() - zoneCenterX) < CONFIG.snapThreshold) {
+            snappedX = zoneCenterX;
+            showVGuide = true;
+        }
+
+        // Snap to center Y
+        if (Math.abs(node.y() - zoneCenterY) < CONFIG.snapThreshold) {
+            snappedY = zoneCenterY;
+            showHGuide = true;
+        }
+
+        // Snap to edges
+        if (Math.abs(node.x() - zoneX) < CONFIG.snapThreshold) {
+            snappedX = zoneX;
+            showVGuide = true;
+        }
+        if (Math.abs(node.x() - (zoneX + zoneWidth)) < CONFIG.snapThreshold) {
+            snappedX = zoneX + zoneWidth;
+            showVGuide = true;
+        }
+        if (Math.abs(node.y() - zoneY) < CONFIG.snapThreshold) {
+            snappedY = zoneY;
+            showHGuide = true;
+        }
+        if (Math.abs(node.y() - (zoneY + zoneHeight)) < CONFIG.snapThreshold) {
+            snappedY = zoneY + zoneHeight;
+            showHGuide = true;
+        }
+
+        node.position({ x: snappedX, y: snappedY });
+
+        // Show/hide guides
+        toggleSnapGuide('horizontal', showHGuide, snappedY);
+        toggleSnapGuide('vertical', showVGuide, snappedX);
+    }
+
+    function toggleSnapGuide(orientation, show, position) {
+        // Create or update snap guide line
+        if (!state.snapGuides[orientation]) {
+            state.snapGuides[orientation] = new Konva.Line({
+                points: orientation === 'horizontal'
+                    ? [0, position, state.stage.width(), position]
+                    : [position, 0, position, state.stage.height()],
+                stroke: '#FF69B4',
+                strokeWidth: 1,
+                dash: [4, 4],
+                listening: false,
+            });
+            state.layer.add(state.snapGuides[orientation]);
+        }
+
+        if (show) {
+            if (orientation === 'horizontal') {
+                state.snapGuides[orientation].points([0, position, state.stage.width(), position]);
+            } else {
+                state.snapGuides[orientation].points([position, 0, position, state.stage.height()]);
+            }
+            state.snapGuides[orientation].visible(true);
+        } else {
+            state.snapGuides[orientation].visible(false);
+        }
+    }
+
+    function hideSnapGuides() {
+        if (state.snapGuides.horizontal) state.snapGuides.horizontal.visible(false);
+        if (state.snapGuides.vertical) state.snapGuides.vertical.visible(false);
+        state.layer.batchDraw();
+    }
+
+    function constrainToPrintZone(element) {
+        if (!state.printZone) return;
+
+        const node = element.konvaNode;
+        const zoneX = state.printZone.x();
+        const zoneY = state.printZone.y();
+        const zoneWidth = state.printZone.width();
+        const zoneHeight = state.printZone.height();
+
+        let x = node.x();
+        let y = node.y();
+
+        // Constrain X
+        if (x < zoneX) x = zoneX;
+        if (x > zoneX + zoneWidth) x = zoneX + zoneWidth;
+
+        // Constrain Y
+        if (y < zoneY) y = zoneY;
+        if (y > zoneY + zoneHeight) y = zoneY + zoneHeight;
+
+        node.position({ x, y });
+    }
+
+    // ===========================================
+    // DRAWER (Properties panel)
+    // ===========================================
+    function openDrawer(element) {
+        if (!DOM.drawer || !DOM.configurator) return;
+
+        DOM.configurator.classList.add('drawer-open');
+
+        if (DOM.drawerTitle) {
+            DOM.drawerTitle.textContent = element.type === 'text' ? 'TEXTE' : 'IMAGE';
+        }
+
+        if (DOM.drawerContent) {
+            DOM.drawerContent.innerHTML = renderDrawerContent(element);
+            setupDrawerEvents(element);
+        }
+    }
+
+    function closeDrawer() {
+        if (!DOM.drawer || !DOM.configurator) return;
+        DOM.configurator.classList.remove('drawer-open');
+        selectElement(null);
+    }
+
+    function renderDrawerContent(element) {
+        if (element.type === 'text') {
+            return `
+                <div class="cfg-prop-group">
+                    <div class="cfg-prop-label">Police</div>
+                    <select class="cfg-prop-input" id="drawer-font">
+                        ${renderFontOptions(element.properties.fontFamily)}
+                    </select>
+                </div>
+                <div class="cfg-prop-group">
+                    <div class="cfg-prop-label">Taille</div>
+                    <input type="range" class="cfg-slider" id="drawer-size"
+                           min="12" max="72" value="${element.properties.fontSize}">
+                    <div style="text-align: center; margin-top: 4px; font-size: 0.85rem; color: var(--gray);">
+                        ${element.properties.fontSize}px
+                    </div>
+                </div>
+                <div class="cfg-prop-group">
+                    <div class="cfg-prop-label">Couleur</div>
+                    <div class="cfg-color-palette" id="drawer-colors">
+                        ${renderColorSwatches(element.properties.fill)}
+                    </div>
+                </div>
+                <div class="cfg-prop-group">
+                    <div class="cfg-prop-label">Rotation</div>
+                    <input type="range" class="cfg-slider" id="drawer-rotation"
+                           min="-180" max="180" value="${element.properties.rotation || 0}">
+                    <div style="text-align: center; margin-top: 4px; font-size: 0.85rem; color: var(--gray);">
+                        ${element.properties.rotation || 0}°
+                    </div>
+                </div>
+                <div class="cfg-prop-group">
+                    <div class="cfg-prop-label">Opacité</div>
+                    <input type="range" class="cfg-slider" id="drawer-opacity"
+                           min="0" max="100" value="${(element.properties.opacity || 1) * 100}">
+                </div>
+                <button class="cfg-delete-btn" id="drawer-delete">
+                    🗑️ Supprimer
+                </button>
+            `;
+        } else {
+            return `
+                <div class="cfg-prop-group">
+                    <div class="cfg-prop-label">Position</div>
+                    <div class="cfg-prop-row">
+                        <div style="flex: 1;">
+                            <input type="number" class="cfg-prop-input" id="drawer-pos-x"
+                                   value="${Math.round(element.position.x)}">
+                            <div class="cfg-prop-input-label">X %</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <input type="number" class="cfg-prop-input" id="drawer-pos-y"
+                                   value="${Math.round(element.position.y)}">
+                            <div class="cfg-prop-input-label">Y %</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cfg-prop-group">
+                    <div class="cfg-prop-label">Taille</div>
+                    <input type="range" class="cfg-slider" id="drawer-scale"
+                           min="10" max="200" value="${(element.properties.scaleX || 1) * 100}">
+                </div>
+                <div class="cfg-prop-group">
+                    <div class="cfg-prop-label">Rotation</div>
+                    <input type="range" class="cfg-slider" id="drawer-rotation"
+                           min="-180" max="180" value="${element.properties.rotation || 0}">
+                </div>
+                <div class="cfg-prop-group">
+                    <div class="cfg-prop-label">Opacité</div>
+                    <input type="range" class="cfg-slider" id="drawer-opacity"
+                           min="0" max="100" value="${(element.properties.opacity || 1) * 100}">
+                </div>
+                <button class="cfg-delete-btn" id="drawer-delete">
+                    🗑️ Supprimer
+                </button>
+            `;
+        }
+    }
+
+    function renderFontOptions(selectedFont) {
+        const fonts = window.__FONTS_DATA || [
+            { value: 'Inter', label: 'Inter' },
+            { value: 'Poppins', label: 'Poppins' },
+        ];
+        return fonts.map(f =>
+            `<option value="${f.value}" ${f.value === selectedFont ? 'selected' : ''}>${f.label}</option>`
+        ).join('');
+    }
+
+    function renderColorSwatches(selectedColor) {
+        const colors = window.__TEXT_COLORS_DATA || [
+            { value: 'noir', hex: '#1A1A2E' },
+            { value: 'blanc', hex: '#FFFFFF' },
+            { value: 'rose', hex: '#FF69B4' },
+            { value: 'menthe', hex: '#3DFFC0' },
+        ];
+        return colors.map(c =>
+            `<div class="cfg-color-swatch ${c.hex === selectedColor ? 'selected' : ''}"
+                  style="background-color: ${c.hex}"
+                  data-color="${c.value}"
+                  data-hex="${c.hex}"></div>`
+        ).join('');
+    }
+
+    function setupDrawerEvents(element) {
+        // Font change
+        const fontSelect = document.getElementById('drawer-font');
+        if (fontSelect) {
+            fontSelect.addEventListener('change', (e) => {
+                element.properties.fontFamily = e.target.value;
+                element.konvaNode.fontFamily(e.target.value);
+                state.layer.batchDraw();
+                saveDraft();
+            });
+        }
+
+        // Size change
+        const sizeSlider = document.getElementById('drawer-size');
+        if (sizeSlider) {
+            sizeSlider.addEventListener('input', (e) => {
+                const size = parseInt(e.target.value);
+                element.properties.fontSize = size;
+                element.konvaNode.fontSize(size);
+                element.konvaNode.offsetX(element.konvaNode.width() / 2);
+                element.konvaNode.offsetY(element.konvaNode.height() / 2);
+                e.target.nextElementSibling.textContent = size + 'px';
+                state.layer.batchDraw();
+            });
+            sizeSlider.addEventListener('change', saveDraft);
+        }
+
+        // Color change
+        const colorSwatches = document.querySelectorAll('#drawer-colors .cfg-color-swatch');
+        colorSwatches.forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                colorSwatches.forEach(s => s.classList.remove('selected'));
+                swatch.classList.add('selected');
+                const hex = swatch.dataset.hex;
+                element.properties.fill = hex;
+                element.konvaNode.fill(hex);
+                state.layer.batchDraw();
+                saveDraft();
+            });
+        });
+
+        // Rotation change
+        const rotationSlider = document.getElementById('drawer-rotation');
+        if (rotationSlider) {
+            rotationSlider.addEventListener('input', (e) => {
+                const rotation = parseInt(e.target.value);
+                element.properties.rotation = rotation;
+                element.konvaNode.rotation(rotation);
+                e.target.nextElementSibling.textContent = rotation + '°';
+                state.layer.batchDraw();
+            });
+            rotationSlider.addEventListener('change', saveDraft);
+        }
+
+        // Opacity change
+        const opacitySlider = document.getElementById('drawer-opacity');
+        if (opacitySlider) {
+            opacitySlider.addEventListener('input', (e) => {
+                const opacity = parseInt(e.target.value) / 100;
+                element.properties.opacity = opacity;
+                element.konvaNode.opacity(opacity);
+                state.layer.batchDraw();
+            });
+            opacitySlider.addEventListener('change', saveDraft);
+        }
+
+        // Scale change (for images)
+        const scaleSlider = document.getElementById('drawer-scale');
+        if (scaleSlider) {
+            scaleSlider.addEventListener('input', (e) => {
+                const scale = parseInt(e.target.value) / 100;
+                element.properties.scaleX = scale;
+                element.properties.scaleY = scale;
+                element.konvaNode.scaleX(scale);
+                element.konvaNode.scaleY(scale);
+                state.layer.batchDraw();
+            });
+            scaleSlider.addEventListener('change', saveDraft);
+        }
+
+        // Delete
+        const deleteBtn = document.getElementById('drawer-delete');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                if (confirm('Supprimer cet élément ?')) {
+                    deleteElement(element);
+                }
+            });
+        }
+    }
+
+    // ===========================================
+    // LAYERS PANEL
+    // ===========================================
+    function updateLayersPanel() {
+        if (!DOM.layersList) return;
+
+        const currentViewElements = state.elements.filter(el => el.view === state.currentView);
+
+        if (DOM.layersCount) {
+            DOM.layersCount.textContent = `${currentViewElements.length}/${CONFIG.maxElements}`;
+        }
+
+        DOM.layersList.innerHTML = currentViewElements.map(el => `
+            <div class="cfg-layer-item ${state.selectedElement === el ? 'selected' : ''}"
+                 data-id="${el.id}">
+                <span class="cfg-layer-handle">≡</span>
+                <span class="cfg-layer-icon">${el.type === 'text' ? '📝' : '🖼️'}</span>
+                <span class="cfg-layer-name">${getElementDisplayName(el)}</span>
+                <div class="cfg-layer-actions">
+                    <button class="cfg-layer-btn ${el.visible ? '' : 'hidden'}"
+                            data-action="toggle-visibility" title="Visibilité">
+                        ${el.visible ? '👁️' : '👁️‍🗨️'}
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        // Setup layer events
+        DOM.layersList.querySelectorAll('.cfg-layer-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.cfg-layer-btn')) return;
+                const el = state.elements.find(el => el.id === item.dataset.id);
+                if (el) selectElement(el);
+            });
+
+            item.querySelector('[data-action="toggle-visibility"]')?.addEventListener('click', () => {
+                const el = state.elements.find(el => el.id === item.dataset.id);
+                if (el) toggleElementVisibility(el);
+            });
+        });
+    }
+
+    function getElementDisplayName(element) {
+        if (element.type === 'text') {
+            return element.properties.text.substring(0, 20) + (element.properties.text.length > 20 ? '...' : '');
+        }
+        return 'Image';
+    }
+
+    function highlightLayerItem(elementId) {
+        DOM.layersList?.querySelectorAll('.cfg-layer-item').forEach(item => {
+            item.classList.toggle('selected', item.dataset.id === elementId);
+        });
+    }
+
+    function toggleElementVisibility(element) {
+        element.visible = !element.visible;
+        element.konvaNode.visible(element.visible);
+        element.transformer.visible(element.visible && state.selectedElement === element);
+        updateLayersPanel();
+        state.layer.batchDraw();
+        saveDraft();
+    }
+
+    // ===========================================
+    // EVENT LISTENERS
+    // ===========================================
+    function setupEventListeners() {
+        // Tool tabs
+        DOM.toolTabs?.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tool = tab.dataset.tool;
+                switchTool(tool);
+            });
+        });
+
+        // View toggle (Face/Back)
+        DOM.viewBtns?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const view = btn.dataset.view;
+                switchView(view);
+            });
+        });
+
+        // Text input
+        DOM.textInput?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const text = DOM.textInput.value.trim();
+                if (text) {
+                    addTextElement(text);
+                    DOM.textInput.value = '';
+                }
+            }
+        });
+
+        // Color swatches in tools panel
+        DOM.colorSwatches?.forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                if (state.selectedElement && state.selectedElement.type === 'text') {
+                    const hex = swatch.dataset.hex;
+                    state.selectedElement.properties.fill = hex;
+                    state.selectedElement.konvaNode.fill(hex);
+                    state.layer.batchDraw();
+                    saveDraft();
+                }
+            });
+        });
+
+        // Technique selection
+        DOM.techniqueItems?.forEach(item => {
+            item.addEventListener('click', () => {
+                DOM.techniqueItems.forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+                // Store selected technique in state
+                window.__SELECTED_TECHNIQUE = item.dataset.technique;
+                updatePrice();
+            });
+        });
+
+        // Drawer close
+        DOM.drawerClose?.addEventListener('click', closeDrawer);
+
+        // Zoom controls
+        DOM.zoomIn?.addEventListener('click', () => zoom(0.1));
+        DOM.zoomOut?.addEventListener('click', () => zoom(-0.1));
+        DOM.zoomReset?.addEventListener('click', () => resetZoom());
+
+        // Snap toggle
+        DOM.snapToggle?.addEventListener('change', (e) => {
+            CONFIG.snapEnabled = e.target.checked;
+        });
+
+        // Click on empty area to deselect
+        state.stage?.on('click tap', (e) => {
+            if (e.target === state.stage || e.target === state.productImage) {
+                selectElement(null);
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', handleKeyboard);
+
+        // Mobile tabs
+        DOM.mobileTabs?.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tool = tab.dataset.tool;
+                openMobileDrawer(tool);
+            });
+        });
+
+        DOM.mobileDrawerClose?.addEventListener('click', closeMobileDrawer);
+    }
+
+    function switchTool(tool) {
+        state.currentTool = tool;
+
+        DOM.toolTabs?.forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tool === tool);
+        });
+
+        DOM.toolPanels?.forEach(panel => {
+            panel.classList.toggle('active', panel.dataset.tool === tool);
+        });
+    }
+
+    function switchView(view) {
+        state.currentView = view;
+
+        DOM.viewBtns?.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.view === view);
+        });
+
+        // Hide elements from other view
+        state.elements.forEach(el => {
+            const shouldShow = el.view === view && el.visible;
+            el.konvaNode.visible(shouldShow);
+            el.transformer.visible(shouldShow && state.selectedElement === el);
+        });
+
+        // Load new product image
+        loadProductImage();
+
+        // Update layers panel
+        updateLayersPanel();
+
+        state.layer.batchDraw();
+    }
+
+    function handleKeyboard(e) {
+        // Delete selected element
+        if ((e.key === 'Delete' || e.key === 'Backspace') && state.selectedElement) {
+            // Don't delete if typing in input
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                return;
+            }
+            e.preventDefault();
+            deleteElement(state.selectedElement);
+        }
+
+        // Escape to deselect
+        if (e.key === 'Escape') {
+            selectElement(null);
+        }
+    }
+
+    // ===========================================
+    // MOBILE
+    // ===========================================
+    function openMobileDrawer(tool) {
+        if (!DOM.mobileDrawer) return;
+
+        DOM.mobileTabs?.forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tool === tool);
+        });
+
+        DOM.mobileDrawer.classList.add('open');
+
+        if (DOM.mobileDrawerTitle) {
+            const titles = { text: '📝 Texte', photo: '🖼️ Photo', design: '🎨 Design', layers: '📦 Calques' };
+            DOM.mobileDrawerTitle.textContent = titles[tool] || tool;
+        }
+
+        if (DOM.mobileDrawerContent) {
+            DOM.mobileDrawerContent.innerHTML = renderMobileToolContent(tool);
+            setupMobileToolEvents(tool);
+        }
+    }
+
+    function closeMobileDrawer() {
+        if (!DOM.mobileDrawer) return;
+        DOM.mobileDrawer.classList.remove('open');
+        DOM.mobileTabs?.forEach(tab => tab.classList.remove('active'));
+    }
+
+    function renderMobileToolContent(tool) {
+        // Simplified mobile tool content
+        switch (tool) {
+            case 'text':
+                return `
+                    <input type="text" class="cfg-text-input" placeholder="Tapez votre texte..." id="mobile-text-input">
+                    <div class="cfg-section-label">Police</div>
+                    <select class="cfg-prop-input" id="mobile-font" style="margin-bottom: 16px;">
+                        ${renderFontOptions('Inter')}
+                    </select>
+                    <div class="cfg-section-label">Couleur</div>
+                    <div class="cfg-color-palette" id="mobile-colors">
+                        ${renderColorSwatches('#1A1A2E')}
+                    </div>
+                    <button class="cfg-mobile-drawer-apply" id="mobile-add-text">
+                        ✓ Ajouter le texte
+                    </button>
+                `;
+            case 'layers':
+                const currentViewElements = state.elements.filter(el => el.view === state.currentView);
+                return `
+                    <div class="cfg-layers-header">
+                        <span>Éléments</span>
+                        <span class="cfg-layers-count">${currentViewElements.length}/${CONFIG.maxElements}</span>
+                    </div>
+                    <div class="cfg-layers-list" id="mobile-layers">
+                        ${currentViewElements.map(el => `
+                            <div class="cfg-layer-item" data-id="${el.id}">
+                                <span class="cfg-layer-icon">${el.type === 'text' ? '📝' : '🖼️'}</span>
+                                <span class="cfg-layer-name">${getElementDisplayName(el)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            default:
+                return '<p style="text-align: center; color: var(--gray);">Bientôt disponible</p>';
+        }
+    }
+
+    function setupMobileToolEvents(tool) {
+        if (tool === 'text') {
+            const addBtn = document.getElementById('mobile-add-text');
+            const textInput = document.getElementById('mobile-text-input');
+            const fontSelect = document.getElementById('mobile-font');
+            const colorPalette = document.getElementById('mobile-colors');
+
+            let selectedColor = '#1A1A2E';
+
+            colorPalette?.querySelectorAll('.cfg-color-swatch').forEach(swatch => {
+                swatch.addEventListener('click', () => {
+                    colorPalette.querySelectorAll('.cfg-color-swatch').forEach(s => s.classList.remove('selected'));
+                    swatch.classList.add('selected');
+                    selectedColor = swatch.dataset.hex;
+                });
+            });
+
+            addBtn?.addEventListener('click', () => {
+                const text = textInput?.value.trim();
+                if (text) {
+                    addTextElement(text, {
+                        fontFamily: fontSelect?.value || 'Inter',
+                        fill: selectedColor,
+                    });
+                    closeMobileDrawer();
+                }
+            });
+        }
+
+        if (tool === 'layers') {
+            document.querySelectorAll('#mobile-layers .cfg-layer-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const el = state.elements.find(el => el.id === item.dataset.id);
+                    if (el) {
+                        selectElement(el);
+                        closeMobileDrawer();
+                    }
+                });
+            });
+        }
+    }
+
+    // ===========================================
+    // ZOOM
+    // ===========================================
+    function zoom(delta) {
+        state.zoomLevel = Math.max(0.5, Math.min(2, state.zoomLevel + delta));
+        state.stage.scale({ x: state.zoomLevel, y: state.zoomLevel });
+        updateZoomDisplay();
+        state.stage.batchDraw();
+    }
+
+    function resetZoom() {
+        state.zoomLevel = 1;
+        state.stage.scale({ x: 1, y: 1 });
+        updateZoomDisplay();
+        state.stage.batchDraw();
+    }
+
+    function updateZoomDisplay() {
+        if (DOM.zoomLevel) {
+            DOM.zoomLevel.textContent = Math.round(state.zoomLevel * 100) + '%';
+        }
+    }
+
+    // ===========================================
+    // SERIALIZATION
+    // ===========================================
+    function serialize() {
+        return {
+            productId: window.__PRODUCT_DATA?.id,
+            elements: state.elements.map(el => ({
+                id: el.id,
+                type: el.type,
+                position: el.position,
+                properties: el.properties,
+                view: el.view,
+                visible: el.visible,
+            })),
+            technique: window.__SELECTED_TECHNIQUE,
+            timestamp: Date.now(),
+        };
+    }
+
+    function deserialize(data) {
+        if (!data || !data.elements) return;
+
+        data.elements.forEach(elData => {
+            if (elData.type === 'text') {
+                const stageWidth = state.stage.width();
+                const stageHeight = state.stage.height();
+                addTextElement(elData.properties.text, {
+                    x: (elData.position.x / 100) * stageWidth,
+                    y: (elData.position.y / 100) * stageHeight,
+                    fontFamily: elData.properties.fontFamily,
+                    fontSize: elData.properties.fontSize,
+                    fill: elData.properties.fill,
+                });
+            }
+            // TODO: Handle image deserialization
+        });
+    }
+
+    function saveDraft() {
+        try {
+            const data = serialize();
+            localStorage.setItem(CONFIG.autoSaveKey, JSON.stringify(data));
+        } catch (e) {
+            console.warn('[Configurator] Failed to save draft:', e);
+        }
+    }
+
+    function loadDraft() {
+        try {
+            const saved = localStorage.getItem(CONFIG.autoSaveKey);
+            if (saved) {
+                const data = JSON.parse(saved);
+                // Only restore if same product
+                if (data.productId === window.__PRODUCT_DATA?.id) {
+                    deserialize(data);
+                    showNotification('Brouillon restauré', 'success');
+                }
+            }
+        } catch (e) {
+            console.warn('[Configurator] Failed to load draft:', e);
+        }
+    }
+
+    function startAutoSave() {
+        setInterval(() => {
+            if (state.elements.length > 0) {
+                saveDraft();
+            }
+        }, CONFIG.autoSaveInterval);
+    }
+
+    // ===========================================
+    // EXPORT
+    // ===========================================
+    function exportToImage() {
+        if (!state.stage) return null;
+
+        // Hide transformers for export
+        state.elements.forEach(el => el.transformer.visible(false));
+        hideSnapGuides();
+
+        const dataUrl = state.stage.toDataURL({
+            pixelRatio: 2,
+            mimeType: 'image/png',
+        });
+
+        // Restore transformers
+        if (state.selectedElement) {
+            state.selectedElement.transformer.visible(true);
+        }
+
+        return dataUrl;
+    }
+
+    function getCartData() {
+        return {
+            json: serialize(),
+            preview: exportToImage(),
+        };
+    }
+
+    // ===========================================
+    // UTILITIES
+    // ===========================================
+    function generateId() {
+        return 'el_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    function showNotification(message, type = 'info') {
+        // Simple notification - can be enhanced
+        console.log(`[Configurator] ${type}: ${message}`);
+    }
+
+    function updatePrice() {
+        // Update price display based on technique
+        const basePrice = window.__PRODUCT_DATA?.basePrice || 0;
+        const techniquePrice = getTechniquePrice();
+        const total = basePrice + techniquePrice;
+
+        if (DOM.priceValue) {
+            DOM.priceValue.textContent = formatPrice(total);
+        }
+        if (DOM.mobilePriceValue) {
+            DOM.mobilePriceValue.textContent = formatPrice(total);
+        }
+    }
+
+    function getTechniquePrice() {
+        const techniques = window.__TECHNIQUES_DATA || [];
+        const selected = window.__SELECTED_TECHNIQUE;
+        const technique = techniques.find(t => t.value === selected);
+        return technique?.price || 0;
+    }
+
+    function formatPrice(price) {
+        return price.toFixed(2).replace('.', ',') + ' €';
+    }
+
+    function editTextInline(element) {
+        // Create inline text editor
+        const node = element.konvaNode;
+        const stageBox = state.stage.container().getBoundingClientRect();
+        const textPosition = node.getAbsolutePosition();
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = element.properties.text;
+        input.style.cssText = `
+            position: absolute;
+            left: ${stageBox.left + textPosition.x}px;
+            top: ${stageBox.top + textPosition.y}px;
+            transform: translate(-50%, -50%);
+            font-family: ${node.fontFamily()};
+            font-size: ${node.fontSize() * state.zoomLevel}px;
+            color: ${node.fill()};
+            background: white;
+            border: 2px solid #FF69B4;
+            border-radius: 4px;
+            padding: 4px 8px;
+            text-align: center;
+            outline: none;
+            z-index: 1000;
+        `;
+
+        document.body.appendChild(input);
+        input.focus();
+        input.select();
+
+        const finish = () => {
+            const newText = input.value.trim() || 'Texte';
+            element.properties.text = newText;
+            node.text(newText);
+            node.offsetX(node.width() / 2);
+            node.offsetY(node.height() / 2);
+            state.layer.batchDraw();
+            saveDraft();
+            updateLayersPanel();
+            input.remove();
+        };
+
+        input.addEventListener('blur', finish);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                finish();
+            }
+            if (e.key === 'Escape') {
+                input.remove();
+            }
+        });
+    }
+
+    // ===========================================
+    // FALLBACK MODE (No Konva)
+    // ===========================================
+    function initFallbackMode() {
+        console.log('[Configurator] Running in fallback mode (DOM-based)');
+        // The existing product.php drag & drop will work as fallback
+    }
+
+    // ===========================================
+    // EXPOSE API
+    // ===========================================
+    window.PersonnalyConfigurator = {
+        init,
+        addTextElement,
+        addImageElement,
+        deleteElement,
+        serialize,
+        deserialize,
+        exportToImage,
+        getCartData,
+    };
+
+    // Auto-init when DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();

@@ -508,13 +508,13 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 | Business | Upload client | OUI (10 Mo max + resize) |
 | Business | Export PNG | OUI (partage social) |
 
-#### STEP DESIGN-1 — Wireframes & Spécifications (EN COURS)
-- [~] **E.1.1.1** — Wireframe Desktop avec états (Texte/Photo/Design/Calques)
-- [~] **E.1.1.2** — Wireframe Mobile avec bottom toolbar 2 parties
-- [~] **E.1.1.3** — Mapping interactions drag/drop tactile
-- [ ] **E.1.1.4** — Validation humaine wireframes
+#### ✅ STEP DESIGN-1 — Wireframes & Spécifications (VALIDÉ)
+- [x] **E.1.1.1** — Wireframe Desktop avec états (Texte/Photo/Design/Calques) ✅
+- [x] **E.1.1.2** — Wireframe Mobile avec bottom toolbar 2 parties ✅
+- [x] **E.1.1.3** — Mapping interactions drag/drop tactile ✅
+- [x] **E.1.1.4** — Validation humaine wireframes ✅
 
-#### STEP DESIGN-2 — Implémentation (À VENIR)
+#### STEP DESIGN-2 — Implémentation (EN COURS)
 - [ ] **E.1.2.1** — Structure HTML/CSS canvas central
 - [ ] **E.1.2.2** — Panneau outils (texte, image, design)
 - [ ] **E.1.2.3** — Drag & drop éléments (Konva.js)
@@ -531,4 +531,4 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 **Priorité** : 🔴 HAUTE (prochaine phase majeure)
 
-**Statut** : 🟡 STEP DESIGN-1 en cours — Wireframes & Spécifications
+**Statut** : 🟢 STEP DESIGN-2 en cours — Implémentation
