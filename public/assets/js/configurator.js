@@ -106,6 +106,9 @@
             deleteBtn: document.getElementById('cfgDeleteElement'),
             addTextBtn: document.getElementById('cfgAddText'),
             toolsTitle: document.querySelector('.cfg-tools-title'),
+            // Photo upload
+            uploadZone: document.getElementById('cfgUploadZone'),
+            imageUpload: document.getElementById('cfgImageUpload'),
             // Legacy
             colorSwatches: document.querySelectorAll('.cfg-color-swatch'),
             techniqueItems: document.querySelectorAll('.cfg-technique-item'),
@@ -341,6 +344,33 @@
         state.layer.batchDraw();
 
         return element;
+    }
+
+    function handleImageUpload(file) {
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!validTypes.includes(file.type)) {
+            showNotification('Format non supporté. Utilisez JPG, PNG, WebP ou GIF.', 'error');
+            return;
+        }
+
+        // Validate file size (10MB max)
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            showNotification('Image trop volumineuse. Maximum 10 Mo.', 'error');
+            return;
+        }
+
+        // Read file and add to canvas
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            addImageElement(e.target.result);
+            showNotification('Image ajoutée !', 'success');
+        };
+        reader.onerror = () => {
+            showNotification('Erreur lors de la lecture du fichier.', 'error');
+        };
+        reader.readAsDataURL(file);
     }
 
     function addImageElement(imageUrl, options = {}) {
@@ -1179,6 +1209,38 @@
                 saveDraft();
                 updateLayersPanel();
             });
+        });
+
+        // Photo upload - Click to open file picker
+        DOM.uploadZone?.addEventListener('click', () => {
+            DOM.imageUpload?.click();
+        });
+
+        // Photo upload - Drag and drop
+        DOM.uploadZone?.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            DOM.uploadZone.classList.add('dragover');
+        });
+
+        DOM.uploadZone?.addEventListener('dragleave', () => {
+            DOM.uploadZone.classList.remove('dragover');
+        });
+
+        DOM.uploadZone?.addEventListener('drop', (e) => {
+            e.preventDefault();
+            DOM.uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleImageUpload(files[0]);
+            }
+        });
+
+        // Photo upload - File input change
+        DOM.imageUpload?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleImageUpload(file);
+            }
         });
 
         // Color swatches in tools panel (legacy)
