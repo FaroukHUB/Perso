@@ -780,10 +780,11 @@
 
 .upsells-list {
     min-height: 300px;
-    background: var(--white);
+    background: #FFFFFF;
     border-radius: 20px;
     padding: 24px;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 2px solid rgba(255, 105, 180, 0.15);
 }
 
 .upsells-grid {
