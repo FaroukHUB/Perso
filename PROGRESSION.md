@@ -19,11 +19,11 @@
 
 ## État Actuel
 
-**Date dernière mise à jour** : 2026-01-17
+**Date dernière mise à jour** : 2026-01-18
 
 **Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-5 terminés)
 
-**Statut global** : 🟡 STEP 5 en finalisation (CSS admin/upsells.php à refaire) - Ensuite : STEP 6 (Stats Admin)
+**Statut global** : 🟡 STEP 5.A.5 en cours (CSS upsells admin : layout OK, styles visuels à faire)
 
 **Derniers correctifs** :
 - STEP 5 refactoré v2 : distinction claire entre Upsells et Codes Promo
@@ -857,14 +857,70 @@ foreach ($sections as $section) {
 - Nombre de produits à afficher (2-6)
 - Sous-titre optionnel
 
-**⚠️ À FAIRE (CSS)** :
-- `admin/upsells.php` : CSS non appliqué correctement, design pas ultra-moderne
-- Les styles sont dans le fichier mais ne s'affichent pas (voir screenshot)
-- À refaire avec design cohérent rose/menthe/noir comme promo-codes.php
-
 **Prévu (futur)** :
 - Intégration Brevo/WhatsApp pour diffusion codes promo
 - Statistiques d'utilisation des codes
+
+### 2026-01-18 - Session 19 (STEP 5.A.5 - CSS ADMIN UPSELLS)
+
+**Objectif** : Implémenter proprement le CSS de la page admin/upsells.php
+
+**Méthodologie STRICTE** :
+- Travail par STEPS validés uniquement
+- SOUS-STEP 0 obligatoire avant tout : nettoyage CSS inline
+- Fichiers contractuels : TASKS.md + PROGRESSION.md
+
+#### SOUS-STEP 0 — Nettoyage CSS inline ✅ TERMINÉ
+
+**Commit** : `bae8245`
+
+| Fichier | Action |
+|---------|--------|
+| `admin/upsells.php` | Balise `<style>` supprimée (427 lignes) |
+| `admin/upsell-form.php` | Balise `<style>` supprimée (277 lignes) |
+| `public/cart.php` | Règles CSS `.upsells-*` et `.upsell-*` supprimées |
+| `public/checkout.php` | Règles CSS `.checkout-upsell*` supprimées |
+
+**Résultat** : 893 lignes de CSS inline supprimées, état clean.
+
+#### STEP 1 — Layout structurel `.upsells-layout` ✅ TERMINÉ
+
+**Choix technique** : CSS Grid
+
+**Justification** :
+- Layout 2 colonnes avec largeurs mixtes (320px fixe + 1fr fluide)
+- Cohérent avec `.stats-grid` existant dans admin.css
+- Gestion native de l'alignement vertical (`align-items: start`)
+
+**Règles ajoutées dans admin.css** :
+```css
+.upsells-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: var(--spacing-xl);
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .upsells-layout {
+        grid-template-columns: 1fr;
+    }
+}
+```
+
+**Ce qui a été fait** :
+- Layout structurel `.upsells-layout` défini dans admin.css
+- Grid 2 colonnes : 320px (paramètres) + 1fr (liste produits)
+- Responsive basique : 1 colonne sous 1024px
+- Aucun CSS inline
+- Aucun !important
+- Aucune règle globale dangereuse
+
+**Ce qui n'a PAS été fait** :
+- Styles visuels (panels, cards, forms, buttons, etc.)
+- Responsive avancé
+- JS
+- Design final
 
 ---
 

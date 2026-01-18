@@ -600,3 +600,25 @@
     .admin-sidebar { display: none; }
     .admin-main { margin-left: 0; padding: var(--spacing-md); }
 }
+
+/* ========================================
+   UPSELLS PAGE LAYOUT
+   ======================================== */
+
+/**
+ * Layout structurel pour la page admin upsells
+ * - Colonne gauche (320px) : panneau de paramètres
+ * - Colonne droite (1fr) : liste des produits suggérés
+ */
+.upsells-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: var(--spacing-xl);
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .upsells-layout {
+        grid-template-columns: 1fr;
+    }
+}

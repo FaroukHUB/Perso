@@ -155,7 +155,9 @@
 - [x] **5.A.2** — admin/upsells.php (liste + paramètres) ✅
 - [x] **5.A.3** — admin/upsell-form.php (création/édition) ✅
 - [x] **5.A.4** — cart.php : section suggestions produits ✅
-- [ ] **5.A.5** — 🎨 **CSS admin/upsells.php** : refaire design ultra-moderne (TODO)
+- [~] **5.A.5** — 🎨 **CSS admin/upsells.php** : refaire design ultra-moderne
+  - [x] **5.A.5.1** — Layout structurel `.upsells-layout` défini dans admin.css (grid 320px | 1fr)
+  - [ ] **5.A.5.2** — Styles visuels (panels, cards, forms, etc.) — À FAIRE
 
 ### 5.B — Codes Promo (Saisie Client)
 
@@ -173,10 +175,10 @@
 - `admin/promo-codes.php`
 - `admin/promo-code-form.php`
 
-**⚠️ À FAIRE** :
-- Le CSS de `admin/upsells.php` n'est pas ultra-moderne (voir screenshot)
-- Les styles ne sont pas appliqués correctement
-- À refaire demain avec design cohérent rose/menthe/noir
+**⚠️ EN COURS** :
+- SOUS-STEP 0 terminé : nettoyage CSS inline (commit bae8245)
+- STEP 1 terminé : layout `.upsells-layout` défini dans admin.css (grid 320px | 1fr)
+- STEP 2 à venir : styles visuels (panels, cards, forms, etc.)
 
 ---
 
@@ -368,4 +370,4 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 ---
 
-**Dernière mise à jour** : 2026-01-17 — STEP 5 refactoré (Upsells + Codes Promo), CSS upsells admin à refaire
+**Dernière mise à jour** : 2026-01-18 — STEP 5.A.5.1 Layout upsells admin (grid 320px | 1fr)
