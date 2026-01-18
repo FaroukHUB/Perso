@@ -41,20 +41,20 @@ if (isset($_GET['action'])) {
 }
 
 // Ajout rapide d'un produit
-if (isPost()) {
-    echo '<pre>';
-    var_dump($_POST);
-    exit;
-}
 if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
     if (isset($_POST['add_product'])) {
         $productId = (int) $_POST['product_id'];
         if ($productId) {
-            $upsellModel->create([
-                'product_id' => $productId,
-                'priority' => 0,
-                'active' => 1
-            ]);
+            try {
+                $upsellModel->create([
+                    'product_id' => $productId,
+                    'priority' => 0,
+                    'active' => 1
+                ]);
+            } catch (Exception $e) {
+                echo '<pre>ERREUR CREATE: ' . $e->getMessage() . "\n" . $e->getTraceAsString() . '</pre>';
+                exit;
+            }
         }
         redirect('/admin/upsells.php?added=1');
     }
