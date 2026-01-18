@@ -514,21 +514,30 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 - [x] **E.1.1.3** — Mapping interactions drag/drop tactile ✅
 - [x] **E.1.1.4** — Validation humaine wireframes ✅
 
-#### STEP DESIGN-2 — Implémentation (EN COURS)
-- [ ] **E.1.2.1** — Structure HTML/CSS canvas central
-- [ ] **E.1.2.2** — Panneau outils (texte, image, design)
-- [ ] **E.1.2.3** — Drag & drop éléments (Konva.js)
-- [ ] **E.1.2.4** — Drawer propriétés contextuel
-- [ ] **E.1.2.5** — Panneau calques dédié
-- [ ] **E.1.2.6** — Responsive mobile bottom toolbar
-- [ ] **E.1.2.7** — Sérialisation JSON + localStorage
-- [ ] **E.1.2.8** — Export image preview
+#### ✅ STEP DESIGN-2 — Implémentation (TERMINÉ 2026-01-18)
+- [x] **E.1.2.1** — Structure HTML/CSS canvas central ✅
+- [x] **E.1.2.2** — Panneau outils (texte, image, design) ✅
+- [x] **E.1.2.3** — Drag & drop éléments (Konva.js) ✅
+- [x] **E.1.2.4** — Drawer propriétés contextuel ✅
+- [x] **E.1.2.5** — Panneau calques dédié ✅
+- [x] **E.1.2.6** — Responsive mobile bottom toolbar ✅
+- [x] **E.1.2.7** — Sérialisation JSON + localStorage ✅
+- [x] **E.1.2.8** — Export image preview ✅
+- [x] **E.1.2.9** — Intégration product.php avec feature toggle ?v2=1 ✅
+- [x] **E.1.2.10** — Connexion formulaire panier (customization_json) ✅
 
-#### STEP DESIGN-3 — Admin Designs (APRÈS DESIGN-2)
+**Fichiers créés** :
+- `public/assets/css/configurator.css` — 800+ lignes, layout 3 colonnes desktop, mobile bottom toolbar
+- `public/assets/js/configurator.js` — 1400+ lignes, Konva.js, state management, serialization
+
+**Fichiers modifiés** :
+- `public/product.php` — Feature toggle `?v2=1`, HTML v2, injection données, chargement configurator.js
+
+#### STEP DESIGN-3 — Admin Designs (PROCHAINE ÉTAPE)
 - [ ] **E.1.3.1** — Table design_templates + CRUD
 - [ ] **E.1.3.2** — Admin création designs
 - [ ] **E.1.3.3** — Grille templates côté client
 
-**Priorité** : 🔴 HAUTE (prochaine phase majeure)
+**Priorité** : 🔴 HAUTE
 
-**Statut** : 🟢 STEP DESIGN-2 en cours — Implémentation
+**Statut** : 🟢 STEP DESIGN-2 TERMINÉ — À tester en production, puis DESIGN-3

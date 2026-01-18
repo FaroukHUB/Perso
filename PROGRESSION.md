@@ -1272,30 +1272,75 @@ CREATE TABLE design_templates (
 
 ---
 
-### 2026-01-18 - Session 21 (STEP DESIGN-2 - IMPLÉMENTATION)
+### 2026-01-18 - Session 21 (STEP DESIGN-2 - IMPLÉMENTATION) ✅ TERMINÉ
 
 **Objectif** : Implémenter le nouveau configurateur de personnalisation basé sur les wireframes validés.
 
-#### E.1.2.1 — Structure HTML/CSS canvas central
+#### Phase 1 — Création des fichiers CSS/JS (commit `cc9162d`)
 
-**Fichiers à créer/modifier** :
-- `public/product.php` — Refonte layout 3 colonnes
-- `public/assets/css/configurator.css` — Nouveau fichier CSS dédié
-- `public/assets/js/configurator.js` — Nouveau fichier JS orchestrateur
+**Fichiers créés** :
+| Fichier | Lignes | Contenu |
+|---------|--------|---------|
+| `public/assets/css/configurator.css` | 800+ | Layout 3 colonnes, outils, drawer, mobile |
+| `public/assets/js/configurator.js` | 1100+ | Konva.js, state, serialization, export |
 
 **Architecture CSS** :
 ```css
-.configurator-layout {
+.configurator-v2 {
     display: grid;
-    grid-template-columns: 240px 1fr 0; /* 0 = drawer fermé */
+    grid-template-columns: var(--cfg-tools-width) 1fr var(--cfg-drawer-width-closed);
     grid-template-rows: 1fr auto;
+    gap: var(--cfg-gap);
     min-height: calc(100vh - 80px);
 }
 
-.configurator-layout.drawer-open {
-    grid-template-columns: 240px 1fr 280px;
+.configurator-v2.drawer-open {
+    grid-template-columns: var(--cfg-tools-width) 1fr var(--cfg-drawer-width);
 }
 ```
+
+**Fonctionnalités JS** :
+- Initialisation Konva.js avec fallback DOM
+- `addTextElement()`, `addImageElement()` — Ajout éléments
+- `deleteElement()` — Suppression avec transformer
+- `applySnap()` — Snap magnétique soft (5px threshold)
+- `serialize()` / `deserialize()` — JSON state management
+- `saveDraft()` / `loadDraft()` — localStorage autosave
+- `exportToImage()` — Export PNG base64
+- `getCartData()` — Données pour formulaire panier
+
+#### Phase 2 — Intégration product.php (commit `51b42cd`)
+
+**Modifications** :
+- Feature toggle `?v2=1` — Active le nouveau configurateur
+- HTML v2 (220+ lignes) — Structure 3 colonnes avec outils, canvas, drawer
+- Mobile v2 — Bottom toolbar + drawer slide-up
+- Injection données — `window.__PRODUCT_DATA`, `__FONTS_DATA`, etc.
+- Conditionnement scripts legacy — `if (!$useNewConfigurator)` pour éviter conflits
+
+**Hidden inputs ajoutés** :
+```html
+<input type="hidden" name="customization_json" id="customizationJson" value="">
+<input type="hidden" name="preview_image" id="previewImage" value="">
+```
+
+#### Phase 3 — Connexion formulaire (commit `94215ff`)
+
+**Ajout dans setupEventListeners()** :
+```javascript
+form.addEventListener('submit', (e) => {
+    const cartData = getCartData();
+    document.getElementById('customizationJson').value = cartData.json;
+    document.getElementById('previewImage').value = cartData.preview;
+});
+```
+
+**Résultat** : Le formulaire envoie automatiquement le JSON de customisation et l'image preview au panier.
+
+---
+
+**Statut DESIGN-2** : ✅ TERMINÉ
+**Prochaine étape** : Test en production via `?v2=1`, puis DESIGN-3 (Admin Designs)
 
 ---
 
