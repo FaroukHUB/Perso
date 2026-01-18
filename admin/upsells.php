@@ -172,6 +172,9 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
 
                 <!-- Liste des produits suggérés -->
                 <div class="upsells-list">
+                    <div class="panel-header">
+                        <h3>Produits suggérés</h3>
+                    </div>
                     <?php if (empty($upsells)): ?>
                         <div class="empty-state">
                             <div class="empty-icon">
