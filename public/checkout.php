@@ -465,66 +465,6 @@ if (isPost() && isset($_POST['place_order'])) {
             margin-bottom: 30px;
         }
 
-        /* Upsells in Checkout */
-        .checkout-upsells {
-            background: linear-gradient(135deg, rgba(255, 105, 180, 0.08) 0%, rgba(61, 255, 192, 0.08) 100%);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .checkout-upsells-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--black-soft);
-            margin-bottom: 15px;
-        }
-        .checkout-upsells-title svg { color: var(--pink-main); }
-        .checkout-upsell-item {
-            background: white;
-            border-radius: var(--radius-md);
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .checkout-upsell-item:last-child { margin-bottom: 0; }
-        .checkout-upsell-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--gradient-mint);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        .checkout-upsell-content {
-            flex: 1;
-            min-width: 0;
-        }
-        .checkout-upsell-label {
-            font-weight: 600;
-            font-size: 13px;
-            color: var(--black-soft);
-        }
-        .checkout-upsell-desc {
-            font-size: 12px;
-            color: var(--gray);
-        }
-        .checkout-upsell-badge {
-            padding: 4px 10px;
-            background: var(--gradient-mint);
-            border-radius: var(--radius-full);
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--black-soft);
-            white-space: nowrap;
-        }
-
         /* Responsive */
         @media (max-width: 968px) {
             .checkout-layout { grid-template-columns: 1fr; }
