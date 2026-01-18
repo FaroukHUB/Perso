@@ -370,4 +370,119 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 ---
 
-**Dernière mise à jour** : 2026-01-18 — STEP 5.A.5.1 Layout upsells admin (grid 320px | 1fr)
+**Dernière mise à jour** : 2026-01-18 — Clôture rapatriement upsells + structuration chantiers futurs
+
+---
+
+# 🟠 CHANTIERS IDENTIFIÉS — À PLANIFIER
+
+> Ces tâches ont été identifiées lors de la session du 2026-01-18.
+> Aucune n'est encore validée pour implémentation.
+> Chaque STEP nécessitera validation humaine avant exécution.
+
+---
+
+## ADMIN — Stabilisation & UX
+
+### A.1 — BUG : Catégories produits non enregistrées
+> Les catégories sélectionnées dans la création produit ne sont pas sauvegardées.
+
+- [ ] **A.1.1** — Analyser le formulaire product-form.php (checkboxes catégories)
+- [ ] **A.1.2** — Vérifier la sauvegarde backend (table pivot product_categories)
+- [ ] **A.1.3** — Corriger le bug de relation
+- [ ] **A.1.4** — Tester la persistance catégories
+
+**Priorité** : 🔴 HAUTE (bug critique)
+
+### A.2 — Sidebar admin : problème de hauteur
+> La sidebar ne descend pas assez, impossible d'accéder aux items du bas.
+> Bug spécifique : dans l'onglet Options, la sidebar masque le contenu.
+
+- [ ] **A.2.1** — Diagnostiquer le CSS de la sidebar (height, overflow, position)
+- [ ] **A.2.2** — Corriger la hauteur pour scroll complet
+- [ ] **A.2.3** — Fixer le conflit avec l'onglet Options
+- [ ] **A.2.4** — Tester sur différentes résolutions
+
+**Priorité** : 🟡 MOYENNE (UX admin)
+
+---
+
+## PRODUIT — Structure & Variantes
+
+### B.1 — Refonte gestion couleurs/variantes admin
+> Simplifier l'interface de création produit pour éviter confusion et duplication.
+
+- [ ] **B.1.1** — Retirer le bouton "Ajouter une couleur" (garder uniquement "Ajouter une variante")
+- [ ] **B.1.2** — Retirer tailles et couleurs de l'onglet Options global
+- [ ] **B.1.3** — Centraliser la gestion tailles/couleurs dans la création produit uniquement
+- [ ] **B.1.4** — Documenter le nouveau workflow
+
+**Priorité** : 🟡 MOYENNE (clarification UX)
+
+---
+
+## PERSONNALISATION — Partage & Viralité
+
+### C.1 — Partage de création (lien public)
+> Permettre d'envoyer un lien public de la création produit pour demander un avis.
+
+- [ ] **C.1.1** — Définir l'architecture (token unique, expiration optionnelle)
+- [ ] **C.1.2** — Créer la table `shared_creations` (token, product_id, customization_json, created_at, expires_at)
+- [ ] **C.1.3** — Endpoint génération lien `/share/create`
+- [ ] **C.1.4** — Page publique lecture seule `/share/{token}`
+- [ ] **C.1.5** — Aperçu fidèle (design, texte, position, technique)
+- [ ] **C.1.6** — CTA "Créer le mien" vers configurateur
+
+**Priorité** : 🟢 BASSE (conversion/viralité future)
+
+**À décider plus tard** :
+- Expiration du lien (24h, 7j, jamais)
+- Protection par token ou lien public direct
+
+---
+
+## BRANDING FRONT — Identité Visuelle Site Client
+
+### D.1 — Panneau de branding front (piloté depuis admin)
+> Permettre à l'admin de personnaliser l'identité visuelle du site public (couleurs, typographies, styles de boutons) afin d'aligner le rendu client avec son image de marque, **sans impacter l'interface d'administration**.
+
+⚠️ **IMPORTANT** : L'admin reste neutre et stable. Ce branding concerne UNIQUEMENT le site front (pages publiques).
+
+#### D.1.A — Couleurs principales FRONT
+- [ ] **D.1.A.1** — Table `branding_settings` (key, value, type)
+- [ ] **D.1.A.2** — Admin : sélecteur couleur principale (CTA, boutons)
+- [ ] **D.1.A.3** — Admin : sélecteur couleur secondaire (accents)
+- [ ] **D.1.A.4** — Admin : sélecteur couleur texte principal
+- [ ] **D.1.A.5** — Admin : sélecteur couleur titres
+
+#### D.1.B — Typographie FRONT
+- [ ] **D.1.B.1** — Admin : sélecteur police principale
+- [ ] **D.1.B.2** — Admin : sélecteur police titres (H1, H2, H3)
+- [ ] **D.1.B.3** — Admin : sélecteur police paragraphes
+
+#### D.1.C — Application FRONT
+- [ ] **D.1.C.1** — Génération CSS dynamique depuis settings
+- [ ] **D.1.C.2** — Application sur pages produit
+- [ ] **D.1.C.3** — Application sur configurateur/personnalisation
+- [ ] **D.1.C.4** — Application sur panier/checkout
+- [ ] **D.1.C.5** — Application sur pages publiques (home, blog, etc.)
+
+**Priorité** : 🟢 BASSE (branding futur)
+
+**Intention produit** :
+> Donner le sentiment à l'admin que son site client est vraiment "le sien", sans page builder, sans custom CSS sauvage, sans duplication de thèmes. On reste SaaS, scalable, multi-tenant.
+
+---
+
+## DESIGN — Personnalisation Produit (À VENIR)
+
+### E.1 — Refonte UX configurateur (inspiration Canva / Yoursurprise)
+> Objectif : moderniser l'expérience de personnalisation produit.
+
+- [ ] **E.1.1** — Maquettes / wireframes (validation humaine requise)
+- [ ] **E.1.2** — Définir les interactions cibles
+- [ ] **E.1.3** — Implémentation par STEPS validés
+
+**Priorité** : 🔴 HAUTE (prochaine phase majeure)
+
+**Statut** : ⏸️ EN ATTENTE — Nécessite GO explicite

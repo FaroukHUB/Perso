@@ -23,14 +23,16 @@
 
 **Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-5 terminés)
 
-**Statut global** : 🟡 STEP 5.A.5 en cours (CSS upsells admin : layout OK, styles visuels à faire)
+**Statut global** : ✅ STEP 5 CLÔTURÉ — Upsells admin fonctionnels, bugs corrigés
 
-**Derniers correctifs** :
-- STEP 5 refactoré v2 : distinction claire entre Upsells et Codes Promo
-- Upsells : suggestions de produits complémentaires ("Vous aimerez aussi") sur page panier
-- Codes Promo : système classique avec saisie code par le client (BIENVENUE20, etc.)
-- Admin : 2 entrées séparées dans sidebar (Upsells + Codes Promo)
-- Cart.php : affiche suggestions + champ saisie code promo avec validation AJAX
+**Derniers correctifs (session 2026-01-18)** :
+- Rapatriement upsells depuis branche parasite vers branche officielle
+- Fix erreur 500 : table `product_upsells` avec mauvaise structure → recréée
+- Fix erreur 500 : `getSuggestionsForCart()` inexistant → remplacé par `getSuggestions()`
+- Fix prix à 0,00€ : colonne `price` inexistante → remplacée par `base_price`
+- Fix ajout upsell : opérateur `?:` → `??` pour clés optionnelles
+- Admin upsells 100% fonctionnel : ajout, liste, suppression, toggle
+- Cart.php : suggestions affichées correctement
 
 ---
 
@@ -860,6 +862,51 @@ foreach ($sections as $section) {
 **Prévu (futur)** :
 - Intégration Brevo/WhatsApp pour diffusion codes promo
 - Statistiques d'utilisation des codes
+
+### 2026-01-18 - Session 20 (RAPATRIEMENT UPSELLS + STRUCTURATION)
+
+**Objectif** : Clôturer techniquement le rapatriement upsells et structurer les chantiers futurs.
+
+#### Rapatriement Git
+
+| Étape | Statut | Notes |
+|-------|--------|-------|
+| Diagnostic branche parasite | ✅ OK | Fichiers upsells sur `claude/setup-personnaly-project-kzzHh` |
+| Création branche officielle | ✅ OK | `claude/upsells-rapatriement-kzzHh` |
+| Copie fichiers upsells | ✅ OK | admin/upsells.php, admin/upsell-form.php, app/models/ProductUpsell.php |
+| Push initial | ✅ OK | Commit `1ed1f2d` |
+
+#### Bugs corrigés
+
+| Bug | Cause | Fix | Commit |
+|-----|-------|-----|--------|
+| Erreur 500 admin/upsells.php | Table `product_upsells` ancienne structure | Recréation table SQL | - |
+| Erreur 500 ajout upsell | Colonne `product_id` inexistante | Recréation table SQL | - |
+| Prix à 0,00€ | `p.price` au lieu de `p.base_price` | Correction requêtes SQL | `5762431` |
+| Undefined array key | `?:` au lieu de `??` | Opérateur null coalescing | `7b6f5cf` |
+| Erreur 500 cart.php | `getSuggestionsForCart()` inexistant | Utilise `getSuggestions()` | `c4bb2ff` |
+| formatPrice(null) TypeError | Type hint `float` strict | Accept `?float` nullable | `199bd79` |
+
+#### Structuration chantiers futurs
+
+**Liste des chantiers identifiés** (aucun développement engagé) :
+
+| Catégorie | Tâche | Priorité |
+|-----------|-------|----------|
+| ADMIN — Stabilisation | Bug catégories produits non enregistrées | 🔴 HAUTE |
+| ADMIN — UX | Sidebar hauteur insuffisante | 🟡 MOYENNE |
+| PRODUIT — Variantes | Refonte gestion couleurs/variantes | 🟡 MOYENNE |
+| PERSONNALISATION | Partage création (lien public) | 🟢 BASSE |
+| BRANDING FRONT | Identité visuelle site client | 🟢 BASSE |
+| DESIGN | Refonte UX configurateur (Canva/Yoursurprise) | 🔴 HAUTE |
+
+**Fichiers mis à jour** :
+- `TASKS.md` — Nouvelle section "CHANTIERS IDENTIFIÉS"
+- `PROGRESSION.md` — Cette entrée
+
+**Prochaine étape** : Design personnalisation produit (en attente GO)
+
+---
 
 ### 2026-01-18 - Session 19 (STEP 5.A.5 - CSS ADMIN UPSELLS)
 
