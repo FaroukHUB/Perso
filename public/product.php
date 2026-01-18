@@ -1897,19 +1897,30 @@ $cartCount = Cart::count();
                                 Ajouter le texte
                             </button>
 
-                            <!-- Ecriture (Font dropdown) -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Ecriture</div>
-                                <div class="cfg-option-controls">
-                                    <select class="cfg-font-select" id="cfgFontSelect">
-                                        <?php foreach ($fonts as $index => $font): ?>
-                                        <option value="<?= h($font['value']) ?>"
-                                                style="font-family: '<?= h($font['value']) ?>'"
-                                                <?= $index === 0 ? 'selected' : '' ?>>
-                                            <?= h($font['label']) ?>
-                                        </option>
-                                        <?php endforeach; ?>
-                                    </select>
+                            <!-- Ecriture (Modern Font dropdown) -->
+                            <label class="cfg-section-label">Police d'écriture</label>
+                            <div class="cfg-modern-dropdown" id="cfgFontDropdown">
+                                <input type="hidden" id="cfgFontSelect" value="<?= h($fonts[0]['value'] ?? 'Poppins') ?>">
+                                <div class="cfg-dropdown-trigger" id="cfgFontTrigger">
+                                    <div class="cfg-dropdown-preview">
+                                        <span class="cfg-dropdown-preview-text" id="cfgFontPreview" style="font-family: '<?= h($fonts[0]['value'] ?? 'Poppins') ?>'"><?= h($fonts[0]['label'] ?? 'Poppins') ?></span>
+                                    </div>
+                                    <svg class="cfg-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                </div>
+                                <div class="cfg-dropdown-list" id="cfgFontList">
+                                    <?php foreach ($fonts as $index => $font): ?>
+                                    <div class="cfg-dropdown-item <?= $index === 0 ? 'selected' : '' ?>"
+                                         data-font="<?= h($font['value']) ?>"
+                                         data-label="<?= h($font['label']) ?>"
+                                         style="--preview-font: '<?= h($font['value']) ?>'">
+                                        <div class="cfg-dropdown-item-content">
+                                            <span class="cfg-dropdown-item-name"><?= h($font['label']) ?></span>
+                                            <span class="cfg-dropdown-item-desc"><?= h($font['category'] ?? 'Sans-serif') ?></span>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
 
@@ -2007,18 +2018,37 @@ $cartCount = Cart::count();
                             <!-- Technique de personnalisation -->
                             <div class="cfg-section-divider"></div>
 
-                            <!-- Sélecteur de techniques (dropdown pleine largeur) -->
+                            <!-- Sélecteur de techniques (Modern dropdown) -->
                             <label class="cfg-section-label">Technique de marquage</label>
-                            <select class="cfg-technique-select cfg-full-width" id="cfgTechniqueSelect">
-                                <?php foreach ($techniques as $index => $tech): ?>
-                                <option value="<?= h($tech['value']) ?>"
-                                        data-price="<?= h($tech['price']) ?>"
-                                        data-desc="<?= h($tech['description']) ?>"
-                                        <?= $index === 0 ? 'selected' : '' ?>>
-                                    <?= h($tech['label']) ?><?= $tech['price'] > 0 ? ' (+' . number_format($tech['price'], 2, ',', ' ') . ' €)' : ' (Inclus)' ?>
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <div class="cfg-modern-dropdown" id="cfgTechniqueDropdown">
+                                <input type="hidden" id="cfgTechniqueSelect" value="<?= h($techniques[0]['value'] ?? 'flex') ?>">
+                                <div class="cfg-dropdown-trigger" id="cfgTechniqueTrigger">
+                                    <div class="cfg-dropdown-preview">
+                                        <span class="cfg-dropdown-preview-text" id="cfgTechniquePreview"><?= h($techniques[0]['label'] ?? 'Flex') ?></span>
+                                        <span class="cfg-dropdown-preview-sub" id="cfgTechniquePriceBadge"><?= ($techniques[0]['price'] ?? 0) > 0 ? '+' . number_format($techniques[0]['price'], 2, ',', ' ') . ' €' : 'Inclus' ?></span>
+                                    </div>
+                                    <svg class="cfg-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                </div>
+                                <div class="cfg-dropdown-list" id="cfgTechniqueList">
+                                    <?php foreach ($techniques as $index => $tech): ?>
+                                    <div class="cfg-dropdown-item <?= $index === 0 ? 'selected' : '' ?>"
+                                         data-technique="<?= h($tech['value']) ?>"
+                                         data-label="<?= h($tech['label']) ?>"
+                                         data-price="<?= h($tech['price']) ?>"
+                                         data-desc="<?= h($tech['description']) ?>">
+                                        <div class="cfg-dropdown-item-content">
+                                            <span class="cfg-dropdown-item-name"><?= h($tech['label']) ?></span>
+                                            <span class="cfg-dropdown-item-desc"><?= h(mb_substr($tech['description'] ?? '', 0, 50)) ?><?= mb_strlen($tech['description'] ?? '') > 50 ? '...' : '' ?></span>
+                                        </div>
+                                        <span class="cfg-dropdown-item-badge <?= $tech['price'] > 0 ? 'price' : '' ?>">
+                                            <?= $tech['price'] > 0 ? '+' . number_format($tech['price'], 2, ',', ' ') . ' €' : 'Inclus' ?>
+                                        </span>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
 
                             <!-- Description de la technique sélectionnée -->
                             <div class="cfg-technique-details" id="cfgTechniqueDetails">

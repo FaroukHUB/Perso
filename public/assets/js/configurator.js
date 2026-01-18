@@ -1092,6 +1092,35 @@
         ).join('');
     }
 
+    function renderMobileFontOptions() {
+        const fonts = window.__FONTS_DATA || [
+            { value: 'Poppins', label: 'Poppins' },
+            { value: 'Inter', label: 'Inter' },
+        ];
+        return fonts.map((f, idx) =>
+            `<div class="cfg-mobile-dropdown-item ${idx === 0 ? 'selected' : ''}"
+                  data-font="${f.value}" data-label="${f.label}"
+                  style="font-family: '${f.value}'">
+                ${f.label}
+            </div>`
+        ).join('');
+    }
+
+    function renderMobileTechniqueOptions() {
+        const techniques = window.__TECHNIQUES_DATA || [
+            { value: 'flex', label: 'Flex', price: 0, description: '' },
+        ];
+        const selected = window.__SELECTED_TECHNIQUE || techniques[0]?.value || 'flex';
+        return techniques.map(t =>
+            `<div class="cfg-mobile-dropdown-item ${t.value === selected ? 'selected' : ''}"
+                  data-technique="${t.value}" data-label="${t.label}"
+                  data-price="${t.price}" data-desc="${t.description || ''}">
+                <span class="item-name">${t.label}</span>
+                <span class="item-badge ${t.price > 0 ? 'price' : ''}">${t.price > 0 ? '+' + t.price.toFixed(2).replace('.', ',') + ' €' : 'Inclus'}</span>
+            </div>`
+        ).join('');
+    }
+
     function setupDrawerEvents(element) {
         // Font change
         const fontSelect = document.getElementById('drawer-font');
@@ -1587,35 +1616,128 @@
             });
         });
 
-        // Technique selection (dropdown selector like fonts)
-        const techniqueSelect = document.getElementById('cfgTechniqueSelect');
+        // ===========================================
+        // MODERN CUSTOM DROPDOWNS
+        // ===========================================
+
+        // Font dropdown
+        const fontTrigger = document.getElementById('cfgFontTrigger');
+        const fontList = document.getElementById('cfgFontList');
+        const fontInput = document.getElementById('cfgFontSelect');
+        const fontPreview = document.getElementById('cfgFontPreview');
+
+        fontTrigger?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fontTrigger.classList.toggle('open');
+            fontList?.classList.toggle('open');
+            // Close technique dropdown if open
+            techniqueTrigger?.classList.remove('open');
+            techniqueListEl?.classList.remove('open');
+        });
+
+        fontList?.querySelectorAll('.cfg-dropdown-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const font = item.dataset.font;
+                const label = item.dataset.label;
+
+                // Update hidden input
+                if (fontInput) fontInput.value = font;
+
+                // Update preview
+                if (fontPreview) {
+                    fontPreview.textContent = label;
+                    fontPreview.style.fontFamily = `'${font}'`;
+                }
+
+                // Update selection
+                fontList.querySelectorAll('.cfg-dropdown-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+
+                // Close dropdown
+                fontTrigger?.classList.remove('open');
+                fontList?.classList.remove('open');
+
+                // Update selected element if exists
+                if (state.selectedElement && state.selectedElement.type === 'text') {
+                    state.selectedElement.properties.fontFamily = font;
+                    state.selectedElement.konvaNode.fontFamily(font);
+                    state.layer.batchDraw();
+                    saveDraft();
+                }
+            });
+        });
+
+        // Technique dropdown
+        const techniqueTrigger = document.getElementById('cfgTechniqueTrigger');
+        const techniqueListEl = document.getElementById('cfgTechniqueList');
+        const techniqueInput = document.getElementById('cfgTechniqueSelect');
+        const techniquePreviewText = document.getElementById('cfgTechniquePreview');
+        const techniquePriceBadge = document.getElementById('cfgTechniquePriceBadge');
         const techniqueDetails = document.getElementById('cfgTechniqueDetails');
         const techniquePreviewBtn = document.getElementById('cfgTechniquePreviewBtn');
 
-        techniqueSelect?.addEventListener('change', () => {
-            const selectedOption = techniqueSelect.options[techniqueSelect.selectedIndex];
-            const technique = selectedOption.value;
-            const desc = selectedOption.dataset.desc || '';
-            const price = parseFloat(selectedOption.dataset.price) || 0;
+        techniqueTrigger?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            techniqueTrigger.classList.toggle('open');
+            techniqueListEl?.classList.toggle('open');
+            // Close font dropdown if open
+            fontTrigger?.classList.remove('open');
+            fontList?.classList.remove('open');
+        });
 
-            // Update description
-            if (techniqueDetails) {
-                techniqueDetails.querySelector('.technique-description').textContent = desc;
+        techniqueListEl?.querySelectorAll('.cfg-dropdown-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const technique = item.dataset.technique;
+                const label = item.dataset.label;
+                const price = parseFloat(item.dataset.price) || 0;
+                const desc = item.dataset.desc || '';
+
+                // Update hidden input
+                if (techniqueInput) techniqueInput.value = technique;
+
+                // Update preview
+                if (techniquePreviewText) techniquePreviewText.textContent = label;
+                if (techniquePriceBadge) {
+                    techniquePriceBadge.textContent = price > 0 ? `+${price.toFixed(2).replace('.', ',')} €` : 'Inclus';
+                }
+
+                // Update description
+                if (techniqueDetails) {
+                    techniqueDetails.querySelector('.technique-description').textContent = desc;
+                }
+
+                // Update preview button
+                if (techniquePreviewBtn) {
+                    techniquePreviewBtn.dataset.technique = technique;
+                }
+
+                // Update selection
+                techniqueListEl.querySelectorAll('.cfg-dropdown-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+
+                // Close dropdown
+                techniqueTrigger?.classList.remove('open');
+                techniqueListEl?.classList.remove('open');
+
+                // Store and update price
+                window.__SELECTED_TECHNIQUE = technique;
+                updatePrice();
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.cfg-modern-dropdown')) {
+                fontTrigger?.classList.remove('open');
+                fontList?.classList.remove('open');
+                techniqueTrigger?.classList.remove('open');
+                techniqueListEl?.classList.remove('open');
             }
-
-            // Update preview button
-            if (techniquePreviewBtn) {
-                techniquePreviewBtn.dataset.technique = technique;
-            }
-
-            // Store selected technique in state
-            window.__SELECTED_TECHNIQUE = technique;
-            updatePrice();
         });
 
         // Technique preview button (pink button under canvas)
         techniquePreviewBtn?.addEventListener('click', () => {
-            const technique = techniquePreviewBtn.dataset.technique;
+            const technique = techniquePreviewBtn.dataset.technique || techniqueInput?.value || 'flex';
             if (window.PersonnalyRealRender) {
                 window.PersonnalyRealRender.open(technique);
             }
@@ -1810,25 +1932,49 @@
     }
 
     function renderMobileToolContent(tool) {
-        // Simplified mobile tool content
+        // Modern mobile tool content with custom dropdowns
         switch (tool) {
             case 'text':
                 return `
-                    <input type="text" class="cfg-text-input" placeholder="Tapez votre texte..." id="mobile-text-input">
-                    <div class="cfg-section-label">Police</div>
-                    <select class="cfg-prop-input" id="mobile-font" style="margin-bottom: 16px;">
-                        ${renderFontOptions('Inter')}
-                    </select>
-                    <div class="cfg-section-label">Couleur</div>
-                    <div class="cfg-color-palette" id="mobile-colors">
-                        ${renderColorSwatches('#1A1A2E')}
+                    <input type="text" class="cfg-mobile-input" placeholder="Tapez votre texte..." id="mobile-text-input">
+
+                    <div class="cfg-mobile-section">
+                        <div class="cfg-mobile-label">Police</div>
+                        <div class="cfg-mobile-dropdown" id="mobile-font-dropdown">
+                            <div class="cfg-mobile-dropdown-trigger" id="mobile-font-trigger">
+                                <span class="cfg-mobile-dropdown-text" id="mobile-font-preview">Poppins</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </div>
+                            <div class="cfg-mobile-dropdown-list" id="mobile-font-list">
+                                ${renderMobileFontOptions()}
+                            </div>
+                        </div>
                     </div>
-                    <div class="cfg-section-label">Technique</div>
-                    <select class="cfg-prop-input" id="mobile-technique" style="margin-bottom: 16px;">
-                        ${renderTechniqueOptions()}
-                    </select>
-                    <button class="cfg-mobile-drawer-apply" id="mobile-add-text">
-                        ✓ Ajouter le texte
+
+                    <div class="cfg-mobile-section">
+                        <div class="cfg-mobile-label">Couleur</div>
+                        <div class="cfg-mobile-colors" id="mobile-colors">
+                            ${renderColorSwatches('#1A1A2E')}
+                        </div>
+                    </div>
+
+                    <div class="cfg-mobile-section">
+                        <div class="cfg-mobile-label">Technique</div>
+                        <div class="cfg-mobile-dropdown" id="mobile-technique-dropdown">
+                            <div class="cfg-mobile-dropdown-trigger" id="mobile-technique-trigger">
+                                <span class="cfg-mobile-dropdown-text" id="mobile-technique-preview">${window.__TECHNIQUES_DATA?.[0]?.label || 'Flex'}</span>
+                                <span class="cfg-mobile-dropdown-badge">${(window.__TECHNIQUES_DATA?.[0]?.price || 0) > 0 ? '+' + window.__TECHNIQUES_DATA[0].price.toFixed(2).replace('.', ',') + ' €' : 'Inclus'}</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </div>
+                            <div class="cfg-mobile-dropdown-list" id="mobile-technique-list">
+                                ${renderMobileTechniqueOptions()}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="cfg-mobile-add-btn" id="mobile-add-text">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                        Ajouter le texte
                     </button>
                 `;
             case 'layers':
@@ -1856,12 +2002,66 @@
         if (tool === 'text') {
             const addBtn = document.getElementById('mobile-add-text');
             const textInput = document.getElementById('mobile-text-input');
-            const fontSelect = document.getElementById('mobile-font');
             const colorPalette = document.getElementById('mobile-colors');
-            const techniqueSelect = document.getElementById('mobile-technique');
 
+            // Mobile font dropdown
+            const fontTrigger = document.getElementById('mobile-font-trigger');
+            const fontList = document.getElementById('mobile-font-list');
+            const fontPreview = document.getElementById('mobile-font-preview');
+            let selectedFont = 'Poppins';
+
+            fontTrigger?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                fontList?.classList.toggle('open');
+                // Close technique list
+                document.getElementById('mobile-technique-list')?.classList.remove('open');
+            });
+
+            fontList?.querySelectorAll('.cfg-mobile-dropdown-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    selectedFont = item.dataset.font;
+                    if (fontPreview) {
+                        fontPreview.textContent = item.dataset.label;
+                        fontPreview.style.fontFamily = `'${selectedFont}'`;
+                    }
+                    fontList.querySelectorAll('.cfg-mobile-dropdown-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    fontList.classList.remove('open');
+                });
+            });
+
+            // Mobile technique dropdown
+            const techTrigger = document.getElementById('mobile-technique-trigger');
+            const techList = document.getElementById('mobile-technique-list');
+            const techPreview = document.getElementById('mobile-technique-preview');
+
+            techTrigger?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                techList?.classList.toggle('open');
+                // Close font list
+                fontList?.classList.remove('open');
+            });
+
+            techList?.querySelectorAll('.cfg-mobile-dropdown-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const technique = item.dataset.technique;
+                    window.__SELECTED_TECHNIQUE = technique;
+
+                    if (techPreview) techPreview.textContent = item.dataset.label;
+
+                    // Update desktop selector
+                    const desktopInput = document.getElementById('cfgTechniqueSelect');
+                    if (desktopInput) desktopInput.value = technique;
+
+                    techList.querySelectorAll('.cfg-mobile-dropdown-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    techList.classList.remove('open');
+                    updatePrice();
+                });
+            });
+
+            // Color selection
             let selectedColor = '#1A1A2E';
-
             colorPalette?.querySelectorAll('.cfg-color-swatch').forEach(swatch => {
                 swatch.addEventListener('click', () => {
                     colorPalette.querySelectorAll('.cfg-color-swatch').forEach(s => s.classList.remove('selected'));
@@ -1870,22 +2070,20 @@
                 });
             });
 
-            // Handle technique selection on mobile
-            techniqueSelect?.addEventListener('change', () => {
-                window.__SELECTED_TECHNIQUE = techniqueSelect.value;
-                // Also update the desktop technique selector if exists
-                const desktopTechSelect = document.getElementById('cfgTechniqueSelect');
-                if (desktopTechSelect) {
-                    desktopTechSelect.value = techniqueSelect.value;
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.cfg-mobile-dropdown')) {
+                    fontList?.classList.remove('open');
+                    techList?.classList.remove('open');
                 }
-                updatePrice();
             });
 
+            // Add text button
             addBtn?.addEventListener('click', () => {
                 const text = textInput?.value.trim();
                 if (text) {
                     addTextElement(text, {
-                        fontFamily: fontSelect?.value || 'Inter',
+                        fontFamily: selectedFont,
                         fill: selectedColor,
                     });
                     closeMobileDrawer();
