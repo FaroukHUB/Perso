@@ -23,9 +23,30 @@
 
 **Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-5 terminés)
 
-**Statut global** : ✅ STEP 5 CLÔTURÉ — Upsells admin fonctionnels, bugs corrigés
+**Statut global** : ✅ Option B+ Variantes terminé — Multi-tailles par couleur
 
-**Derniers correctifs (session 2026-01-18)** :
+**Derniers travaux (session 2026-01-18 - suite)** :
+
+### Option B+ — Multi-tailles par variante couleur
+> Refonte majeure inspirée WooCommerce/Shopify pour permettre des tailles différentes selon la couleur.
+
+**Problème résolu** : Avant, une variante = 1 couleur + 1 taille. Maintenant, une variante = 1 couleur + N tailles disponibles.
+
+**Fichiers créés** :
+- `sql/migrate_variant_sizes.sql` — Migration available_sizes JSON + size_group
+
+**Fichiers modifiés** :
+- `app/models/CustomizationOption.php` — getSizesGrouped(), getSizesSimple()
+- `app/models/ProductColorImage.php` — Gestion JSON available_sizes
+- `admin/product-form.php` — UI variantes avec multi-sélection tailles (toggles mini)
+- `public/product.php` — Filtrage tailles par couleur (filterSizesByColor())
+
+**À faire** :
+- [ ] Exécuter `sql/migrate_variant_sizes.sql` sur la BDD production
+
+---
+
+**Correctifs précédents (session 2026-01-18)** :
 - Rapatriement upsells depuis branche parasite vers branche officielle
 - Fix erreur 500 : table `product_upsells` avec mauvaise structure → recréée
 - Fix erreur 500 : `getSuggestionsForCart()` inexistant → remplacé par `getSuggestions()`

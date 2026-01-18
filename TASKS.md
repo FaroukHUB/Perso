@@ -431,6 +431,44 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 **Priorité** : ✅ TERMINÉ
 
+### ✅ B.2 — Option B+ : Multi-tailles par variante couleur (TERMINÉ 2026-01-18)
+> Permettre à chaque variante couleur d'avoir ses propres tailles disponibles (inspiré WooCommerce/Shopify).
+
+**Problème résolu** : Une couleur peut n'être disponible qu'en certaines tailles (ex: Rouge uniquement en S,M,L mais Bleu en S,M,L,XL,XXL).
+
+- [x] **B.2.1** — Migration SQL : champ `size` → `available_sizes` (JSON) ✅
+- [x] **B.2.2** — Ajout `size_group` dans `customization_options` (groupes: Lettres, Chiffres, Enfants) ✅
+- [x] **B.2.3** — Méthode `getSizesGrouped()` dans CustomizationOption.php ✅
+- [x] **B.2.4** — ProductColorImage.php : support JSON available_sizes ✅
+- [x] **B.2.5** — UI product-form.php : toggles tailles par variante (multi-sélection) ✅
+- [x] **B.2.6** — Suppression section tailles standalone du formulaire ✅
+- [x] **B.2.7** — CSS mini-toggles pour sélection tailles compacte ✅
+- [x] **B.2.8** — JavaScript dynamique pour nouvelles variantes ✅
+
+**Fichiers créés** :
+- `sql/migrate_variant_sizes.sql` — Migration complète (available_sizes JSON + size_group + tailles par défaut)
+
+**Fichiers modifiés** :
+- `app/models/ProductColorImage.php` — Gestion JSON available_sizes
+- `app/models/CustomizationOption.php` — getSizesGrouped() + getSizesSimple()
+- `admin/product-form.php` — UI variantes avec toggles tailles multi-sélection
+
+**Note** : Exécuter `sql/migrate_variant_sizes.sql` sur la BDD production.
+
+**Priorité** : ✅ TERMINÉ
+
+### ✅ B.3 — Site public : filtrage tailles par couleur (TERMINÉ 2026-01-18)
+> Adapter le site public pour afficher uniquement les tailles disponibles pour la couleur sélectionnée.
+
+- [x] **B.3.1** — product.php : charger available_sizes de la variante sélectionnée (colorSizes JSON) ✅
+- [x] **B.3.2** — Filtrer le sélecteur tailles dynamiquement (JS filterSizesByColor()) ✅
+- [x] **B.3.3** — Masquer tailles non disponibles + auto-resélection si taille courante indisponible ✅
+
+**Fichier modifié** :
+- `public/product.php` — Ajout $colorSizes PHP, colorSizes JS, filterSizesByColor()
+
+**Priorité** : ✅ TERMINÉ
+
 ---
 
 ## PERSONNALISATION — Partage & Viralité
