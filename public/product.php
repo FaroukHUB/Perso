@@ -313,7 +313,7 @@ $cartCount = Cart::count();
     if ($useNewConfigurator):
     ?>
     <!-- Nouveau Configurateur v2 (Konva.js) -->
-    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=4">
+    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=5">
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <?php endif; ?>
     <style>
@@ -2081,16 +2081,11 @@ $cartCount = Cart::count();
                     <!-- Barre Actions (bottom) -->
                     <div class="cfg-actions">
                         <div class="cfg-actions-left">
-                            <button type="button" class="cfg-action-btn" data-action="undo" disabled title="Annuler">
-                                ← Annuler
-                            </button>
-                            <label class="cfg-snap-toggle">
-                                <input type="checkbox" checked> Snap
-                            </label>
-                        </div>
-                        <div class="cfg-actions-center">
                             <button type="button" class="cfg-save-btn" id="cfgSaveBtn">
                                 💾 Sauvegarder
+                            </button>
+                            <button type="button" class="cfg-share-btn" id="cfgShareBtn">
+                                🔗 Partager
                             </button>
                         </div>
                         <div class="cfg-actions-right">
@@ -3628,7 +3623,7 @@ $cartCount = Cart::count();
     window.__PRODUCT_COLORS = <?= json_encode($colors ?? []) ?>;
     window.__COLOR_IMAGES = <?= json_encode($colorImages ?? []) ?>;
     </script>
-    <script src="/public/assets/js/configurator.js?v=6"></script>
+    <script src="/public/assets/js/configurator.js?v=7"></script>
     <?php endif; ?>
 </body>
 </html>

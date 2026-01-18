@@ -1248,6 +1248,29 @@
     background: rgba(61, 255, 192, 0.2);
 }
 
+.cfg-save-btn.saved {
+    background: var(--mint-main);
+    color: white;
+}
+
+.cfg-share-btn {
+    padding: 12px 20px;
+    border: 2px solid var(--pink-main);
+    border-radius: var(--radius-md);
+    background: rgba(255, 105, 180, 0.1);
+    color: var(--pink-dark);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cfg-share-btn:hover {
+    background: rgba(255, 105, 180, 0.2);
+}
+
 .cfg-actions-right {
     display: flex;
     align-items: center;

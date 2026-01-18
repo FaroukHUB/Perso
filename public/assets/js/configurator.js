@@ -199,7 +199,8 @@
             snapToggle: document.querySelector('.cfg-snap-toggle input'),
             undoBtn: document.querySelector('.cfg-action-btn[data-action="undo"]'),
             redoBtn: document.querySelector('.cfg-action-btn[data-action="redo"]'),
-            saveBtn: document.querySelector('.cfg-save-btn'),
+            saveBtn: document.getElementById('cfgSaveBtn'),
+            shareBtn: document.getElementById('cfgShareBtn'),
             addCartBtn: document.querySelector('.cfg-add-cart-btn'),
             priceValue: document.querySelector('.cfg-price-value'),
             // Mobile
@@ -1474,6 +1475,46 @@
         // Keyboard shortcuts
         document.addEventListener('keydown', handleKeyboard);
 
+        // Save button
+        DOM.saveBtn?.addEventListener('click', () => {
+            saveDraft();
+            // Visual feedback
+            DOM.saveBtn.classList.add('saved');
+            const originalText = DOM.saveBtn.innerHTML;
+            DOM.saveBtn.innerHTML = '✓ Sauvegardé';
+            setTimeout(() => {
+                DOM.saveBtn.classList.remove('saved');
+                DOM.saveBtn.innerHTML = originalText;
+            }, 2000);
+            showNotification('Design sauvegardé !', 'success');
+        });
+
+        // Share button
+        DOM.shareBtn?.addEventListener('click', async () => {
+            try {
+                // Generate share URL with design data
+                const shareData = generateShareData();
+                const shareUrl = `${window.location.origin}${window.location.pathname}?v2=1&design=${shareData}`;
+
+                // Try native share API first
+                if (navigator.share) {
+                    await navigator.share({
+                        title: 'Mon design PERSONNALY',
+                        text: 'Découvrez mon design personnalisé !',
+                        url: shareUrl
+                    });
+                    showNotification('Partagé avec succès !', 'success');
+                } else {
+                    // Fallback: copy to clipboard
+                    await navigator.clipboard.writeText(shareUrl);
+                    showNotification('Lien copié dans le presse-papier !', 'success');
+                }
+            } catch (err) {
+                console.error('[Configurator] Share failed:', err);
+                showNotification('Erreur lors du partage', 'error');
+            }
+        });
+
         // Mobile tabs
         DOM.mobileTabs?.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -1718,8 +1759,24 @@
                 visible: el.visible,
             })),
             technique: window.__SELECTED_TECHNIQUE,
+            selectedColor: state.selectedProductColor,
             timestamp: Date.now(),
         };
+    }
+
+    /**
+     * Generate a compressed share data string for URL
+     */
+    function generateShareData() {
+        const data = serialize();
+        // Encode to base64 for URL safety
+        try {
+            const jsonStr = JSON.stringify(data);
+            return btoa(encodeURIComponent(jsonStr));
+        } catch (e) {
+            console.error('[Configurator] Failed to generate share data:', e);
+            return '';
+        }
     }
 
     function deserialize(data) {
