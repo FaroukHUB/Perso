@@ -1451,15 +1451,27 @@ $colorImages['Original'] = ['front' => $product['image_front_url'], 'back' => $p
 
 | Tâche | Statut | Notes |
 |-------|--------|-------|
-| Restaurer menu Options dans sidebar | ✅ OK | Uniquement Techniques pour l'instant |
+| Restaurer menu Options dans sidebar | ✅ OK | Techniques + Tailles |
 | CRUD Techniques | ✅ OK | Liste, ajouter, modifier, supprimer, images |
+| CRUD Tailles | ✅ OK | Tailles personnalisées créables par l'admin |
 | Gestion tailles dans variantes produit | ✅ OK | Colonne `size` ajoutée, formulaire mis à jour |
 
+#### Gestion des tailles ✅ TERMINÉ
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Colonne available_sizes products | ✅ OK | JSON des tailles par produit |
+| Présets admin (S-XXL, 36-46, etc.) | ✅ OK | 4 présets + Personnalisé |
+| Tailles personnalisées admin | ✅ OK | Onglet Tailles dans Options |
+| Affichage dynamique côté public | ✅ OK | Tailles du produit prioritaires |
+| Sélecteur tailles v2 | ✅ OK | Boutons dans panneau Design |
+
 **Fichiers modifiés** :
-- `admin/options.php` — Simplifié pour n'afficher que Techniques
-- `admin/product-form.php` — Section couleurs supprimée, taille ajoutée aux variantes
-- `app/models/ProductColorImage.php` — Support du champ `size`
-- `sql/migrate_variant_size.sql` — Migration ajout colonne size
+- `admin/options.php` — Onglet Tailles ajouté
+- `admin/product-form.php` — Section tailles avec présets + personnalisé
+- `app/models/Product.php` — Support available_sizes
+- `public/product.php` — Tailles dynamiques par produit
+- `sql/migrate_product_sizes.sql` — Migration colonne available_sizes
 
 ---
 

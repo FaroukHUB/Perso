@@ -2006,37 +2006,28 @@ $cartCount = Cart::count();
 
                             <!-- Technique de personnalisation -->
                             <div class="cfg-section-divider"></div>
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Technique de marquage</div>
-                            </div>
 
-                            <!-- Sélecteur de techniques (pills) -->
-                            <div class="cfg-technique-selector" id="cfgTechniqueList">
-                                <?php foreach ($techniques as $index => $tech): ?>
-                                <button type="button"
-                                        class="cfg-technique-pill <?= $index === 0 ? 'selected' : '' ?>"
-                                        data-technique="<?= h($tech['value']) ?>"
-                                        data-price="<?= h($tech['price']) ?>"
-                                        data-desc="<?= h($tech['description']) ?>">
-                                    <span class="pill-name"><?= h($tech['label']) ?></span>
-                                    <span class="pill-price"><?= $tech['price'] > 0 ? '+' . number_format($tech['price'], 2, ',', ' ') . ' €' : 'Inclus' ?></span>
-                                </button>
-                                <?php endforeach; ?>
+                            <!-- Sélecteur de techniques (dropdown comme les polices) -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Technique</div>
+                                <div class="cfg-option-controls">
+                                    <select class="cfg-technique-select" id="cfgTechniqueSelect">
+                                        <?php foreach ($techniques as $index => $tech): ?>
+                                        <option value="<?= h($tech['value']) ?>"
+                                                data-price="<?= h($tech['price']) ?>"
+                                                data-desc="<?= h($tech['description']) ?>"
+                                                <?= $index === 0 ? 'selected' : '' ?>>
+                                            <?= h($tech['label']) ?><?= $tech['price'] > 0 ? ' (+' . number_format($tech['price'], 2, ',', ' ') . ' €)' : ' (Inclus)' ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
                             </div>
 
                             <!-- Description de la technique sélectionnée -->
                             <div class="cfg-technique-details" id="cfgTechniqueDetails">
                                 <p class="technique-description"><?= h($techniques[0]['description'] ?? '') ?></p>
                             </div>
-
-                            <!-- Bouton aperçu bien visible -->
-                            <button type="button" class="cfg-technique-preview-btn" id="cfgTechniquePreviewBtn" data-technique="<?= h($techniques[0]['value'] ?? 'flex') ?>">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="3"/>
-                                    <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
-                                </svg>
-                                Voir le rendu réel de cette technique
-                            </button>
                         </div>
 
                         <!-- Panel: Photo -->
@@ -2136,6 +2127,15 @@ $cartCount = Cart::count();
                         <div class="cfg-canvas-wrapper">
                             <div class="cfg-canvas-stage" id="cfgCanvasStage"></div>
                         </div>
+
+                        <!-- Bouton aperçu technique en rose sous l'image -->
+                        <button type="button" class="cfg-preview-btn-pink" id="cfgTechniquePreviewBtn" data-technique="<?= h($techniques[0]['value'] ?? 'flex') ?>">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
+                            </svg>
+                            Voir le rendu réel
+                        </button>
 
                         <div class="cfg-zoom-controls">
                             <button type="button" class="cfg-zoom-btn" data-action="zoom-out">−</button>

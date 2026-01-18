@@ -1478,35 +1478,33 @@
             });
         });
 
-        // Technique selection (pill selector)
-        const techniquePills = document.querySelectorAll('.cfg-technique-pill');
+        // Technique selection (dropdown selector like fonts)
+        const techniqueSelect = document.getElementById('cfgTechniqueSelect');
         const techniqueDetails = document.getElementById('cfgTechniqueDetails');
         const techniquePreviewBtn = document.getElementById('cfgTechniquePreviewBtn');
 
-        techniquePills.forEach(pill => {
-            pill.addEventListener('click', () => {
-                // Update selection
-                techniquePills.forEach(p => p.classList.remove('selected'));
-                pill.classList.add('selected');
+        techniqueSelect?.addEventListener('change', () => {
+            const selectedOption = techniqueSelect.options[techniqueSelect.selectedIndex];
+            const technique = selectedOption.value;
+            const desc = selectedOption.dataset.desc || '';
+            const price = parseFloat(selectedOption.dataset.price) || 0;
 
-                // Update description
-                if (techniqueDetails) {
-                    const desc = pill.dataset.desc || '';
-                    techniqueDetails.querySelector('.technique-description').textContent = desc;
-                }
+            // Update description
+            if (techniqueDetails) {
+                techniqueDetails.querySelector('.technique-description').textContent = desc;
+            }
 
-                // Update preview button
-                if (techniquePreviewBtn) {
-                    techniquePreviewBtn.dataset.technique = pill.dataset.technique;
-                }
+            // Update preview button
+            if (techniquePreviewBtn) {
+                techniquePreviewBtn.dataset.technique = technique;
+            }
 
-                // Store selected technique in state
-                window.__SELECTED_TECHNIQUE = pill.dataset.technique;
-                updatePrice();
-            });
+            // Store selected technique in state
+            window.__SELECTED_TECHNIQUE = technique;
+            updatePrice();
         });
 
-        // Technique preview button (bottom)
+        // Technique preview button (pink button under canvas)
         techniquePreviewBtn?.addEventListener('click', () => {
             const technique = techniquePreviewBtn.dataset.technique;
             if (window.PersonnalyRealRender) {
