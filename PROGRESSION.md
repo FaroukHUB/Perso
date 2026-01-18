@@ -1530,10 +1530,11 @@ $colorImages['Original'] = ['front' => $product['image_front_url'], 'back' => $p
 | Fix | Détail |
 |-----|--------|
 | Bouton "Ajouter le texte" inline | Bouton compact (52px) à droite de l'input avec icône + |
+| Sidebar admin non scrollable | Ajout `overflow-y: auto` + scrollbar custom rose |
 
-**Commit** : `8bae6b1`
+**Commits** : `8bae6b1`, `98da1b4`
 
-**Statut** : ✅ TERMINÉ — Design ultra-moderne 2026 en production
+**Statut** : ✅ TERMINÉ — Design ultra-moderne 2026 + Sidebar scrollable
 
 ---
 
