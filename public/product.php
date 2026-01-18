@@ -308,8 +308,8 @@ $cartCount = Cart::count();
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/techniques.css?v=3">
     <?php
-    // Feature toggle: ?v2=1 pour activer le nouveau configurateur
-    $useNewConfigurator = isset($_GET['v2']) && $_GET['v2'] === '1';
+    // V2 est maintenant par défaut. Utiliser ?v1=1 pour revenir à l'ancien configurateur
+    $useNewConfigurator = !(isset($_GET['v1']) && $_GET['v1'] === '1');
     if ($useNewConfigurator):
     ?>
     <!-- Nouveau Configurateur v2 (Konva.js) -->
