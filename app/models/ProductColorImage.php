@@ -85,20 +85,21 @@ class ProductColorImage
     }
 
     /**
-     * Crée une nouvelle variante couleur
+     * Crée une nouvelle variante (couleur + taille)
      */
     public function create(array $data): int
     {
         $stmt = $this->db->prepare('
             INSERT INTO product_color_images
-            (product_id, color_name, hex_code, image_front_url, image_back_url, is_default, sort_order)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (product_id, color_name, hex_code, size, image_front_url, image_back_url, is_default, sort_order)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ');
 
         $stmt->execute([
             $data['product_id'],
             $data['color_name'],
             $data['hex_code'] ?? '#CCCCCC',
+            $data['size'] ?? null,
             $data['image_front_url'] ?? null,
             $data['image_back_url'] ?? null,
             $data['is_default'] ?? 0,
@@ -116,7 +117,7 @@ class ProductColorImage
         $fields = [];
         $values = [];
 
-        $allowedFields = ['color_name', 'hex_code', 'image_front_url', 'image_back_url', 'is_default', 'sort_order'];
+        $allowedFields = ['color_name', 'hex_code', 'size', 'image_front_url', 'image_back_url', 'is_default', 'sort_order'];
 
         foreach ($allowedFields as $field) {
             if (array_key_exists($field, $data)) {

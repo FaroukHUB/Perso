@@ -13,17 +13,12 @@ Auth::requireAdmin();
 
 $optionModel = new CustomizationOption();
 
-// Type d'option actuel
-$currentType = get('type', 'size');
-if (!in_array($currentType, ['size', 'color', 'text_color', 'technique'])) {
-    $currentType = 'size';
-}
+// Type d'option actuel - Pour l'instant uniquement techniques
+// Les autres options (tailles, couleurs) seront ajoutées plus tard
+$currentType = 'technique';
 
 $typeLabels = [
-    'size' => ['label' => 'Tailles', 'icon' => '📏', 'desc' => 'Tailles disponibles pour les produits'],
-    'color' => ['label' => 'Couleurs Produit', 'icon' => '👕', 'desc' => 'Couleurs des vêtements'],
-    'text_color' => ['label' => 'Couleurs Texte', 'icon' => '🎨', 'desc' => 'Couleurs pour la personnalisation'],
-    'technique' => ['label' => 'Techniques', 'icon' => '🧵', 'desc' => 'Méthodes de personnalisation avec tarifs'],
+    'technique' => ['label' => 'Techniques', 'icon' => '🧵', 'desc' => 'Méthodes de personnalisation (Broderie, Flex, Flock) avec tarifs'],
 ];
 
 $success = '';
@@ -599,17 +594,7 @@ $isTechniqueType = $currentType === 'technique';
 
         <!-- Main Content -->
         <main class="admin-main">
-            <h1 class="page-title">Options de <span class="text-gradient">Personnalisation</span></h1>
-
-            <!-- Type Tabs -->
-            <div class="type-tabs">
-                <?php foreach ($typeLabels as $type => $info): ?>
-                    <a href="?type=<?= $type ?>" class="type-tab <?= $currentType === $type ? 'active' : '' ?>">
-                        <span class="tab-icon"><?= $info['icon'] ?></span>
-                        <?= $info['label'] ?>
-                    </a>
-                <?php endforeach; ?>
-            </div>
+            <h1 class="page-title">🧵 <span class="text-gradient">Techniques</span> de personnalisation</h1>
 
             <div class="page-desc">
                 <?= $typeLabels[$currentType]['icon'] ?> <?= $typeLabels[$currentType]['desc'] ?>

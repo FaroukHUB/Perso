@@ -1429,6 +1429,34 @@ $colorImages['Original'] = ['front' => $product['image_front_url'], 'back' => $p
 
 ---
 
+### 2026-01-18 - Session 24 (TECHNIQUES CONFIGURATEUR + ADMIN OPTIONS)
+
+**Objectif** : Intégrer les techniques au configurateur v2 + restaurer le menu Options admin avec gestion Techniques.
+
+#### Techniques dans configurateur v2
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Section techniques HTML | ✅ OK | Panneau Texte, radio buttons avec data-technique/data-price |
+| Sélection avec surbrillance | ✅ OK | Classe .selected au clic |
+| Prix dynamique | ✅ OK | updatePrice() appelé à chaque changement |
+| Bouton aperçu (oeil) | ✅ OK | Ouvre PersonnalyRealRender modal |
+
+**Fichiers modifiés** :
+- `public/product.php` — HTML techniques avec bouton preview
+- `public/assets/js/configurator.js` — Initialisation technique, handler preview
+- `public/assets/css/configurator.css` — Styles .cfg-technique-preview
+
+#### Admin Options - Techniques (EN COURS)
+
+| Tâche | Statut | Notes |
+|-------|--------|-------|
+| Restaurer menu Options dans sidebar | 🔄 EN COURS | Uniquement Techniques pour l'instant |
+| CRUD Techniques | 🔄 EN COURS | Liste, ajouter, modifier, supprimer |
+| Gestion tailles dans variantes produit | ⏳ À FAIRE | Remplace sélection couleur séparée |
+
+---
+
 ### 2026-01-18 - Session 19 (STEP 5.A.5 - CSS ADMIN UPSELLS)
 
 **Objectif** : Implémenter proprement le CSS de la page admin/upsells.php

@@ -174,23 +174,11 @@ if (isPost()) {
                 $selectedCategories = post('product_categories', []);
                 $categoryModel->setProductCategories($productId, array_map('intval', $selectedCategories));
 
-                // Sauvegarder les couleurs du produit (ancien système - pour compatibilité)
-                $colorNames = post('color_names', []);
-                $colorHexes = post('color_hexes', []);
-                $colors = [];
-                foreach ($colorNames as $i => $name) {
-                    $name = trim($name);
-                    $hex = trim($colorHexes[$i] ?? '#CCCCCC');
-                    if (!empty($name) && preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) {
-                        $colors[] = ['name' => $name, 'hex' => $hex];
-                    }
-                }
-                $productColorModel->syncColors($productId, $colors);
-
-                // === NOUVEAU : Traitement des variantes couleur avec images ===
+                // === Traitement des variantes produit (couleur + taille + images) ===
                 $variantIds = post('variant_ids', []);
                 $variantNames = post('variant_names', []);
                 $variantHexes = post('variant_hexes', []);
+                $variantSizes = post('variant_sizes', []);
                 $variantDefaults = post('variant_default', '');
 
                 // Variantes à supprimer
@@ -205,6 +193,7 @@ if (isPost()) {
                     if (empty($vName)) continue;
 
                     $vHex = trim($variantHexes[$i] ?? '#CCCCCC');
+                    $vSize = trim($variantSizes[$i] ?? '');
                     $vId = isset($variantIds[$i]) ? (int)$variantIds[$i] : 0;
                     $isDefault = ($variantDefaults == $i) ? 1 : 0;
 
@@ -235,6 +224,7 @@ if (isPost()) {
                         $updateData = [
                             'color_name' => $vName,
                             'hex_code' => $vHex,
+                            'size' => $vSize ?: null,
                             'is_default' => $isDefault,
                             'sort_order' => $i
                         ];
@@ -247,6 +237,7 @@ if (isPost()) {
                             'product_id' => $productId,
                             'color_name' => $vName,
                             'hex_code' => $vHex,
+                            'size' => $vSize ?: null,
                             'image_front_url' => $frontUrl,
                             'image_back_url' => $backUrl,
                             'is_default' => $isDefault,
@@ -510,109 +501,7 @@ if (isPost()) {
             border-top: 1px solid rgba(0,0,0,0.08);
         }
 
-        /* Product Colors */
-        .colors-section {
-            margin-top: 30px;
-            padding-top: 25px;
-            border-top: 1px solid rgba(0,0,0,0.08);
-        }
-        .colors-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .colors-header h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--black-soft);
-        }
-        .add-color-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: var(--gradient-mint);
-            color: var(--black);
-            border: none;
-            border-radius: var(--radius-full);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .add-color-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-pink);
-        }
-        .color-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .color-item {
-            display: grid;
-            grid-template-columns: 50px 1fr auto;
-            gap: 12px;
-            align-items: center;
-            padding: 12px 15px;
-            background: var(--gray-light);
-            border-radius: var(--radius-md);
-        }
-        .color-preview {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid #ddd;
-        }
-        .color-inputs {
-            display: flex;
-            gap: 10px;
-        }
-        .color-inputs input[type="text"] {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-        }
-        .color-inputs input[type="color"] {
-            width: 50px;
-            height: 38px;
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-        }
-        .remove-color-btn {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(239, 68, 68, 0.1);
-            color: #EF4444;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .remove-color-btn:hover {
-            background: #EF4444;
-            color: white;
-        }
-        .colors-hint {
-            margin-top: 15px;
-            padding: 12px 15px;
-            background: rgba(255, 105, 180, 0.08);
-            border-radius: var(--radius-md);
-            font-size: 13px;
-            color: var(--gray);
-        }
-        .colors-hint strong {
-            color: var(--pink-dark);
-        }
-
-        /* === Variantes couleur avec images === */
+        /* === Variantes produit (couleur + taille + images) === */
         .variants-section {
             margin-top: 40px;
             padding-top: 30px;
@@ -715,6 +604,15 @@ if (isPost()) {
             border: none;
             border-radius: var(--radius-md);
             cursor: pointer;
+        }
+        .variant-size-input {
+            width: 100px !important;
+            background: rgba(61, 255, 192, 0.1);
+            border-color: var(--mint-light) !important;
+        }
+        .variant-size-input:focus {
+            border-color: var(--mint-main) !important;
+            box-shadow: 0 0 0 3px rgba(61, 255, 192, 0.2);
         }
         .variant-actions {
             display: flex;
@@ -985,49 +883,10 @@ if (isPost()) {
                         </div>
                     </div>
 
-                    <!-- Section Couleurs du produit -->
-                    <div class="colors-section">
-                        <div class="colors-header">
-                            <h3>Couleurs disponibles pour ce produit</h3>
-                            <button type="button" class="add-color-btn" onclick="addColorRow()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                    <line x1="12" y1="5" x2="12" y2="19"/>
-                                    <line x1="5" y1="12" x2="19" y2="12"/>
-                                </svg>
-                                Ajouter une couleur
-                            </button>
-                        </div>
-
-                        <div class="color-list" id="colorList">
-                            <?php if (!empty($productColors)): ?>
-                                <?php foreach ($productColors as $color): ?>
-                                    <div class="color-item">
-                                        <div class="color-preview" style="background-color: <?= h($color['hex_code']) ?>"></div>
-                                        <div class="color-inputs">
-                                            <input type="text" name="color_names[]" value="<?= h($color['color_name']) ?>" placeholder="Nom (ex: blanc)">
-                                            <input type="color" name="color_hexes[]" value="<?= h($color['hex_code']) ?>" onchange="updateColorPreview(this)">
-                                        </div>
-                                        <button type="button" class="remove-color-btn" onclick="removeColorRow(this)">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <line x1="18" y1="6" x2="6" y2="18"/>
-                                                <line x1="6" y1="6" x2="18" y2="18"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="colors-hint">
-                            <strong>Conseil :</strong> Si vous ne définissez aucune couleur, les couleurs globales seront utilisées.
-                            Ajoutez des couleurs spécifiques si ce produit a des variantes différentes.
-                        </div>
-                    </div>
-
-                    <!-- === NOUVEAU : Variantes couleur avec images === -->
+                    <!-- Variantes produit (couleur + taille + images) -->
                     <div class="variants-section">
                         <div class="variants-header">
-                            <h3>Variantes couleur avec images</h3>
+                            <h3>Variantes produit (couleur + taille)</h3>
                             <button type="button" class="add-variant-btn" onclick="addVariant()">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                                     <line x1="12" y1="5" x2="12" y2="19"/>
@@ -1045,8 +904,9 @@ if (isPost()) {
                                     <div class="variant-color-info">
                                         <div class="variant-color-preview" style="background-color: <?= h($variant['hex_code']) ?>"></div>
                                         <div class="variant-color-inputs">
-                                            <input type="text" name="variant_names[]" value="<?= h($variant['color_name']) ?>" placeholder="Nom couleur (ex: Noir)">
+                                            <input type="text" name="variant_names[]" value="<?= h($variant['color_name']) ?>" placeholder="Couleur (ex: Noir)">
                                             <input type="color" name="variant_hexes[]" value="<?= h($variant['hex_code']) ?>" onchange="updateVariantPreview(this)">
+                                            <input type="text" name="variant_sizes[]" value="<?= h($variant['size'] ?? '') ?>" placeholder="Taille (ex: M, L, XL)" class="variant-size-input">
                                         </div>
                                     </div>
                                     <div class="variant-actions">
@@ -1097,12 +957,12 @@ if (isPost()) {
                         </div>
 
                         <div class="variants-hint">
-                            <strong>Images par couleur</strong> — Pour une expérience client optimale :
+                            <strong>Variantes produit</strong> — Une variante = Couleur + Taille + Images :
                             <ul>
-                                <li>Uploadez une photo Face et Dos pour chaque variante couleur</li>
-                                <li>Le client verra la vraie photo du produit quand il sélectionne une couleur</li>
+                                <li><strong>Couleur :</strong> Nom et code couleur du produit</li>
+                                <li><strong>Taille :</strong> Ex: S, M, L, XL, 38, 40, etc.</li>
+                                <li><strong>Images :</strong> Photo Face et Dos pour cette variante</li>
                                 <li>Marquez une variante "Par défaut" pour l'afficher en premier</li>
-                                <li>Si aucune variante n'a d'image, les images générales du produit seront utilisées</li>
                             </ul>
                         </div>
                     </div>
@@ -1142,38 +1002,7 @@ if (isPost()) {
         setupImagePreview('imageFrontInput');
         setupImagePreview('imageBackInput');
 
-        // Gestion des couleurs du produit
-        function addColorRow() {
-            const list = document.getElementById('colorList');
-            const item = document.createElement('div');
-            item.className = 'color-item';
-            item.innerHTML = `
-                <div class="color-preview" style="background-color: #FFFFFF"></div>
-                <div class="color-inputs">
-                    <input type="text" name="color_names[]" placeholder="Nom (ex: blanc)" required>
-                    <input type="color" name="color_hexes[]" value="#FFFFFF" onchange="updateColorPreview(this)">
-                </div>
-                <button type="button" class="remove-color-btn" onclick="removeColorRow(this)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
-            `;
-            list.appendChild(item);
-        }
-
-        function removeColorRow(btn) {
-            const item = btn.closest('.color-item');
-            item.remove();
-        }
-
-        function updateColorPreview(input) {
-            const preview = input.closest('.color-item').querySelector('.color-preview');
-            preview.style.backgroundColor = input.value;
-        }
-
-        // === Gestion des variantes couleur avec images ===
+        // === Gestion des variantes produit (couleur + taille + images) ===
         let variantIndex = <?= count($colorVariants) ?>;
         let deletedVariants = [];
 
@@ -1190,8 +1019,9 @@ if (isPost()) {
                     <div class="variant-color-info">
                         <div class="variant-color-preview" style="background-color: #FFFFFF"></div>
                         <div class="variant-color-inputs">
-                            <input type="text" name="variant_names[]" placeholder="Nom couleur (ex: Noir)" required>
+                            <input type="text" name="variant_names[]" placeholder="Couleur (ex: Noir)" required>
                             <input type="color" name="variant_hexes[]" value="#FFFFFF" onchange="updateVariantPreview(this)">
+                            <input type="text" name="variant_sizes[]" placeholder="Taille (ex: M, L, XL)" class="variant-size-input">
                         </div>
                     </div>
                     <div class="variant-actions">
