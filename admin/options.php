@@ -21,8 +21,11 @@ if (!in_array($currentType, ['size', 'technique'])) {
 
 $typeLabels = [
     'technique' => ['label' => 'Techniques', 'icon' => '🧵', 'desc' => 'Méthodes de personnalisation (Broderie, Flex, Flock) avec tarifs'],
-    'size' => ['label' => 'Tailles', 'icon' => '📏', 'desc' => 'Tailles personnalisées en plus des présets (S-XXL, numérique, etc.)'],
+    'size' => ['label' => 'Tailles', 'icon' => '📏', 'desc' => 'Créez vos tailles par groupe (Lettres, Chiffres, Enfants, Personnalisé)'],
 ];
+
+// Groupes de tailles disponibles
+$sizeGroups = ['Lettres', 'Chiffres', 'Enfants', 'Personnalisé'];
 
 $success = '';
 $error = '';
@@ -36,9 +39,12 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
         $hexCode = trim(post('hex_code', ''));
         $price = post('price', '');
         $description = trim(post('description', ''));
+        $sizeGroup = trim(post('size_group', ''));
 
         if (empty($value) || empty($label)) {
             $error = 'Valeur et libellé sont obligatoires.';
+        } elseif ($currentType === 'size' && empty($sizeGroup)) {
+            $error = 'Veuillez sélectionner un groupe pour cette taille.';
         } else {
             $optionModel->create([
                 'type' => $currentType,
@@ -47,6 +53,7 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
                 'hex_code' => in_array($currentType, ['color', 'text_color']) ? $hexCode : null,
                 'price' => $currentType === 'technique' && $price !== '' ? (float) $price : null,
                 'description' => $currentType === 'technique' ? $description : null,
+                'size_group' => $currentType === 'size' ? $sizeGroup : null,
             ]);
             $success = 'Option ajoutée avec succès.';
         }
@@ -60,6 +67,7 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
         $hexCode = trim(post('hex_code', ''));
         $price = post('price', '');
         $description = trim(post('description', ''));
+        $sizeGroup = trim(post('size_group', ''));
 
         if ($id && !empty($value) && !empty($label)) {
             $optionModel->update($id, [
@@ -68,6 +76,7 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
                 'hex_code' => in_array($currentType, ['color', 'text_color']) ? $hexCode : null,
                 'price' => $currentType === 'technique' && $price !== '' ? (float) $price : null,
                 'description' => $currentType === 'technique' ? $description : null,
+                'size_group' => $currentType === 'size' ? $sizeGroup : null,
             ]);
             $success = 'Option modifiée avec succès.';
         }
@@ -584,6 +593,84 @@ $isSizeType = $currentType === 'size';
             flex: 1;
         }
 
+        /* Size Groups Display */
+        .size-group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 25px;
+            background: linear-gradient(135deg, rgba(255, 105, 180, 0.08), rgba(61, 255, 192, 0.08));
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .size-group-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--pink-dark);
+        }
+        .size-group-count {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        .size-group-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px 25px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .size-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: white;
+            border: 2px solid rgba(0,0,0,0.08);
+            border-radius: var(--radius-full);
+            transition: all 0.2s;
+        }
+        .size-item:hover {
+            border-color: var(--pink-light);
+            box-shadow: var(--shadow-sm);
+        }
+        .size-item.inactive {
+            opacity: 0.5;
+            background: var(--gray-light);
+        }
+        .size-value {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--black-soft);
+        }
+        .size-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .action-btn-mini {
+            width: 26px;
+            height: 26px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 11px;
+            background: var(--gray-light);
+        }
+        .action-btn-mini.toggle.active {
+            background: var(--mint-main);
+        }
+        .action-btn-mini.edit:hover {
+            background: var(--pink-light);
+        }
+        .action-btn-mini.delete {
+            color: #dc3545;
+        }
+        .action-btn-mini.delete:hover {
+            background: #fee;
+        }
+
         @media (max-width: 968px) {
             .options-grid { grid-template-columns: 1fr; }
             .form-card { position: static; order: -1; }
@@ -636,6 +723,55 @@ $isSizeType = $currentType === 'size';
                             <div class="empty-state-icon"><?= $typeLabels[$currentType]['icon'] ?></div>
                             <p>Aucune option. Ajoutez-en une !</p>
                         </div>
+                    <?php elseif ($isSizeType): ?>
+                        <?php
+                        // Grouper les tailles par size_group
+                        $groupedSizes = [];
+                        foreach ($options as $opt) {
+                            $group = $opt['size_group'] ?? 'Non classé';
+                            if (!isset($groupedSizes[$group])) {
+                                $groupedSizes[$group] = [];
+                            }
+                            $groupedSizes[$group][] = $opt;
+                        }
+                        ?>
+                        <?php foreach ($groupedSizes as $groupName => $groupOptions): ?>
+                            <div class="size-group-header">
+                                <span class="size-group-name"><?= h($groupName) ?></span>
+                                <span class="size-group-count"><?= count($groupOptions) ?> taille<?= count($groupOptions) > 1 ? 's' : '' ?></span>
+                            </div>
+                            <div class="size-group-items">
+                                <?php foreach ($groupOptions as $option): ?>
+                                    <div class="size-item <?= $option['active'] ? '' : 'inactive' ?>">
+                                        <span class="size-value"><?= h($option['label']) ?></span>
+                                        <div class="size-actions">
+                                            <form method="post" style="display: inline;">
+                                                <?= csrfField() ?>
+                                                <input type="hidden" name="option_id" value="<?= $option['id'] ?>">
+                                                <button type="submit" name="toggle_option" value="1"
+                                                        class="action-btn-mini toggle <?= $option['active'] ? 'active' : '' ?>"
+                                                        title="<?= $option['active'] ? 'Désactiver' : 'Activer' ?>">
+                                                    <?= $option['active'] ? '✓' : '○' ?>
+                                                </button>
+                                            </form>
+                                            <button type="button" class="action-btn-mini edit" title="Modifier"
+                                                    onclick="openEditModal(<?= htmlspecialchars(json_encode($option)) ?>)">
+                                                ✏️
+                                            </button>
+                                            <form method="post" style="display: inline;"
+                                                  onsubmit="return confirm('Supprimer cette taille ?')">
+                                                <?= csrfField() ?>
+                                                <input type="hidden" name="option_id" value="<?= $option['id'] ?>">
+                                                <button type="submit" name="delete_option" value="1"
+                                                        class="action-btn-mini delete" title="Supprimer">
+                                                    🗑️
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endforeach; ?>
                     <?php else: ?>
                         <?php foreach ($options as $option): ?>
                             <div class="option-item <?= $option['active'] ? '' : 'inactive' ?>">
@@ -751,20 +887,41 @@ $isSizeType = $currentType === 'size';
                     <form method="post">
                         <?= csrfField() ?>
 
-                        <div class="form-group">
-                            <label class="form-label">Valeur (code interne)</label>
-                            <input type="text" name="value" class="form-input"
-                                   placeholder="<?= $currentType === 'size' ? 'XXL' : ($isColorType ? 'rouge' : 'broderie') ?>"
-                                   required>
-                            <div class="form-hint">Identifiant unique, sans espaces ni accents</div>
-                        </div>
+                        <?php if ($isSizeType): ?>
+                            <div class="form-group">
+                                <label class="form-label">Groupe de taille *</label>
+                                <select name="size_group" class="form-input" required>
+                                    <option value="">-- Sélectionner un groupe --</option>
+                                    <?php foreach ($sizeGroups as $group): ?>
+                                        <option value="<?= h($group) ?>"><?= h($group) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <div class="form-hint">Lettres (S,M,L...), Chiffres (36,38...), Enfants (2ans...), Personnalisé</div>
+                            </div>
 
-                        <div class="form-group">
-                            <label class="form-label">Libellé (affiché au client)</label>
-                            <input type="text" name="label" class="form-input"
-                                   placeholder="<?= $currentType === 'size' ? 'XXL' : ($isColorType ? 'Rouge Passion' : 'Broderie Premium') ?>"
-                                   required>
-                        </div>
+                            <div class="form-group">
+                                <label class="form-label">Taille *</label>
+                                <input type="text" name="value" class="form-input"
+                                       placeholder="Ex: 3XL, 50, 14 ans..."
+                                       required>
+                                <input type="hidden" name="label" id="sizeLabelHidden">
+                            </div>
+                        <?php else: ?>
+                            <div class="form-group">
+                                <label class="form-label">Valeur (code interne)</label>
+                                <input type="text" name="value" class="form-input"
+                                       placeholder="<?= $isColorType ? 'rouge' : 'broderie' ?>"
+                                       required>
+                                <div class="form-hint">Identifiant unique, sans espaces ni accents</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Libellé (affiché au client)</label>
+                                <input type="text" name="label" class="form-input"
+                                       placeholder="<?= $isColorType ? 'Rouge Passion' : 'Broderie Premium' ?>"
+                                       required>
+                            </div>
+                        <?php endif; ?>
 
                         <?php if ($isColorType): ?>
                             <div class="form-group">
@@ -808,20 +965,37 @@ $isSizeType = $currentType === 'size';
     <!-- Edit Modal -->
     <div class="modal-overlay" id="editModal">
         <div class="modal">
-            <h3>Modifier l'option</h3>
+            <h3>Modifier <?= $isSizeType ? 'la taille' : 'l\'option' ?></h3>
             <form method="post" id="editForm">
                 <?= csrfField() ?>
                 <input type="hidden" name="option_id" id="editOptionId">
 
-                <div class="form-group">
-                    <label class="form-label">Valeur</label>
-                    <input type="text" name="value" id="editValue" class="form-input" required>
-                </div>
+                <?php if ($isSizeType): ?>
+                    <div class="form-group">
+                        <label class="form-label">Groupe</label>
+                        <select name="size_group" id="editSizeGroup" class="form-input" required>
+                            <?php foreach ($sizeGroups as $group): ?>
+                                <option value="<?= h($group) ?>"><?= h($group) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label class="form-label">Libellé</label>
-                    <input type="text" name="label" id="editLabel" class="form-input" required>
-                </div>
+                    <div class="form-group">
+                        <label class="form-label">Taille</label>
+                        <input type="text" name="value" id="editValue" class="form-input" required>
+                        <input type="hidden" name="label" id="editLabel">
+                    </div>
+                <?php else: ?>
+                    <div class="form-group">
+                        <label class="form-label">Valeur</label>
+                        <input type="text" name="value" id="editValue" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Libellé</label>
+                        <input type="text" name="label" id="editLabel" class="form-input" required>
+                    </div>
+                <?php endif; ?>
 
                 <?php if ($isColorType): ?>
                     <div class="form-group">
@@ -862,7 +1036,17 @@ $isSizeType = $currentType === 'size';
         function openEditModal(option) {
             document.getElementById('editOptionId').value = option.id;
             document.getElementById('editValue').value = option.value;
-            document.getElementById('editLabel').value = option.label;
+
+            const editLabel = document.getElementById('editLabel');
+            if (editLabel) {
+                editLabel.value = option.label;
+            }
+
+            // Size group field
+            const sizeGroupField = document.getElementById('editSizeGroup');
+            if (sizeGroupField && option.size_group) {
+                sizeGroupField.value = option.size_group;
+            }
 
             // Color fields
             const hexCode = document.getElementById('editHexCode');
@@ -885,6 +1069,16 @@ $isSizeType = $currentType === 'size';
             document.getElementById('editModal').classList.add('active');
         }
 
+        // For sizes in edit modal: sync label with value
+        <?php if ($isSizeType): ?>
+        document.getElementById('editValue')?.addEventListener('input', function() {
+            const editLabel = document.getElementById('editLabel');
+            if (editLabel) {
+                editLabel.value = this.value;
+            }
+        });
+        <?php endif; ?>
+
         function closeEditModal() {
             document.getElementById('editModal').classList.remove('active');
         }
@@ -900,6 +1094,25 @@ $isSizeType = $currentType === 'size';
                 btn.classList.add('loading');
             }
         }
+
+        // Auto-fill label for sizes (label = value for sizes)
+        <?php if ($isSizeType): ?>
+        document.querySelector('input[name="value"]')?.addEventListener('input', function() {
+            const hiddenLabel = document.getElementById('sizeLabelHidden');
+            if (hiddenLabel) {
+                hiddenLabel.value = this.value;
+            }
+        });
+
+        // Before submit, ensure label is set
+        document.querySelector('.form-card form')?.addEventListener('submit', function(e) {
+            const valueInput = this.querySelector('input[name="value"]');
+            const hiddenLabel = document.getElementById('sizeLabelHidden');
+            if (hiddenLabel && valueInput) {
+                hiddenLabel.value = valueInput.value;
+            }
+        });
+        <?php endif; ?>
     </script>
 </body>
 </html>

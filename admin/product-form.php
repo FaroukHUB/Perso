@@ -563,31 +563,61 @@ if (isPost()) {
             border-radius: var(--radius-lg);
             border: 1px solid rgba(0,0,0,0.06);
         }
+        .sizes-header {
+            margin-bottom: 20px;
+        }
         .sizes-header h3 {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: var(--black-soft);
             margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .sizes-subtitle {
             font-size: 13px;
             color: var(--gray);
-            margin: 5px 0 20px 0;
+            margin: 5px 0 0 0;
+        }
+        .sizes-groups {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
         .size-group {
-            margin-bottom: 16px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(0,0,0,0.06);
         }
-        .size-group:last-child {
-            margin-bottom: 0;
+        .size-group-header-inline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
         }
         .size-group-label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--gray);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--pink-dark);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 10px;
+        }
+        .size-group-toggle-all {
+            font-size: 11px;
+            padding: 4px 10px;
+            background: var(--gray-light);
+            border: none;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            color: var(--gray);
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .size-group-toggle-all:hover {
+            background: var(--mint-light);
+            color: var(--mint-dark);
         }
         .size-toggles {
             display: flex;
@@ -600,8 +630,8 @@ if (isPost()) {
             justify-content: center;
             min-width: 48px;
             padding: 10px 16px;
-            background: white;
-            border: 2px solid rgba(0,0,0,0.1);
+            background: var(--gray-light);
+            border: 2px solid transparent;
             border-radius: var(--radius-full);
             font-weight: 600;
             font-size: 14px;
@@ -613,8 +643,7 @@ if (isPost()) {
             display: none;
         }
         .size-toggle:hover {
-            border-color: var(--mint-light);
-            background: rgba(61, 255, 192, 0.05);
+            background: rgba(61, 255, 192, 0.2);
         }
         .size-toggle.active,
         .size-toggle:has(input:checked) {
@@ -622,6 +651,25 @@ if (isPost()) {
             border-color: var(--mint-main);
             color: var(--black);
             box-shadow: 0 2px 8px rgba(61, 255, 192, 0.3);
+        }
+        .sizes-quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(0,0,0,0.06);
+        }
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        .btn-mint {
+            background: var(--gradient-mint);
+            color: var(--black);
+            border: none;
+        }
+        .btn-mint:hover {
+            box-shadow: var(--shadow-mint);
         }
 
         /* === Variantes produit (couleur + tailles + images) === */
@@ -633,7 +681,8 @@ if (isPost()) {
             color: var(--gray);
             margin: 0;
         }
-        .variant-sizes {
+        /* Simplified variant sizes */
+        .variant-sizes-simple {
             padding: 15px;
             background: rgba(61, 255, 192, 0.05);
             border-radius: var(--radius-md);
@@ -641,10 +690,57 @@ if (isPost()) {
         }
         .variant-sizes-label {
             display: block;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
-            color: var(--gray);
+            color: var(--black-soft);
             margin-bottom: 10px;
+        }
+        .variant-sizes-options {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+        .variant-size-radio {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--gray);
+        }
+        .variant-size-radio input {
+            display: none;
+        }
+        .variant-size-radio .radio-btn {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--gray);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .variant-size-radio input:checked + .radio-btn {
+            border-color: var(--mint-main);
+            background: var(--mint-main);
+        }
+        .variant-size-radio input:checked + .radio-btn::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+        }
+        .variant-size-radio input:checked ~ span:last-child {
+            color: var(--black-soft);
+            font-weight: 500;
+        }
+        .variant-sizes-limited {
+            padding: 12px;
+            background: white;
+            border-radius: var(--radius-md);
+            margin-top: 10px;
         }
         .variant-size-toggles {
             display: flex;
@@ -657,8 +753,8 @@ if (isPost()) {
             justify-content: center;
             min-width: 40px;
             padding: 6px 12px;
-            background: white;
-            border: 2px solid rgba(0,0,0,0.1);
+            background: var(--gray-light);
+            border: 2px solid transparent;
             border-radius: var(--radius-full);
             font-weight: 600;
             font-size: 12px;
@@ -670,8 +766,7 @@ if (isPost()) {
             display: none;
         }
         .size-toggle-mini:hover {
-            border-color: var(--mint-light);
-            background: rgba(61, 255, 192, 0.1);
+            background: rgba(61, 255, 192, 0.2);
         }
         .size-toggle-mini.active,
         .size-toggle-mini:has(input:checked) {
@@ -1038,11 +1133,48 @@ if (isPost()) {
                         </div>
                     </div>
 
-                    <!-- Variantes produit (couleur + tailles + images) -->
+                    <!-- Section Tailles du produit -->
+                    <div class="sizes-section">
+                        <div class="sizes-header">
+                            <h3>📏 Tailles disponibles</h3>
+                            <p class="sizes-subtitle">Sélectionnez les tailles proposées pour ce produit</p>
+                        </div>
+
+                        <div class="sizes-groups">
+                            <?php foreach ($sizesGrouped as $groupName => $sizes): ?>
+                                <div class="size-group">
+                                    <div class="size-group-header-inline">
+                                        <span class="size-group-label"><?= h($groupName) ?></span>
+                                        <button type="button" class="size-group-toggle-all" data-group="<?= h($groupName) ?>">
+                                            Tout sélectionner
+                                        </button>
+                                    </div>
+                                    <div class="size-toggles" data-group="<?= h($groupName) ?>">
+                                        <?php foreach ($sizes as $size): ?>
+                                            <label class="size-toggle <?= in_array($size['value'], $productSizes) ? 'active' : '' ?>">
+                                                <input type="checkbox"
+                                                       name="available_sizes[]"
+                                                       value="<?= h($size['value']) ?>"
+                                                       <?= in_array($size['value'], $productSizes) ? 'checked' : '' ?>>
+                                                <span><?= h($size['label']) ?></span>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <div class="sizes-quick-actions">
+                            <button type="button" class="btn btn-sm btn-mint" onclick="selectAllSizes()">✓ Tout sélectionner</button>
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="deselectAllSizes()">✗ Tout désélectionner</button>
+                        </div>
+                    </div>
+
+                    <!-- Variantes produit (couleur + images) -->
                     <div class="variants-section">
                         <div class="variants-header">
                             <h3>🎨 Variantes couleur</h3>
-                            <p class="variants-subtitle">Chaque couleur peut avoir ses propres tailles disponibles</p>
+                            <p class="variants-subtitle">Ajoutez des couleurs avec leurs images (les tailles héritent du produit)</p>
                             <button type="button" class="add-variant-btn" onclick="addVariant()">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                                     <line x1="12" y1="5" x2="12" y2="19"/>
@@ -1083,17 +1215,36 @@ if (isPost()) {
                                         </button>
                                     </div>
                                 </div>
-                                <div class="variant-sizes">
-                                    <span class="variant-sizes-label">📏 Tailles disponibles pour cette couleur :</span>
-                                    <div class="variant-size-toggles">
-                                        <?php foreach ($sizesGrouped as $groupName => $sizes): ?>
-                                            <?php foreach ($sizes as $size): ?>
-                                            <label class="size-toggle-mini <?= in_array($size['value'], $variantSizes) ? 'active' : '' ?>">
-                                                <input type="checkbox" name="variant_sizes_<?= $i ?>[]" value="<?= h($size['value']) ?>" <?= in_array($size['value'], $variantSizes) ? 'checked' : '' ?>>
-                                                <span><?= h($size['label']) ?></span>
-                                            </label>
+                                <div class="variant-sizes-simple">
+                                    <span class="variant-sizes-label">📏 Tailles :</span>
+                                    <div class="variant-sizes-options">
+                                        <?php
+                                        // Déterminer si toutes les tailles ou limitées
+                                        $allProductSizes = $productSizes;
+                                        $isAllSizes = empty($variantSizes) || count(array_diff($allProductSizes, $variantSizes)) === 0;
+                                        ?>
+                                        <label class="variant-size-radio">
+                                            <input type="radio" name="variant_size_mode_<?= $i ?>" value="all" <?= $isAllSizes ? 'checked' : '' ?> onchange="toggleVariantSizes(<?= $i ?>, 'all')">
+                                            <span class="radio-btn"></span>
+                                            <span>Toutes les tailles du produit</span>
+                                        </label>
+                                        <label class="variant-size-radio">
+                                            <input type="radio" name="variant_size_mode_<?= $i ?>" value="limited" <?= !$isAllSizes ? 'checked' : '' ?> onchange="toggleVariantSizes(<?= $i ?>, 'limited')">
+                                            <span class="radio-btn"></span>
+                                            <span>Limiter les tailles</span>
+                                        </label>
+                                    </div>
+                                    <div class="variant-sizes-limited" id="variantSizesLimited_<?= $i ?>" style="<?= $isAllSizes ? 'display:none;' : '' ?>">
+                                        <div class="variant-size-toggles">
+                                            <?php foreach ($sizesGrouped as $groupName => $sizes): ?>
+                                                <?php foreach ($sizes as $size): ?>
+                                                <label class="size-toggle-mini <?= in_array($size['value'], $variantSizes) ? 'active' : '' ?>">
+                                                    <input type="checkbox" name="variant_sizes_<?= $i ?>[]" value="<?= h($size['value']) ?>" <?= in_array($size['value'], $variantSizes) ? 'checked' : '' ?>>
+                                                    <span><?= h($size['label']) ?></span>
+                                                </label>
+                                                <?php endforeach; ?>
                                             <?php endforeach; ?>
-                                        <?php endforeach; ?>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="variant-images">
@@ -1131,12 +1282,11 @@ if (isPost()) {
                         </div>
 
                         <div class="variants-hint">
-                            <strong>Variantes produit</strong> — Une variante = Couleur + Taille + Images :
+                            <strong>💡 Fonctionnement</strong>
                             <ul>
-                                <li><strong>Couleur :</strong> Nom et code couleur du produit</li>
-                                <li><strong>Taille :</strong> Ex: S, M, L, XL, 38, 40, etc.</li>
-                                <li><strong>Images :</strong> Photo Face et Dos pour cette variante</li>
-                                <li>Marquez une variante "Par défaut" pour l'afficher en premier</li>
+                                <li><strong>Tailles du produit :</strong> Définies ci-dessus, appliquées à toutes les couleurs</li>
+                                <li><strong>Variantes :</strong> Chaque couleur peut limiter les tailles disponibles</li>
+                                <li><strong>Par défaut :</strong> La variante marquée s'affiche en premier sur le site</li>
                             </ul>
                         </div>
                     </div>
@@ -1156,17 +1306,63 @@ if (isPost()) {
     </div>
 
     <script>
-        // Toggle des tailles
-        document.querySelectorAll('.size-toggle').forEach(label => {
+        // Toggle des tailles - update active class
+        function updateSizeToggleClasses() {
+            document.querySelectorAll('.size-toggle, .size-toggle-mini').forEach(label => {
+                const checkbox = label.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    label.classList.toggle('active', checkbox.checked);
+                }
+            });
+        }
+
+        document.querySelectorAll('.size-toggle, .size-toggle-mini').forEach(label => {
             label.addEventListener('click', function(e) {
-                // Toggle la checkbox
-                const checkbox = this.querySelector('input[type="checkbox"]');
-                // Le navigateur gère le toggle automatiquement, on met juste à jour la classe
-                setTimeout(() => {
-                    this.classList.toggle('active', checkbox.checked);
-                }, 0);
+                setTimeout(updateSizeToggleClasses, 0);
             });
         });
+
+        // Select/Deselect all sizes
+        function selectAllSizes() {
+            document.querySelectorAll('.sizes-section .size-toggle input[type="checkbox"]').forEach(cb => {
+                cb.checked = true;
+            });
+            updateSizeToggleClasses();
+        }
+
+        function deselectAllSizes() {
+            document.querySelectorAll('.sizes-section .size-toggle input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            updateSizeToggleClasses();
+        }
+
+        // Toggle all sizes in a group
+        document.querySelectorAll('.size-group-toggle-all').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const groupName = this.dataset.group;
+                const container = document.querySelector(`.size-toggles[data-group="${groupName}"]`);
+                if (!container) return;
+
+                const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+                const allChecked = [...checkboxes].every(cb => cb.checked);
+
+                checkboxes.forEach(cb => {
+                    cb.checked = !allChecked;
+                });
+
+                this.textContent = allChecked ? 'Tout sélectionner' : 'Tout désélectionner';
+                updateSizeToggleClasses();
+            });
+        });
+
+        // Toggle variant sizes (all / limited)
+        function toggleVariantSizes(idx, mode) {
+            const limitedContainer = document.getElementById('variantSizesLimited_' + idx);
+            if (limitedContainer) {
+                limitedContainer.style.display = mode === 'limited' ? 'block' : 'none';
+            }
+        }
 
         // Preview images on select
         function setupImagePreview(inputId) {
@@ -1238,10 +1434,24 @@ if (isPost()) {
                         </button>
                     </div>
                 </div>
-                <div class="variant-sizes">
-                    <span class="variant-sizes-label">📏 Tailles disponibles pour cette couleur :</span>
-                    <div class="variant-size-toggles">
-                        ${generateSizeToggles(idx)}
+                <div class="variant-sizes-simple">
+                    <span class="variant-sizes-label">📏 Tailles :</span>
+                    <div class="variant-sizes-options">
+                        <label class="variant-size-radio">
+                            <input type="radio" name="variant_size_mode_${idx}" value="all" checked onchange="toggleVariantSizes(${idx}, 'all')">
+                            <span class="radio-btn"></span>
+                            <span>Toutes les tailles du produit</span>
+                        </label>
+                        <label class="variant-size-radio">
+                            <input type="radio" name="variant_size_mode_${idx}" value="limited" onchange="toggleVariantSizes(${idx}, 'limited')">
+                            <span class="radio-btn"></span>
+                            <span>Limiter les tailles</span>
+                        </label>
+                    </div>
+                    <div class="variant-sizes-limited" id="variantSizesLimited_${idx}" style="display:none;">
+                        <div class="variant-size-toggles">
+                            ${generateSizeToggles(idx)}
+                        </div>
                     </div>
                 </div>
                 <div class="variant-images">
@@ -1268,6 +1478,13 @@ if (isPost()) {
                 </div>
             `;
             list.appendChild(item);
+
+            // Add click listeners for new size toggles
+            item.querySelectorAll('.size-toggle-mini').forEach(label => {
+                label.addEventListener('click', function() {
+                    setTimeout(updateSizeToggleClasses, 0);
+                });
+            });
         }
 
         function deleteVariant(btn, variantId) {
