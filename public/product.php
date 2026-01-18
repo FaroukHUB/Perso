@@ -1861,22 +1861,19 @@ $cartCount = Cart::count();
                                 <span class="cfg-text-counter"><span id="cfgTextCount">0</span>/<?= $printZone['max_chars'] ?? 35 ?></span>
                             </div>
 
-                            <!-- Ecriture (Font) -->
+                            <!-- Ecriture (Font dropdown) -->
                             <div class="cfg-option-row">
                                 <div class="cfg-option-label">Ecriture</div>
                                 <div class="cfg-option-controls">
-                                    <?php
-                                    $defaultFont = $fonts[0] ?? ['value' => 'Inter', 'label' => 'Inter'];
-                                    $secondFont = $fonts[1] ?? ['value' => 'Playfair Display', 'label' => 'Playful'];
-                                    ?>
-                                    <button type="button" class="cfg-font-btn selected" data-font="<?= h($defaultFont['value']) ?>">
-                                        <span class="cfg-font-btn-preview" style="font-family: '<?= h($defaultFont['value']) ?>'">Ag</span>
-                                        <span class="cfg-font-btn-name"><?= h($defaultFont['label']) ?></span>
-                                    </button>
-                                    <button type="button" class="cfg-font-btn" data-font="<?= h($secondFont['value']) ?>">
-                                        <span class="cfg-font-btn-preview" style="font-family: '<?= h($secondFont['value']) ?>'">Ag</span>
-                                        <span class="cfg-font-btn-name"><?= h($secondFont['label']) ?></span>
-                                    </button>
+                                    <select class="cfg-font-select" id="cfgFontSelect">
+                                        <?php foreach ($fonts as $index => $font): ?>
+                                        <option value="<?= h($font['value']) ?>"
+                                                style="font-family: '<?= h($font['value']) ?>'"
+                                                <?= $index === 0 ? 'selected' : '' ?>>
+                                            <?= h($font['label']) ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
                             </div>
 
