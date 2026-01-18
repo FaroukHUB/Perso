@@ -409,15 +409,23 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 ## PRODUIT — Structure & Variantes
 
-### B.1 — Refonte gestion couleurs/variantes admin
+### ✅ B.1 — Refonte gestion couleurs/variantes admin (TERMINÉ 2026-01-18)
 > Simplifier l'interface de création produit pour éviter confusion et duplication.
 
-- [ ] **B.1.1** — Retirer le bouton "Ajouter une couleur" (garder uniquement "Ajouter une variante")
-- [ ] **B.1.2** — Retirer tailles et couleurs de l'onglet Options global
-- [ ] **B.1.3** — Centraliser la gestion tailles/couleurs dans la création produit uniquement
-- [ ] **B.1.4** — Documenter le nouveau workflow
+- [x] **B.1.1** — Retirer le bouton "Ajouter une couleur" (garder uniquement "Ajouter une variante") ✅
+- [x] **B.1.2** — Retirer tailles et couleurs de l'onglet Options global (garder uniquement Techniques) ✅
+- [x] **B.1.3** — Ajouter la taille dans les variantes produit (couleur + taille + images) ✅
+- [x] **B.1.4** — Migration SQL pour colonne `size` dans `product_color_images` ✅
 
-**Priorité** : 🟡 MOYENNE (clarification UX)
+**Fichiers modifiés** :
+- `admin/options.php` — Simplifié pour n'afficher que Techniques
+- `admin/product-form.php` — Section couleurs supprimée, taille ajoutée aux variantes
+- `app/models/ProductColorImage.php` — Support du champ `size`
+- `sql/migrate_variant_size.sql` — Migration ajout colonne size
+
+**Note** : Exécuter `sql/migrate_variant_size.sql` pour ajouter la colonne size à la base de données.
+
+**Priorité** : ✅ TERMINÉ
 
 ---
 
@@ -548,6 +556,12 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 - [x] **E.1.2.18** — V2 par défaut (retrait flag ?v2=1) ✅
 - [x] **E.1.2.19** — Bouton "Ajouter le texte" visible ✅
 - [x] **E.1.2.20** — Couleur "Original" auto-ajoutée ✅
+
+#### ✅ STEP DESIGN-2.7 — Techniques dans configurateur (TERMINÉ 2026-01-18)
+- [x] **E.1.2.21** — Section techniques dans panneau Texte ✅
+- [x] **E.1.2.22** — Sélection technique avec mise en surbrillance ✅
+- [x] **E.1.2.23** — Prix dynamique selon technique ✅
+- [x] **E.1.2.24** — Bouton aperçu (oeil) → modal rendu réel ✅
 
 #### STEP DESIGN-3 — Admin Designs (À VENIR)
 - [ ] **E.1.3.1** — Table design_templates + CRUD
