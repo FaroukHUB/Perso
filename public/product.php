@@ -114,8 +114,17 @@ if ($hasColorVariants) {
 $fontModel = new Font();
 $fontsFromDb = $fontModel->findActive();
 
-// Fallback si la table n'existe pas encore
-$sizes = !empty($sizesFromDb) ? array_column($sizesFromDb, 'value') : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+// Tailles: priorité au produit, sinon options globales, sinon défaut
+if (!empty($product['available_sizes'])) {
+    // Tailles spécifiques au produit (JSON)
+    $sizes = json_decode($product['available_sizes'], true) ?: ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+} elseif (!empty($sizesFromDb)) {
+    // Tailles globales depuis customization_options
+    $sizes = array_column($sizesFromDb, 'value');
+} else {
+    // Fallback
+    $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+}
 
 // Construction du tableau des couleurs avec support des images par variante
 $colors = [];

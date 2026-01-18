@@ -13,6 +13,7 @@ require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/ProductColor.php';
 require_once __DIR__ . '/../app/models/ProductColorImage.php';
 require_once __DIR__ . '/../app/models/Category.php';
+require_once __DIR__ . '/../app/models/CustomizationOption.php';
 
 Auth::requireAdmin();
 
@@ -21,7 +22,12 @@ $orderModel = new Order();
 $productColorModel = new ProductColor();
 $productColorImageModel = new ProductColorImage();
 $categoryModel = new Category();
+$optionModel = new CustomizationOption();
 $pendingOrders = $orderModel->countNew();
+
+// Récupérer les tailles personnalisées de la base de données
+$customSizesFromDb = $optionModel->getSizes();
+$customSizes = !empty($customSizesFromDb) ? array_column($customSizesFromDb, 'value') : [];
 
 // Récupérer toutes les catégories disponibles
 $allCategories = $categoryModel->findAllActive();
@@ -49,7 +55,18 @@ $formData = [
     'active' => $product['active'] ?? 1,
     'image_front_url' => $product['image_front_url'] ?? '',
     'image_back_url' => $product['image_back_url'] ?? '',
+    'available_sizes' => $product['available_sizes'] ?? null,
 ];
+
+// Décoder les tailles disponibles (JSON -> array)
+$productSizes = [];
+if (!empty($formData['available_sizes'])) {
+    $productSizes = json_decode($formData['available_sizes'], true) ?: [];
+}
+// Default sizes if empty
+if (empty($productSizes)) {
+    $productSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+}
 
 // Les catégories sont maintenant récupérées de la base de données ($allCategories)
 
@@ -114,6 +131,10 @@ if (isPost()) {
     if (!verifyCsrf($csrf)) {
         $error = 'Session expirée. Veuillez réessayer.';
     } else {
+        // Récupérer les tailles sélectionnées
+        $selectedSizes = post('available_sizes', []);
+        $availableSizesJson = !empty($selectedSizes) ? json_encode($selectedSizes) : null;
+
         $formData = [
             'name' => trim(post('name', '')),
             'description' => trim(post('description', '')),
@@ -122,6 +143,7 @@ if (isPost()) {
             'active' => post('active') ? 1 : 0,
             'image_front_url' => $formData['image_front_url'],
             'image_back_url' => $formData['image_back_url'],
+            'available_sizes' => $availableSizesJson,
         ];
 
         try {
@@ -972,15 +994,19 @@ if (isPost()) {
                             <button type="button" class="size-preset-btn" data-preset="baby" onclick="selectSizePreset('baby')">
                                 Bébé
                             </button>
+                            <?php if (!empty($customSizes)): ?>
+                            <button type="button" class="size-preset-btn" data-preset="custom" onclick="selectSizePreset('custom')" style="background: linear-gradient(135deg, var(--mint-light), var(--mint-main)); border-color: var(--mint-main);">
+                                ⚙️ Personnalisé
+                            </button>
+                            <?php endif; ?>
                         </div>
                         <div class="size-checkboxes" id="sizeCheckboxes">
-                            <!-- Tailles lettres (défaut) -->
-                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="XS" checked> XS</label>
-                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="S" checked> S</label>
-                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="M" checked> M</label>
-                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="L" checked> L</label>
-                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="XL" checked> XL</label>
-                            <label class="size-checkbox"><input type="checkbox" name="available_sizes[]" value="XXL" checked> XXL</label>
+                            <?php foreach ($productSizes as $size): ?>
+                            <label class="size-checkbox">
+                                <input type="checkbox" name="available_sizes[]" value="<?= h($size) ?>" checked>
+                                <?= h($size) ?>
+                            </label>
+                            <?php endforeach; ?>
                         </div>
                         <p class="sizes-hint">Sélectionnez les tailles disponibles pour ce produit. Vous pouvez aussi définir des tailles par variante.</p>
                     </div>
@@ -1089,7 +1115,8 @@ if (isPost()) {
             letters: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
             numeric: ['36', '38', '40', '42', '44', '46', '48'],
             kids: ['2A', '4A', '6A', '8A', '10A', '12A', '14A'],
-            baby: ['0-3M', '3-6M', '6-12M', '12-18M', '18-24M', '2-3A']
+            baby: ['0-3M', '3-6M', '6-12M', '12-18M', '18-24M', '2-3A'],
+            custom: <?= json_encode($customSizes) ?>
         };
 
         function selectSizePreset(preset) {
