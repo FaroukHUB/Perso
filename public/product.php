@@ -1818,78 +1818,157 @@ $cartCount = Cart::count();
 
                 <?php if ($useNewConfigurator): ?>
                 <!-- =============================================
-                     NOUVEAU CONFIGURATEUR V2 (Konva.js)
+                     NOUVEAU CONFIGURATEUR V2 (Style YourSurprise)
                      ============================================= -->
                 <div class="configurator-v2" id="configuratorV2">
-                    <!-- Panneau Outils (gauche) -->
+                    <!-- Barre Onglets Verticale (far left) -->
+                    <div class="cfg-tabs-bar">
+                        <button type="button" class="cfg-tab active" data-tool="text" title="Texte">
+                            <span class="cfg-tab-icon">🎨</span>
+                            <span class="cfg-tab-label">Design</span>
+                        </button>
+                        <button type="button" class="cfg-tab" data-tool="photo" title="Photo">
+                            <span class="cfg-tab-icon">🖼️</span>
+                            <span class="cfg-tab-label">Photo</span>
+                        </button>
+                        <button type="button" class="cfg-tab" data-tool="text" title="Texte">
+                            <span class="cfg-tab-icon">📝</span>
+                            <span class="cfg-tab-label">Texte</span>
+                        </button>
+                    </div>
+
+                    <!-- Panneau Options (second column) -->
                     <div class="cfg-tools">
-                        <div class="cfg-tools-tabs">
-                            <button type="button" class="cfg-tab active" data-tool="text" title="Texte">
-                                📝
-                                <span class="cfg-tab-label">Texte</span>
-                            </button>
-                            <button type="button" class="cfg-tab" data-tool="photo" title="Photo">
-                                🖼️
-                                <span class="cfg-tab-label">Photo</span>
-                            </button>
-                            <button type="button" class="cfg-tab" data-tool="design" title="Design">
-                                🎨
-                                <span class="cfg-tab-label">Design</span>
-                            </button>
-                            <button type="button" class="cfg-tab" data-tool="layers" title="Calques">
-                                📦
-                                <span class="cfg-tab-label">Calques</span>
-                            </button>
+                        <div class="cfg-tools-header">
+                            <span class="cfg-tools-title">Texte</span>
+                            <div class="cfg-tools-actions">
+                                <button type="button" class="cfg-tools-action-btn" id="cfgDeleteElement">
+                                    🗑️ Supprimer
+                                </button>
+                                <button type="button" class="cfg-tools-action-btn" id="cfgAddText">
+                                    + Extra texte
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Panel: Texte -->
                         <div class="cfg-tool-panel active" data-tool="text">
-                            <div class="cfg-section-label">Votre texte</div>
-                            <input type="text" class="cfg-text-input" id="cfgTextInput"
-                                   placeholder="Tapez votre texte..."
-                                   maxlength="<?= $printZone['max_chars'] ?? 50 ?>"
-                                   value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
+                            <div class="cfg-text-input-wrapper">
+                                <input type="text" class="cfg-text-input" id="cfgTextInput"
+                                       placeholder="Saisissez votre texte ici"
+                                       maxlength="<?= $printZone['max_chars'] ?? 35 ?>"
+                                       value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
+                                <span class="cfg-text-counter"><span id="cfgTextCount">0</span>/<?= $printZone['max_chars'] ?? 35 ?></span>
+                            </div>
 
-                            <div class="cfg-section-label">Police</div>
-                            <div class="cfg-font-selector">
-                                <div class="cfg-font-dropdown" id="cfgFontDropdown">
-                                    <span class="cfg-font-preview" id="cfgFontPreview"
-                                          style="font-family: '<?= h($selectedFont['value']) ?>'">
-                                        <?= h($selectedFont['label']) ?>
-                                    </span>
-                                    <span>▼</span>
+                            <!-- Ecriture (Font) -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Ecriture</div>
+                                <div class="cfg-option-controls">
+                                    <?php
+                                    $defaultFont = $fonts[0] ?? ['value' => 'Inter', 'label' => 'Inter'];
+                                    $secondFont = $fonts[1] ?? ['value' => 'Playfair Display', 'label' => 'Playful'];
+                                    ?>
+                                    <button type="button" class="cfg-font-btn selected" data-font="<?= h($defaultFont['value']) ?>">
+                                        <span class="cfg-font-btn-preview" style="font-family: '<?= h($defaultFont['value']) ?>'">Ag</span>
+                                        <span class="cfg-font-btn-name"><?= h($defaultFont['label']) ?></span>
+                                    </button>
+                                    <button type="button" class="cfg-font-btn" data-font="<?= h($secondFont['value']) ?>">
+                                        <span class="cfg-font-btn-preview" style="font-family: '<?= h($secondFont['value']) ?>'">Ag</span>
+                                        <span class="cfg-font-btn-name"><?= h($secondFont['label']) ?></span>
+                                    </button>
                                 </div>
-                                <div class="cfg-font-list" id="cfgFontList">
-                                    <?php foreach ($fonts as $font): ?>
-                                    <div class="cfg-font-item" data-font="<?= h($font['value']) ?>"
-                                         style="font-family: '<?= h($font['value']) ?>'">
-                                        <?= h($font['label']) ?>
+                            </div>
+
+                            <!-- Couleur -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Couleur</div>
+                                <div class="cfg-option-controls">
+                                    <div class="cfg-color-single" id="cfgColorPicker"
+                                         style="background-color: <?= h($textColors[0]['hex'] ?? '#333333') ?>"
+                                         data-color="<?= h($textColors[0]['value'] ?? 'noir') ?>"
+                                         data-hex="<?= h($textColors[0]['hex'] ?? '#333333') ?>"></div>
+                                    <div class="cfg-color-palette" style="display: none;" id="cfgColorDropdown">
+                                        <?php foreach ($textColors as $index => $tc): ?>
+                                        <div class="cfg-color-swatch <?= $index === 0 ? 'selected' : '' ?>"
+                                             style="background-color: <?= h($tc['hex']) ?>"
+                                             data-color="<?= h($tc['value']) ?>"
+                                             data-hex="<?= h($tc['hex']) ?>"
+                                             title="<?= h($tc['label']) ?>"></div>
+                                        <?php endforeach; ?>
                                     </div>
-                                    <?php endforeach; ?>
                                 </div>
                             </div>
 
-                            <div class="cfg-section-label">Couleur du texte</div>
-                            <div class="cfg-color-palette">
-                                <?php foreach ($textColors as $index => $tc): ?>
-                                <div class="cfg-color-swatch <?= $index === 0 ? 'selected' : '' ?>"
-                                     style="background-color: <?= h($tc['hex']) ?>"
-                                     data-color="<?= h($tc['value']) ?>"
-                                     data-hex="<?= h($tc['hex']) ?>"
-                                     title="<?= h($tc['label']) ?>"></div>
-                                <?php endforeach; ?>
+                            <!-- Style (Bold / Italic) -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Style</div>
+                                <div class="cfg-option-controls">
+                                    <button type="button" class="cfg-style-btn" data-style="bold" title="Gras">B</button>
+                                    <button type="button" class="cfg-style-btn italic" data-style="italic" title="Italique">I</button>
+                                </div>
                             </div>
 
-                            <div class="cfg-section-label">Technique</div>
-                            <div class="cfg-technique-list">
-                                <?php foreach ($techniques as $index => $t): ?>
-                                <div class="cfg-technique-item <?= $index === 0 ? 'selected' : '' ?>"
-                                     data-technique="<?= h($t['value']) ?>"
-                                     data-price="<?= h($t['price']) ?>">
-                                    <span class="cfg-technique-name"><?= h($t['label']) ?></span>
-                                    <span class="cfg-technique-price"><?= number_format($t['price'], 2, ',', '') ?> €</span>
+                            <!-- Aligner -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Aligner</div>
+                                <div class="cfg-option-controls">
+                                    <button type="button" class="cfg-align-btn" data-align="left" title="Gauche">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="15" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/></svg>
+                                    </button>
+                                    <button type="button" class="cfg-align-btn active" data-align="center" title="Centré">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="18" y2="18"/></svg>
+                                    </button>
+                                    <button type="button" class="cfg-align-btn" data-align="right" title="Droite">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/></svg>
+                                    </button>
                                 </div>
-                                <?php endforeach; ?>
+                            </div>
+
+                            <!-- Dimensions -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Dimensions</div>
+                                <div class="cfg-option-controls">
+                                    <button type="button" class="cfg-dim-btn" data-action="decrease" title="Réduire">−</button>
+                                    <button type="button" class="cfg-dim-btn" data-action="increase" title="Agrandir">+</button>
+                                </div>
+                            </div>
+
+                            <!-- Pivoter -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Pivoter</div>
+                                <div class="cfg-option-controls" style="flex-direction: column; align-items: stretch;">
+                                    <input type="range" class="cfg-rotation-slider" id="cfgRotation" min="-180" max="180" value="0">
+                                    <div class="cfg-rotation-marks">
+                                        <span>-180°</span>
+                                        <span>0°</span>
+                                        <span>+180°</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Déplacer -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Déplacer</div>
+                                <div class="cfg-option-controls">
+                                    <button type="button" class="cfg-move-btn" data-dir="left" title="Gauche">←</button>
+                                    <button type="button" class="cfg-move-btn" data-dir="up" title="Haut">↑</button>
+                                    <button type="button" class="cfg-move-btn" data-dir="down" title="Bas">↓</button>
+                                    <button type="button" class="cfg-move-btn" data-dir="right" title="Droite">→</button>
+                                </div>
+                            </div>
+
+                            <!-- Disposer (Layer order) -->
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Disposer</div>
+                                <div class="cfg-option-controls">
+                                    <button type="button" class="cfg-layer-btn" data-action="back" title="Mettre derrière">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1" fill="currentColor" opacity="0.3"/></svg>
+                                    </button>
+                                    <button type="button" class="cfg-layer-btn" data-action="front" title="Mettre devant">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" opacity="0.3"/><rect x="7" y="7" width="10" height="10" rx="1" fill="currentColor"/></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
