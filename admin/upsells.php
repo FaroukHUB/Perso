@@ -83,192 +83,6 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/admin.css">
-</head>
-<body>
-    <div class="admin-wrapper">
-        <?php include __DIR__ . '/includes/sidebar.php'; ?>
-
-        <main class="main-content">
-            <div class="page-header">
-                <div>
-                    <h1 class="page-title">Suggestions <span>Produits</span></h1>
-                    <p class="page-subtitle">Produits suggérés sur la page panier</p>
-                </div>
-            </div>
-
-            <?php if (isset($_GET['saved']) || isset($_GET['added'])): ?>
-                <div class="alert alert-success">
-                    <?= isset($_GET['added']) ? 'Produit ajouté aux suggestions.' : 'Paramètres enregistrés.' ?>
-                </div>
-            <?php endif; ?>
-
-            <div class="upsells-layout">
-                <!-- Paramètres -->
-                <div class="settings-panel">
-                    <div class="panel-header">
-                        <h3>Paramètres</h3>
-                    </div>
-                    <form method="POST" class="panel-body">
-                        <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-
-                        <label class="toggle-row">
-                            <span>Activer les suggestions</span>
-                            <input type="checkbox" name="enabled" value="1"
-                                   <?= ($settings['enabled'] ?? '1') === '1' ? 'checked' : '' ?>>
-                            <span class="toggle"></span>
-                        </label>
-
-                        <div class="form-group">
-                            <label>Titre de la section</label>
-                            <input type="text" name="title" value="<?= h($settings['title'] ?? 'Complétez votre commande') ?>">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Sous-titre (optionnel)</label>
-                            <input type="text" name="subtitle" value="<?= h($settings['subtitle'] ?? '') ?>"
-                                   placeholder="Ex: Ces articles pourraient vous plaire">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Nombre de produits</label>
-                            <select name="max_items">
-                                <?php for ($i = 2; $i <= 6; $i++): ?>
-                                    <option value="<?= $i ?>" <?= ($settings['max_items'] ?? '4') == $i ? 'selected' : '' ?>><?= $i ?> produits</option>
-                                <?php endfor; ?>
-                            </select>
-                        </div>
-
-                        <button type="submit" name="save_settings" class="btn btn-primary btn-full">
-                            Enregistrer
-                        </button>
-                    </form>
-
-                    <!-- Ajouter un produit -->
-                    <div class="panel-header" style="margin-top: 24px; border-top: 1px solid var(--gray-light); padding-top: 24px;">
-                        <h3>Ajouter un produit</h3>
-                    </div>
-                    <form method="POST" class="panel-body">
-                        <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-
-                        <div class="form-group">
-                            <select name="product_id" required>
-                                <option value="">-- Choisir un produit --</option>
-                                <?php foreach ($availableProducts as $product): ?>
-                                    <option value="<?= $product['id'] ?>">
-                                        <?= h($product['name']) ?> - <?= formatPrice($product['price']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <button type="submit" name="add_product" class="btn btn-secondary btn-full">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                            Ajouter aux suggestions
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Liste des produits suggérés -->
-                <div class="upsells-list">
-                    <?php if (empty($upsells)): ?>
-                        <div class="empty-state">
-                            <div class="empty-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                                </svg>
-                            </div>
-                            <h3>Aucun produit suggéré</h3>
-                            <p>Ajoutez des produits pour les suggérer aux clients sur la page panier.</p>
-                        </div>
-                    <?php else: ?>
-                        <div class="upsells-grid">
-                            <?php foreach ($upsells as $upsell): ?>
-                                <div class="upsell-card <?= $upsell['active'] ? '' : 'inactive' ?>">
-                                    <div class="upsell-image">
-                                        <?php if (!empty($upsell['product_image'])): ?>
-                                            <img src="<?= h($upsell['product_image']) ?>" alt="<?= h($upsell['product_name']) ?>">
-                                        <?php else: ?>
-                                            <div class="no-image">
-                                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
-                                                </svg>
-                                            </div>
-                                        <?php endif; ?>
-                                        <?php if (!empty($upsell['badge_text'])): ?>
-                                            <span class="upsell-badge"><?= h($upsell['badge_text']) ?></span>
-                                        <?php endif; ?>
-                                        <?php if (!$upsell['active']): ?>
-                                            <span class="status-badge">Inactif</span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="upsell-info">
-                                        <h4><?= h($upsell['custom_title'] ?: $upsell['product_name']) ?></h4>
-                                        <?php if (!empty($upsell['custom_description'])): ?>
-                                            <p class="description"><?= h($upsell['custom_description']) ?></p>
-                                        <?php endif; ?>
-                                        <div class="price-row">
-                                            <?php if (!empty($upsell['promo_price'])): ?>
-                                                <span class="old-price"><?= formatPrice($upsell['product_price']) ?></span>
-                                                <span class="promo-price"><?= formatPrice($upsell['promo_price']) ?></span>
-                                            <?php else: ?>
-                                                <span class="price"><?= formatPrice($upsell['product_price']) ?></span>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                    <div class="upsell-actions">
-                                        <a href="/admin/upsell-form.php?id=<?= $upsell['id'] ?>" class="btn-icon" title="Modifier">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                            </svg>
-                                        </a>
-                                        <a href="/admin/upsells.php?action=toggle&id=<?= $upsell['id'] ?>&csrf=<?= $csrf ?>"
-                                           class="btn-icon" title="<?= $upsell['active'] ? 'Désactiver' : 'Activer' ?>">
-                                            <?php if ($upsell['active']): ?>
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                                                </svg>
-                                            <?php else: ?>
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-                                                    <line x1="1" y1="1" x2="23" y2="23"/>
-                                                </svg>
-                                            <?php endif; ?>
-                                        </a>
-                                        <a href="/admin/upsells.php?action=delete&id=<?= $upsell['id'] ?>&csrf=<?= $csrf ?>"
-                                           class="btn-icon btn-danger" title="Supprimer"
-                                           onclick="return confirm('Retirer ce produit des suggestions ?')">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                            </svg>
-                                        </a>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <!-- Info box -->
-            <div class="info-box">
-                <div class="info-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M12 16v-4"/>
-                        <path d="M12 8h.01"/>
-                    </svg>
-                </div>
-                <div class="info-content">
-                    <h4>Comment ça marche ?</h4>
-                    <p>Les produits suggérés s'affichent automatiquement sur la page panier. Les clients peuvent les ajouter en un clic. Vous pouvez personnaliser le titre, la description et même proposer un prix promotionnel spécial pour inciter à l'achat.</p>
-                </div>
-            </div>
-        </main>
-    </div>
-
     <style>
         /* ===== Page Header ===== */
         .page-subtitle {
@@ -550,7 +364,7 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
             letter-spacing: 0.5px;
             box-shadow: 0 4px 12px rgba(255, 105, 180, 0.4);
         }
-        .status-badge {
+        .upsell-status-badge {
             position: absolute;
             top: 14px;
             right: 14px;
@@ -697,5 +511,190 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
             }
         }
     </style>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <?php include __DIR__ . '/includes/sidebar.php'; ?>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Suggestions <span>Produits</span></h1>
+                    <p class="page-subtitle">Produits suggérés sur la page panier</p>
+                </div>
+            </div>
+
+            <?php if (isset($_GET['saved']) || isset($_GET['added'])): ?>
+                <div class="alert alert-success">
+                    <?= isset($_GET['added']) ? 'Produit ajouté aux suggestions.' : 'Paramètres enregistrés.' ?>
+                </div>
+            <?php endif; ?>
+
+            <div class="upsells-layout">
+                <!-- Paramètres -->
+                <div class="settings-panel">
+                    <div class="panel-header">
+                        <h3>Paramètres</h3>
+                    </div>
+                    <form method="POST" class="panel-body">
+                        <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+
+                        <label class="toggle-row">
+                            <span>Activer les suggestions</span>
+                            <input type="checkbox" name="enabled" value="1"
+                                   <?= ($settings['enabled'] ?? '1') === '1' ? 'checked' : '' ?>>
+                            <span class="toggle"></span>
+                        </label>
+
+                        <div class="form-group">
+                            <label>Titre de la section</label>
+                            <input type="text" name="title" value="<?= h($settings['title'] ?? 'Complétez votre commande') ?>">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Sous-titre (optionnel)</label>
+                            <input type="text" name="subtitle" value="<?= h($settings['subtitle'] ?? '') ?>"
+                                   placeholder="Ex: Ces articles pourraient vous plaire">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nombre de produits</label>
+                            <select name="max_items">
+                                <?php for ($i = 2; $i <= 6; $i++): ?>
+                                    <option value="<?= $i ?>" <?= ($settings['max_items'] ?? '4') == $i ? 'selected' : '' ?>><?= $i ?> produits</option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+
+                        <button type="submit" name="save_settings" class="btn btn-primary btn-full">
+                            Enregistrer
+                        </button>
+                    </form>
+
+                    <!-- Ajouter un produit -->
+                    <div class="panel-header" style="margin-top: 24px; border-top: 1px solid var(--gray-light); padding-top: 24px;">
+                        <h3>Ajouter un produit</h3>
+                    </div>
+                    <form method="POST" class="panel-body">
+                        <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+
+                        <div class="form-group">
+                            <select name="product_id" required>
+                                <option value="">-- Choisir un produit --</option>
+                                <?php foreach ($availableProducts as $product): ?>
+                                    <option value="<?= $product['id'] ?>">
+                                        <?= h($product['name']) ?> - <?= formatPrice($product['price']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <button type="submit" name="add_product" class="btn btn-secondary btn-full">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Ajouter aux suggestions
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Liste des produits suggérés -->
+                <div class="upsells-list">
+                    <?php if (empty($upsells)): ?>
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                </svg>
+                            </div>
+                            <h3>Aucun produit suggéré</h3>
+                            <p>Ajoutez des produits pour les suggérer aux clients sur la page panier.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="upsells-grid">
+                            <?php foreach ($upsells as $upsell): ?>
+                                <div class="upsell-card <?= $upsell['active'] ? '' : 'inactive' ?>">
+                                    <div class="upsell-image">
+                                        <?php if (!empty($upsell['product_image'])): ?>
+                                            <img src="<?= h($upsell['product_image']) ?>" alt="<?= h($upsell['product_name']) ?>">
+                                        <?php else: ?>
+                                            <div class="no-image">
+                                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
+                                                </svg>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if (!empty($upsell['badge_text'])): ?>
+                                            <span class="upsell-badge"><?= h($upsell['badge_text']) ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!$upsell['active']): ?>
+                                            <span class="status-badge">Inactif</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="upsell-info">
+                                        <h4><?= h($upsell['custom_title'] ?: $upsell['product_name']) ?></h4>
+                                        <?php if (!empty($upsell['custom_description'])): ?>
+                                            <p class="description"><?= h($upsell['custom_description']) ?></p>
+                                        <?php endif; ?>
+                                        <div class="price-row">
+                                            <?php if (!empty($upsell['promo_price'])): ?>
+                                                <span class="old-price"><?= formatPrice($upsell['product_price']) ?></span>
+                                                <span class="promo-price"><?= formatPrice($upsell['promo_price']) ?></span>
+                                            <?php else: ?>
+                                                <span class="price"><?= formatPrice($upsell['product_price']) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <div class="upsell-actions">
+                                        <a href="/admin/upsell-form.php?id=<?= $upsell['id'] ?>" class="btn-icon" title="Modifier">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                            </svg>
+                                        </a>
+                                        <a href="/admin/upsells.php?action=toggle&id=<?= $upsell['id'] ?>&csrf=<?= $csrf ?>"
+                                           class="btn-icon" title="<?= $upsell['active'] ? 'Désactiver' : 'Activer' ?>">
+                                            <?php if ($upsell['active']): ?>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                                                </svg>
+                                            <?php else: ?>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                                    <line x1="1" y1="1" x2="23" y2="23"/>
+                                                </svg>
+                                            <?php endif; ?>
+                                        </a>
+                                        <a href="/admin/upsells.php?action=delete&id=<?= $upsell['id'] ?>&csrf=<?= $csrf ?>"
+                                           class="btn-icon btn-danger" title="Supprimer"
+                                           onclick="return confirm('Retirer ce produit des suggestions ?')">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Info box -->
+            <div class="info-box">
+                <div class="info-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/>
+                        <path d="M12 8h.01"/>
+                    </svg>
+                </div>
+                <div class="info-content">
+                    <h4>Comment ça marche ?</h4>
+                    <p>Les produits suggérés s'affichent automatiquement sur la page panier. Les clients peuvent les ajouter en un clic. Vous pouvez personnaliser le titre, la description et même proposer un prix promotionnel spécial pour inciter à l'achat.</p>
+                </div>
+            </div>
+        </main>
+    </div>
 </body>
 </html>
