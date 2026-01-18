@@ -479,10 +479,23 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 ### E.1 — Refonte UX configurateur (inspiration Canva / Yoursurprise)
 > Objectif : moderniser l'expérience de personnalisation produit.
 
-- [ ] **E.1.1** — Maquettes / wireframes (validation humaine requise)
-- [ ] **E.1.2** — Définir les interactions cibles
-- [ ] **E.1.3** — Implémentation par STEPS validés
+#### STEP DESIGN-0 — Architecture UX/UI (EN COURS)
+- [~] **E.1.0.1** — Layout structurel Desktop (3 colonnes)
+- [~] **E.1.0.2** — Layout structurel Mobile (canvas + bottom bars)
+- [~] **E.1.0.3** — Liste composants UI
+- [~] **E.1.0.4** — Flow utilisateur (arrivée → panier)
+- [~] **E.1.0.5** — Points à valider (UX/Technique/Business)
+- [ ] **E.1.0.6** — Validation humaine des choix
+
+#### STEP DESIGN-1 — Implémentation (À VENIR)
+- [ ] **E.1.1** — Structure HTML/CSS canvas central
+- [ ] **E.1.2** — Panneau outils (texte, image, design)
+- [ ] **E.1.3** — Drag & drop éléments
+- [ ] **E.1.4** — Panneau propriétés dynamique
+- [ ] **E.1.5** — Gestion calques
+- [ ] **E.1.6** — Responsive mobile
+- [ ] **E.1.7** — Admin designs prédéfinis
 
 **Priorité** : 🔴 HAUTE (prochaine phase majeure)
 
-**Statut** : ⏸️ EN ATTENTE — Nécessite GO explicite
+**Statut** : 🟡 STEP DESIGN-0 en cours — En attente validation architecture

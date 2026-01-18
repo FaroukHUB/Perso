@@ -904,7 +904,127 @@ foreach ($sections as $section) {
 - `TASKS.md` — Nouvelle section "CHANTIERS IDENTIFIÉS"
 - `PROGRESSION.md` — Cette entrée
 
-**Prochaine étape** : Design personnalisation produit (en attente GO)
+**Prochaine étape** : Design personnalisation produit (en attente validation)
+
+---
+
+### 2026-01-18 - Session 20 bis (STEP DESIGN-0 - ARCHITECTURE UX/UI)
+
+**Objectif** : Concevoir l'architecture UX/UI du configurateur de personnalisation produit (inspiration Canva/Yoursurprise) — SANS CODER.
+
+#### Layout Desktop (3 colonnes)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  OUTILS (240px)     │   CANVAS (flex)          │   PROPRIÉTÉS (280px)       │
+│  ─────────────────  │   ──────────────────     │   ──────────────────────── │
+│  📝 Texte           │   ┌────────────────┐     │   [Propriétés élément      │
+│  🖼️ Image           │   │   Zone         │     │    sélectionné]            │
+│  🎨 Design          │   │   impression   │     │   • Position X/Y           │
+│  📐 Formes          │   │   (cadre)      │     │   • Taille                 │
+│  ─────────────────  │   │                │     │   • Rotation               │
+│  Mes designs        │   └────────────────┘     │   • Couleur/Opacité        │
+│  (templates)        │   Face/Dos toggle        │   ──────────────────────── │
+│                     │   Zoom +/-  Reset        │   📦 CALQUES               │
+│                     │                          │   • Texte "PAPA"  👁️ 🔒    │
+│                     │                          │   • Logo.png     👁️ 🔒    │
+└─────────────────────────────────────────────────────────────────────────────┘
+│                           BARRE ACTIONS                                     │
+│  ← Annuler  |  Refaire →  |  💾 Sauvegarder  |  🛒 Ajouter au panier       │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Layout Mobile (Canvas + Bottom Bars)
+
+```
+┌─────────────────────────┐
+│     CANVAS (100%)       │
+│   ┌───────────────┐     │
+│   │   Produit +   │     │
+│   │   éléments    │     │
+│   └───────────────┘     │
+│   Face | Dos   🔍+/-    │
+├─────────────────────────┤
+│  📝  🖼️  🎨  📐  📦     │  ← Barre outils (tap = drawer)
+├─────────────────────────┤
+│  🛒 Ajouter au panier   │  ← CTA sticky
+└─────────────────────────┘
+```
+
+#### Composants UI identifiés
+
+| Zone | Composant | Fonction |
+|------|-----------|----------|
+| Outils | Tool Tabs | Texte, Image, Design, Formes |
+| Outils | Font Picker | Sélecteur police avec preview |
+| Outils | Color Picker | Palette + custom + opacité |
+| Outils | Size Slider | Taille texte/élément |
+| Outils | Templates Grid | Designs prédéfinis admin |
+| Canvas | Product Image | Image produit (face/dos) |
+| Canvas | Print Zone | Cadre indicatif zone impression |
+| Canvas | Elements Layer | Éléments draggables (texte, image) |
+| Canvas | Selection Handles | Poignées redimensionnement/rotation |
+| Canvas | View Toggle | Boutons Face/Dos |
+| Canvas | Zoom Controls | +/- et Reset |
+| Propriétés | Position Inputs | X, Y en px ou % |
+| Propriétés | Transform Controls | Taille, rotation, flip |
+| Propriétés | Style Controls | Couleur, opacité, ombre |
+| Propriétés | Layers Panel | Liste calques avec actions |
+| Actions | History Buttons | Undo/Redo |
+| Actions | Save Button | Sauvegarde brouillon |
+| Actions | CTA Button | Ajouter au panier |
+
+#### Flow utilisateur (10 étapes)
+
+1. **Arrivée** → Page produit avec configurateur
+2. **Choix couleur/taille** → Pastilles visuelles
+3. **Ajout texte** → Clic outil texte → texte par défaut ajouté
+4. **Édition texte** → Panneau propriétés : police, taille, couleur
+5. **Positionnement** → Drag & drop dans zone impression
+6. **Ajout design** → Onglet Designs → grille templates admin
+7. **Multi-éléments** → Chaque ajout = nouveau calque
+8. **Technique** → Choix technique (Broderie/Flex/Flock)
+9. **Validation visuelle** → Zoom/lightbox pour vérifier
+10. **Ajout panier** → CTA → popup confirmation → redirect cart
+
+#### Architecture DB proposée (designs admin)
+
+```sql
+-- Templates de design créés par l'admin
+CREATE TABLE design_templates (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    category VARCHAR(50), -- "sport", "fête", "citation", etc.
+    preview_image VARCHAR(255), -- miniature
+    elements_json TEXT, -- [{type, content, position, style}, ...]
+    status ENUM('active','inactive') DEFAULT 'active',
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### Questions à valider (10 points)
+
+**UX/Ergonomie** :
+1. Le panneau outils à gauche ou intégré au canvas (comme Canva mobile) ?
+2. Le panneau propriétés visible en permanence ou en drawer sur sélection ?
+3. Les calques dans un panneau dédié ou intégrés aux propriétés ?
+
+**Technique** :
+4. Canvas en SVG, Canvas HTML5, ou DOM + CSS Transform ?
+5. Sérialisation JSON des créations pour sauvegarde/reprise ?
+6. Limiter le nombre d'éléments maximum par design ?
+
+**Business** :
+7. Permettre l'upload d'images client (logo personnel) ?
+8. Designs admin gratuits ou certains payants (premium) ?
+9. Sauvegarde brouillon avant ajout panier (compte client requis) ?
+10. Export image finale (PNG) pour partage social ?
+
+**Fichiers mis à jour** :
+- `TASKS.md` — Section E.1 DESIGN avec STEP DESIGN-0 et DESIGN-1
+
+**Statut** : 🟡 EN ATTENTE VALIDATION — Répondre aux 10 questions avant STEP DESIGN-1
 
 ---
 
