@@ -1994,6 +1994,35 @@ $cartCount = Cart::count();
                                     </button>
                                 </div>
                             </div>
+
+                            <!-- Technique de personnalisation -->
+                            <div class="cfg-section-divider"></div>
+                            <div class="cfg-option-row">
+                                <div class="cfg-option-label">Technique</div>
+                            </div>
+                            <div class="cfg-technique-list" id="cfgTechniqueList">
+                                <?php foreach ($techniques as $index => $tech): ?>
+                                <label class="cfg-technique-item <?= $index === 0 ? 'selected' : '' ?>"
+                                       data-technique="<?= h($tech['value']) ?>"
+                                       data-price="<?= h($tech['price']) ?>">
+                                    <input type="radio" name="cfg_technique" value="<?= h($tech['value']) ?>"
+                                           <?= $index === 0 ? 'checked' : '' ?>>
+                                    <div class="cfg-technique-info">
+                                        <span class="cfg-technique-name"><?= h($tech['label']) ?></span>
+                                        <span class="cfg-technique-desc"><?= h($tech['description']) ?></span>
+                                    </div>
+                                    <button type="button" class="cfg-technique-preview" data-technique="<?= h($tech['value']) ?>" title="Voir un aperçu réel">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="3"/>
+                                            <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
+                                        </svg>
+                                    </button>
+                                    <span class="cfg-technique-price">
+                                        <?= $tech['price'] > 0 ? '+' . number_format($tech['price'], 2, ',', ' ') . ' €' : 'Inclus' ?>
+                                    </span>
+                                </label>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
 
                         <!-- Panel: Photo -->

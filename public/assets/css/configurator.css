@@ -446,19 +446,54 @@
     background: rgba(255, 105, 180, 0.08);
 }
 
+.cfg-technique-item input[type="radio"] {
+    display: none;
+}
+
+.cfg-technique-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
 .cfg-technique-name {
     font-weight: 600;
     color: var(--black-soft);
+    font-size: 0.95rem;
+}
+
+.cfg-technique-desc {
+    font-size: 0.8rem;
+    color: var(--gray);
 }
 
 .cfg-technique-price {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: var(--mint-dark);
     font-weight: 600;
+    white-space: nowrap;
+    margin-left: 12px;
 }
 
-.cfg-technique-price::before {
-    content: '+';
+.cfg-technique-preview {
+    background: none;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    padding: 6px;
+    cursor: pointer;
+    color: var(--gray);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+}
+
+.cfg-technique-preview:hover {
+    background: var(--pink-light);
+    border-color: var(--pink-main);
+    color: var(--pink-main);
 }
 
 /* ===========================================

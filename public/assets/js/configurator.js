@@ -131,6 +131,12 @@
         cacheDOM();
         console.log('[Configurator] DOM cached, stageContainer:', DOM.stageContainer);
 
+        // Initialize default technique
+        const firstTechnique = DOM.techniqueItems?.[0];
+        if (firstTechnique) {
+            window.__SELECTED_TECHNIQUE = firstTechnique.dataset.technique;
+        }
+
         if (!DOM.stageContainer) {
             console.error('[Configurator] stageContainer NOT FOUND!');
             return;
@@ -152,6 +158,9 @@
 
         // Start autosave
         startAutoSave();
+
+        // Initialize price display
+        updatePrice();
 
         console.log('[Configurator] ✅ Initialized successfully');
     }
@@ -1452,12 +1461,27 @@
 
         // Technique selection
         DOM.techniqueItems?.forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
+                // Don't select if clicking the preview button
+                if (e.target.closest('.cfg-technique-preview')) return;
+
                 DOM.techniqueItems.forEach(i => i.classList.remove('selected'));
                 item.classList.add('selected');
                 // Store selected technique in state
                 window.__SELECTED_TECHNIQUE = item.dataset.technique;
                 updatePrice();
+            });
+        });
+
+        // Technique preview buttons
+        document.querySelectorAll('.cfg-technique-preview').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const technique = btn.dataset.technique;
+                if (window.PersonnalyRealRender) {
+                    window.PersonnalyRealRender.open(technique);
+                }
             });
         });
 
