@@ -2017,316 +2017,292 @@ $cartCount = Cart::count();
                     </div>
                 </div>
 
-                <div class="configurator-layout">
-                    <!-- ========================================
-                         COLONNE GAUCHE: Options visuelles
-                         (texte, police, couleur texte, technique)
-                         ======================================== -->
-                    <div class="config-left">
-                        <!-- Texte personnalisé -->
-                        <div class="config-section mobile-accordion">
-                            <div class="accordion-header">Votre texte</div>
-                            <div class="accordion-content">
-                                <h3 class="config-section-title">Texte personnalisé</h3>
-                                <input type="text"
-                                       name="custom_text"
-                                       id="customText"
-                                       class="custom-text-input"
-                                       placeholder="Ex: Famille Dupont, Team Papa..."
-                                       maxlength="<?= $printZone['max_chars'] ?? 50 ?>"
-                                       value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
-                            </div>
+                <!-- ========================================
+                     CONFIGURATEUR V2 - Design Canva-like
+                     ======================================== -->
+                <div id="product-configurator" class="configurator-v2">
+                    <!-- ONGLETS VERTICAUX -->
+                    <div class="cfg-tabs-bar">
+                        <button type="button" class="cfg-tab active" data-tab="text">
+                            <span class="cfg-tab-icon">✏️</span>
+                            <span class="cfg-tab-label">Texte</span>
+                        </button>
+                        <button type="button" class="cfg-tab" data-tab="product">
+                            <span class="cfg-tab-icon">👕</span>
+                            <span class="cfg-tab-label">Produit</span>
+                        </button>
+                    </div>
+
+                    <!-- PANNEAU D'OPTIONS -->
+                    <div class="cfg-tools">
+                        <div class="cfg-tools-header">
+                            <span class="cfg-tools-title">Personnaliser</span>
                         </div>
 
-                        <!-- Police -->
-                        <div class="config-section mobile-accordion">
-                            <div class="accordion-header">Police</div>
-                            <div class="accordion-content">
-                                <h3 class="config-section-title">Style de police</h3>
-                                <div class="font-selector-wrapper" id="fontSelector">
-                                    <input type="hidden" name="font" id="fontInput" value="<?= h($selectedFont['value']) ?>">
+                        <!-- Panel Texte -->
+                        <div class="cfg-tool-panel active" data-panel="text">
+                            <!-- Texte personnalisé -->
+                            <label class="cfg-section-label">Votre texte</label>
+                            <div class="cfg-text-row">
+                                <div class="cfg-text-input-wrapper">
+                                    <input type="text"
+                                           name="custom_text"
+                                           id="customText"
+                                           class="cfg-text-input"
+                                           placeholder="Ex: Famille Dupont, Team Papa..."
+                                           maxlength="<?= $printZone['max_chars'] ?? 50 ?>"
+                                           value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
+                                    <span class="cfg-text-counter" id="cfgTextCount">0/<?= $printZone['max_chars'] ?? 50 ?></span>
+                                </div>
+                                <button type="button" class="cfg-add-text-btn" id="cfgAddTextMain" title="Ajouter le texte">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                </button>
+                            </div>
 
-                                    <div class="font-selector-trigger" id="fontTrigger">
-                                        <span class="font-selector-preview" id="fontPreview"
+                            <!-- Police - Modern Dropdown -->
+                            <label class="cfg-section-label">Police</label>
+                            <div class="cfg-modern-dropdown" id="fontSelector">
+                                <input type="hidden" name="font" id="fontInput" value="<?= h($selectedFont['value']) ?>">
+                                <div class="cfg-dropdown-trigger" id="fontTrigger">
+                                    <div class="cfg-dropdown-preview">
+                                        <span class="cfg-dropdown-preview-text" id="fontPreview"
                                               style="font-family: '<?= h($selectedFont['value']) ?>', <?= h($selectedFont['category'] ?? 'sans-serif') ?>">
                                             <?= h($selectedFont['label']) ?>
                                         </span>
-                                        <svg class="font-selector-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <polyline points="6 9 12 15 18 9"/>
-                                        </svg>
                                     </div>
-
-                                    <div class="font-selector-dropdown" id="fontDropdown">
-                                        <div class="font-search-box">
-                                            <input type="text" class="font-search-input" id="fontSearch"
-                                                   placeholder="Rechercher une police...">
+                                    <svg class="cfg-dropdown-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                </div>
+                                <div class="cfg-dropdown-list" id="fontDropdown">
+                                    <?php foreach ($fonts as $index => $font): ?>
+                                        <div class="cfg-dropdown-item <?= $index === $selectedFontIndex ? 'selected' : '' ?>"
+                                             data-font="<?= h($font['value']) ?>"
+                                             data-label="<?= h($font['label']) ?>"
+                                             data-category="<?= h($font['category'] ?? 'sans-serif') ?>"
+                                             style="--preview-font: '<?= h($font['value']) ?>'">
+                                            <div class="cfg-dropdown-item-content">
+                                                <span class="cfg-dropdown-item-name" style="font-family: '<?= h($font['value']) ?>', <?= h($font['category'] ?? 'sans-serif') ?>"><?= h($font['label']) ?></span>
+                                                <span class="cfg-dropdown-item-desc"><?= h($font['category'] ?? 'sans-serif') ?></span>
+                                            </div>
                                         </div>
-                                        <div class="font-list" id="fontList">
-                                            <?php foreach ($fonts as $index => $font): ?>
-                                                <div class="font-list-item <?= $index === $selectedFontIndex ? 'selected' : '' ?>"
-                                                     data-font="<?= h($font['value']) ?>"
-                                                     data-label="<?= h($font['label']) ?>"
-                                                     data-category="<?= h($font['category'] ?? 'sans-serif') ?>"
-                                                     style="font-family: '<?= h($font['value']) ?>', <?= h($font['category'] ?? 'sans-serif') ?>">
-                                                    <span class="font-item-name"><?= h($font['label']) ?></span>
-                                                    <span class="font-item-category"><?= h($font['category'] ?? 'sans-serif') ?></span>
-                                                </div>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    </div>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Couleur du texte -->
-                        <div class="config-section mobile-accordion">
-                            <div class="accordion-header">Couleur du texte</div>
-                            <div class="accordion-content">
-                                <h3 class="config-section-title">Couleur du texte</h3>
-                                <div class="text-color-options">
-                                    <?php foreach ($textColors as $index => $tc): ?>
-                                        <label class="text-color-option <?= $index === $selectedTextColorIndex ? 'selected' : '' ?>"
-                                               style="background-color: <?= h($tc['hex']) ?>;"
-                                               data-color="<?= h($tc['hex']) ?>"
-                                               title="<?= h($tc['label']) ?>">
-                                            <input type="radio" name="text_color" value="<?= h($tc['value']) ?>" <?= $index === $selectedTextColorIndex ? 'checked' : '' ?>>
-                                            <span class="color-label"><?= h($tc['label']) ?></span>
-                                        </label>
+                            <!-- Couleur du texte -->
+                            <label class="cfg-section-label">Couleur du texte</label>
+                            <div class="cfg-color-palette">
+                                <?php foreach ($textColors as $index => $tc): ?>
+                                    <div class="cfg-color-swatch <?= $index === $selectedTextColorIndex ? 'selected' : '' ?>"
+                                         style="background-color: <?= h($tc['hex']) ?>;"
+                                         data-color="<?= h($tc['hex']) ?>"
+                                         data-value="<?= h($tc['value']) ?>"
+                                         title="<?= h($tc['label']) ?>">
+                                    </div>
+                                <?php endforeach; ?>
+                                <input type="hidden" name="text_color" id="textColorInput" value="<?= h($textColors[$selectedTextColorIndex]['value'] ?? 'noir') ?>">
+                            </div>
+
+                            <div class="cfg-section-divider"></div>
+
+                            <!-- Technique d'impression -->
+                            <label class="cfg-section-label">Technique d'impression</label>
+                            <div class="cfg-modern-dropdown" id="techniqueSelector">
+                                <input type="hidden" name="technique" id="techniqueInput" value="<?= h($selectedTechnique['value']) ?>">
+                                <div class="cfg-dropdown-trigger" id="techniqueTrigger">
+                                    <div class="cfg-dropdown-preview">
+                                        <span class="cfg-dropdown-preview-text" id="techniquePreviewName"><?= h($selectedTechnique['label']) ?></span>
+                                        <span class="cfg-dropdown-preview-sub" id="techniquePreviewDesc"><?= h($selectedTechnique['description'] ?? '') ?></span>
+                                    </div>
+                                    <span class="cfg-dropdown-item-badge price" id="techniquePreviewPrice">
+                                        <?= ($selectedTechnique['price'] ?? 0) == 0 ? 'Inclus' : '+' . formatPrice($selectedTechnique['price']) ?>
+                                    </span>
+                                    <svg class="cfg-dropdown-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                </div>
+                                <div class="cfg-dropdown-list" id="techniqueDropdown">
+                                    <?php foreach ($techniques as $index => $tech): ?>
+                                        <div class="cfg-dropdown-item <?= $index === $selectedTechniqueIndex ? 'selected' : '' ?>"
+                                             data-technique="<?= h($tech['value']) ?>"
+                                             data-label="<?= h($tech['label']) ?>"
+                                             data-description="<?= h($tech['description'] ?? '') ?>"
+                                             data-price="<?= $tech['price'] ?>">
+                                            <div class="cfg-dropdown-item-content">
+                                                <span class="cfg-dropdown-item-name"><?= h($tech['label']) ?></span>
+                                                <span class="cfg-dropdown-item-desc"><?= h($tech['description'] ?? '') ?></span>
+                                            </div>
+                                            <span class="cfg-dropdown-item-badge price">
+                                                <?= $tech['price'] == 0 ? 'Inclus' : '+' . formatPrice($tech['price']) ?>
+                                            </span>
+                                        </div>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Technique d'impression -->
-                        <div class="config-section mobile-accordion">
-                            <div class="accordion-header">Technique</div>
-                            <div class="accordion-content">
-                                <h3 class="config-section-title">Technique d'impression</h3>
-                                <div class="technique-selector-wrapper" id="techniqueSelector">
-                                    <input type="hidden" name="technique" id="techniqueInput" value="<?= h($selectedTechnique['value']) ?>">
+                        <!-- Panel Produit -->
+                        <div class="cfg-tool-panel" data-panel="product">
+                            <!-- Info produit -->
+                            <div class="cfg-product-header">
+                                <h1 class="cfg-product-title"><?= h($product['name']) ?></h1>
+                                <div class="cfg-product-price" id="productPrice"><?= formatPrice($product['base_price']) ?></div>
+                            </div>
 
-                                    <div class="technique-selector-trigger" id="techniqueTrigger">
-                                        <div class="technique-trigger-content">
-                                            <span class="technique-selector-name" id="techniquePreviewName">
-                                                <?= h($selectedTechnique['label']) ?>
-                                            </span>
-                                            <span class="technique-selector-desc" id="techniquePreviewDesc">
-                                                <?= h($selectedTechnique['description'] ?? '') ?>
-                                            </span>
-                                        </div>
-                                        <div class="technique-trigger-right">
-                                            <span class="technique-selector-price" id="techniquePreviewPrice">
-                                                <?= ($selectedTechnique['price'] ?? 0) == 0 ? 'Inclus' : '+' . formatPrice($selectedTechnique['price']) ?>
-                                            </span>
-                                            <svg class="technique-selector-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <polyline points="6 9 12 15 18 9"/>
-                                            </svg>
-                                        </div>
-                                    </div>
+                            <!-- Taille -->
+                            <label class="cfg-section-label">Taille</label>
+                            <div class="cfg-size-selector" id="sizeOptions">
+                                <?php foreach ($sizes as $size): ?>
+                                    <button type="button" class="cfg-size-btn <?= $size === 'M' ? 'selected' : '' ?>" data-size="<?= h($size) ?>">
+                                        <?= h($size) ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                            <input type="hidden" name="size" id="sizeInput" value="M">
+                            <p class="cfg-size-hint" id="sizeUnavailableHint" style="display: none;">
+                                Certaines tailles ne sont pas disponibles pour cette couleur
+                            </p>
 
-                                    <div class="technique-selector-dropdown" id="techniqueDropdown">
-                                        <div class="technique-search-box">
-                                            <input type="text" class="technique-search-input" id="techniqueSearch"
-                                                   placeholder="Rechercher une technique...">
-                                        </div>
-                                        <div class="technique-list" id="techniqueList">
-                                            <?php foreach ($techniques as $index => $tech): ?>
-                                                <div class="technique-list-item <?= $index === $selectedTechniqueIndex ? 'selected' : '' ?>"
-                                                     data-technique="<?= h($tech['value']) ?>"
-                                                     data-label="<?= h($tech['label']) ?>"
-                                                     data-description="<?= h($tech['description'] ?? '') ?>"
-                                                     data-price="<?= $tech['price'] ?>">
-                                                    <div class="technique-item-info">
-                                                        <span class="technique-item-name"><?= h($tech['label']) ?></span>
-                                                        <?php if (!empty($tech['description'])): ?>
-                                                            <span class="technique-item-desc"><?= h($tech['description']) ?></span>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                    <span class="technique-item-price <?= $tech['price'] == 0 ? 'free' : '' ?>">
-                                                        <?= $tech['price'] == 0 ? 'Inclus' : '+' . formatPrice($tech['price']) ?>
-                                                    </span>
-                                                </div>
-                                            <?php endforeach; ?>
-                                        </div>
+                            <div class="cfg-section-divider"></div>
+
+                            <!-- Couleur produit -->
+                            <label class="cfg-section-label">Couleur du produit</label>
+                            <div class="cfg-product-colors">
+                                <?php
+                                $firstColor = true;
+                                foreach ($colors as $name => $hex):
+                                    $isDefault = ($hasColorVariants && $defaultColorKey)
+                                        ? ($name === $defaultColorKey)
+                                        : $firstColor;
+                                    $imgFront = $colorImages[$name]['front'] ?? '';
+                                    $imgBack = $colorImages[$name]['back'] ?? '';
+                                ?>
+                                    <div class="cfg-product-color-swatch <?= $isDefault ? 'selected' : '' ?>"
+                                         style="background-color: <?= $hex ?>;"
+                                         title="<?= ucfirst($name) ?>"
+                                         data-color="<?= $hex ?>"
+                                         data-color-name="<?= h($name) ?>"
+                                         <?php if ($hasColorVariants && $imgFront): ?>
+                                         data-image-front="<?= h($imgFront) ?>"
+                                         data-image-back="<?= h($imgBack) ?>"
+                                         <?php endif; ?>>
                                     </div>
-                                </div>
+                                <?php
+                                    $firstColor = false;
+                                endforeach;
+                                ?>
+                            </div>
+                            <input type="hidden" name="color" id="colorInput" value="<?= h($defaultColorKey ?: array_key_first($colors)) ?>">
+
+                            <div class="cfg-section-divider"></div>
+
+                            <!-- Quantité -->
+                            <label class="cfg-section-label">Quantité</label>
+                            <div class="cfg-quantity-selector">
+                                <button type="button" class="cfg-qty-btn" id="qtyMinus">−</button>
+                                <input type="number" name="quantity" id="qtyInput" class="cfg-qty-input" value="1" min="1" max="99">
+                                <button type="button" class="cfg-qty-btn" id="qtyPlus">+</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- ========================================
-                         COLONNE CENTRALE: Produit Hero
-                         (Preview live, Face/Dos, Zoom)
-                         ======================================== -->
-                    <div class="config-center">
-                        <div class="product-hero">
-                            <?php if ($hasBackImage): ?>
-                            <!-- Bascule Face/Dos -->
-                            <div class="view-toggle">
-                                <button type="button" class="view-btn active" data-view="front" id="btnFront">
-                                    <span class="view-icon">👕</span> Face
-                                </button>
-                                <button type="button" class="view-btn" data-view="back" id="btnBack">
-                                    <span class="view-icon">🔄</span> Dos
-                                </button>
-                            </div>
-                            <?php endif; ?>
+                    <!-- CANVAS / PREVIEW CENTRAL -->
+                    <div class="cfg-canvas-container">
+                        <?php if ($hasBackImage): ?>
+                        <div class="cfg-view-toggle">
+                            <button type="button" class="cfg-view-btn active" data-view="front" id="btnFront">
+                                <span>👕</span> Face
+                            </button>
+                            <button type="button" class="cfg-view-btn" data-view="back" id="btnBack">
+                                <span>🔄</span> Dos
+                            </button>
+                        </div>
+                        <?php endif; ?>
 
-                            <div class="product-preview" id="productPreview">
-                                <!-- Bouton Zoom -->
-                                <button type="button" class="zoom-btn" id="zoomBtn" title="Agrandir la preview">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"/>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                                        <line x1="11" y1="8" x2="11" y2="14"/>
-                                        <line x1="8" y1="11" x2="14" y2="11"/>
-                                    </svg>
-                                </button>
-
-                                <span class="product-category-badge badge badge-pink">
-                                    <?= h($product['category'] ?? 'Textile') ?>
-                                </span>
-
-                                <!-- Zone d'impression (overlay visuel) -->
-                                <div class="print-zone-overlay" id="printZone"
+                        <div class="cfg-canvas-wrapper">
+                            <div class="cfg-canvas-stage" id="productPreview">
+                                <!-- Zone d'impression -->
+                                <div class="cfg-print-zone" id="printZone"
                                      style="left: <?= $printZone['x'] ?>%; top: <?= $printZone['y'] ?>%; width: <?= $printZone['width'] ?>%; height: <?= $printZone['height'] ?>%;">
-                                    <span class="print-zone-label"><?= h($printZone['label'] ?? 'Zone d\'impression') ?></span>
+                                    <span class="cfg-print-zone-label"><?= h($printZone['label'] ?? 'Zone d\'impression') ?></span>
                                 </div>
 
                                 <?php if (!empty($product['image_front_url'])): ?>
                                     <img src="/public<?= h($product['image_front_url']) ?>"
                                          alt="<?= h($product['name']) ?> - Face"
-                                         class="preview-product-img"
+                                         class="cfg-product-image"
                                          id="previewImage"
                                          data-front="/public<?= h($product['image_front_url']) ?>"
                                          data-back="<?= !empty($product['image_back_url']) ? '/public' . h($product['image_back_url']) : '' ?>">
                                 <?php else: ?>
-                                    <span class="preview-icon">👕</span>
+                                    <span class="cfg-placeholder-icon">👕</span>
                                 <?php endif; ?>
 
-                                <!-- Texte draggable avec style technique -->
-                                <span class="preview-text empty technique-flex" id="previewText">Votre texte</span>
-
-                                <!-- Indicateur technique -->
-                                <span class="technique-indicator" id="techniqueIndicator">FLEX</span>
+                                <!-- Texte draggable -->
+                                <span class="cfg-preview-text empty" id="previewText"
+                                      style="font-family: '<?= h($selectedFont['value']) ?>', sans-serif; color: <?= h($textColors[$selectedTextColorIndex]['hex'] ?? '#1A1A2E') ?>;">
+                                    Votre texte
+                                </span>
                             </div>
-
-                            <!-- Indication drag -->
-                            <div class="drag-hint">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M5 9l-3 3 3 3"/>
-                                    <path d="M9 5l3-3 3 3"/>
-                                    <path d="M15 19l-3 3-3-3"/>
-                                    <path d="M19 9l3 3-3 3"/>
-                                    <line x1="2" y1="12" x2="22" y2="12"/>
-                                    <line x1="12" y1="2" x2="12" y2="22"/>
-                                </svg>
-                                Glissez pour positionner
-                            </div>
-
-                            <!-- Bouton Voir le rendu réel - TOUJOURS VISIBLE -->
-                            <button type="button" class="real-render-btn" id="realRenderBtn">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                                    <polyline points="21,15 16,10 5,21"/>
-                                </svg>
-                                Voir le rendu réel (photos)
-                            </button>
                         </div>
+
+                        <div class="cfg-drag-hint">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 9l-3 3 3 3"/>
+                                <path d="M9 5l3-3 3 3"/>
+                                <path d="M15 19l-3 3-3-3"/>
+                                <path d="M19 9l3 3-3 3"/>
+                                <line x1="2" y1="12" x2="22" y2="12"/>
+                                <line x1="12" y1="2" x2="12" y2="22"/>
+                            </svg>
+                            Glissez pour positionner
+                        </div>
+
+                        <!-- Bouton Voir le rendu réel -->
+                        <button type="button" class="cfg-preview-btn-pink" id="realRenderBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21,15 16,10 5,21"/>
+                            </svg>
+                            Voir le rendu réel
+                        </button>
                     </div>
 
-                    <!-- ========================================
-                         COLONNE DROITE: Options produit
-                         (Nom, Prix, Taille, Couleur, Quantité, CTA)
-                         ======================================== -->
-                    <div class="config-right">
-                        <!-- Info produit -->
-                        <div class="product-info-header">
-                            <h1 class="product-title"><?= h($product['name']) ?></h1>
-                            <div class="product-price" id="productPrice"><?= formatPrice($product['base_price']) ?></div>
+                    <!-- DRAWER PROPRIETES (optionnel) -->
+                    <div class="cfg-drawer">
+                        <div class="cfg-drawer-header">
+                            <span class="cfg-drawer-title">Propriétés</span>
+                            <button type="button" class="cfg-drawer-close">×</button>
                         </div>
-
-                        <!-- Taille -->
-                        <div class="config-section mobile-accordion">
-                            <div class="accordion-header">Taille</div>
-                            <div class="accordion-content">
-                                <h3 class="config-section-title">Taille</h3>
-                                <div class="size-options" id="sizeOptions">
-                                    <?php foreach ($sizes as $size): ?>
-                                        <label class="size-option <?= $size === 'M' ? 'selected' : '' ?>" data-size="<?= h($size) ?>">
-                                            <input type="radio" name="size" value="<?= h($size) ?>" <?= $size === 'M' ? 'checked' : '' ?>>
-                                            <?= h($size) ?>
-                                        </label>
-                                    <?php endforeach; ?>
-                                </div>
-                                <p class="size-unavailable-hint" id="sizeUnavailableHint" style="display: none; color: var(--gray); font-size: 12px; margin-top: 8px;">
-                                    Certaines tailles ne sont pas disponibles pour cette couleur
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Couleur -->
-                        <div class="config-section mobile-accordion">
-                            <div class="accordion-header">Couleur</div>
-                            <div class="accordion-content">
-                                <h3 class="config-section-title">Couleur du produit</h3>
-                                <div class="color-options">
-                                    <?php
-                                    $firstColor = true;
-                                    foreach ($colors as $name => $hex):
-                                        $isDefault = ($hasColorVariants && $defaultColorKey)
-                                            ? ($name === $defaultColorKey)
-                                            : $firstColor;
-                                        $imgFront = $colorImages[$name]['front'] ?? '';
-                                        $imgBack = $colorImages[$name]['back'] ?? '';
-                                    ?>
-                                        <label class="color-option <?= $isDefault ? 'selected' : '' ?>"
-                                               style="background-color: <?= $hex ?>; <?= strtolower($hex) === '#ffffff' ? 'border: 1px solid #ddd;' : '' ?>"
-                                               title="<?= ucfirst($name) ?>"
-                                               data-color="<?= $hex ?>"
-                                               data-color-name="<?= h($name) ?>"
-                                               <?php if ($hasColorVariants && $imgFront): ?>
-                                               data-image-front="<?= h($imgFront) ?>"
-                                               data-image-back="<?= h($imgBack) ?>"
-                                               <?php endif; ?>>
-                                            <input type="radio" name="color" value="<?= $name ?>" <?= $isDefault ? 'checked' : '' ?>>
-                                        </label>
-                                    <?php
-                                        $firstColor = false;
-                                    endforeach;
-                                    ?>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Quantité -->
-                        <div class="config-section mobile-accordion">
-                            <div class="accordion-header">Quantité</div>
-                            <div class="accordion-content">
-                                <h3 class="config-section-title">Quantité</h3>
-                                <div class="quantity-row">
-                                    <div class="quantity-selector">
-                                        <button type="button" class="qty-btn" id="qtyMinus">−</button>
-                                        <input type="number" name="quantity" id="qtyInput" class="qty-input" value="1" min="1" max="99">
-                                        <button type="button" class="qty-btn" id="qtyPlus">+</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Bouton Ajouter (Desktop) -->
-                        <div class="desktop-only-cta">
-                            <button type="submit" class="btn btn-primary add-to-cart-btn">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                                    <line x1="3" y1="6" x2="21" y2="6"/>
-                                    <path d="M16 10a4 4 0 0 1-8 0"/>
-                                </svg>
-                                Ajouter au panier
-                            </button>
+                        <div class="cfg-drawer-content">
+                            <!-- Contenu dynamique -->
                         </div>
                     </div>
+                </div>
+
+                <!-- Hidden inputs pour la position -->
+                <input type="hidden" name="position_x" id="positionX" value="50">
+                <input type="hidden" name="position_y" id="positionY" value="50">
+                <input type="hidden" name="view" id="viewInput" value="front">
+
+                <!-- BARRE D'ACTION FIXE (Desktop) -->
+                <div class="cfg-actions">
+                    <div class="cfg-actions-left">
+                        <span class="cfg-price-total">Total: <strong id="cfgTotalPrice"><?= formatPrice($product['base_price']) ?></strong></span>
+                    </div>
+                    <button type="submit" class="cfg-add-cart-btn">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        Ajouter au panier
+                    </button>
                 </div>
 
                 <!-- Sticky CTA Mobile -->
