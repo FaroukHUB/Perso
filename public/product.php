@@ -2052,17 +2052,6 @@ $cartCount = Cart::count();
                         </div>
                     </div>
 
-                    <!-- Drawer Propriétés (droite, caché par défaut) -->
-                    <div class="cfg-drawer" id="cfgDrawer">
-                        <div class="cfg-drawer-header">
-                            <span class="cfg-drawer-title">TEXTE</span>
-                            <button type="button" class="cfg-drawer-close">×</button>
-                        </div>
-                        <div class="cfg-drawer-content" id="cfgDrawerContent">
-                            <!-- Contenu dynamique selon élément sélectionné -->
-                        </div>
-                    </div>
-
                     <!-- Barre Actions (bottom) -->
                     <div class="cfg-actions">
                         <div class="cfg-actions-left">
