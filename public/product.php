@@ -307,6 +307,15 @@ $cartCount = Cart::count();
     <?= FontLoader::renderHead() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/techniques.css?v=3">
+    <?php
+    // Feature toggle: ?v2=1 pour activer le nouveau configurateur
+    $useNewConfigurator = isset($_GET['v2']) && $_GET['v2'] === '1';
+    if ($useNewConfigurator):
+    ?>
+    <!-- Nouveau Configurateur v2 (Konva.js) -->
+    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=1">
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+    <?php endif; ?>
     <style>
         body { background: var(--gray-light); }
 
@@ -1803,7 +1812,258 @@ $cartCount = Cart::count();
                 <input type="hidden" name="position_y" id="positionY" value="<?= $preset ? h($preset['position']['y'] ?? 50) : 50 ?>">
                 <input type="hidden" name="position_zone_id" id="positionZoneId" value="<?= $printZone['id'] ?>">
                 <input type="hidden" name="view" id="viewInput" value="<?= $preset ? h($preset['view'] ?? 'front') : 'front' ?>">
+                <!-- Hidden inputs pour le nouveau configurateur -->
+                <input type="hidden" name="customization_json" id="customizationJson" value="">
+                <input type="hidden" name="preview_image" id="previewImage" value="">
 
+                <?php if ($useNewConfigurator): ?>
+                <!-- =============================================
+                     NOUVEAU CONFIGURATEUR V2 (Konva.js)
+                     ============================================= -->
+                <div class="configurator-v2" id="configuratorV2">
+                    <!-- Panneau Outils (gauche) -->
+                    <div class="cfg-tools">
+                        <div class="cfg-tools-tabs">
+                            <button type="button" class="cfg-tab active" data-tool="text" title="Texte">
+                                📝
+                                <span class="cfg-tab-label">Texte</span>
+                            </button>
+                            <button type="button" class="cfg-tab" data-tool="photo" title="Photo">
+                                🖼️
+                                <span class="cfg-tab-label">Photo</span>
+                            </button>
+                            <button type="button" class="cfg-tab" data-tool="design" title="Design">
+                                🎨
+                                <span class="cfg-tab-label">Design</span>
+                            </button>
+                            <button type="button" class="cfg-tab" data-tool="layers" title="Calques">
+                                📦
+                                <span class="cfg-tab-label">Calques</span>
+                            </button>
+                        </div>
+
+                        <!-- Panel: Texte -->
+                        <div class="cfg-tool-panel active" data-tool="text">
+                            <div class="cfg-section-label">Votre texte</div>
+                            <input type="text" class="cfg-text-input" id="cfgTextInput"
+                                   placeholder="Tapez votre texte..."
+                                   maxlength="<?= $printZone['max_chars'] ?? 50 ?>"
+                                   value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
+
+                            <div class="cfg-section-label">Police</div>
+                            <div class="cfg-font-selector">
+                                <div class="cfg-font-dropdown" id="cfgFontDropdown">
+                                    <span class="cfg-font-preview" id="cfgFontPreview"
+                                          style="font-family: '<?= h($selectedFont['value']) ?>'">
+                                        <?= h($selectedFont['label']) ?>
+                                    </span>
+                                    <span>▼</span>
+                                </div>
+                                <div class="cfg-font-list" id="cfgFontList">
+                                    <?php foreach ($fonts as $font): ?>
+                                    <div class="cfg-font-item" data-font="<?= h($font['value']) ?>"
+                                         style="font-family: '<?= h($font['value']) ?>'">
+                                        <?= h($font['label']) ?>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+
+                            <div class="cfg-section-label">Couleur du texte</div>
+                            <div class="cfg-color-palette">
+                                <?php foreach ($textColors as $index => $tc): ?>
+                                <div class="cfg-color-swatch <?= $index === 0 ? 'selected' : '' ?>"
+                                     style="background-color: <?= h($tc['hex']) ?>"
+                                     data-color="<?= h($tc['value']) ?>"
+                                     data-hex="<?= h($tc['hex']) ?>"
+                                     title="<?= h($tc['label']) ?>"></div>
+                                <?php endforeach; ?>
+                            </div>
+
+                            <div class="cfg-section-label">Technique</div>
+                            <div class="cfg-technique-list">
+                                <?php foreach ($techniques as $index => $t): ?>
+                                <div class="cfg-technique-item <?= $index === 0 ? 'selected' : '' ?>"
+                                     data-technique="<?= h($t['value']) ?>"
+                                     data-price="<?= h($t['price']) ?>">
+                                    <span class="cfg-technique-name"><?= h($t['label']) ?></span>
+                                    <span class="cfg-technique-price"><?= number_format($t['price'], 2, ',', '') ?> €</span>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Panel: Photo -->
+                        <div class="cfg-tool-panel" data-tool="photo">
+                            <div class="cfg-upload-zone" id="cfgUploadZone">
+                                <div class="cfg-upload-icon">📤</div>
+                                <div class="cfg-upload-text">Importer une image</div>
+                                <div class="cfg-upload-hint">JPG, PNG, WebP • Max 10 Mo</div>
+                                <input type="file" id="cfgImageUpload" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+
+                        <!-- Panel: Design -->
+                        <div class="cfg-tool-panel" data-tool="design">
+                            <div class="cfg-design-category">
+                                <select id="cfgDesignCategory">
+                                    <option value="">Tous les designs</option>
+                                    <option value="sport">Sport</option>
+                                    <option value="fete">Fête</option>
+                                    <option value="famille">Famille</option>
+                                </select>
+                            </div>
+                            <div class="cfg-design-grid" id="cfgDesignGrid">
+                                <div class="cfg-design-item"><span class="placeholder">🌟</span></div>
+                                <div class="cfg-design-item"><span class="placeholder">⚽</span></div>
+                                <div class="cfg-design-item"><span class="placeholder">🎂</span></div>
+                                <div class="cfg-design-item"><span class="placeholder">💖</span></div>
+                                <div class="cfg-design-item"><span class="placeholder">🏆</span></div>
+                                <div class="cfg-design-item"><span class="placeholder">🎄</span></div>
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--gray); margin-top: 16px; text-align: center;">
+                                Designs fournis par PERSONNALY
+                            </p>
+                        </div>
+
+                        <!-- Panel: Calques -->
+                        <div class="cfg-tool-panel" data-tool="layers">
+                            <div class="cfg-layers-header">
+                                <span class="cfg-section-label" style="margin: 0;">Calques</span>
+                                <span class="cfg-layers-count">0/10</span>
+                            </div>
+                            <div class="cfg-layers-list" id="cfgLayersList">
+                                <p style="color: var(--gray); text-align: center; padding: 20px; font-size: 0.9rem;">
+                                    Ajoutez du texte ou une image pour commencer
+                                </p>
+                            </div>
+                            <div class="cfg-add-buttons">
+                                <button type="button" class="cfg-add-btn" id="cfgAddText">+ Texte</button>
+                                <button type="button" class="cfg-add-btn" id="cfgAddPhoto">+ Photo</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas (centre) -->
+                    <div class="cfg-canvas-container">
+                        <div class="cfg-view-toggle">
+                            <button type="button" class="cfg-view-btn active" data-view="front">
+                                👕 Face
+                            </button>
+                            <?php if (!empty($product['image_back_url'])): ?>
+                            <button type="button" class="cfg-view-btn" data-view="back">
+                                👕 Dos
+                            </button>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="cfg-canvas-wrapper">
+                            <div class="cfg-canvas-stage" id="cfgCanvasStage"></div>
+                        </div>
+
+                        <div class="cfg-zoom-controls">
+                            <button type="button" class="cfg-zoom-btn" data-action="zoom-out">−</button>
+                            <span class="cfg-zoom-level">100%</span>
+                            <button type="button" class="cfg-zoom-btn" data-action="zoom-in">+</button>
+                            <button type="button" class="cfg-zoom-btn" data-action="zoom-reset">⟲</button>
+                        </div>
+
+                        <div class="cfg-drag-hint">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3"/>
+                            </svg>
+                            Glissez les éléments pour les positionner
+                        </div>
+                    </div>
+
+                    <!-- Drawer Propriétés (droite, caché par défaut) -->
+                    <div class="cfg-drawer" id="cfgDrawer">
+                        <div class="cfg-drawer-header">
+                            <span class="cfg-drawer-title">TEXTE</span>
+                            <button type="button" class="cfg-drawer-close">×</button>
+                        </div>
+                        <div class="cfg-drawer-content" id="cfgDrawerContent">
+                            <!-- Contenu dynamique selon élément sélectionné -->
+                        </div>
+                    </div>
+
+                    <!-- Barre Actions (bottom) -->
+                    <div class="cfg-actions">
+                        <div class="cfg-actions-left">
+                            <button type="button" class="cfg-action-btn" data-action="undo" disabled title="Annuler">
+                                ← Annuler
+                            </button>
+                            <label class="cfg-snap-toggle">
+                                <input type="checkbox" checked> Snap
+                            </label>
+                        </div>
+                        <div class="cfg-actions-center">
+                            <button type="button" class="cfg-save-btn" id="cfgSaveBtn">
+                                💾 Sauvegarder
+                            </button>
+                        </div>
+                        <div class="cfg-actions-right">
+                            <div class="cfg-price-display">
+                                <div class="cfg-price-label">Total</div>
+                                <div class="cfg-price-value" id="cfgPriceValue">
+                                    <?= number_format($product['base_price'], 2, ',', ' ') ?> €
+                                </div>
+                            </div>
+                            <button type="submit" class="cfg-add-cart-btn">
+                                🛒 Ajouter au panier
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Bottom Toolbar (v2) -->
+                <div class="cfg-mobile-toolbar">
+                    <button type="button" class="cfg-mobile-tab" data-tool="text">
+                        <span class="cfg-mobile-tab-icon">📝</span>
+                        <span class="cfg-mobile-tab-label">Texte</span>
+                    </button>
+                    <button type="button" class="cfg-mobile-tab" data-tool="photo">
+                        <span class="cfg-mobile-tab-icon">🖼️</span>
+                        <span class="cfg-mobile-tab-label">Photo</span>
+                    </button>
+                    <button type="button" class="cfg-mobile-tab" data-tool="design">
+                        <span class="cfg-mobile-tab-icon">🎨</span>
+                        <span class="cfg-mobile-tab-label">Design</span>
+                    </button>
+                    <button type="button" class="cfg-mobile-tab" data-tool="layers">
+                        <span class="cfg-mobile-tab-icon">📦</span>
+                        <span class="cfg-mobile-tab-label">Calques</span>
+                    </button>
+                </div>
+
+                <!-- Mobile CTA Bar (v2) -->
+                <div class="cfg-mobile-cta">
+                    <div class="cfg-mobile-price">
+                        <span class="cfg-mobile-price-label">Total</span>
+                        <span class="cfg-mobile-price-value" id="cfgMobilePriceValue">
+                            <?= number_format($product['base_price'], 2, ',', ' ') ?> €
+                        </span>
+                    </div>
+                    <button type="submit" class="cfg-mobile-cart-btn">
+                        🛒 Ajouter
+                    </button>
+                </div>
+
+                <!-- Mobile Drawer (v2) -->
+                <div class="cfg-mobile-drawer" id="cfgMobileDrawer">
+                    <div class="cfg-mobile-drawer-header">
+                        <span class="cfg-mobile-drawer-title">📝 Texte</span>
+                        <button type="button" class="cfg-mobile-drawer-close">×</button>
+                    </div>
+                    <div class="cfg-mobile-drawer-content" id="cfgMobileDrawerContent">
+                        <!-- Contenu dynamique -->
+                    </div>
+                </div>
+
+                <?php else: ?>
+                <!-- =============================================
+                     ANCIEN CONFIGURATEUR (Legacy)
+                     ============================================= -->
                 <!-- =============================================
                      MOBILE WIZARD MODE (Step-by-Step)
                      Affichage simplifié pour très petits écrans
@@ -2327,6 +2587,7 @@ $cartCount = Cart::count();
                         Ajouter
                     </button>
                 </div>
+                <?php endif; ?>
             </form>
         </div>
     </section>
@@ -2336,6 +2597,8 @@ $cartCount = Cart::count();
     <!-- Modal Rendu Réel par technique -->
     <script src="/public/assets/js/real-render-modal.js"></script>
 
+    <?php if (!$useNewConfigurator): ?>
+    <!-- LEGACY SCRIPTS - Seulement si pas de configurateur v2 -->
     <script>
         // ============================================
         // PERSONNALY - Drag & Drop Preview System
@@ -3251,5 +3514,32 @@ $cartCount = Cart::count();
 
         })();
     </script>
+    <?php endif; ?>
+
+    <?php if ($useNewConfigurator): ?>
+    <!-- ==============================================
+         CONFIGURATEUR V2 - Scripts et Data Injection
+         ============================================== -->
+    <script>
+    // Données produit injectées pour le configurateur v2
+    window.__PRODUCT_DATA = {
+        id: <?= $product['id'] ?>,
+        name: "<?= h($product['name']) ?>",
+        basePrice: <?= $product['base_price'] ?>,
+        imageFront: "<?= h($product['image_front_url']) ?>",
+        imageBack: "<?= h($product['image_back_url'] ?? '') ?>",
+        printZones: {
+            front: <?= json_encode($zones['front'] ?? null) ?>,
+            back: <?= json_encode($zones['back'] ?? null) ?>
+        },
+        maxChars: <?= $printZone['max_chars'] ?? 50 ?>
+    };
+    window.__FONTS_DATA = <?= json_encode($fonts) ?>;
+    window.__TEXT_COLORS_DATA = <?= json_encode($textColors) ?>;
+    window.__TECHNIQUES_DATA = <?= json_encode($techniques) ?>;
+    window.__PRESET_DATA = <?= $preset ? json_encode($preset) : 'null' ?>;
+    </script>
+    <script src="/public/assets/js/configurator.js?v=1"></script>
+    <?php endif; ?>
 </body>
 </html>
