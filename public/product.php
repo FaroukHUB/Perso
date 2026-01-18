@@ -3615,6 +3615,7 @@ $cartCount = Cart::count();
     window.__TECHNIQUES_DATA = <?= json_encode($techniques) ?>;
     window.__PRESET_DATA = <?= $preset ? json_encode($preset) : 'null' ?>;
     </script>
+    <?php echo '<!-- DEBUG: NEW CONFIGURATOR BLOCK EXECUTED -->'; ?>
     <script src="/public/assets/js/configurator.js?v=3"></script>
     <?php endif; ?>
 </body>
