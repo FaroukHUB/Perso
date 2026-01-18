@@ -535,63 +535,61 @@ if (isPost()) {
             font-size: 1rem;
             font-weight: 700;
             color: var(--black-soft);
-            margin: 0 0 20px 0;
+            margin: 0;
         }
-        .size-presets {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .size-preset-btn {
-            padding: 10px 18px;
-            border: 2px solid rgba(0,0,0,0.1);
-            border-radius: var(--radius-full);
-            background: white;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .size-preset-btn:hover {
-            border-color: var(--pink-light);
-            background: rgba(255, 105, 180, 0.05);
-        }
-        .size-preset-btn.active {
-            background: var(--gradient-pink);
-            color: white;
-            border-color: transparent;
-        }
-        .size-checkboxes {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-        .size-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            background: white;
-            border: 2px solid rgba(0,0,0,0.1);
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .size-checkbox:has(input:checked) {
-            border-color: var(--mint-main);
-            background: rgba(61, 255, 192, 0.1);
-        }
-        .size-checkbox input {
-            accent-color: var(--mint-main);
-        }
-        .sizes-hint {
+        .sizes-subtitle {
             font-size: 13px;
             color: var(--gray);
-            margin: 0;
+            margin: 5px 0 20px 0;
+        }
+        .size-group {
+            margin-bottom: 16px;
+        }
+        .size-group:last-child {
+            margin-bottom: 0;
+        }
+        .size-group-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        .size-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .size-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 48px;
+            padding: 10px 16px;
+            background: white;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .size-toggle input {
+            display: none;
+        }
+        .size-toggle:hover {
+            border-color: var(--mint-light);
+            background: rgba(61, 255, 192, 0.05);
+        }
+        .size-toggle.active,
+        .size-toggle:has(input:checked) {
+            background: var(--gradient-mint);
+            border-color: var(--mint-main);
+            color: var(--black);
+            box-shadow: 0 2px 8px rgba(61, 255, 192, 0.3);
         }
 
         /* === Variantes produit (couleur + taille + images) === */
@@ -698,14 +696,24 @@ if (isPost()) {
             border-radius: var(--radius-md);
             cursor: pointer;
         }
-        .variant-size-input {
+        .variant-size-select {
             width: 100px !important;
+            padding: 10px 12px;
             background: rgba(61, 255, 192, 0.1);
-            border-color: var(--mint-light) !important;
+            border: 2px solid var(--mint-light) !important;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300D9A0' stroke-width='3'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
         }
-        .variant-size-input:focus {
+        .variant-size-select:focus {
             border-color: var(--mint-main) !important;
             box-shadow: 0 0 0 3px rgba(61, 255, 192, 0.2);
+            outline: none;
         }
         .variant-actions {
             display: flex;
@@ -905,20 +913,6 @@ if (isPost()) {
                                 </label>
                             </div>
 
-                            <?php if ($isEdit): ?>
-                            <div class="zone-link-section">
-                                <label class="form-label">Zones d'impression</label>
-                                <a href="/admin/product-zones.php?product_id=<?= $id ?>" class="btn btn-outline" style="width: 100%;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                        <line x1="9" y1="3" x2="9" y2="21"/>
-                                        <line x1="15" y1="3" x2="15" y2="21"/>
-                                    </svg>
-                                    Gérer les zones d'impression
-                                </a>
-                                <p class="upload-hint">Définissez les zones Face et Dos où le texte peut être placé</p>
-                            </div>
-                            <?php endif; ?>
                         </div>
 
                         <!-- Colonne droite : Images -->
@@ -977,38 +971,33 @@ if (isPost()) {
                     </div>
 
                     <!-- Tailles disponibles pour ce produit -->
+                    <?php
+                    // Toutes les tailles disponibles
+                    $allSizes = [
+                        'Lettres' => ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'],
+                        'Chiffres' => ['36', '38', '40', '42', '44', '46', '48'],
+                        'Enfants' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans'],
+                    ];
+                    ?>
                     <div class="sizes-section">
                         <div class="sizes-header">
                             <h3>📏 Tailles disponibles</h3>
+                            <p class="sizes-subtitle">Cliquez sur les tailles pour les activer/désactiver</p>
                         </div>
-                        <div class="size-presets">
-                            <button type="button" class="size-preset-btn active" data-preset="letters" onclick="selectSizePreset('letters')">
-                                S - XXL
-                            </button>
-                            <button type="button" class="size-preset-btn" data-preset="numeric" onclick="selectSizePreset('numeric')">
-                                36 - 46
-                            </button>
-                            <button type="button" class="size-preset-btn" data-preset="kids" onclick="selectSizePreset('kids')">
-                                Enfants
-                            </button>
-                            <button type="button" class="size-preset-btn" data-preset="baby" onclick="selectSizePreset('baby')">
-                                Bébé
-                            </button>
-                            <?php if (!empty($customSizes)): ?>
-                            <button type="button" class="size-preset-btn" data-preset="custom" onclick="selectSizePreset('custom')" style="background: linear-gradient(135deg, var(--mint-light), var(--mint-main)); border-color: var(--mint-main);">
-                                ⚙️ Personnalisé
-                            </button>
-                            <?php endif; ?>
+
+                        <?php foreach ($allSizes as $groupName => $sizes): ?>
+                        <div class="size-group">
+                            <span class="size-group-label"><?= $groupName ?></span>
+                            <div class="size-toggles">
+                                <?php foreach ($sizes as $size): ?>
+                                <label class="size-toggle <?= in_array($size, $productSizes) ? 'active' : '' ?>">
+                                    <input type="checkbox" name="available_sizes[]" value="<?= h($size) ?>" <?= in_array($size, $productSizes) ? 'checked' : '' ?>>
+                                    <span><?= h($size) ?></span>
+                                </label>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
-                        <div class="size-checkboxes" id="sizeCheckboxes">
-                            <?php foreach ($productSizes as $size): ?>
-                            <label class="size-checkbox">
-                                <input type="checkbox" name="available_sizes[]" value="<?= h($size) ?>" checked>
-                                <?= h($size) ?>
-                            </label>
-                            <?php endforeach; ?>
-                        </div>
-                        <p class="sizes-hint">Sélectionnez les tailles disponibles pour ce produit. Vous pouvez aussi définir des tailles par variante.</p>
+                        <?php endforeach; ?>
                     </div>
 
                     <!-- Variantes produit (couleur + taille + images) -->
@@ -1034,7 +1023,15 @@ if (isPost()) {
                                         <div class="variant-color-inputs">
                                             <input type="text" name="variant_names[]" value="<?= h($variant['color_name']) ?>" placeholder="Couleur (ex: Noir)">
                                             <input type="color" name="variant_hexes[]" value="<?= h($variant['hex_code']) ?>" onchange="updateVariantPreview(this)">
-                                            <input type="text" name="variant_sizes[]" value="<?= h($variant['size'] ?? '') ?>" placeholder="Taille (ex: M, L, XL)" class="variant-size-input">
+                                            <select name="variant_sizes[]" class="variant-size-select">
+                                                <option value="">Taille</option>
+                                                <?php foreach (['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'] as $s): ?>
+                                                <option value="<?= $s ?>" <?= ($variant['size'] ?? '') === $s ? 'selected' : '' ?>><?= $s ?></option>
+                                                <?php endforeach; ?>
+                                                <?php foreach (['36', '38', '40', '42', '44', '46', '48'] as $s): ?>
+                                                <option value="<?= $s ?>" <?= ($variant['size'] ?? '') === $s ? 'selected' : '' ?>><?= $s ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="variant-actions">
@@ -1110,31 +1107,17 @@ if (isPost()) {
     </div>
 
     <script>
-        // Presets de tailles
-        const sizePresets = {
-            letters: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-            numeric: ['36', '38', '40', '42', '44', '46', '48'],
-            kids: ['2A', '4A', '6A', '8A', '10A', '12A', '14A'],
-            baby: ['0-3M', '3-6M', '6-12M', '12-18M', '18-24M', '2-3A'],
-            custom: <?= json_encode($customSizes) ?>
-        };
-
-        function selectSizePreset(preset) {
-            // Update active button
-            document.querySelectorAll('.size-preset-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.preset === preset);
+        // Toggle des tailles
+        document.querySelectorAll('.size-toggle').forEach(label => {
+            label.addEventListener('click', function(e) {
+                // Toggle la checkbox
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                // Le navigateur gère le toggle automatiquement, on met juste à jour la classe
+                setTimeout(() => {
+                    this.classList.toggle('active', checkbox.checked);
+                }, 0);
             });
-
-            // Generate new checkboxes
-            const container = document.getElementById('sizeCheckboxes');
-            const sizes = sizePresets[preset] || sizePresets.letters;
-
-            container.innerHTML = sizes.map(size => `
-                <label class="size-checkbox">
-                    <input type="checkbox" name="available_sizes[]" value="${size}" checked> ${size}
-                </label>
-            `).join('');
-        }
+        });
 
         // Preview images on select
         function setupImagePreview(inputId) {
@@ -1175,7 +1158,23 @@ if (isPost()) {
                         <div class="variant-color-inputs">
                             <input type="text" name="variant_names[]" placeholder="Couleur (ex: Noir)" required>
                             <input type="color" name="variant_hexes[]" value="#FFFFFF" onchange="updateVariantPreview(this)">
-                            <input type="text" name="variant_sizes[]" placeholder="Taille (ex: M, L, XL)" class="variant-size-input">
+                            <select name="variant_sizes[]" class="variant-size-select">
+                                <option value="">Taille</option>
+                                <option value="XS">XS</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="XXL">XXL</option>
+                                <option value="3XL">3XL</option>
+                                <option value="36">36</option>
+                                <option value="38">38</option>
+                                <option value="40">40</option>
+                                <option value="42">42</option>
+                                <option value="44">44</option>
+                                <option value="46">46</option>
+                                <option value="48">48</option>
+                            </select>
                         </div>
                     </div>
                     <div class="variant-actions">
