@@ -313,7 +313,7 @@ $cartCount = Cart::count();
     if ($useNewConfigurator):
     ?>
     <!-- Nouveau Configurateur v2 (Konva.js) -->
-    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=1">
+    <link rel="stylesheet" href="/assets/css/configurator.css?v=2">
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <?php endif; ?>
     <style>
@@ -3615,7 +3615,7 @@ $cartCount = Cart::count();
     window.__TECHNIQUES_DATA = <?= json_encode($techniques) ?>;
     window.__PRESET_DATA = <?= $preset ? json_encode($preset) : 'null' ?>;
     </script>
-    <script src="/public/assets/js/configurator.js?v=1"></script>
+    <script src="/assets/js/configurator.js?v=2"></script>
     <?php endif; ?>
 </body>
 </html>
