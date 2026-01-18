@@ -99,8 +99,11 @@ function generateCsrf(): string
 /**
  * Formate un prix
  */
-function formatPrice(float $price): string
+function formatPrice(?float $price): string
 {
+    if ($price === null) {
+        return '0,00 €';
+    }
     return number_format($price, 2, ',', ' ') . ' €';
 }
 
