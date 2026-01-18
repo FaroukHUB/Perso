@@ -3593,8 +3593,24 @@ $cartCount = Cart::count();
     <?php endif; ?>
 
     <?php if ($useNewConfigurator): ?>
-    <!-- DEBUG: V2 BLOCK -->
-    <script src="/public/assets/js/configurator.js?v=4"></script>
+    <script>
+    window.__PRODUCT_DATA = <?= json_encode([
+        'id' => $product['id'] ?? 0,
+        'name' => $product['name'] ?? '',
+        'basePrice' => $product['base_price'] ?? 0,
+        'imageFront' => $product['image_front_url'] ?? '',
+        'imageBack' => $product['image_back_url'] ?? '',
+        'printZones' => [
+            'front' => $zones['front'] ?? null,
+            'back' => $zones['back'] ?? null
+        ],
+        'maxChars' => $printZone['max_chars'] ?? 50
+    ]) ?>;
+    window.__FONTS_DATA = <?= json_encode($fonts ?? []) ?>;
+    window.__TEXT_COLORS_DATA = <?= json_encode($textColors ?? []) ?>;
+    window.__TECHNIQUES_DATA = <?= json_encode($techniques ?? []) ?>;
+    </script>
+    <script src="/public/assets/js/configurator.js?v=5"></script>
     <?php endif; ?>
 </body>
 </html>
