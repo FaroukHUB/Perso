@@ -25,9 +25,41 @@ $categoryModel = new Category();
 $optionModel = new CustomizationOption();
 $pendingOrders = $orderModel->countNew();
 
-// Récupérer les tailles personnalisées de la base de données
-$customSizesFromDb = $optionModel->getSizes();
-$customSizes = !empty($customSizesFromDb) ? array_column($customSizesFromDb, 'value') : [];
+// Récupérer les tailles depuis la base de données (groupées)
+$sizesGrouped = $optionModel->getSizesGrouped();
+// Fallback si pas de tailles en BDD
+if (empty($sizesGrouped)) {
+    $sizesGrouped = [
+        'Lettres' => [
+            ['value' => 'XS', 'label' => 'XS'],
+            ['value' => 'S', 'label' => 'S'],
+            ['value' => 'M', 'label' => 'M'],
+            ['value' => 'L', 'label' => 'L'],
+            ['value' => 'XL', 'label' => 'XL'],
+            ['value' => 'XXL', 'label' => 'XXL'],
+            ['value' => '3XL', 'label' => '3XL'],
+        ],
+        'Chiffres' => [
+            ['value' => '36', 'label' => '36'],
+            ['value' => '38', 'label' => '38'],
+            ['value' => '40', 'label' => '40'],
+            ['value' => '42', 'label' => '42'],
+            ['value' => '44', 'label' => '44'],
+            ['value' => '46', 'label' => '46'],
+            ['value' => '48', 'label' => '48'],
+        ],
+        'Enfants' => [
+            ['value' => '2 ans', 'label' => '2 ans'],
+            ['value' => '4 ans', 'label' => '4 ans'],
+            ['value' => '6 ans', 'label' => '6 ans'],
+            ['value' => '8 ans', 'label' => '8 ans'],
+            ['value' => '10 ans', 'label' => '10 ans'],
+            ['value' => '12 ans', 'label' => '12 ans'],
+        ],
+    ];
+}
+// Convertir en JSON pour JavaScript
+$sizesJson = json_encode($sizesGrouped);
 
 // Récupérer toutes les catégories disponibles
 $allCategories = $categoryModel->findAllActive();
@@ -196,11 +228,10 @@ if (isPost()) {
                 $selectedCategories = post('product_categories', []);
                 $categoryModel->setProductCategories($productId, array_map('intval', $selectedCategories));
 
-                // === Traitement des variantes produit (couleur + taille + images) ===
+                // === Traitement des variantes produit (couleur + tailles + images) ===
                 $variantIds = post('variant_ids', []);
                 $variantNames = post('variant_names', []);
                 $variantHexes = post('variant_hexes', []);
-                $variantSizes = post('variant_sizes', []);
                 $variantDefaults = post('variant_default', '');
 
                 // Variantes à supprimer
@@ -215,7 +246,8 @@ if (isPost()) {
                     if (empty($vName)) continue;
 
                     $vHex = trim($variantHexes[$i] ?? '#CCCCCC');
-                    $vSize = trim($variantSizes[$i] ?? '');
+                    // Récupérer les tailles sélectionnées pour cette variante (tableau)
+                    $vSizes = post('variant_sizes_' . $i, []);
                     $vId = isset($variantIds[$i]) ? (int)$variantIds[$i] : 0;
                     $isDefault = ($variantDefaults == $i) ? 1 : 0;
 
@@ -246,7 +278,7 @@ if (isPost()) {
                         $updateData = [
                             'color_name' => $vName,
                             'hex_code' => $vHex,
-                            'size' => $vSize ?: null,
+                            'available_sizes' => !empty($vSizes) ? $vSizes : null,
                             'is_default' => $isDefault,
                             'sort_order' => $i
                         ];
@@ -259,7 +291,7 @@ if (isPost()) {
                             'product_id' => $productId,
                             'color_name' => $vName,
                             'hex_code' => $vHex,
-                            'size' => $vSize ?: null,
+                            'available_sizes' => !empty($vSizes) ? $vSizes : null,
                             'image_front_url' => $frontUrl,
                             'image_back_url' => $backUrl,
                             'is_default' => $isDefault,
@@ -592,8 +624,63 @@ if (isPost()) {
             box-shadow: 0 2px 8px rgba(61, 255, 192, 0.3);
         }
 
-        /* === Variantes produit (couleur + taille + images) === */
+        /* === Variantes produit (couleur + tailles + images) === */
         .variants-section {
+            margin-top: 40px;
+        }
+        .variants-subtitle {
+            font-size: 13px;
+            color: var(--gray);
+            margin: 0;
+        }
+        .variant-sizes {
+            padding: 15px;
+            background: rgba(61, 255, 192, 0.05);
+            border-radius: var(--radius-md);
+            margin: 10px 0;
+        }
+        .variant-sizes-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+        .variant-size-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .size-toggle-mini {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            padding: 6px 12px;
+            background: white;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .size-toggle-mini input {
+            display: none;
+        }
+        .size-toggle-mini:hover {
+            border-color: var(--mint-light);
+            background: rgba(61, 255, 192, 0.1);
+        }
+        .size-toggle-mini.active,
+        .size-toggle-mini:has(input:checked) {
+            background: var(--gradient-mint);
+            border-color: var(--mint-main);
+            color: var(--black);
+            box-shadow: 0 2px 6px rgba(61, 255, 192, 0.3);
+        }
+        .variants-section .variants-section {
             margin-top: 40px;
             padding-top: 30px;
             border-top: 2px solid var(--pink-light);
@@ -695,25 +782,6 @@ if (isPost()) {
             border: none;
             border-radius: var(--radius-md);
             cursor: pointer;
-        }
-        .variant-size-select {
-            width: 100px !important;
-            padding: 10px 12px;
-            background: rgba(61, 255, 192, 0.1);
-            border: 2px solid var(--mint-light) !important;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300D9A0' stroke-width='3'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-        }
-        .variant-size-select:focus {
-            border-color: var(--mint-main) !important;
-            box-shadow: 0 0 0 3px rgba(61, 255, 192, 0.2);
-            outline: none;
         }
         .variant-actions {
             display: flex;
@@ -970,40 +1038,11 @@ if (isPost()) {
                         </div>
                     </div>
 
-                    <!-- Tailles disponibles pour ce produit -->
-                    <?php
-                    // Toutes les tailles disponibles
-                    $allSizes = [
-                        'Lettres' => ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'],
-                        'Chiffres' => ['36', '38', '40', '42', '44', '46', '48'],
-                        'Enfants' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans'],
-                    ];
-                    ?>
-                    <div class="sizes-section">
-                        <div class="sizes-header">
-                            <h3>📏 Tailles disponibles</h3>
-                            <p class="sizes-subtitle">Cliquez sur les tailles pour les activer/désactiver</p>
-                        </div>
-
-                        <?php foreach ($allSizes as $groupName => $sizes): ?>
-                        <div class="size-group">
-                            <span class="size-group-label"><?= $groupName ?></span>
-                            <div class="size-toggles">
-                                <?php foreach ($sizes as $size): ?>
-                                <label class="size-toggle <?= in_array($size, $productSizes) ? 'active' : '' ?>">
-                                    <input type="checkbox" name="available_sizes[]" value="<?= h($size) ?>" <?= in_array($size, $productSizes) ? 'checked' : '' ?>>
-                                    <span><?= h($size) ?></span>
-                                </label>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-
-                    <!-- Variantes produit (couleur + taille + images) -->
+                    <!-- Variantes produit (couleur + tailles + images) -->
                     <div class="variants-section">
                         <div class="variants-header">
-                            <h3>Variantes produit (couleur + taille)</h3>
+                            <h3>🎨 Variantes couleur</h3>
+                            <p class="variants-subtitle">Chaque couleur peut avoir ses propres tailles disponibles</p>
                             <button type="button" class="add-variant-btn" onclick="addVariant()">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                                     <line x1="12" y1="5" x2="12" y2="19"/>
@@ -1014,7 +1053,13 @@ if (isPost()) {
                         </div>
 
                         <div class="variant-list" id="variantList">
-                            <?php foreach ($colorVariants as $i => $variant): ?>
+                            <?php foreach ($colorVariants as $i => $variant):
+                                // Décoder les tailles disponibles de cette variante
+                                $variantSizes = [];
+                                if (!empty($variant['available_sizes'])) {
+                                    $variantSizes = json_decode($variant['available_sizes'], true) ?: [];
+                                }
+                            ?>
                             <div class="variant-item <?= $variant['is_default'] ? 'is-default' : '' ?>" data-index="<?= $i ?>">
                                 <input type="hidden" name="variant_ids[]" value="<?= (int)$variant['id'] ?>">
                                 <div class="variant-header">
@@ -1023,15 +1068,6 @@ if (isPost()) {
                                         <div class="variant-color-inputs">
                                             <input type="text" name="variant_names[]" value="<?= h($variant['color_name']) ?>" placeholder="Couleur (ex: Noir)">
                                             <input type="color" name="variant_hexes[]" value="<?= h($variant['hex_code']) ?>" onchange="updateVariantPreview(this)">
-                                            <select name="variant_sizes[]" class="variant-size-select">
-                                                <option value="">Taille</option>
-                                                <?php foreach (['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'] as $s): ?>
-                                                <option value="<?= $s ?>" <?= ($variant['size'] ?? '') === $s ? 'selected' : '' ?>><?= $s ?></option>
-                                                <?php endforeach; ?>
-                                                <?php foreach (['36', '38', '40', '42', '44', '46', '48'] as $s): ?>
-                                                <option value="<?= $s ?>" <?= ($variant['size'] ?? '') === $s ? 'selected' : '' ?>><?= $s ?></option>
-                                                <?php endforeach; ?>
-                                            </select>
                                         </div>
                                     </div>
                                     <div class="variant-actions">
@@ -1045,6 +1081,19 @@ if (isPost()) {
                                                 <line x1="6" y1="6" x2="18" y2="18"/>
                                             </svg>
                                         </button>
+                                    </div>
+                                </div>
+                                <div class="variant-sizes">
+                                    <span class="variant-sizes-label">📏 Tailles disponibles pour cette couleur :</span>
+                                    <div class="variant-size-toggles">
+                                        <?php foreach ($sizesGrouped as $groupName => $sizes): ?>
+                                            <?php foreach ($sizes as $size): ?>
+                                            <label class="size-toggle-mini <?= in_array($size['value'], $variantSizes) ? 'active' : '' ?>">
+                                                <input type="checkbox" name="variant_sizes_<?= $i ?>[]" value="<?= h($size['value']) ?>" <?= in_array($size['value'], $variantSizes) ? 'checked' : '' ?>>
+                                                <span><?= h($size['label']) ?></span>
+                                            </label>
+                                            <?php endforeach; ?>
+                                        <?php endforeach; ?>
                                     </div>
                                 </div>
                                 <div class="variant-images">
@@ -1139,9 +1188,25 @@ if (isPost()) {
         setupImagePreview('imageFrontInput');
         setupImagePreview('imageBackInput');
 
-        // === Gestion des variantes produit (couleur + taille + images) ===
+        // === Gestion des variantes produit (couleur + tailles + images) ===
         let variantIndex = <?= count($colorVariants) ?>;
         let deletedVariants = [];
+        const sizesGrouped = <?= $sizesJson ?>;
+
+        function generateSizeToggles(idx) {
+            let html = '';
+            for (const [groupName, sizes] of Object.entries(sizesGrouped)) {
+                sizes.forEach(size => {
+                    const value = size.value || size;
+                    const label = size.label || size;
+                    html += `<label class="size-toggle-mini">
+                        <input type="checkbox" name="variant_sizes_${idx}[]" value="${value}" checked>
+                        <span>${label}</span>
+                    </label>`;
+                });
+            }
+            return html;
+        }
 
         function addVariant() {
             const list = document.getElementById('variantList');
@@ -1158,23 +1223,6 @@ if (isPost()) {
                         <div class="variant-color-inputs">
                             <input type="text" name="variant_names[]" placeholder="Couleur (ex: Noir)" required>
                             <input type="color" name="variant_hexes[]" value="#FFFFFF" onchange="updateVariantPreview(this)">
-                            <select name="variant_sizes[]" class="variant-size-select">
-                                <option value="">Taille</option>
-                                <option value="XS">XS</option>
-                                <option value="S">S</option>
-                                <option value="M">M</option>
-                                <option value="L">L</option>
-                                <option value="XL">XL</option>
-                                <option value="XXL">XXL</option>
-                                <option value="3XL">3XL</option>
-                                <option value="36">36</option>
-                                <option value="38">38</option>
-                                <option value="40">40</option>
-                                <option value="42">42</option>
-                                <option value="44">44</option>
-                                <option value="46">46</option>
-                                <option value="48">48</option>
-                            </select>
                         </div>
                     </div>
                     <div class="variant-actions">
@@ -1188,6 +1236,12 @@ if (isPost()) {
                                 <line x1="6" y1="6" x2="18" y2="18"/>
                             </svg>
                         </button>
+                    </div>
+                </div>
+                <div class="variant-sizes">
+                    <span class="variant-sizes-label">📏 Tailles disponibles pour cette couleur :</span>
+                    <div class="variant-size-toggles">
+                        ${generateSizeToggles(idx)}
                     </div>
                 </div>
                 <div class="variant-images">

@@ -85,21 +85,29 @@ class ProductColorImage
     }
 
     /**
-     * Crée une nouvelle variante (couleur + taille)
+     * Crée une nouvelle variante couleur avec ses tailles disponibles
      */
     public function create(array $data): int
     {
         $stmt = $this->db->prepare('
             INSERT INTO product_color_images
-            (product_id, color_name, hex_code, size, image_front_url, image_back_url, is_default, sort_order)
+            (product_id, color_name, hex_code, available_sizes, image_front_url, image_back_url, is_default, sort_order)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ');
+
+        // Convertir le tableau de tailles en JSON
+        $sizesJson = null;
+        if (!empty($data['available_sizes'])) {
+            $sizesJson = is_array($data['available_sizes'])
+                ? json_encode($data['available_sizes'])
+                : $data['available_sizes'];
+        }
 
         $stmt->execute([
             $data['product_id'],
             $data['color_name'],
             $data['hex_code'] ?? '#CCCCCC',
-            $data['size'] ?? null,
+            $sizesJson,
             $data['image_front_url'] ?? null,
             $data['image_back_url'] ?? null,
             $data['is_default'] ?? 0,
@@ -117,12 +125,19 @@ class ProductColorImage
         $fields = [];
         $values = [];
 
-        $allowedFields = ['color_name', 'hex_code', 'size', 'image_front_url', 'image_back_url', 'is_default', 'sort_order'];
+        $allowedFields = ['color_name', 'hex_code', 'available_sizes', 'image_front_url', 'image_back_url', 'is_default', 'sort_order'];
 
         foreach ($allowedFields as $field) {
             if (array_key_exists($field, $data)) {
+                $value = $data[$field];
+
+                // Convertir available_sizes en JSON si c'est un tableau
+                if ($field === 'available_sizes' && is_array($value)) {
+                    $value = json_encode($value);
+                }
+
                 $fields[] = "$field = ?";
-                $values[] = $data[$field];
+                $values[] = $value;
             }
         }
 
@@ -135,6 +150,18 @@ class ProductColorImage
 
         $stmt = $this->db->prepare($sql);
         return $stmt->execute($values);
+    }
+
+    /**
+     * Récupère les tailles disponibles d'une variante couleur (décodées du JSON)
+     */
+    public function getAvailableSizes(int $id): array
+    {
+        $variant = $this->findById($id);
+        if ($variant && !empty($variant['available_sizes'])) {
+            return json_decode($variant['available_sizes'], true) ?: [];
+        }
+        return [];
     }
 
     /**

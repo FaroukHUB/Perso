@@ -114,21 +114,13 @@ if ($hasColorVariants) {
 $fontModel = new Font();
 $fontsFromDb = $fontModel->findActive();
 
-// Tailles: priorité au produit, sinon options globales, sinon défaut
-if (!empty($product['available_sizes'])) {
-    // Tailles spécifiques au produit (JSON)
-    $sizes = json_decode($product['available_sizes'], true) ?: ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-} elseif (!empty($sizesFromDb)) {
-    // Tailles globales depuis customization_options
-    $sizes = array_column($sizesFromDb, 'value');
-} else {
-    // Fallback
-    $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-}
+// Fallback si la table n'existe pas encore
+$sizes = !empty($sizesFromDb) ? array_column($sizesFromDb, 'value') : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
 // Construction du tableau des couleurs avec support des images par variante
 $colors = [];
 $colorImages = []; // Pour stocker les images de chaque variante
+$colorSizes = []; // Pour stocker les tailles disponibles par couleur
 $defaultColorKey = null;
 
 if (!empty($colorsFromDb)) {
@@ -143,6 +135,12 @@ if (!empty($colorsFromDb)) {
                 'front' => !empty($c['image_front_url']) ? '/public' . $c['image_front_url'] : '',
                 'back' => !empty($c['image_back_url']) ? '/public' . $c['image_back_url'] : '',
             ];
+            // Récupérer les tailles disponibles pour cette variante couleur
+            $availableSizes = [];
+            if (!empty($c['available_sizes'])) {
+                $availableSizes = json_decode($c['available_sizes'], true) ?: [];
+            }
+            $colorSizes[$colorName] = $availableSizes;
             // Marquer le défaut
             if (!empty($c['is_default'])) {
                 $defaultColorKey = $colorName;
@@ -153,29 +151,8 @@ if (!empty($colorsFromDb)) {
     $colors = ['blanc' => '#FFFFFF', 'noir' => '#1A1A2E', 'rose' => '#FF69B4', 'menthe' => '#3DFFC0', 'bleu' => '#4A90D9', 'gris' => '#6B7280'];
 }
 
-// Ajouter le produit original comme première option (si images existent)
-if ($hasColorVariants && !empty($product['image_front_url'])) {
-    // Détecter si l'original est déjà dans les couleurs
-    $originalAlreadyIncluded = false;
-    foreach ($colorImages as $colorName => $imgs) {
-        if ($imgs['front'] === '/public' . $product['image_front_url']) {
-            $originalAlreadyIncluded = true;
-            $defaultColorKey = $colorName;
-            break;
-        }
-    }
-
-    // Si l'original n'est pas inclus, l'ajouter en premier
-    if (!$originalAlreadyIncluded) {
-        $originalColors = ['Original' => '#FFFFFF'] + $colors;
-        $colors = $originalColors;
-        $colorImages = ['Original' => [
-            'front' => '/public' . $product['image_front_url'],
-            'back' => !empty($product['image_back_url']) ? '/public' . $product['image_back_url'] : '',
-        ]] + $colorImages;
-        $defaultColorKey = 'Original';
-    }
-}
+// JSON pour JavaScript - tailles par couleur
+$colorSizesJson = json_encode($colorSizes);
 
 // Si pas de couleur par défaut explicite, prendre la première
 if ($hasColorVariants && !$defaultColorKey && !empty($colors)) {
@@ -340,15 +317,6 @@ $cartCount = Cart::count();
     <?= FontLoader::renderHead() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/techniques.css?v=3">
-    <?php
-    // V2 est maintenant par défaut. Utiliser ?v1=1 pour revenir à l'ancien configurateur
-    $useNewConfigurator = !(isset($_GET['v1']) && $_GET['v1'] === '1');
-    if ($useNewConfigurator):
-    ?>
-    <!-- Nouveau Configurateur v2 (Konva.js) -->
-    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=7">
-    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
-    <?php endif; ?>
     <style>
         body { background: var(--gray-light); }
 
@@ -1845,413 +1813,7 @@ $cartCount = Cart::count();
                 <input type="hidden" name="position_y" id="positionY" value="<?= $preset ? h($preset['position']['y'] ?? 50) : 50 ?>">
                 <input type="hidden" name="position_zone_id" id="positionZoneId" value="<?= $printZone['id'] ?>">
                 <input type="hidden" name="view" id="viewInput" value="<?= $preset ? h($preset['view'] ?? 'front') : 'front' ?>">
-                <!-- Hidden inputs pour le nouveau configurateur -->
-                <input type="hidden" name="customization_json" id="customizationJson" value="">
-                <input type="hidden" name="preview_image" id="previewImage" value="">
 
-                <?php if ($useNewConfigurator): ?>
-                <!-- =============================================
-                     NOUVEAU CONFIGURATEUR V2 (Style YourSurprise)
-                     ============================================= -->
-                <div class="configurator-v2" id="configuratorV2">
-                    <!-- Barre Onglets Verticale (far left) -->
-                    <div class="cfg-tabs-bar">
-                        <button type="button" class="cfg-tab active" data-tool="design" title="Design">
-                            <span class="cfg-tab-icon">🎨</span>
-                            <span class="cfg-tab-label">Design</span>
-                        </button>
-                        <button type="button" class="cfg-tab" data-tool="photo" title="Photo">
-                            <span class="cfg-tab-icon">🖼️</span>
-                            <span class="cfg-tab-label">Photo</span>
-                        </button>
-                        <button type="button" class="cfg-tab" data-tool="text" title="Texte">
-                            <span class="cfg-tab-icon">📝</span>
-                            <span class="cfg-tab-label">Texte</span>
-                        </button>
-                    </div>
-
-                    <!-- Panneau Options (second column) -->
-                    <div class="cfg-tools">
-                        <div class="cfg-tools-header">
-                            <span class="cfg-tools-title">Texte</span>
-                            <div class="cfg-tools-actions">
-                                <button type="button" class="cfg-tools-action-btn" id="cfgDeleteElement">
-                                    🗑️ Supprimer
-                                </button>
-                                <button type="button" class="cfg-tools-action-btn" id="cfgAddText">
-                                    + Extra texte
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Panel: Texte -->
-                        <div class="cfg-tool-panel" data-tool="text">
-                            <div class="cfg-text-row">
-                                <div class="cfg-text-input-wrapper">
-                                    <input type="text" class="cfg-text-input" id="cfgTextInput"
-                                           placeholder="Saisissez votre texte ici"
-                                           maxlength="<?= $printZone['max_chars'] ?? 35 ?>"
-                                           value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
-                                    <span class="cfg-text-counter"><span id="cfgTextCount">0</span>/<?= $printZone['max_chars'] ?? 35 ?></span>
-                                </div>
-                                <button type="button" class="cfg-add-text-btn" id="cfgAddTextMain">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-                                </button>
-                            </div>
-
-                            <!-- Ecriture (Modern Font dropdown) -->
-                            <label class="cfg-section-label">Police d'écriture</label>
-                            <div class="cfg-modern-dropdown" id="cfgFontDropdown">
-                                <input type="hidden" id="cfgFontSelect" value="<?= h($fonts[0]['value'] ?? 'Poppins') ?>">
-                                <div class="cfg-dropdown-trigger" id="cfgFontTrigger">
-                                    <div class="cfg-dropdown-preview">
-                                        <span class="cfg-dropdown-preview-text" id="cfgFontPreview" style="font-family: '<?= h($fonts[0]['value'] ?? 'Poppins') ?>'"><?= h($fonts[0]['label'] ?? 'Poppins') ?></span>
-                                    </div>
-                                    <svg class="cfg-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="6 9 12 15 18 9"/>
-                                    </svg>
-                                </div>
-                                <div class="cfg-dropdown-list" id="cfgFontList">
-                                    <?php foreach ($fonts as $index => $font): ?>
-                                    <div class="cfg-dropdown-item <?= $index === 0 ? 'selected' : '' ?>"
-                                         data-font="<?= h($font['value']) ?>"
-                                         data-label="<?= h($font['label']) ?>"
-                                         style="--preview-font: '<?= h($font['value']) ?>'">
-                                        <div class="cfg-dropdown-item-content">
-                                            <span class="cfg-dropdown-item-name"><?= h($font['label']) ?></span>
-                                            <span class="cfg-dropdown-item-desc"><?= h($font['category'] ?? 'Sans-serif') ?></span>
-                                        </div>
-                                    </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-
-                            <!-- Couleur -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Couleur</div>
-                                <div class="cfg-option-controls">
-                                    <div class="cfg-color-single" id="cfgColorPicker"
-                                         style="background-color: <?= h($textColors[0]['hex'] ?? '#333333') ?>"
-                                         data-color="<?= h($textColors[0]['value'] ?? 'noir') ?>"
-                                         data-hex="<?= h($textColors[0]['hex'] ?? '#333333') ?>"></div>
-                                    <div class="cfg-color-palette" style="display: none;" id="cfgColorDropdown">
-                                        <?php foreach ($textColors as $index => $tc): ?>
-                                        <div class="cfg-color-swatch <?= $index === 0 ? 'selected' : '' ?>"
-                                             style="background-color: <?= h($tc['hex']) ?>"
-                                             data-color="<?= h($tc['value']) ?>"
-                                             data-hex="<?= h($tc['hex']) ?>"
-                                             title="<?= h($tc['label']) ?>"></div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Style (Bold / Italic) -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Style</div>
-                                <div class="cfg-option-controls">
-                                    <button type="button" class="cfg-style-btn" data-style="bold" title="Gras">B</button>
-                                    <button type="button" class="cfg-style-btn italic" data-style="italic" title="Italique">I</button>
-                                </div>
-                            </div>
-
-                            <!-- Aligner -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Aligner</div>
-                                <div class="cfg-option-controls">
-                                    <button type="button" class="cfg-align-btn" data-align="left" title="Gauche">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="15" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/></svg>
-                                    </button>
-                                    <button type="button" class="cfg-align-btn active" data-align="center" title="Centré">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="18" y2="18"/></svg>
-                                    </button>
-                                    <button type="button" class="cfg-align-btn" data-align="right" title="Droite">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/></svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Dimensions -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Dimensions</div>
-                                <div class="cfg-option-controls">
-                                    <button type="button" class="cfg-dim-btn" data-action="decrease" title="Réduire">−</button>
-                                    <button type="button" class="cfg-dim-btn" data-action="increase" title="Agrandir">+</button>
-                                </div>
-                            </div>
-
-                            <!-- Pivoter -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Pivoter</div>
-                                <div class="cfg-option-controls" style="flex-direction: column; align-items: stretch;">
-                                    <input type="range" class="cfg-rotation-slider" id="cfgRotation" min="-180" max="180" value="0">
-                                    <div class="cfg-rotation-marks">
-                                        <span>-180°</span>
-                                        <span>0°</span>
-                                        <span>+180°</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Déplacer -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Déplacer</div>
-                                <div class="cfg-option-controls">
-                                    <button type="button" class="cfg-move-btn" data-dir="left" title="Gauche">←</button>
-                                    <button type="button" class="cfg-move-btn" data-dir="up" title="Haut">↑</button>
-                                    <button type="button" class="cfg-move-btn" data-dir="down" title="Bas">↓</button>
-                                    <button type="button" class="cfg-move-btn" data-dir="right" title="Droite">→</button>
-                                </div>
-                            </div>
-
-                            <!-- Disposer (Layer order) -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Disposer</div>
-                                <div class="cfg-option-controls">
-                                    <button type="button" class="cfg-layer-btn" data-action="back" title="Mettre derrière">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1" fill="currentColor" opacity="0.3"/></svg>
-                                    </button>
-                                    <button type="button" class="cfg-layer-btn" data-action="front" title="Mettre devant">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" opacity="0.3"/><rect x="7" y="7" width="10" height="10" rx="1" fill="currentColor"/></svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Technique de personnalisation -->
-                            <div class="cfg-section-divider"></div>
-
-                            <!-- Sélecteur de techniques (Modern dropdown) -->
-                            <label class="cfg-section-label">Technique de marquage</label>
-                            <div class="cfg-modern-dropdown" id="cfgTechniqueDropdown">
-                                <input type="hidden" id="cfgTechniqueSelect" value="<?= h($techniques[0]['value'] ?? 'flex') ?>">
-                                <div class="cfg-dropdown-trigger" id="cfgTechniqueTrigger">
-                                    <div class="cfg-dropdown-preview">
-                                        <span class="cfg-dropdown-preview-text" id="cfgTechniquePreview"><?= h($techniques[0]['label'] ?? 'Flex') ?></span>
-                                        <span class="cfg-dropdown-preview-sub" id="cfgTechniquePriceBadge"><?= ($techniques[0]['price'] ?? 0) > 0 ? '+' . number_format($techniques[0]['price'], 2, ',', ' ') . ' €' : 'Inclus' ?></span>
-                                    </div>
-                                    <svg class="cfg-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="6 9 12 15 18 9"/>
-                                    </svg>
-                                </div>
-                                <div class="cfg-dropdown-list" id="cfgTechniqueList">
-                                    <?php foreach ($techniques as $index => $tech): ?>
-                                    <div class="cfg-dropdown-item <?= $index === 0 ? 'selected' : '' ?>"
-                                         data-technique="<?= h($tech['value']) ?>"
-                                         data-label="<?= h($tech['label']) ?>"
-                                         data-price="<?= h($tech['price']) ?>"
-                                         data-desc="<?= h($tech['description']) ?>">
-                                        <div class="cfg-dropdown-item-content">
-                                            <span class="cfg-dropdown-item-name"><?= h($tech['label']) ?></span>
-                                            <span class="cfg-dropdown-item-desc"><?= h(mb_substr($tech['description'] ?? '', 0, 50)) ?><?= mb_strlen($tech['description'] ?? '') > 50 ? '...' : '' ?></span>
-                                        </div>
-                                        <span class="cfg-dropdown-item-badge <?= $tech['price'] > 0 ? 'price' : '' ?>">
-                                            <?= $tech['price'] > 0 ? '+' . number_format($tech['price'], 2, ',', ' ') . ' €' : 'Inclus' ?>
-                                        </span>
-                                    </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-
-                            <!-- Description de la technique sélectionnée -->
-                            <div class="cfg-technique-details" id="cfgTechniqueDetails">
-                                <p class="technique-description"><?= h($techniques[0]['description'] ?? '') ?></p>
-                            </div>
-                        </div>
-
-                        <!-- Panel: Photo -->
-                        <div class="cfg-tool-panel" data-tool="photo">
-                            <div class="cfg-upload-zone" id="cfgUploadZone">
-                                <div class="cfg-upload-icon">📤</div>
-                                <div class="cfg-upload-text">Importer une image</div>
-                                <div class="cfg-upload-hint">JPG, PNG, WebP • Max 10 Mo</div>
-                                <input type="file" id="cfgImageUpload" accept="image/*" style="display: none;">
-                            </div>
-                        </div>
-
-                        <!-- Panel: Design -->
-                        <div class="cfg-tool-panel active" data-tool="design">
-                            <!-- Couleur du produit -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Couleur du produit</div>
-                                <div class="cfg-option-controls">
-                                    <div class="cfg-product-colors" id="cfgProductColors">
-                                        <?php foreach ($colors as $colorName => $hexCode): ?>
-                                        <div class="cfg-product-color-swatch <?= $colorName === $defaultColorKey ? 'selected' : '' ?>"
-                                             style="background-color: <?= h($hexCode) ?>"
-                                             data-color="<?= h($colorName) ?>"
-                                             data-hex="<?= h($hexCode) ?>"
-                                             <?php if ($hasColorVariants && isset($colorImages[$colorName])): ?>
-                                             data-front="<?= h($colorImages[$colorName]['front'] ?? '') ?>"
-                                             data-back="<?= h($colorImages[$colorName]['back'] ?? '') ?>"
-                                             <?php endif; ?>
-                                             title="<?= h(ucfirst($colorName)) ?>"></div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Taille du produit -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Taille</div>
-                                <div class="cfg-option-controls">
-                                    <div class="cfg-size-selector" id="cfgSizeSelector">
-                                        <?php foreach ($sizes as $size): ?>
-                                        <button type="button"
-                                                class="cfg-size-btn <?= $size === 'M' ? 'selected' : '' ?>"
-                                                data-size="<?= h($size) ?>">
-                                            <?= h($size) ?>
-                                        </button>
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="cfg-section-divider"></div>
-
-                            <!-- Designs pré-faits (Coming Soon) -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Designs</div>
-                            </div>
-                            <div class="cfg-designs-coming-soon">
-                                <div class="cfg-coming-soon-icon">🎨</div>
-                                <div class="cfg-coming-soon-title">Bientot disponible</div>
-                                <div class="cfg-coming-soon-text">
-                                    Des designs exclusifs PERSONNALY arrivent prochainement !
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Panel: Calques -->
-                        <div class="cfg-tool-panel" data-tool="layers">
-                            <div class="cfg-layers-header">
-                                <span class="cfg-section-label" style="margin: 0;">Calques</span>
-                                <span class="cfg-layers-count">0/10</span>
-                            </div>
-                            <div class="cfg-layers-list" id="cfgLayersList">
-                                <p style="color: var(--gray); text-align: center; padding: 20px; font-size: 0.9rem;">
-                                    Ajoutez du texte ou une image pour commencer
-                                </p>
-                            </div>
-                            <div class="cfg-add-buttons">
-                                <button type="button" class="cfg-add-btn" id="cfgAddTextLayer">+ Texte</button>
-                                <button type="button" class="cfg-add-btn" id="cfgAddPhotoLayer">+ Photo</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Canvas (centre) -->
-                    <div class="cfg-canvas-container">
-                        <div class="cfg-view-toggle">
-                            <button type="button" class="cfg-view-btn active" data-view="front">
-                                👕 Face
-                            </button>
-                            <?php if (!empty($product['image_back_url'])): ?>
-                            <button type="button" class="cfg-view-btn" data-view="back">
-                                👕 Dos
-                            </button>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="cfg-canvas-wrapper">
-                            <div class="cfg-canvas-stage" id="cfgCanvasStage"></div>
-                        </div>
-
-                        <!-- Bouton aperçu technique en rose sous l'image -->
-                        <button type="button" class="cfg-preview-btn-pink" id="cfgTechniquePreviewBtn" data-technique="<?= h($techniques[0]['value'] ?? 'flex') ?>">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="3"/>
-                                <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
-                            </svg>
-                            Voir le rendu réel
-                        </button>
-
-                        <div class="cfg-zoom-controls">
-                            <button type="button" class="cfg-zoom-btn" data-action="zoom-out">−</button>
-                            <span class="cfg-zoom-level">100%</span>
-                            <button type="button" class="cfg-zoom-btn" data-action="zoom-in">+</button>
-                            <button type="button" class="cfg-zoom-btn" data-action="zoom-reset">⟲</button>
-                        </div>
-
-                        <div class="cfg-drag-hint">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3"/>
-                            </svg>
-                            Glissez les éléments pour les positionner
-                        </div>
-                    </div>
-
-                    <!-- Barre Actions (bottom) -->
-                    <div class="cfg-actions">
-                        <div class="cfg-actions-left">
-                            <button type="button" class="cfg-save-btn" id="cfgSaveBtn">
-                                💾 Sauvegarder
-                            </button>
-                            <button type="button" class="cfg-share-btn" id="cfgShareBtn">
-                                🔗 Partager
-                            </button>
-                        </div>
-                        <div class="cfg-actions-right">
-                            <div class="cfg-price-display">
-                                <div class="cfg-price-label">Total</div>
-                                <div class="cfg-price-value" id="cfgPriceValue">
-                                    <?= number_format($product['base_price'], 2, ',', ' ') ?> €
-                                </div>
-                            </div>
-                            <button type="submit" class="cfg-add-cart-btn">
-                                🛒 Ajouter au panier
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mobile Bottom Toolbar (v2) -->
-                <div class="cfg-mobile-toolbar">
-                    <button type="button" class="cfg-mobile-tab" data-tool="text">
-                        <span class="cfg-mobile-tab-icon">📝</span>
-                        <span class="cfg-mobile-tab-label">Texte</span>
-                    </button>
-                    <button type="button" class="cfg-mobile-tab" data-tool="photo">
-                        <span class="cfg-mobile-tab-icon">🖼️</span>
-                        <span class="cfg-mobile-tab-label">Photo</span>
-                    </button>
-                    <button type="button" class="cfg-mobile-tab" data-tool="design">
-                        <span class="cfg-mobile-tab-icon">🎨</span>
-                        <span class="cfg-mobile-tab-label">Design</span>
-                    </button>
-                    <button type="button" class="cfg-mobile-tab" data-tool="layers">
-                        <span class="cfg-mobile-tab-icon">📦</span>
-                        <span class="cfg-mobile-tab-label">Calques</span>
-                    </button>
-                </div>
-
-                <!-- Mobile CTA Bar (v2) -->
-                <div class="cfg-mobile-cta">
-                    <div class="cfg-mobile-price">
-                        <span class="cfg-mobile-price-label">Total</span>
-                        <span class="cfg-mobile-price-value" id="cfgMobilePriceValue">
-                            <?= number_format($product['base_price'], 2, ',', ' ') ?> €
-                        </span>
-                    </div>
-                    <button type="submit" class="cfg-mobile-cart-btn">
-                        🛒 Ajouter
-                    </button>
-                </div>
-
-                <!-- Mobile Drawer (v2) -->
-                <div class="cfg-mobile-drawer" id="cfgMobileDrawer">
-                    <div class="cfg-mobile-drawer-header">
-                        <span class="cfg-mobile-drawer-title">📝 Texte</span>
-                        <button type="button" class="cfg-mobile-drawer-close">×</button>
-                    </div>
-                    <div class="cfg-mobile-drawer-content" id="cfgMobileDrawerContent">
-                        <!-- Contenu dynamique -->
-                    </div>
-                </div>
-
-                <?php else: ?>
-                <!-- =============================================
-                     ANCIEN CONFIGURATEUR (Legacy)
-                     ============================================= -->
                 <!-- =============================================
                      MOBILE WIZARD MODE (Step-by-Step)
                      Affichage simplifié pour très petits écrans
@@ -2689,14 +2251,17 @@ $cartCount = Cart::count();
                             <div class="accordion-header">Taille</div>
                             <div class="accordion-content">
                                 <h3 class="config-section-title">Taille</h3>
-                                <div class="size-options">
+                                <div class="size-options" id="sizeOptions">
                                     <?php foreach ($sizes as $size): ?>
-                                        <label class="size-option <?= $size === 'M' ? 'selected' : '' ?>">
-                                            <input type="radio" name="size" value="<?= $size ?>" <?= $size === 'M' ? 'checked' : '' ?>>
-                                            <?= $size ?>
+                                        <label class="size-option <?= $size === 'M' ? 'selected' : '' ?>" data-size="<?= h($size) ?>">
+                                            <input type="radio" name="size" value="<?= h($size) ?>" <?= $size === 'M' ? 'checked' : '' ?>>
+                                            <?= h($size) ?>
                                         </label>
                                     <?php endforeach; ?>
                                 </div>
+                                <p class="size-unavailable-hint" id="sizeUnavailableHint" style="display: none; color: var(--gray); font-size: 12px; margin-top: 8px;">
+                                    Certaines tailles ne sont pas disponibles pour cette couleur
+                                </p>
                             </div>
                         </div>
 
@@ -2775,7 +2340,6 @@ $cartCount = Cart::count();
                         Ajouter
                     </button>
                 </div>
-                <?php endif; ?>
             </form>
         </div>
     </section>
@@ -2785,8 +2349,6 @@ $cartCount = Cart::count();
     <!-- Modal Rendu Réel par technique -->
     <script src="/public/assets/js/real-render-modal.js"></script>
 
-    <?php if (!$useNewConfigurator): ?>
-    <!-- LEGACY SCRIPTS - Seulement si pas de configurateur v2 -->
     <script>
         // ============================================
         // PERSONNALY - Drag & Drop Preview System
@@ -2811,6 +2373,10 @@ $cartCount = Cart::count();
                 front: <?= json_encode($zones['front']) ?>,
                 back: <?= $zones['back'] ? json_encode($zones['back']) : 'null' ?>
             };
+
+            // === TAILLES DISPONIBLES PAR COULEUR ===
+            const colorSizes = <?= $colorSizesJson ?>;
+            const hasColorSizes = Object.keys(colorSizes).length > 0;
 
             // === PRESET PACK (si défini) ===
             const preset = <?= $preset ? json_encode($preset) : 'null' ?>;
@@ -3033,8 +2599,78 @@ $cartCount = Cart::count();
                     const baseClass = this.className.split(' ')[0];
                     parent.querySelectorAll('.' + baseClass).forEach(o => o.classList.remove('selected'));
                     this.classList.add('selected');
+
+                    // Si c'est une couleur, filtrer les tailles disponibles
+                    if (this.classList.contains('color-option')) {
+                        const colorName = this.dataset.colorName;
+                        filterSizesByColor(colorName);
+                    }
                 });
             });
+
+            // === FILTRAGE DES TAILLES PAR COULEUR ===
+            function filterSizesByColor(colorName) {
+                if (!hasColorSizes) return;
+
+                const sizeContainer = document.getElementById('sizeOptions');
+                const sizeHint = document.getElementById('sizeUnavailableHint');
+                if (!sizeContainer) return;
+
+                const availableSizes = colorSizes[colorName] || [];
+                const hasFilter = availableSizes.length > 0;
+
+                // Si pas de tailles définies pour cette couleur, tout afficher
+                if (!hasFilter) {
+                    sizeContainer.querySelectorAll('.size-option').forEach(opt => {
+                        opt.style.display = '';
+                        opt.classList.remove('unavailable');
+                    });
+                    if (sizeHint) sizeHint.style.display = 'none';
+                    return;
+                }
+
+                let hasUnavailable = false;
+                let currentlySelected = sizeContainer.querySelector('.size-option.selected');
+                let needsReselect = false;
+
+                sizeContainer.querySelectorAll('.size-option').forEach(opt => {
+                    const sizeValue = opt.dataset.size;
+                    if (availableSizes.includes(sizeValue)) {
+                        opt.style.display = '';
+                        opt.classList.remove('unavailable');
+                    } else {
+                        opt.style.display = 'none';
+                        opt.classList.add('unavailable');
+                        hasUnavailable = true;
+                        // Si la taille sélectionnée devient indisponible
+                        if (opt.classList.contains('selected')) {
+                            needsReselect = true;
+                            opt.classList.remove('selected');
+                            opt.querySelector('input').checked = false;
+                        }
+                    }
+                });
+
+                // Auto-sélectionner la première taille disponible si nécessaire
+                if (needsReselect) {
+                    const firstAvailable = sizeContainer.querySelector('.size-option:not(.unavailable)');
+                    if (firstAvailable) {
+                        firstAvailable.classList.add('selected');
+                        firstAvailable.querySelector('input').checked = true;
+                    }
+                }
+
+                // Afficher/masquer le message d'indication
+                if (sizeHint) {
+                    sizeHint.style.display = hasUnavailable ? 'block' : 'none';
+                }
+            }
+
+            // Filtrer les tailles au chargement initial
+            const initialColor = document.querySelector('.color-option.selected');
+            if (initialColor && hasColorSizes) {
+                filterSizesByColor(initialColor.dataset.colorName);
+            }
 
             // === SÉLECTEUR DE POLICES DROPDOWN ===
             const fontSelector = document.getElementById('fontSelector');
@@ -3702,30 +3338,5 @@ $cartCount = Cart::count();
 
         })();
     </script>
-    <?php endif; ?>
-
-    <?php if ($useNewConfigurator): ?>
-    <script>
-    window.__PRODUCT_DATA = <?= json_encode([
-        'id' => $product['id'] ?? 0,
-        'name' => $product['name'] ?? '',
-        'basePrice' => $product['base_price'] ?? 0,
-        'imageFront' => $product['image_front_url'] ?? '',
-        'imageBack' => $product['image_back_url'] ?? '',
-        'printZones' => [
-            'front' => $zones['front'] ?? null,
-            'back' => $zones['back'] ?? null
-        ],
-        'maxChars' => $printZone['max_chars'] ?? 50,
-        'hasColorVariants' => $hasColorVariants ?? false
-    ]) ?>;
-    window.__FONTS_DATA = <?= json_encode($fonts ?? []) ?>;
-    window.__TEXT_COLORS_DATA = <?= json_encode($textColors ?? []) ?>;
-    window.__TECHNIQUES_DATA = <?= json_encode($techniques ?? []) ?>;
-    window.__PRODUCT_COLORS = <?= json_encode($colors ?? []) ?>;
-    window.__COLOR_IMAGES = <?= json_encode($colorImages ?? []) ?>;
-    </script>
-    <script src="/public/assets/js/configurator.js?v=8"></script>
-    <?php endif; ?>
 </body>
 </html>

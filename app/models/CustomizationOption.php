@@ -206,6 +206,48 @@ class CustomizationOption
     }
 
     /**
+     * Récupère les tailles actives groupées par size_group
+     */
+    public function getSizesGrouped(): array
+    {
+        try {
+            $stmt = $this->db->prepare(
+                'SELECT * FROM customization_options
+                 WHERE type = ? AND active = 1
+                 ORDER BY size_group ASC, sort_order ASC'
+            );
+            $stmt->execute(['size']);
+            $sizes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Grouper par size_group
+            $grouped = [];
+            foreach ($sizes as $size) {
+                $group = $size['size_group'] ?: 'Autres';
+                if (!isset($grouped[$group])) {
+                    $grouped[$group] = [];
+                }
+                $grouped[$group][] = $size;
+            }
+            return $grouped;
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Récupère toutes les tailles (actives) sous forme de tableau simple [value => label]
+     */
+    public function getSizesSimple(): array
+    {
+        $sizes = $this->getSizes();
+        $result = [];
+        foreach ($sizes as $size) {
+            $result[$size['value']] = $size['label'];
+        }
+        return $result;
+    }
+
+    /**
      * Récupère les couleurs produit actives (couleurs du vêtement)
      */
     public function getColors(): array
