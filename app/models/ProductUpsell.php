@@ -69,10 +69,10 @@ class ProductUpsell
 
         $stmt->execute([
             $data['product_id'],
-            $data['custom_title'] ?: null,
-            $data['custom_description'] ?: null,
-            $data['badge_text'] ?: null,
-            $data['promo_price'] ?: null,
+            $data['custom_title'] ?? null,
+            $data['custom_description'] ?? null,
+            $data['badge_text'] ?? null,
+            $data['promo_price'] ?? null,
             $data['priority'] ?? 0,
             $data['active'] ?? 1
         ]);
@@ -94,10 +94,10 @@ class ProductUpsell
 
         return $stmt->execute([
             $data['product_id'],
-            $data['custom_title'] ?: null,
-            $data['custom_description'] ?: null,
-            $data['badge_text'] ?: null,
-            $data['promo_price'] ?: null,
+            $data['custom_title'] ?? null,
+            $data['custom_description'] ?? null,
+            $data['badge_text'] ?? null,
+            $data['promo_price'] ?? null,
             $data['priority'] ?? 0,
             $data['active'] ?? 1,
             $id
