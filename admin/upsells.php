@@ -1,4 +1,3 @@
-<!-- DEBUG FILE: admin/upsells.php -->
 <?php
 /**
  * PERSONNALY Admin - Upsells (Suggestions de produits)
@@ -103,7 +102,6 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
                 </div>
             <?php endif; ?>
 
-            <!-- DEBUG BEFORE UPSELLS-LAYOUT -->
             <div class="upsells-layout">
                 <!-- Paramètres -->
                 <div class="settings-panel">
@@ -256,7 +254,6 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
                     <?php endif; ?>
                 </div>
             </div>
-            <!-- DEBUG AFTER UPSELLS-LAYOUT -->
 
             <!-- Info box -->
             <div class="info-box">
