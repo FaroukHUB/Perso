@@ -3593,6 +3593,7 @@ $cartCount = Cart::count();
     <?php endif; ?>
 
     <?php if ($useNewConfigurator): ?>
+    <?php echo '<!-- DEBUG: V2 BLOCK START -->'; ?>
     <!-- ==============================================
          CONFIGURATEUR V2 - Scripts et Data Injection
          ============================================== -->
@@ -3615,7 +3616,6 @@ $cartCount = Cart::count();
     window.__TECHNIQUES_DATA = <?= json_encode($techniques) ?>;
     window.__PRESET_DATA = <?= $preset ? json_encode($preset) : 'null' ?>;
     </script>
-    <?php echo '<!-- DEBUG: NEW CONFIGURATOR BLOCK EXECUTED -->'; ?>
     <script src="/public/assets/js/configurator.js?v=3"></script>
     <?php endif; ?>
 </body>
