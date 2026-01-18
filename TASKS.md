@@ -533,11 +533,23 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 **Fichiers modifiés** :
 - `public/product.php` — Feature toggle `?v2=1`, HTML v2, injection données, chargement configurator.js
 
-#### STEP DESIGN-3 — Admin Designs (PROCHAINE ÉTAPE)
+#### ✅ STEP DESIGN-2.5 — Finitions Configurateur (TERMINÉ 2026-01-18)
+- [x] **E.1.2.11** — Fix drawer dupliqué (suppression HTML drawer) ✅
+- [x] **E.1.2.12** — Chargement dynamique polices Google Fonts ✅
+- [x] **E.1.2.13** — Sélecteur couleur produit (onglet Design) ✅
+- [x] **E.1.2.14** — Images par variante couleur ✅
+- [x] **E.1.2.15** — Bouton Sauvegarder avec feedback ✅
+- [x] **E.1.2.16** — Bouton Partager (native share / clipboard) ✅
+- [x] **E.1.2.17** — Simplification barre d'actions ✅
+
+**Note** : Les boutons "Disposer" fonctionnent (nécessitent élément sélectionné). Les designs sont des placeholders (DESIGN-3 requis).
+
+#### STEP DESIGN-3 — Admin Designs (À VENIR)
 - [ ] **E.1.3.1** — Table design_templates + CRUD
-- [ ] **E.1.3.2** — Admin création designs
+- [ ] **E.1.3.2** — Admin création designs (upload SVG/PNG)
 - [ ] **E.1.3.3** — Grille templates côté client
+- [ ] **E.1.3.4** — JS ajout design au canvas (click → addDesignElement())
 
-**Priorité** : 🔴 HAUTE
+**Priorité** : 🟡 MOYENNE (peut être Phase 2)
 
-**Statut** : 🟢 STEP DESIGN-2 TERMINÉ — À tester en production, puis DESIGN-3
+**Statut** : 🟢 DESIGN-2.5 TERMINÉ — Prêt pour version finale sans designs OU DESIGN-3

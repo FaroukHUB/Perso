@@ -313,7 +313,7 @@ $cartCount = Cart::count();
     if ($useNewConfigurator):
     ?>
     <!-- Nouveau Configurateur v2 (Konva.js) -->
-    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=5">
+    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=6">
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <?php endif; ?>
     <style>
@@ -2003,29 +2003,17 @@ $cartCount = Cart::count();
 
                             <div class="cfg-section-divider"></div>
 
-                            <!-- Designs pré-faits -->
+                            <!-- Designs pré-faits (Coming Soon) -->
                             <div class="cfg-option-row">
                                 <div class="cfg-option-label">Designs</div>
                             </div>
-                            <div class="cfg-design-category">
-                                <select id="cfgDesignCategory">
-                                    <option value="">Tous les designs</option>
-                                    <option value="sport">Sport</option>
-                                    <option value="fete">Fête</option>
-                                    <option value="famille">Famille</option>
-                                </select>
+                            <div class="cfg-designs-coming-soon">
+                                <div class="cfg-coming-soon-icon">🎨</div>
+                                <div class="cfg-coming-soon-title">Bientot disponible</div>
+                                <div class="cfg-coming-soon-text">
+                                    Des designs exclusifs PERSONNALY arrivent prochainement !
+                                </div>
                             </div>
-                            <div class="cfg-design-grid" id="cfgDesignGrid">
-                                <div class="cfg-design-item"><span class="placeholder">🌟</span></div>
-                                <div class="cfg-design-item"><span class="placeholder">⚽</span></div>
-                                <div class="cfg-design-item"><span class="placeholder">🎂</span></div>
-                                <div class="cfg-design-item"><span class="placeholder">💖</span></div>
-                                <div class="cfg-design-item"><span class="placeholder">🏆</span></div>
-                                <div class="cfg-design-item"><span class="placeholder">🎄</span></div>
-                            </div>
-                            <p style="font-size: 0.8rem; color: var(--gray); margin-top: 16px; text-align: center;">
-                                Designs fournis par PERSONNALY
-                            </p>
                         </div>
 
                         <!-- Panel: Calques -->

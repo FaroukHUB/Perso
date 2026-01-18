@@ -1344,6 +1344,59 @@ form.addEventListener('submit', (e) => {
 
 ---
 
+### 2026-01-18 - Session 22 (STEP DESIGN-2.5 - FINITIONS CONFIGURATEUR)
+
+**Objectif** : Corriger les bugs et compléter les fonctionnalités du configurateur v2.
+
+#### Bugs corrigés
+
+| Bug | Cause | Fix |
+|-----|-------|-----|
+| Drawer dupliqué (contrôles à gauche ET à droite) | HTML drawer en plus du panneau gauche | Suppression du drawer HTML |
+| Polices ne se chargent pas | Fonts non chargées via Google Fonts | Ajout `loadGoogleFont()` dynamique + `preloadFonts()` |
+| Tab Design pointait vers "text" | `data-tool="text"` au lieu de `"design"` | Correction attribut data-tool |
+
+#### Fonctionnalités ajoutées
+
+| Feature | Description |
+|---------|-------------|
+| **Chargement dynamique des polices** | `loadGoogleFont()` charge une police Google Fonts à la volée |
+| **Preload des polices** | `preloadFonts()` charge toutes les polices de `__FONTS_DATA` au démarrage |
+| **Couleur du produit** | Sélecteur de couleur dans l'onglet Design avec pastilles |
+| **Images par couleur** | Si variantes couleur avec images, l'image produit change au clic |
+| **Bouton Sauvegarder** | Sauvegarde dans localStorage + feedback visuel vert "✓ Sauvegardé" |
+| **Bouton Partager** | Native Share API ou fallback clipboard avec URL encodée base64 |
+| **`generateShareData()`** | Génère données design encodées pour URL partageable |
+
+#### Barre d'actions simplifiée
+
+```
+[💾 Sauvegarder] [🔗 Partager]                    [Total: X €] [🛒 Ajouter]
+```
+
+- **Supprimé** : Bouton "Annuler" (Undo pas implémenté)
+- **Supprimé** : Toggle "Snap" (toujours actif en interne)
+- **Ajouté** : Bouton "Partager" avec lien copiable
+
+#### Fichiers modifiés
+
+| Fichier | Modifications |
+|---------|---------------|
+| `public/product.php` | Couleur produit HTML, tabs corrigés, barre actions simplifiée, données JS |
+| `public/assets/js/configurator.js` | Font loading, product color, save/share handlers, generateShareData() |
+| `public/assets/css/configurator.css` | Styles couleur produit, bouton partager, divider |
+
+#### Notes techniques
+
+**Disposer** : Les boutons "Mettre devant/derrière" fonctionnent mais nécessitent de sélectionner un élément d'abord (cliquer sur un texte sur le canvas).
+
+**Designs** : Les icônes designs (🌟 ⚽ 🎂 etc.) sont des placeholders. L'admin designs (DESIGN-3) n'est pas encore implémenté - les designs ne s'ajoutent pas au canvas pour l'instant.
+
+**Statut** : ✅ DESIGN-2.5 TERMINÉ
+**Prochaine étape** : DESIGN-3 (Admin Designs + JS ajout canvas) OU Version finale sans designs
+
+---
+
 ### 2026-01-18 - Session 19 (STEP 5.A.5 - CSS ADMIN UPSELLS)
 
 **Objectif** : Implémenter proprement le CSS de la page admin/upsells.php
