@@ -469,6 +469,29 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 **Priorité** : ✅ TERMINÉ
 
+### ✅ B.4 — Refonte Cart.php Ultra-Moderne (TERMINÉ 2026-01-18)
+> Refonte complète de la page panier avec design 2026 glassmorphism et fonctionnalités e-commerce.
+
+- [x] **B.4.1** — Design glassmorphism 2026 (backdrop-filter, gradients) ✅
+- [x] **B.4.2** — Section code promo améliorée avec validation AJAX ✅
+- [x] **B.4.3** — Options livraison (Standard gratuit / Express 5.90€) avec AJAX ✅
+- [x] **B.4.4** — Section paiement CB avec icônes (Visa, MC, Amex, CB) ✅
+- [x] **B.4.5** — Section upsells "Vous aimerez aussi" avec CSS moderne ✅
+- [x] **B.4.6** — Fix lien upsells (configurateur.php → product.php) ✅
+- [x] **B.4.7** — Footer complet avec navigation, infos, contact ✅
+- [x] **B.4.8** — Design responsive mobile optimisé ✅
+
+**Fichier modifié** :
+- `public/cart.php` — Refonte complète 1400+ lignes
+
+**Fonctionnalités ajoutées** :
+- Livraison : sauvegarde en session, calcul dynamique total
+- Code promo : validation AJAX avec feedback visuel
+- Trust badges : paiement sécurisé, livraison rapide, satisfaction garantie
+- Upsells : cards modernes avec hover effects
+
+**Priorité** : ✅ TERMINÉ
+
 ---
 
 ## PERSONNALISATION — Partage & Viralité

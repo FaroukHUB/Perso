@@ -23,9 +23,27 @@
 
 **Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-5 terminés)
 
-**Statut global** : ✅ Option B+ Variantes terminé — Multi-tailles par couleur
+**Statut global** : ✅ Cart.php refonte terminée + Option B+ Variantes
 
 **Derniers travaux (session 2026-01-18 - suite)** :
+
+### Refonte Cart.php — Design Ultra-Moderne 2026
+> Page panier complètement redessinée avec glassmorphism et fonctionnalités e-commerce avancées.
+
+**Fichier modifié** :
+- `public/cart.php` — Refonte complète
+
+**Fonctionnalités ajoutées** :
+- Design glassmorphism 2026 (backdrop-filter, rgba, gradients)
+- Code promo avec validation AJAX + feedback visuel
+- Options livraison (Standard gratuit / Express 5.90€) avec sauvegarde session
+- Section paiement CB avec icônes trust (Visa, MC, Amex, CB)
+- Upsells "Vous aimerez aussi" avec CSS moderne + hover effects
+- Fix lien upsells : configurateur.php → product.php
+- Footer complet (navigation, infos, contact)
+- Responsive mobile optimisé
+
+---
 
 ### Option B+ — Multi-tailles par variante couleur
 > Refonte majeure inspirée WooCommerce/Shopify pour permettre des tailles différentes selon la couleur.
