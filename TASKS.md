@@ -384,15 +384,19 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 ## ADMIN — Stabilisation & UX
 
-### A.1 — BUG : Catégories produits non enregistrées
-> Les catégories sélectionnées dans la création produit ne sont pas sauvegardées.
+### ✅ A.1 — BUG : Catégories produits non affichées (TERMINÉ 2026-01-18)
+> Les catégories étaient bien sauvegardées mais pas affichées (ancien champ utilisé).
 
-- [ ] **A.1.1** — Analyser le formulaire product-form.php (checkboxes catégories)
-- [ ] **A.1.2** — Vérifier la sauvegarde backend (table pivot product_categories)
-- [ ] **A.1.3** — Corriger le bug de relation
-- [ ] **A.1.4** — Tester la persistance catégories
+**Cause racine** : L'affichage utilisait `product.category` (ancien champ texte) au lieu de la relation `product_categories`.
 
-**Priorité** : 🔴 HAUTE (bug critique)
+- [x] **A.1.1** — Investiguer le bug → Affichage utilisait mauvais champ ✅
+- [x] **A.1.2** — Ajouter `getCategoryNamesByProduct()` au modèle Category ✅
+- [x] **A.1.3** — Corriger admin/products.php (badges mint, multi-catégories) ✅
+- [x] **A.1.4** — Corriger public/index.php (featured_products) ✅
+
+**Commit** : `387a43e`
+
+**Priorité** : ✅ TERMINÉ
 
 ### ✅ A.2 — Sidebar admin : problème de hauteur (TERMINÉ 2026-01-18)
 > La sidebar ne descend pas assez, impossible d'accéder aux items du bas.

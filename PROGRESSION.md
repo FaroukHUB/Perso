@@ -1531,10 +1531,16 @@ $colorImages['Original'] = ['front' => $product['image_front_url'], 'back' => $p
 |-----|--------|
 | Bouton "Ajouter le texte" inline | Bouton compact (52px) à droite de l'input avec icône + |
 | Sidebar admin non scrollable | Ajout `overflow-y: auto` + scrollbar custom rose |
+| Catégories produits non affichées | Affichage utilisait ancien champ au lieu de relation |
 
-**Commits** : `8bae6b1`, `98da1b4`
+**Fix catégories** :
+- Cause : `admin/products.php` et `public/index.php` utilisaient `product.category` (texte) au lieu de `product_categories` (relation)
+- Ajout `getCategoryNamesByProduct()` dans Category model
+- Badges mint multi-catégories dans admin + site public
 
-**Statut** : ✅ TERMINÉ — Design ultra-moderne 2026 + Sidebar scrollable
+**Commits** : `8bae6b1`, `98da1b4`, `387a43e`
+
+**Statut** : ✅ TERMINÉ — Design 2026 + Sidebar + Catégories
 
 ---
 
