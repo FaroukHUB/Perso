@@ -3593,30 +3593,8 @@ $cartCount = Cart::count();
     <?php endif; ?>
 
     <?php if ($useNewConfigurator): ?>
-    <?php echo '<!-- DEBUG: V2 BLOCK START -->'; ?>
-    <!-- ==============================================
-         CONFIGURATEUR V2 - Scripts et Data Injection
-         ============================================== -->
-    <script>
-    // Données produit injectées pour le configurateur v2
-    window.__PRODUCT_DATA = {
-        id: <?= $product['id'] ?>,
-        name: "<?= h($product['name']) ?>",
-        basePrice: <?= $product['base_price'] ?>,
-        imageFront: "<?= h($product['image_front_url']) ?>",
-        imageBack: "<?= h($product['image_back_url'] ?? '') ?>",
-        printZones: {
-            front: <?= json_encode($zones['front'] ?? null) ?>,
-            back: <?= json_encode($zones['back'] ?? null) ?>
-        },
-        maxChars: <?= $printZone['max_chars'] ?? 50 ?>
-    };
-    window.__FONTS_DATA = <?= json_encode($fonts) ?>;
-    window.__TEXT_COLORS_DATA = <?= json_encode($textColors) ?>;
-    window.__TECHNIQUES_DATA = <?= json_encode($techniques) ?>;
-    window.__PRESET_DATA = <?= $preset ? json_encode($preset) : 'null' ?>;
-    </script>
-    <script src="/public/assets/js/configurator.js?v=3"></script>
+    <!-- DEBUG: V2 BLOCK -->
+    <script src="/public/assets/js/configurator.js?v=4"></script>
     <?php endif; ?>
 </body>
 </html>
