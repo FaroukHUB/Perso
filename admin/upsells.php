@@ -11,6 +11,8 @@ require_once __DIR__ . '/../app/models/ProductUpsell.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Order.php';
 
+echo "<!-- DEBUG PHP: AFTER BOOTSTRAP -->";
+
 Auth::requireAdmin();
 
 $upsellModel = new ProductUpsell();
@@ -102,6 +104,7 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
                 </div>
             <?php endif; ?>
 
+            <?php echo "<!-- DEBUG PHP: BEFORE UPSELLS-LAYOUT -->"; ?>
             <div class="upsells-layout">
                 <!-- Paramètres -->
                 <div class="settings-panel">
@@ -254,6 +257,7 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
                     <?php endif; ?>
                 </div>
             </div>
+            <?php echo "<!-- DEBUG PHP: AFTER UPSELLS-LAYOUT -->"; ?>
 
             <!-- Info box -->
             <div class="info-box">
