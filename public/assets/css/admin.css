@@ -57,6 +57,27 @@
 
 .sidebar-nav {
     flex: 1;
+    overflow-y: auto;
+    margin-right: -8px;
+    padding-right: 8px;
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 105, 180, 0.5);
 }
 
 .nav-item {
@@ -564,7 +585,7 @@
     background-clip: text;
     text-decoration: none;
 }
-.admin-sidebar .sidebar-nav { flex: 1; }
+.admin-sidebar .sidebar-nav { flex: 1; overflow-y: auto; margin-right: -8px; padding-right: 8px; }
 .admin-sidebar .nav-item {
     display: flex;
     align-items: center;

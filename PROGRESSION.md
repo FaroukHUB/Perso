@@ -1525,6 +1525,14 @@ $colorImages['Original'] = ['front' => $product['image_front_url'], 'back' => $p
 - Pastilles couleur agrandies et arrondies (40x40px)
 - Bouton CTA avec gradient rose et ombre colorée
 
+#### Fix supplémentaire
+
+| Fix | Détail |
+|-----|--------|
+| Bouton "Ajouter le texte" inline | Bouton compact (52px) à droite de l'input avec icône + |
+
+**Commit** : `8bae6b1`
+
 **Statut** : ✅ TERMINÉ — Design ultra-moderne 2026 en production
 
 ---

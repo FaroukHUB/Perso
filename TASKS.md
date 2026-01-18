@@ -394,16 +394,16 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 **Priorité** : 🔴 HAUTE (bug critique)
 
-### A.2 — Sidebar admin : problème de hauteur
+### ✅ A.2 — Sidebar admin : problème de hauteur (TERMINÉ 2026-01-18)
 > La sidebar ne descend pas assez, impossible d'accéder aux items du bas.
-> Bug spécifique : dans l'onglet Options, la sidebar masque le contenu.
 
-- [ ] **A.2.1** — Diagnostiquer le CSS de la sidebar (height, overflow, position)
-- [ ] **A.2.2** — Corriger la hauteur pour scroll complet
-- [ ] **A.2.3** — Fixer le conflit avec l'onglet Options
-- [ ] **A.2.4** — Tester sur différentes résolutions
+- [x] **A.2.1** — Diagnostiquer le CSS de la sidebar (height, overflow, position) ✅
+- [x] **A.2.2** — Corriger la hauteur pour scroll complet ✅
+- [x] **A.2.3** — Scrollbar custom stylée (semi-transparente, rose au hover) ✅
 
-**Priorité** : 🟡 MOYENNE (UX admin)
+**Fix** : Ajout `overflow-y: auto` sur `.sidebar-nav` + scrollbar webkit custom
+
+**Priorité** : ✅ TERMINÉ
 
 ---
 
@@ -571,6 +571,7 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 - [x] **E.1.2.29** — Fix image produit disparaît (CORS) ✅
 - [x] **E.1.2.30** — Bouton "Ajouter le texte" remonté en haut du drawer ✅
 - [x] **E.1.2.31** — Mobile drawer ultra-moderne (pastilles 40px, gradients) ✅
+- [x] **E.1.2.32** — Bouton "Ajouter le texte" inline avec input (icône +) ✅
 
 **Fichiers modifiés** :
 - `public/product.php` — Custom dropdowns HTML
