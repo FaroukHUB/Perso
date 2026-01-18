@@ -1315,6 +1315,395 @@ $cartCount = Cart::count();
             }
         }
 
+        /* ===========================================
+           MOBILE WIZARD MODE (Step-by-Step)
+           Pour les très petits écrans - UX simplifiée
+           =========================================== */
+
+        @media (max-width: 600px) {
+            /* Cacher le layout classique */
+            .configurator-layout:not(.wizard-disabled) {
+                display: none;
+            }
+
+            /* Afficher le wizard */
+            .mobile-wizard {
+                display: block !important;
+            }
+        }
+
+        .mobile-wizard {
+            display: none;
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-bottom: 80px;
+        }
+
+        /* Progress Bar */
+        .wizard-progress {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(255,105,180,0.08) 0%, rgba(61,255,192,0.08) 100%);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .wizard-progress-steps {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .wizard-step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--gray-light);
+            border: 2px solid #ddd;
+            transition: all 0.3s;
+        }
+        .wizard-step-dot.active {
+            background: var(--gradient-pink);
+            border-color: var(--pink-main);
+            transform: scale(1.2);
+        }
+        .wizard-step-dot.completed {
+            background: var(--mint-main);
+            border-color: var(--mint-dark);
+        }
+        .wizard-step-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--black-soft);
+        }
+
+        /* Mini Preview Flottant */
+        .wizard-mini-preview {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 2px solid white;
+        }
+        .wizard-mini-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .wizard-mini-preview .mini-text {
+            position: absolute;
+            font-size: 6px;
+            font-weight: 700;
+            text-align: center;
+            transform: translate(-50%, -50%);
+            max-width: 80%;
+            word-break: break-word;
+            line-height: 1.2;
+        }
+
+        /* Step Content */
+        .wizard-step {
+            display: none;
+            padding: 25px 20px;
+            animation: wizardFadeIn 0.3s ease;
+        }
+        .wizard-step.active {
+            display: block;
+        }
+        @keyframes wizardFadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .wizard-step-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--black-soft);
+            margin-bottom: 8px;
+        }
+        .wizard-step-subtitle {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+
+        /* Wizard Input */
+        .wizard-text-input {
+            width: 100%;
+            padding: 18px 20px;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            font-size: 18px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .wizard-text-input:focus {
+            outline: none;
+            border-color: var(--pink-main);
+            box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.1);
+        }
+
+        /* Position Presets */
+        .position-presets {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .position-preset-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 16px 20px;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .position-preset-btn:hover {
+            border-color: var(--pink-light);
+        }
+        .position-preset-btn.selected {
+            border-color: var(--pink-main);
+            background: linear-gradient(135deg, rgba(255,105,180,0.08) 0%, rgba(61,255,192,0.08) 100%);
+        }
+        .position-preset-icon {
+            width: 50px;
+            height: 60px;
+            background: var(--gray-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .position-preset-icon::before {
+            content: '👕';
+            font-size: 28px;
+            opacity: 0.5;
+        }
+        .position-preset-icon .pos-indicator {
+            position: absolute;
+            width: 20px;
+            height: 4px;
+            background: var(--pink-main);
+            border-radius: 2px;
+        }
+        .position-preset-btn[data-position="top"] .pos-indicator {
+            top: 15%;
+        }
+        .position-preset-btn[data-position="center"] .pos-indicator {
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .position-preset-btn[data-position="bottom"] .pos-indicator {
+            bottom: 15%;
+        }
+        .position-preset-info {
+            flex: 1;
+        }
+        .position-preset-name {
+            font-weight: 600;
+            color: var(--black-soft);
+            font-size: 15px;
+        }
+        .position-preset-desc {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 2px;
+        }
+        .position-preset-btn.selected .position-preset-icon {
+            background: rgba(255,105,180,0.15);
+        }
+
+        /* Wizard Options Grid */
+        .wizard-options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+        }
+        .wizard-option {
+            padding: 14px 12px;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .wizard-option:hover {
+            border-color: var(--pink-light);
+        }
+        .wizard-option.selected {
+            border-color: var(--pink-main);
+            background: linear-gradient(135deg, rgba(255,105,180,0.1) 0%, rgba(61,255,192,0.1) 100%);
+        }
+
+        /* Wizard Colors */
+        .wizard-colors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: center;
+        }
+        .wizard-color-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 3px solid transparent;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .wizard-color-btn:hover {
+            transform: scale(1.1);
+        }
+        .wizard-color-btn.selected {
+            border-color: var(--pink-main);
+            transform: scale(1.15);
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+        }
+
+        /* Wizard Fonts */
+        .wizard-fonts {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .wizard-font-btn {
+            padding: 14px 18px;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            font-size: 16px;
+        }
+        .wizard-font-btn:hover {
+            border-color: var(--pink-light);
+        }
+        .wizard-font-btn.selected {
+            border-color: var(--pink-main);
+            background: linear-gradient(135deg, rgba(255,105,180,0.08) 0%, rgba(61,255,192,0.08) 100%);
+        }
+
+        /* Wizard Navigation */
+        .wizard-nav {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            border-top: 1px solid rgba(0,0,0,0.08);
+            background: var(--gray-light);
+        }
+        .wizard-btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .wizard-btn-prev {
+            background: white;
+            color: var(--gray);
+            border: 2px solid #ddd;
+        }
+        .wizard-btn-prev:hover {
+            border-color: var(--pink-light);
+            color: var(--pink-main);
+        }
+        .wizard-btn-next {
+            background: var(--gradient-pink);
+            color: white;
+            box-shadow: var(--shadow-pink);
+        }
+        .wizard-btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
+        }
+        .wizard-btn-next:disabled {
+            background: var(--gray-light);
+            color: var(--gray);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .wizard-btn-add {
+            background: var(--gradient-mint);
+            color: var(--black);
+        }
+
+        /* Step Summary (dernier step) */
+        .wizard-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .wizard-summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .wizard-summary-item:last-child {
+            border-bottom: none;
+        }
+        .wizard-summary-label {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        .wizard-summary-value {
+            font-weight: 600;
+            color: var(--black-soft);
+        }
+        .wizard-summary-preview {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        .wizard-summary-preview img {
+            max-width: 90%;
+            max-height: 150px;
+            object-fit: contain;
+        }
+        .wizard-summary-preview .summary-text {
+            position: absolute;
+            font-weight: 700;
+            font-size: 14px;
+            text-align: center;
+            transform: translate(-50%, -50%);
+            max-width: 60%;
+        }
+        .wizard-total-price {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--pink-dark);
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(255,105,180,0.08) 0%, rgba(61,255,192,0.08) 100%);
+            border-radius: var(--radius-md);
+        }
+
         /* Legacy grid fallback - kept for reference */
         .product-grid { display: none; }
     </style>
@@ -1414,6 +1803,208 @@ $cartCount = Cart::count();
                 <input type="hidden" name="position_y" id="positionY" value="<?= $preset ? h($preset['position']['y'] ?? 50) : 50 ?>">
                 <input type="hidden" name="position_zone_id" id="positionZoneId" value="<?= $printZone['id'] ?>">
                 <input type="hidden" name="view" id="viewInput" value="<?= $preset ? h($preset['view'] ?? 'front') : 'front' ?>">
+
+                <!-- =============================================
+                     MOBILE WIZARD MODE (Step-by-Step)
+                     Affichage simplifié pour très petits écrans
+                     ============================================= -->
+                <div class="mobile-wizard" id="mobileWizard">
+                    <!-- Progress Bar + Mini Preview -->
+                    <div class="wizard-progress">
+                        <div class="wizard-progress-steps">
+                            <span class="wizard-step-dot active" data-step="1"></span>
+                            <span class="wizard-step-dot" data-step="2"></span>
+                            <span class="wizard-step-dot" data-step="3"></span>
+                            <span class="wizard-step-dot" data-step="4"></span>
+                            <span class="wizard-step-dot" data-step="5"></span>
+                        </div>
+                        <span class="wizard-step-label" id="wizardStepLabel">1/5 Texte</span>
+                        <div class="wizard-mini-preview" id="wizardMiniPreview">
+                            <?php if (!empty($product['image_front_url'])): ?>
+                                <img src="/public<?= h($product['image_front_url']) ?>" alt="Preview" id="wizardPreviewImg">
+                            <?php endif; ?>
+                            <span class="mini-text" id="wizardMiniText" style="left: 50%; top: <?= $printZone['y'] + ($printZone['height'] / 2) ?>%;"></span>
+                        </div>
+                    </div>
+
+                    <!-- STEP 1: Texte -->
+                    <div class="wizard-step active" data-step="1">
+                        <h2 class="wizard-step-title">Quel texte voulez-vous ?</h2>
+                        <p class="wizard-step-subtitle">Saisissez le texte qui sera personnalisé sur votre produit</p>
+                        <input type="text"
+                               class="wizard-text-input"
+                               id="wizardTextInput"
+                               placeholder="Ex: Famille Dupont"
+                               maxlength="<?= $printZone['max_chars'] ?? 50 ?>"
+                               value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
+                    </div>
+
+                    <!-- STEP 2: Style (Police + Couleur texte) -->
+                    <div class="wizard-step" data-step="2">
+                        <h2 class="wizard-step-title">Choisissez le style</h2>
+                        <p class="wizard-step-subtitle">Police et couleur de votre texte</p>
+
+                        <h4 style="font-size: 13px; color: var(--gray); margin-bottom: 10px; text-transform: uppercase;">Police</h4>
+                        <div class="wizard-fonts" id="wizardFonts">
+                            <?php foreach ($fonts as $index => $font): ?>
+                                <div class="wizard-font-btn <?= $index === $selectedFontIndex ? 'selected' : '' ?>"
+                                     data-font="<?= h($font['value']) ?>"
+                                     data-category="<?= h($font['category'] ?? 'sans-serif') ?>"
+                                     style="font-family: '<?= h($font['value']) ?>', <?= h($font['category'] ?? 'sans-serif') ?>">
+                                    <?= h($font['label']) ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <h4 style="font-size: 13px; color: var(--gray); margin: 20px 0 10px; text-transform: uppercase;">Couleur du texte</h4>
+                        <div class="wizard-colors" id="wizardTextColors">
+                            <?php foreach ($textColors as $index => $tc): ?>
+                                <div class="wizard-color-btn <?= $index === $selectedTextColorIndex ? 'selected' : '' ?>"
+                                     style="background-color: <?= h($tc['hex']) ?>; <?= strtolower($tc['hex']) === '#ffffff' ? 'border: 2px solid #ddd;' : '' ?>"
+                                     data-color="<?= h($tc['hex']) ?>"
+                                     data-value="<?= h($tc['value']) ?>"
+                                     title="<?= h($tc['label']) ?>">
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Position -->
+                    <div class="wizard-step" data-step="3">
+                        <h2 class="wizard-step-title">Où placer le texte ?</h2>
+                        <p class="wizard-step-subtitle">Choisissez la position sur le produit</p>
+
+                        <div class="position-presets" id="wizardPositions">
+                            <div class="position-preset-btn" data-position="top" data-y="<?= $printZone['y'] + 5 ?>">
+                                <div class="position-preset-icon">
+                                    <span class="pos-indicator"></span>
+                                </div>
+                                <div class="position-preset-info">
+                                    <div class="position-preset-name">En haut</div>
+                                    <div class="position-preset-desc">Proche du col</div>
+                                </div>
+                            </div>
+                            <div class="position-preset-btn selected" data-position="center" data-y="<?= $printZone['y'] + ($printZone['height'] / 2) ?>">
+                                <div class="position-preset-icon">
+                                    <span class="pos-indicator"></span>
+                                </div>
+                                <div class="position-preset-info">
+                                    <div class="position-preset-name">Au centre</div>
+                                    <div class="position-preset-desc">Position classique</div>
+                                </div>
+                            </div>
+                            <div class="position-preset-btn" data-position="bottom" data-y="<?= $printZone['y'] + $printZone['height'] - 5 ?>">
+                                <div class="position-preset-icon">
+                                    <span class="pos-indicator"></span>
+                                </div>
+                                <div class="position-preset-info">
+                                    <div class="position-preset-name">En bas</div>
+                                    <div class="position-preset-desc">Près de la ceinture</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 4: Produit (Taille + Couleur) -->
+                    <div class="wizard-step" data-step="4">
+                        <h2 class="wizard-step-title">Votre produit</h2>
+                        <p class="wizard-step-subtitle">Taille et couleur du <?= strtolower(h($product['category'] ?? 'produit')) ?></p>
+
+                        <h4 style="font-size: 13px; color: var(--gray); margin-bottom: 10px; text-transform: uppercase;">Taille</h4>
+                        <div class="wizard-options-grid" id="wizardSizes">
+                            <?php foreach ($sizes as $size): ?>
+                                <div class="wizard-option <?= $size === 'M' ? 'selected' : '' ?>" data-size="<?= $size ?>">
+                                    <?= $size ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <h4 style="font-size: 13px; color: var(--gray); margin: 20px 0 10px; text-transform: uppercase;">Couleur</h4>
+                        <div class="wizard-colors" id="wizardProductColors">
+                            <?php
+                            $firstColor = true;
+                            foreach ($colors as $name => $hex):
+                                $isDefault = ($hasColorVariants && $defaultColorKey) ? ($name === $defaultColorKey) : $firstColor;
+                                $imgFront = $colorImages[$name]['front'] ?? '';
+                                $imgBack = $colorImages[$name]['back'] ?? '';
+                            ?>
+                                <div class="wizard-color-btn <?= $isDefault ? 'selected' : '' ?>"
+                                     style="background-color: <?= $hex ?>; <?= strtolower($hex) === '#ffffff' ? 'border: 2px solid #ddd;' : '' ?>"
+                                     data-color="<?= $name ?>"
+                                     data-hex="<?= $hex ?>"
+                                     <?php if ($hasColorVariants && $imgFront): ?>
+                                     data-image-front="<?= h($imgFront) ?>"
+                                     data-image-back="<?= h($imgBack) ?>"
+                                     <?php endif; ?>
+                                     title="<?= ucfirst($name) ?>">
+                                </div>
+                            <?php
+                                $firstColor = false;
+                            endforeach;
+                            ?>
+                        </div>
+                    </div>
+
+                    <!-- STEP 5: Récapitulatif -->
+                    <div class="wizard-step" data-step="5">
+                        <h2 class="wizard-step-title">Votre création</h2>
+                        <p class="wizard-step-subtitle">Vérifiez avant d'ajouter au panier</p>
+
+                        <div class="wizard-summary-preview" id="wizardSummaryPreview">
+                            <?php if (!empty($product['image_front_url'])): ?>
+                                <img src="/public<?= h($product['image_front_url']) ?>" alt="<?= h($product['name']) ?>" id="wizardSummaryImg">
+                            <?php endif; ?>
+                            <span class="summary-text" id="wizardSummaryText"></span>
+                        </div>
+
+                        <div class="wizard-summary" id="wizardSummary">
+                            <div class="wizard-summary-item">
+                                <span class="wizard-summary-label">Texte</span>
+                                <span class="wizard-summary-value" id="summaryText">-</span>
+                            </div>
+                            <div class="wizard-summary-item">
+                                <span class="wizard-summary-label">Police</span>
+                                <span class="wizard-summary-value" id="summaryFont">-</span>
+                            </div>
+                            <div class="wizard-summary-item">
+                                <span class="wizard-summary-label">Taille</span>
+                                <span class="wizard-summary-value" id="summarySize">M</span>
+                            </div>
+                            <div class="wizard-summary-item">
+                                <span class="wizard-summary-label">Couleur produit</span>
+                                <span class="wizard-summary-value" id="summaryColor">-</span>
+                            </div>
+                        </div>
+
+                        <div class="wizard-total-price" id="wizardTotalPrice">
+                            <?= formatPrice($product['base_price']) ?>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="wizard-nav">
+                        <button type="button" class="wizard-btn wizard-btn-prev" id="wizardPrev" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15 18 9 12 15 6"/>
+                            </svg>
+                            Retour
+                        </button>
+                        <button type="button" class="wizard-btn wizard-btn-next" id="wizardNext">
+                            Suivant
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"/>
+                            </svg>
+                        </button>
+                        <button type="submit" class="wizard-btn wizard-btn-add" id="wizardAdd" style="display: none;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                                <line x1="3" y1="6" x2="21" y2="6"/>
+                                <path d="M16 10a4 4 0 0 1-8 0"/>
+                            </svg>
+                            Ajouter au panier
+                        </button>
+                    </div>
+                </div>
 
                 <div class="configurator-layout">
                     <!-- ========================================
@@ -2380,6 +2971,283 @@ $cartCount = Cart::count();
             // Initialiser au chargement et au resize
             initAccordions();
             window.addEventListener('resize', initAccordions);
+
+            // ============================================
+            // MOBILE WIZARD MODE
+            // Interface pas-à-pas pour très petits écrans
+            // ============================================
+
+            (function initMobileWizard() {
+                const wizard = document.getElementById('mobileWizard');
+                if (!wizard) return;
+
+                // Éléments du wizard
+                const stepDots = wizard.querySelectorAll('.wizard-step-dot');
+                const stepContents = wizard.querySelectorAll('.wizard-step');
+                const stepLabel = document.getElementById('wizardStepLabel');
+                const btnPrev = document.getElementById('wizardPrev');
+                const btnNext = document.getElementById('wizardNext');
+                const btnAdd = document.getElementById('wizardAdd');
+
+                // Mini preview
+                const miniText = document.getElementById('wizardMiniText');
+                const miniPreviewImg = document.getElementById('wizardPreviewImg');
+
+                // Step inputs
+                const wizardTextInput = document.getElementById('wizardTextInput');
+                const wizardFonts = document.getElementById('wizardFonts');
+                const wizardTextColors = document.getElementById('wizardTextColors');
+                const wizardPositions = document.getElementById('wizardPositions');
+                const wizardSizes = document.getElementById('wizardSizes');
+                const wizardProductColors = document.getElementById('wizardProductColors');
+
+                // Summary elements
+                const summaryText = document.getElementById('summaryText');
+                const summaryFont = document.getElementById('summaryFont');
+                const summarySize = document.getElementById('summarySize');
+                const summaryColor = document.getElementById('summaryColor');
+                const wizardSummaryText = document.getElementById('wizardSummaryText');
+                const wizardSummaryImg = document.getElementById('wizardSummaryImg');
+
+                // Labels des étapes
+                const stepLabels = ['Texte', 'Style', 'Position', 'Produit', 'Récap'];
+
+                let currentStep = 1;
+                const totalSteps = 5;
+
+                // État du wizard
+                let wizardState = {
+                    text: '',
+                    font: '<?= h($selectedFont['value']) ?>',
+                    fontLabel: '<?= h($selectedFont['label']) ?>',
+                    fontCategory: '<?= h($selectedFont['category'] ?? 'sans-serif') ?>',
+                    textColor: '<?= h($selectedTextColor['hex']) ?>',
+                    textColorValue: '<?= h($selectedTextColor['value']) ?>',
+                    positionY: <?= $printZone['y'] + ($printZone['height'] / 2) ?>,
+                    positionX: 50,
+                    size: 'M',
+                    color: '<?= array_key_first($colors) ?>',
+                    colorHex: '<?= reset($colors) ?>'
+                };
+
+                // Fonction pour changer d'étape
+                function goToStep(step) {
+                    if (step < 1 || step > totalSteps) return;
+
+                    // Mettre à jour l'étape courante
+                    currentStep = step;
+
+                    // Mettre à jour les dots
+                    stepDots.forEach((dot, idx) => {
+                        dot.classList.remove('active', 'completed');
+                        if (idx + 1 < step) {
+                            dot.classList.add('completed');
+                        } else if (idx + 1 === step) {
+                            dot.classList.add('active');
+                        }
+                    });
+
+                    // Mettre à jour le contenu
+                    stepContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (parseInt(content.dataset.step) === step) {
+                            content.classList.add('active');
+                        }
+                    });
+
+                    // Mettre à jour le label
+                    stepLabel.textContent = step + '/' + totalSteps + ' ' + stepLabels[step - 1];
+
+                    // Mettre à jour les boutons
+                    btnPrev.style.display = step === 1 ? 'none' : 'flex';
+                    btnNext.style.display = step === totalSteps ? 'none' : 'flex';
+                    btnAdd.style.display = step === totalSteps ? 'flex' : 'none';
+
+                    // Au dernier step, mettre à jour le récap
+                    if (step === totalSteps) {
+                        updateSummary();
+                    }
+                }
+
+                // Mettre à jour le mini preview
+                function updateMiniPreview() {
+                    if (miniText) {
+                        miniText.textContent = wizardState.text || '';
+                        miniText.style.color = wizardState.textColor;
+                        miniText.style.fontFamily = "'" + wizardState.font + "', " + wizardState.fontCategory;
+                        miniText.style.top = (wizardState.positionY / 100 * 70) + '%';
+                    }
+                }
+
+                // Mettre à jour le récapitulatif
+                function updateSummary() {
+                    if (summaryText) summaryText.textContent = wizardState.text || '-';
+                    if (summaryFont) summaryFont.textContent = wizardState.fontLabel;
+                    if (summarySize) summarySize.textContent = wizardState.size;
+                    if (summaryColor) summaryColor.textContent = wizardState.color.charAt(0).toUpperCase() + wizardState.color.slice(1);
+
+                    // Preview final
+                    if (wizardSummaryText) {
+                        wizardSummaryText.textContent = wizardState.text || '';
+                        wizardSummaryText.style.color = wizardState.textColor;
+                        wizardSummaryText.style.fontFamily = "'" + wizardState.font + "', " + wizardState.fontCategory;
+                        wizardSummaryText.style.left = '50%';
+                        wizardSummaryText.style.top = wizardState.positionY + '%';
+                    }
+                }
+
+                // Synchroniser avec le formulaire principal
+                function syncWithMainForm() {
+                    // Texte
+                    const mainTextInput = document.getElementById('customText');
+                    if (mainTextInput) mainTextInput.value = wizardState.text;
+
+                    // Police
+                    const mainFontInput = document.getElementById('fontInput');
+                    if (mainFontInput) mainFontInput.value = wizardState.font;
+
+                    // Couleur texte
+                    const mainTextColorInputs = document.querySelectorAll('input[name="text_color"]');
+                    mainTextColorInputs.forEach(input => {
+                        input.checked = input.value === wizardState.textColorValue;
+                    });
+
+                    // Position
+                    const posXInput = document.getElementById('positionX');
+                    const posYInput = document.getElementById('positionY');
+                    if (posXInput) posXInput.value = wizardState.positionX;
+                    if (posYInput) posYInput.value = wizardState.positionY;
+
+                    // Taille
+                    const mainSizeInputs = document.querySelectorAll('input[name="size"]');
+                    mainSizeInputs.forEach(input => {
+                        input.checked = input.value === wizardState.size;
+                    });
+
+                    // Couleur produit
+                    const mainColorInputs = document.querySelectorAll('input[name="color"]');
+                    mainColorInputs.forEach(input => {
+                        input.checked = input.value === wizardState.color;
+                    });
+                }
+
+                // === EVENT LISTENERS ===
+
+                // Navigation
+                btnNext.addEventListener('click', () => {
+                    syncWithMainForm();
+                    goToStep(currentStep + 1);
+                });
+
+                btnPrev.addEventListener('click', () => {
+                    goToStep(currentStep - 1);
+                });
+
+                // Step 1: Texte
+                if (wizardTextInput) {
+                    wizardTextInput.addEventListener('input', function() {
+                        wizardState.text = this.value.trim();
+                        updateMiniPreview();
+                    });
+                    // Init depuis preset
+                    if (wizardTextInput.value) {
+                        wizardState.text = wizardTextInput.value.trim();
+                        updateMiniPreview();
+                    }
+                }
+
+                // Step 2: Polices
+                if (wizardFonts) {
+                    wizardFonts.addEventListener('click', function(e) {
+                        const btn = e.target.closest('.wizard-font-btn');
+                        if (!btn) return;
+
+                        wizardFonts.querySelectorAll('.wizard-font-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+
+                        wizardState.font = btn.dataset.font;
+                        wizardState.fontLabel = btn.textContent.trim();
+                        wizardState.fontCategory = btn.dataset.category || 'sans-serif';
+                        updateMiniPreview();
+                    });
+                }
+
+                // Step 2: Couleur texte
+                if (wizardTextColors) {
+                    wizardTextColors.addEventListener('click', function(e) {
+                        const btn = e.target.closest('.wizard-color-btn');
+                        if (!btn) return;
+
+                        wizardTextColors.querySelectorAll('.wizard-color-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+
+                        wizardState.textColor = btn.dataset.color;
+                        wizardState.textColorValue = btn.dataset.value;
+                        updateMiniPreview();
+                    });
+                }
+
+                // Step 3: Position
+                if (wizardPositions) {
+                    wizardPositions.addEventListener('click', function(e) {
+                        const btn = e.target.closest('.position-preset-btn');
+                        if (!btn) return;
+
+                        wizardPositions.querySelectorAll('.position-preset-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+
+                        wizardState.positionY = parseFloat(btn.dataset.y);
+                        updateMiniPreview();
+                    });
+                }
+
+                // Step 4: Taille
+                if (wizardSizes) {
+                    wizardSizes.addEventListener('click', function(e) {
+                        const btn = e.target.closest('.wizard-option');
+                        if (!btn) return;
+
+                        wizardSizes.querySelectorAll('.wizard-option').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+
+                        wizardState.size = btn.dataset.size;
+                    });
+                }
+
+                // Step 4: Couleur produit
+                if (wizardProductColors) {
+                    wizardProductColors.addEventListener('click', function(e) {
+                        const btn = e.target.closest('.wizard-color-btn');
+                        if (!btn) return;
+
+                        wizardProductColors.querySelectorAll('.wizard-color-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+
+                        wizardState.color = btn.dataset.color;
+                        wizardState.colorHex = btn.dataset.hex;
+
+                        // Mettre à jour l'image si variante disponible
+                        if (btn.dataset.imageFront && miniPreviewImg) {
+                            miniPreviewImg.src = btn.dataset.imageFront;
+                        }
+                        if (btn.dataset.imageFront && wizardSummaryImg) {
+                            wizardSummaryImg.src = btn.dataset.imageFront;
+                        }
+                    });
+                }
+
+                // Synchroniser au submit
+                const form = document.getElementById('customizationForm');
+                if (form) {
+                    form.addEventListener('submit', function() {
+                        syncWithMainForm();
+                    });
+                }
+
+                // Initialiser
+                updateMiniPreview();
+
+            })();
 
         })();
     </script>
