@@ -91,9 +91,22 @@
             drawerTitle: document.querySelector('.cfg-drawer-title'),
             drawerContent: document.querySelector('.cfg-drawer-content'),
             drawerClose: document.querySelector('.cfg-drawer-close'),
-            textInput: document.querySelector('.cfg-text-input'),
-            fontDropdown: document.querySelector('.cfg-font-dropdown'),
-            fontList: document.querySelector('.cfg-font-list'),
+            // YourSurprise style controls
+            textInput: document.getElementById('cfgTextInput'),
+            textCounter: document.getElementById('cfgTextCount'),
+            fontSelect: document.getElementById('cfgFontSelect'),
+            colorPicker: document.getElementById('cfgColorPicker'),
+            colorDropdown: document.getElementById('cfgColorDropdown'),
+            styleBtns: document.querySelectorAll('.cfg-style-btn'),
+            alignBtns: document.querySelectorAll('.cfg-align-btn'),
+            dimBtns: document.querySelectorAll('.cfg-dim-btn'),
+            rotationSlider: document.getElementById('cfgRotation'),
+            moveBtns: document.querySelectorAll('.cfg-move-btn'),
+            layerBtns: document.querySelectorAll('.cfg-layer-btn'),
+            deleteBtn: document.getElementById('cfgDeleteElement'),
+            addTextBtn: document.getElementById('cfgAddText'),
+            toolsTitle: document.querySelector('.cfg-tools-title'),
+            // Legacy
             colorSwatches: document.querySelectorAll('.cfg-color-swatch'),
             techniqueItems: document.querySelectorAll('.cfg-technique-item'),
             layersList: document.querySelector('.cfg-layers-list'),
@@ -257,16 +270,21 @@
         const stageWidth = state.stage.width();
         const stageHeight = state.stage.height();
 
+        // Get values from controls if not specified in options
+        const fontFamily = options.fontFamily || DOM.fontSelect?.value || 'Inter';
+        const fill = options.fill || DOM.colorPicker?.dataset.hex || '#1A1A2E';
+
         const textNode = new Konva.Text({
             x: options.x || stageWidth / 2,
             y: options.y || stageHeight / 2,
             text: text || 'Votre texte',
-            fontSize: options.fontSize || 24,
-            fontFamily: options.fontFamily || 'Inter',
-            fill: options.fill || '#1A1A2E',
+            fontSize: options.fontSize || 28,
+            fontFamily: fontFamily,
+            fill: fill,
             draggable: true,
             offsetX: 0,
             offsetY: 0,
+            align: 'center',
         });
 
         // Center offset
@@ -455,11 +473,77 @@
             element.transformer.visible(true);
             openDrawer(element);
             highlightLayerItem(element.id);
+            // Update YourSurprise controls with element values
+            updateControlsFromElement(element);
         } else {
             closeDrawer();
+            clearControls();
         }
 
         state.layer.batchDraw();
+    }
+
+    function updateControlsFromElement(element) {
+        if (!element) return;
+
+        // Update tools title
+        if (DOM.toolsTitle) {
+            DOM.toolsTitle.textContent = element.type === 'text' ? 'Texte' : 'Image';
+        }
+
+        if (element.type === 'text') {
+            const props = element.properties;
+
+            // Text input
+            if (DOM.textInput) {
+                DOM.textInput.value = props.text || '';
+                if (DOM.textCounter) {
+                    DOM.textCounter.textContent = (props.text || '').length;
+                }
+            }
+
+            // Font select
+            if (DOM.fontSelect) {
+                DOM.fontSelect.value = props.fontFamily || 'Inter';
+            }
+
+            // Color picker
+            if (DOM.colorPicker && props.fill) {
+                DOM.colorPicker.style.backgroundColor = props.fill;
+                DOM.colorPicker.dataset.hex = props.fill;
+            }
+
+            // Style buttons
+            DOM.styleBtns?.forEach(btn => {
+                const style = btn.dataset.style;
+                const fontStyle = element.konvaNode.fontStyle() || '';
+                if (style === 'bold') {
+                    btn.classList.toggle('active', fontStyle.includes('bold'));
+                } else if (style === 'italic') {
+                    btn.classList.toggle('active', fontStyle.includes('italic'));
+                }
+            });
+
+            // Align buttons
+            DOM.alignBtns?.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.align === (props.align || 'center'));
+            });
+
+            // Rotation slider
+            if (DOM.rotationSlider) {
+                DOM.rotationSlider.value = props.rotation || 0;
+            }
+        }
+    }
+
+    function clearControls() {
+        if (DOM.textInput) DOM.textInput.value = '';
+        if (DOM.textCounter) DOM.textCounter.textContent = '0';
+        if (DOM.rotationSlider) DOM.rotationSlider.value = 0;
+        DOM.styleBtns?.forEach(btn => btn.classList.remove('active'));
+        DOM.alignBtns?.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.align === 'center');
+        });
     }
 
     function deleteElement(element) {
@@ -898,18 +982,206 @@
             });
         });
 
-        // Text input
+        // Text input - Enter to add
         DOM.textInput?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const text = DOM.textInput.value.trim();
                 if (text) {
                     addTextElement(text);
-                    DOM.textInput.value = '';
                 }
             }
         });
 
-        // Color swatches in tools panel
+        // Text input - Character counter
+        DOM.textInput?.addEventListener('input', (e) => {
+            const count = e.target.value.length;
+            if (DOM.textCounter) {
+                DOM.textCounter.textContent = count;
+            }
+            // Update selected element text in real-time
+            if (state.selectedElement && state.selectedElement.type === 'text') {
+                state.selectedElement.properties.text = e.target.value;
+                state.selectedElement.konvaNode.text(e.target.value);
+                state.selectedElement.konvaNode.offsetX(state.selectedElement.konvaNode.width() / 2);
+                state.layer.batchDraw();
+                saveDraft();
+            }
+        });
+
+        // Add text button
+        DOM.addTextBtn?.addEventListener('click', () => {
+            const text = DOM.textInput?.value.trim() || 'Nouveau texte';
+            addTextElement(text);
+        });
+
+        // Delete element button
+        DOM.deleteBtn?.addEventListener('click', () => {
+            if (state.selectedElement) {
+                deleteElement(state.selectedElement);
+            }
+        });
+
+        // Font select
+        DOM.fontSelect?.addEventListener('change', (e) => {
+            if (state.selectedElement && state.selectedElement.type === 'text') {
+                const fontFamily = e.target.value;
+                state.selectedElement.properties.fontFamily = fontFamily;
+                state.selectedElement.konvaNode.fontFamily(fontFamily);
+                state.selectedElement.konvaNode.offsetX(state.selectedElement.konvaNode.width() / 2);
+                state.layer.batchDraw();
+                saveDraft();
+            }
+        });
+
+        // Color picker click - toggle dropdown
+        DOM.colorPicker?.addEventListener('click', () => {
+            if (DOM.colorDropdown) {
+                const isOpen = DOM.colorDropdown.style.display !== 'none';
+                DOM.colorDropdown.style.display = isOpen ? 'none' : 'flex';
+            }
+        });
+
+        // Color dropdown swatches
+        DOM.colorDropdown?.querySelectorAll('.cfg-color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                const hex = swatch.dataset.hex;
+                // Update picker display
+                if (DOM.colorPicker) {
+                    DOM.colorPicker.style.backgroundColor = hex;
+                    DOM.colorPicker.dataset.hex = hex;
+                }
+                // Update selected element
+                if (state.selectedElement && state.selectedElement.type === 'text') {
+                    state.selectedElement.properties.fill = hex;
+                    state.selectedElement.konvaNode.fill(hex);
+                    state.layer.batchDraw();
+                    saveDraft();
+                }
+                // Mark selected
+                DOM.colorDropdown.querySelectorAll('.cfg-color-swatch').forEach(s => s.classList.remove('selected'));
+                swatch.classList.add('selected');
+                // Close dropdown
+                DOM.colorDropdown.style.display = 'none';
+            });
+        });
+
+        // Style buttons (Bold / Italic)
+        DOM.styleBtns?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!state.selectedElement || state.selectedElement.type !== 'text') return;
+
+                const style = btn.dataset.style;
+                btn.classList.toggle('active');
+
+                if (style === 'bold') {
+                    const isBold = btn.classList.contains('active');
+                    state.selectedElement.properties.fontStyle = isBold ? 'bold' : 'normal';
+                    state.selectedElement.konvaNode.fontStyle(isBold ? 'bold' : 'normal');
+                } else if (style === 'italic') {
+                    const isItalic = btn.classList.contains('active');
+                    const currentStyle = state.selectedElement.konvaNode.fontStyle() || '';
+                    const newStyle = isItalic
+                        ? (currentStyle.includes('bold') ? 'bold italic' : 'italic')
+                        : currentStyle.replace('italic', '').trim() || 'normal';
+                    state.selectedElement.konvaNode.fontStyle(newStyle);
+                }
+                state.selectedElement.konvaNode.offsetX(state.selectedElement.konvaNode.width() / 2);
+                state.layer.batchDraw();
+                saveDraft();
+            });
+        });
+
+        // Align buttons
+        DOM.alignBtns?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!state.selectedElement || state.selectedElement.type !== 'text') return;
+
+                DOM.alignBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const align = btn.dataset.align;
+                state.selectedElement.properties.align = align;
+                state.selectedElement.konvaNode.align(align);
+                state.layer.batchDraw();
+                saveDraft();
+            });
+        });
+
+        // Dimension buttons (+/-)
+        DOM.dimBtns?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!state.selectedElement) return;
+
+                const action = btn.dataset.action;
+                const node = state.selectedElement.konvaNode;
+                const scaleChange = action === 'increase' ? 1.1 : 0.9;
+
+                node.scaleX(node.scaleX() * scaleChange);
+                node.scaleY(node.scaleY() * scaleChange);
+                state.layer.batchDraw();
+                saveDraft();
+            });
+        });
+
+        // Rotation slider
+        DOM.rotationSlider?.addEventListener('input', (e) => {
+            if (!state.selectedElement) return;
+
+            const rotation = parseInt(e.target.value);
+            state.selectedElement.properties.rotation = rotation;
+            state.selectedElement.konvaNode.rotation(rotation);
+            state.layer.batchDraw();
+        });
+
+        DOM.rotationSlider?.addEventListener('change', () => {
+            saveDraft();
+        });
+
+        // Move buttons (arrows)
+        DOM.moveBtns?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!state.selectedElement) return;
+
+                const dir = btn.dataset.dir;
+                const node = state.selectedElement.konvaNode;
+                const step = 5; // pixels
+
+                switch (dir) {
+                    case 'left': node.x(node.x() - step); break;
+                    case 'right': node.x(node.x() + step); break;
+                    case 'up': node.y(node.y() - step); break;
+                    case 'down': node.y(node.y() + step); break;
+                }
+                state.layer.batchDraw();
+                saveDraft();
+            });
+        });
+
+        // Layer buttons (front/back)
+        DOM.layerBtns?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!state.selectedElement) return;
+
+                const action = btn.dataset.action;
+                const node = state.selectedElement.konvaNode;
+
+                if (action === 'front') {
+                    node.moveToTop();
+                    state.selectedElement.transformer.moveToTop();
+                } else if (action === 'back') {
+                    node.moveToBottom();
+                    // Keep product image at bottom
+                    if (state.productImage) {
+                        state.productImage.moveToBottom();
+                    }
+                }
+                state.layer.batchDraw();
+                saveDraft();
+                updateLayersPanel();
+            });
+        });
+
+        // Color swatches in tools panel (legacy)
         DOM.colorSwatches?.forEach(swatch => {
             swatch.addEventListener('click', () => {
                 if (state.selectedElement && state.selectedElement.type === 'text') {
