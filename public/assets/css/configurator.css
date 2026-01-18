@@ -1835,7 +1835,7 @@
         border: 1px solid rgba(0,0,0,0.06);
         border-radius: 14px;
         font-size: 1rem;
-        margin-bottom: 20px;
+        margin-bottom: 12px;
         transition: all 0.3s ease;
         box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
@@ -1844,6 +1844,36 @@
         outline: none;
         border-color: var(--pink-main);
         box-shadow: 0 4px 16px rgba(255, 105, 180, 0.15);
+    }
+
+    .cfg-mobile-add-btn {
+        width: 100%;
+        padding: 16px 24px;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
+        border: none;
+        border-radius: 14px;
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
+        transition: all 0.3s ease;
+    }
+
+    .cfg-mobile-add-btn:active {
+        transform: scale(0.98);
+        box-shadow: 0 3px 12px rgba(255, 105, 180, 0.3);
+    }
+
+    .cfg-mobile-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
+        margin: 20px 0;
     }
 
     .cfg-mobile-section {
@@ -2008,31 +2038,6 @@
         border-color: var(--pink-main);
         transform: scale(1.1);
         box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
-    }
-
-    /* Modern mobile add button */
-    .cfg-mobile-add-btn {
-        width: 100%;
-        padding: 16px 24px;
-        margin-top: 20px;
-        background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
-        border: none;
-        border-radius: 14px;
-        color: white;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
-        transition: all 0.3s ease;
-    }
-
-    .cfg-mobile-add-btn:active {
-        transform: scale(0.98);
-        box-shadow: 0 3px 12px rgba(255, 105, 180, 0.3);
     }
 
     .cfg-mobile-drawer-apply {

@@ -1475,6 +1475,60 @@ $colorImages['Original'] = ['front' => $product['image_front_url'], 'back' => $p
 
 ---
 
+### 2026-01-18 - Session 25 (DESIGN ULTRA-MODERNE 2026 - DROPDOWNS)
+
+**Objectif** : Refonte complète du design des sélecteurs (polices, techniques) pour un style ultra-moderne 2026 avec glass morphism.
+
+#### Bugs corrigés
+
+| Bug | Cause | Fix |
+|-----|-------|-----|
+| Sélecteur techniques coupé sur mobile | Largeur insuffisante et positionnement | Changé en full width avec label au-dessus |
+| Techniques absentes sur mobile | Non incluses dans le mobile drawer | Ajout `renderMobileTechniqueOptions()` |
+| Image produit disparaît au chargement | Problème CORS avec les images | Ajout `crossOrigin = 'anonymous'` + fallback sans CORS |
+| Bouton "Ajouter le texte" trop bas | Position après toutes les options | Déplacé juste après l'input texte |
+
+#### Design Ultra-Moderne 2026 (Glass Morphism)
+
+**Remplacement des éléments natifs `<select>` par des custom dropdowns** :
+
+| Avant | Après |
+|-------|-------|
+| Select natif navigateur | Custom dropdown avec glass morphism |
+| Pas d'animations | Transitions cubic-bezier fluides |
+| Pas de preview | Preview police dans le dropdown |
+| Design "année 2000" | Design 2026 avec backdrop-filter blur |
+
+**Caractéristiques des nouveaux dropdowns** :
+- `backdrop-filter: blur(10px)` pour effet glassmorphism
+- Transitions `cubic-bezier(0.4, 0, 0.2, 1)` pour animations fluides
+- Ombres subtiles `box-shadow: 0 12px 40px rgba(0,0,0,0.12)`
+- Coins arrondis `border-radius: 14px/16px`
+- Effets hover avec scale et couleur d'accent
+- Badge prix moderne pour les techniques
+
+**Fichiers modifiés** :
+
+| Fichier | Modifications |
+|---------|---------------|
+| `public/product.php` | Custom dropdowns HTML pour polices et techniques |
+| `public/assets/css/configurator.css` | +200 lignes CSS modern dropdowns + mobile styles |
+| `public/assets/js/configurator.js` | Event handlers pour dropdowns + mobile drawer content |
+
+#### Mobile Ultra-Moderne
+
+**Améliorations mobile drawer** :
+- Input texte avec style moderne
+- Bouton "Ajouter le texte" en haut (juste après l'input)
+- Séparateur visuel avec gradient
+- Dropdowns custom pour polices et techniques
+- Pastilles couleur agrandies et arrondies (40x40px)
+- Bouton CTA avec gradient rose et ombre colorée
+
+**Statut** : ✅ TERMINÉ — Design ultra-moderne 2026 en production
+
+---
+
 ### 2026-01-18 - Session 19 (STEP 5.A.5 - CSS ADMIN UPSELLS)
 
 **Objectif** : Implémenter proprement le CSS de la page admin/upsells.php

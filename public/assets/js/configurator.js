@@ -1938,8 +1938,15 @@
                 return `
                     <input type="text" class="cfg-mobile-input" placeholder="Tapez votre texte..." id="mobile-text-input">
 
+                    <button class="cfg-mobile-add-btn" id="mobile-add-text">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                        Ajouter le texte
+                    </button>
+
+                    <div class="cfg-mobile-divider"></div>
+
                     <div class="cfg-mobile-section">
-                        <div class="cfg-mobile-label">Police</div>
+                        <div class="cfg-mobile-label">Police d'écriture</div>
                         <div class="cfg-mobile-dropdown" id="mobile-font-dropdown">
                             <div class="cfg-mobile-dropdown-trigger" id="mobile-font-trigger">
                                 <span class="cfg-mobile-dropdown-text" id="mobile-font-preview">Poppins</span>
@@ -1952,14 +1959,14 @@
                     </div>
 
                     <div class="cfg-mobile-section">
-                        <div class="cfg-mobile-label">Couleur</div>
+                        <div class="cfg-mobile-label">Couleur du texte</div>
                         <div class="cfg-mobile-colors" id="mobile-colors">
                             ${renderColorSwatches('#1A1A2E')}
                         </div>
                     </div>
 
                     <div class="cfg-mobile-section">
-                        <div class="cfg-mobile-label">Technique</div>
+                        <div class="cfg-mobile-label">Technique de marquage</div>
                         <div class="cfg-mobile-dropdown" id="mobile-technique-dropdown">
                             <div class="cfg-mobile-dropdown-trigger" id="mobile-technique-trigger">
                                 <span class="cfg-mobile-dropdown-text" id="mobile-technique-preview">${window.__TECHNIQUES_DATA?.[0]?.label || 'Flex'}</span>
@@ -1971,11 +1978,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <button class="cfg-mobile-add-btn" id="mobile-add-text">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                        Ajouter le texte
-                    </button>
                 `;
             case 'layers':
                 const currentViewElements = state.elements.filter(el => el.view === state.currentView);

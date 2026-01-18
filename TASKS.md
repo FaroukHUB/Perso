@@ -370,7 +370,7 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 ---
 
-**Dernière mise à jour** : 2026-01-18 — Clôture rapatriement upsells + structuration chantiers futurs
+**Dernière mise à jour** : 2026-01-18 — Design ultra-moderne 2026 dropdowns + fixes mobile
 
 ---
 
@@ -563,6 +563,20 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 - [x] **E.1.2.23** — Prix dynamique selon technique ✅
 - [x] **E.1.2.24** — Bouton aperçu (oeil) → modal rendu réel ✅
 
+#### ✅ STEP DESIGN-2.8 — Design Ultra-Moderne 2026 (TERMINÉ 2026-01-18)
+- [x] **E.1.2.25** — Custom dropdowns glass morphism (polices + techniques) ✅
+- [x] **E.1.2.26** — Animations cubic-bezier fluides ✅
+- [x] **E.1.2.27** — Fix sélecteur techniques coupé sur mobile ✅
+- [x] **E.1.2.28** — Ajout techniques dans mobile drawer ✅
+- [x] **E.1.2.29** — Fix image produit disparaît (CORS) ✅
+- [x] **E.1.2.30** — Bouton "Ajouter le texte" remonté en haut du drawer ✅
+- [x] **E.1.2.31** — Mobile drawer ultra-moderne (pastilles 40px, gradients) ✅
+
+**Fichiers modifiés** :
+- `public/product.php` — Custom dropdowns HTML
+- `public/assets/css/configurator.css` — +200 lignes glass morphism
+- `public/assets/js/configurator.js` — Dropdown handlers + mobile content
+
 #### STEP DESIGN-3 — Admin Designs (À VENIR)
 - [ ] **E.1.3.1** — Table design_templates + CRUD
 - [ ] **E.1.3.2** — Admin création designs (upload SVG/PNG)
@@ -571,4 +585,4 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 **Priorité** : 🟡 MOYENNE (peut être Phase 2)
 
-**Statut** : 🟢 CONFIGURATEUR V2 EN PRODUCTION — DESIGN-3 optionnel
+**Statut** : 🟢 CONFIGURATEUR V2 EN PRODUCTION + DESIGN ULTRA-MODERNE 2026 — DESIGN-3 optionnel
