@@ -45,16 +45,11 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
     if (isset($_POST['add_product'])) {
         $productId = (int) $_POST['product_id'];
         if ($productId) {
-            try {
-                $upsellModel->create([
-                    'product_id' => $productId,
-                    'priority' => 0,
-                    'active' => 1
-                ]);
-            } catch (Exception $e) {
-                echo '<pre>ERREUR CREATE: ' . $e->getMessage() . "\n" . $e->getTraceAsString() . '</pre>';
-                exit;
-            }
+            $upsellModel->create([
+                'product_id' => $productId,
+                'priority' => 0,
+                'active' => 1
+            ]);
         }
         redirect('/admin/upsells.php?added=1');
     }
@@ -161,7 +156,7 @@ $availableProducts = array_filter($products, fn($p) => !in_array($p['id'], $adde
                                 <option value="">-- Choisir un produit --</option>
                                 <?php foreach ($availableProducts as $product): ?>
                                     <option value="<?= $product['id'] ?>">
-                                        <?= h($product['name']) ?> - <?= formatPrice($product['price']) ?>
+                                        <?= h($product['name']) ?> - <?= formatPrice($product['base_price']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

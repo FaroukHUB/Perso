@@ -22,8 +22,8 @@ class ProductUpsell
     public function findAll(bool $activeOnly = false): array
     {
         try {
-            $sql = 'SELECT pu.*, p.name as product_name, p.price as product_price,
-                           p.image_front_url as product_image, p.slug as product_slug
+            $sql = 'SELECT pu.*, p.name as product_name, p.base_price as product_price,
+                           p.image_front_url as product_image
                     FROM product_upsells pu
                     LEFT JOIN products p ON pu.product_id = p.id';
             if ($activeOnly) {
@@ -44,7 +44,7 @@ class ProductUpsell
     public function findById(int $id): ?array
     {
         $stmt = $this->db->prepare(
-            'SELECT pu.*, p.name as product_name, p.price as product_price,
+            'SELECT pu.*, p.name as product_name, p.base_price as product_price,
                     p.image_front_url as product_image
              FROM product_upsells pu
              LEFT JOIN products p ON pu.product_id = p.id
@@ -139,8 +139,7 @@ class ProductUpsell
             $limit = (int) ($settings['max_items'] ?? $limit);
 
             $sql = 'SELECT pu.*, p.id as product_id, p.name as product_name,
-                           p.price as product_price, p.image_front_url as product_image,
-                           p.slug as product_slug
+                           p.base_price as product_price, p.image_front_url as product_image
                     FROM product_upsells pu
                     JOIN products p ON pu.product_id = p.id AND p.active = 1
                     WHERE pu.active = 1';
@@ -167,7 +166,6 @@ class ProductUpsell
                     'price' => (float) $u['product_price'],
                     'promo_price' => $u['promo_price'] ? (float) $u['promo_price'] : null,
                     'image' => $u['product_image'],
-                    'slug' => $u['product_slug'],
                     'badge' => $u['badge_text']
                 ];
             }, $upsells);
