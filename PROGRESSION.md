@@ -1397,6 +1397,38 @@ form.addEventListener('submit', (e) => {
 
 ---
 
+### 2026-01-18 - Session 23 (CONFIGURATEUR V2 - VERSION FINALE)
+
+**Objectif** : Passer le configurateur v2 par défaut et corriger les derniers bugs.
+
+#### Changements majeurs
+
+| Action | Détail |
+|--------|--------|
+| **V2 par défaut** | `$useNewConfigurator = true` — utiliser `?v1=1` pour l'ancien |
+| **Bouton "Ajouter le texte"** | Nouveau bouton rose visible sous l'input texte |
+| **Couleur "Original"** | Auto-ajoutée en premier dans le sélecteur de couleurs |
+
+#### Bug fixes
+
+| Bug | Cause | Fix |
+|-----|-------|-----|
+| Texte ne s'affiche pas | Pas de bouton visible pour ajouter | Ajout bouton "Ajouter le texte" |
+| Impossible de revenir à la couleur originale | Produit original non inclus dans les variantes | Auto-ajout "Original" avec images principales |
+
+#### Fonctionnement couleur "Original"
+
+```php
+// Si variantes couleur existent mais l'original n'est pas inclus
+// → Ajouter "Original" en premier avec image_front_url / image_back_url du produit
+$colors = ['Original' => '#FFFFFF'] + $colors;
+$colorImages['Original'] = ['front' => $product['image_front_url'], 'back' => $product['image_back_url']];
+```
+
+**Statut** : ✅ CONFIGURATEUR V2 EN PRODUCTION
+
+---
+
 ### 2026-01-18 - Session 19 (STEP 5.A.5 - CSS ADMIN UPSELLS)
 
 **Objectif** : Implémenter proprement le CSS de la page admin/upsells.php

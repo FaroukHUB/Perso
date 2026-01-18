@@ -544,6 +544,11 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 **Note** : Les boutons "Disposer" fonctionnent (nécessitent élément sélectionné). Les designs sont des placeholders (DESIGN-3 requis).
 
+#### ✅ STEP DESIGN-2.6 — Mise en production (TERMINÉ 2026-01-18)
+- [x] **E.1.2.18** — V2 par défaut (retrait flag ?v2=1) ✅
+- [x] **E.1.2.19** — Bouton "Ajouter le texte" visible ✅
+- [x] **E.1.2.20** — Couleur "Original" auto-ajoutée ✅
+
 #### STEP DESIGN-3 — Admin Designs (À VENIR)
 - [ ] **E.1.3.1** — Table design_templates + CRUD
 - [ ] **E.1.3.2** — Admin création designs (upload SVG/PNG)
@@ -552,4 +557,4 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 **Priorité** : 🟡 MOYENNE (peut être Phase 2)
 
-**Statut** : 🟢 DESIGN-2.5 TERMINÉ — Prêt pour version finale sans designs OU DESIGN-3
+**Statut** : 🟢 CONFIGURATEUR V2 EN PRODUCTION — DESIGN-3 optionnel
