@@ -2007,22 +2007,18 @@ $cartCount = Cart::count();
                             <!-- Technique de personnalisation -->
                             <div class="cfg-section-divider"></div>
 
-                            <!-- Sélecteur de techniques (dropdown comme les polices) -->
-                            <div class="cfg-option-row">
-                                <div class="cfg-option-label">Technique</div>
-                                <div class="cfg-option-controls">
-                                    <select class="cfg-technique-select" id="cfgTechniqueSelect">
-                                        <?php foreach ($techniques as $index => $tech): ?>
-                                        <option value="<?= h($tech['value']) ?>"
-                                                data-price="<?= h($tech['price']) ?>"
-                                                data-desc="<?= h($tech['description']) ?>"
-                                                <?= $index === 0 ? 'selected' : '' ?>>
-                                            <?= h($tech['label']) ?><?= $tech['price'] > 0 ? ' (+' . number_format($tech['price'], 2, ',', ' ') . ' €)' : ' (Inclus)' ?>
-                                        </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
+                            <!-- Sélecteur de techniques (dropdown pleine largeur) -->
+                            <label class="cfg-section-label">Technique de marquage</label>
+                            <select class="cfg-technique-select cfg-full-width" id="cfgTechniqueSelect">
+                                <?php foreach ($techniques as $index => $tech): ?>
+                                <option value="<?= h($tech['value']) ?>"
+                                        data-price="<?= h($tech['price']) ?>"
+                                        data-desc="<?= h($tech['description']) ?>"
+                                        <?= $index === 0 ? 'selected' : '' ?>>
+                                    <?= h($tech['label']) ?><?= $tech['price'] > 0 ? ' (+' . number_format($tech['price'], 2, ',', ' ') . ' €)' : ' (Inclus)' ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
 
                             <!-- Description de la technique sélectionnée -->
                             <div class="cfg-technique-details" id="cfgTechniqueDetails">

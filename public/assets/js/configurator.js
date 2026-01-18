@@ -280,13 +280,26 @@
             ? productData.imageFront
             : productData.imageBack;
 
-        if (!imageUrl) return;
+        if (!imageUrl) {
+            console.warn('[Configurator] No image URL for view:', state.currentView);
+            return;
+        }
 
-        Konva.Image.fromURL(imageUrl, (image) => {
+        console.log('[Configurator] Loading product image:', imageUrl);
+
+        // Create image element manually to handle CORS
+        const imageObj = new Image();
+        imageObj.crossOrigin = 'anonymous';
+
+        imageObj.onload = function() {
             // Remove old product image
             if (state.productImage) {
                 state.productImage.destroy();
             }
+
+            const image = new Konva.Image({
+                image: imageObj,
+            });
 
             // Scale image to fit stage
             const stageWidth = state.stage.width();
@@ -312,7 +325,51 @@
             drawPrintZone();
 
             state.layer.batchDraw();
-        });
+            console.log('[Configurator] Product image loaded successfully');
+        };
+
+        imageObj.onerror = function(err) {
+            console.error('[Configurator] Failed to load product image:', imageUrl, err);
+            // Try without crossOrigin as fallback
+            const fallbackImg = new Image();
+            fallbackImg.onload = function() {
+                if (state.productImage) {
+                    state.productImage.destroy();
+                }
+
+                const image = new Konva.Image({
+                    image: fallbackImg,
+                });
+
+                const stageWidth = state.stage.width();
+                const stageHeight = state.stage.height();
+                const scale = Math.min(
+                    (stageWidth * 0.85) / image.width(),
+                    (stageHeight * 0.85) / image.height()
+                );
+
+                image.setAttrs({
+                    x: (stageWidth - image.width() * scale) / 2,
+                    y: (stageHeight - image.height() * scale) / 2,
+                    scaleX: scale,
+                    scaleY: scale,
+                    listening: false,
+                });
+
+                state.productImage = image;
+                state.layer.add(image);
+                image.moveToBottom();
+                drawPrintZone();
+                state.layer.batchDraw();
+                console.log('[Configurator] Product image loaded via fallback');
+            };
+            fallbackImg.onerror = function() {
+                console.error('[Configurator] Fallback also failed for:', imageUrl);
+            };
+            fallbackImg.src = imageUrl;
+        };
+
+        imageObj.src = imageUrl;
     }
 
     /**
@@ -324,13 +381,20 @@
             return;
         }
 
-        console.log('[Configurator] Loading product image:', imageUrl);
+        console.log('[Configurator] Changing product image:', imageUrl);
 
-        Konva.Image.fromURL(imageUrl, (image) => {
+        const imageObj = new Image();
+        imageObj.crossOrigin = 'anonymous';
+
+        imageObj.onload = function() {
             // Remove old product image
             if (state.productImage) {
                 state.productImage.destroy();
             }
+
+            const image = new Konva.Image({
+                image: imageObj,
+            });
 
             // Scale image to fit stage
             const stageWidth = state.stage.width();
@@ -357,9 +421,40 @@
 
             state.layer.batchDraw();
             console.log('[Configurator] Product image changed to:', colorName);
-        }, (err) => {
-            console.error('[Configurator] Failed to load product image:', err);
-        });
+        };
+
+        imageObj.onerror = function(err) {
+            console.error('[Configurator] Failed to load variant image:', imageUrl, err);
+            // Try fallback without CORS
+            const fallbackImg = new Image();
+            fallbackImg.onload = function() {
+                if (state.productImage) {
+                    state.productImage.destroy();
+                }
+                const image = new Konva.Image({ image: fallbackImg });
+                const stageWidth = state.stage.width();
+                const stageHeight = state.stage.height();
+                const scale = Math.min(
+                    (stageWidth * 0.85) / image.width(),
+                    (stageHeight * 0.85) / image.height()
+                );
+                image.setAttrs({
+                    x: (stageWidth - image.width() * scale) / 2,
+                    y: (stageHeight - image.height() * scale) / 2,
+                    scaleX: scale,
+                    scaleY: scale,
+                    listening: false,
+                });
+                state.productImage = image;
+                state.layer.add(image);
+                image.moveToBottom();
+                drawPrintZone();
+                state.layer.batchDraw();
+            };
+            fallbackImg.src = imageUrl;
+        };
+
+        imageObj.src = imageUrl;
     }
 
     function drawPrintZone() {
@@ -980,6 +1075,20 @@
                   style="background-color: ${c.hex}"
                   data-color="${c.value}"
                   data-hex="${c.hex}"></div>`
+        ).join('');
+    }
+
+    function renderTechniqueOptions() {
+        const techniques = window.__TECHNIQUES_DATA || [
+            { value: 'flex', label: 'Flex', price: 0 },
+            { value: 'flock', label: 'Flock', price: 2 },
+            { value: 'broderie', label: 'Broderie', price: 5 },
+        ];
+        const selected = window.__SELECTED_TECHNIQUE || techniques[0]?.value || 'flex';
+        return techniques.map(t =>
+            `<option value="${t.value}" ${t.value === selected ? 'selected' : ''}>
+                ${t.label}${t.price > 0 ? ' (+' + t.price.toFixed(2).replace('.', ',') + ' €)' : ' (Inclus)'}
+            </option>`
         ).join('');
     }
 
@@ -1714,6 +1823,10 @@
                     <div class="cfg-color-palette" id="mobile-colors">
                         ${renderColorSwatches('#1A1A2E')}
                     </div>
+                    <div class="cfg-section-label">Technique</div>
+                    <select class="cfg-prop-input" id="mobile-technique" style="margin-bottom: 16px;">
+                        ${renderTechniqueOptions()}
+                    </select>
                     <button class="cfg-mobile-drawer-apply" id="mobile-add-text">
                         ✓ Ajouter le texte
                     </button>
@@ -1745,6 +1858,7 @@
             const textInput = document.getElementById('mobile-text-input');
             const fontSelect = document.getElementById('mobile-font');
             const colorPalette = document.getElementById('mobile-colors');
+            const techniqueSelect = document.getElementById('mobile-technique');
 
             let selectedColor = '#1A1A2E';
 
@@ -1754,6 +1868,17 @@
                     swatch.classList.add('selected');
                     selectedColor = swatch.dataset.hex;
                 });
+            });
+
+            // Handle technique selection on mobile
+            techniqueSelect?.addEventListener('change', () => {
+                window.__SELECTED_TECHNIQUE = techniqueSelect.value;
+                // Also update the desktop technique selector if exists
+                const desktopTechSelect = document.getElementById('cfgTechniqueSelect');
+                if (desktopTechSelect) {
+                    desktopTechSelect.value = techniqueSelect.value;
+                }
+                updatePrice();
             });
 
             addBtn?.addEventListener('click', () => {
