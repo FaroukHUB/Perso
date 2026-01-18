@@ -1886,16 +1886,18 @@ $cartCount = Cart::count();
 
                         <!-- Panel: Texte -->
                         <div class="cfg-tool-panel" data-tool="text">
-                            <div class="cfg-text-input-wrapper">
-                                <input type="text" class="cfg-text-input" id="cfgTextInput"
-                                       placeholder="Saisissez votre texte ici"
-                                       maxlength="<?= $printZone['max_chars'] ?? 35 ?>"
-                                       value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
-                                <span class="cfg-text-counter"><span id="cfgTextCount">0</span>/<?= $printZone['max_chars'] ?? 35 ?></span>
+                            <div class="cfg-text-row">
+                                <div class="cfg-text-input-wrapper">
+                                    <input type="text" class="cfg-text-input" id="cfgTextInput"
+                                           placeholder="Saisissez votre texte ici"
+                                           maxlength="<?= $printZone['max_chars'] ?? 35 ?>"
+                                           value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
+                                    <span class="cfg-text-counter"><span id="cfgTextCount">0</span>/<?= $printZone['max_chars'] ?? 35 ?></span>
+                                </div>
+                                <button type="button" class="cfg-add-text-btn" id="cfgAddTextMain">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                                </button>
                             </div>
-                            <button type="button" class="cfg-add-text-btn" id="cfgAddTextMain">
-                                Ajouter le texte
-                            </button>
 
                             <!-- Ecriture (Modern Font dropdown) -->
                             <label class="cfg-section-label">Police d'écriture</label>

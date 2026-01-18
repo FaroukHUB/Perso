@@ -212,24 +212,49 @@
     color: #999;
 }
 
+/* Text input row with inline button */
+.cfg-text-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.cfg-text-row .cfg-text-input-wrapper {
+    flex: 1;
+    margin-bottom: 0;
+}
+
 .cfg-add-text-btn {
-    width: 100%;
-    padding: 12px 16px;
-    background: var(--gradient-pink);
+    width: 52px;
+    min-width: 52px;
+    height: auto;
+    padding: 0;
+    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
     color: white;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: 14px;
     font-weight: 600;
     font-size: 0.95rem;
     cursor: pointer;
-    transition: all 0.2s;
-    margin-top: 12px;
-    box-shadow: var(--shadow-pink);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(255, 105, 180, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .cfg-add-text-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
+    transform: scale(1.05);
+    box-shadow: 0 6px 24px rgba(255, 105, 180, 0.5);
+}
+
+.cfg-add-text-btn:active {
+    transform: scale(0.98);
+}
+
+.cfg-add-text-btn svg {
+    stroke: white;
 }
 
 /* Font selector */
