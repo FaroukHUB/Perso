@@ -212,6 +212,26 @@
     color: #999;
 }
 
+.cfg-add-text-btn {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--gradient-pink);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 12px;
+    box-shadow: var(--shadow-pink);
+}
+
+.cfg-add-text-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
+}
+
 /* Font selector */
 .cfg-font-selector {
     position: relative;

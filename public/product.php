@@ -144,6 +144,30 @@ if (!empty($colorsFromDb)) {
     $colors = ['blanc' => '#FFFFFF', 'noir' => '#1A1A2E', 'rose' => '#FF69B4', 'menthe' => '#3DFFC0', 'bleu' => '#4A90D9', 'gris' => '#6B7280'];
 }
 
+// Ajouter le produit original comme première option (si images existent)
+if ($hasColorVariants && !empty($product['image_front_url'])) {
+    // Détecter si l'original est déjà dans les couleurs
+    $originalAlreadyIncluded = false;
+    foreach ($colorImages as $colorName => $imgs) {
+        if ($imgs['front'] === '/public' . $product['image_front_url']) {
+            $originalAlreadyIncluded = true;
+            $defaultColorKey = $colorName;
+            break;
+        }
+    }
+
+    // Si l'original n'est pas inclus, l'ajouter en premier
+    if (!$originalAlreadyIncluded) {
+        $originalColors = ['Original' => '#FFFFFF'] + $colors;
+        $colors = $originalColors;
+        $colorImages = ['Original' => [
+            'front' => '/public' . $product['image_front_url'],
+            'back' => !empty($product['image_back_url']) ? '/public' . $product['image_back_url'] : '',
+        ]] + $colorImages;
+        $defaultColorKey = 'Original';
+    }
+}
+
 // Si pas de couleur par défaut explicite, prendre la première
 if ($hasColorVariants && !$defaultColorKey && !empty($colors)) {
     $defaultColorKey = array_key_first($colors);
@@ -313,7 +337,7 @@ $cartCount = Cart::count();
     if ($useNewConfigurator):
     ?>
     <!-- Nouveau Configurateur v2 (Konva.js) -->
-    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=6">
+    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=7">
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <?php endif; ?>
     <style>
@@ -1860,6 +1884,9 @@ $cartCount = Cart::count();
                                        value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
                                 <span class="cfg-text-counter"><span id="cfgTextCount">0</span>/<?= $printZone['max_chars'] ?? 35 ?></span>
                             </div>
+                            <button type="button" class="cfg-add-text-btn" id="cfgAddTextMain">
+                                Ajouter le texte
+                            </button>
 
                             <!-- Ecriture (Font dropdown) -->
                             <div class="cfg-option-row">
@@ -3611,7 +3638,7 @@ $cartCount = Cart::count();
     window.__PRODUCT_COLORS = <?= json_encode($colors ?? []) ?>;
     window.__COLOR_IMAGES = <?= json_encode($colorImages ?? []) ?>;
     </script>
-    <script src="/public/assets/js/configurator.js?v=7"></script>
+    <script src="/public/assets/js/configurator.js?v=8"></script>
     <?php endif; ?>
 </body>
 </html>

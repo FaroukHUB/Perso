@@ -181,6 +181,7 @@
             layerBtns: document.querySelectorAll('.cfg-layer-btn'),
             deleteBtn: document.getElementById('cfgDeleteElement'),
             addTextBtn: document.getElementById('cfgAddText'),
+            addTextMainBtn: document.getElementById('cfgAddTextMain'),
             toolsTitle: document.querySelector('.cfg-tools-title'),
             // Photo upload
             uploadZone: document.getElementById('cfgUploadZone'),
@@ -1174,7 +1175,7 @@
             }
         });
 
-        // Add text button
+        // Add text button (+ Extra texte)
         DOM.addTextBtn?.addEventListener('click', () => {
             console.log('[Configurator] Add text button clicked');
             const text = DOM.textInput?.value.trim() || 'Nouveau texte';
@@ -1183,7 +1184,15 @@
             console.log('[Configurator] Element created:', element);
         });
 
-        console.log('[Configurator] addTextBtn found:', DOM.addTextBtn);
+        // Main add text button (Ajouter le texte)
+        DOM.addTextMainBtn?.addEventListener('click', () => {
+            const text = DOM.textInput?.value.trim();
+            if (text) {
+                addTextElement(text);
+            } else {
+                showNotification('Saisissez un texte', 'error');
+            }
+        });
 
         // Delete element button
         DOM.deleteBtn?.addEventListener('click', () => {
