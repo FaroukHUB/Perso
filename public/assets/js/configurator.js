@@ -168,15 +168,17 @@
     function cacheDOM() {
         DOM = {
             configurator: document.querySelector('.configurator-v2'),
-            stageContainer: document.querySelector('.cfg-canvas-stage'),
-            toolTabs: document.querySelectorAll('.cfg-tab'),
-            toolPanels: document.querySelectorAll('.cfg-tool-panel'),
+            // Canvas - Support both old and new selectors
+            stageContainer: document.querySelector('.cfg-canvas-stage') || document.getElementById('cfgStageContainer'),
+            // Tabs & Panels - Support data-tab (V2 HTML)
+            toolTabs: document.querySelectorAll('.cfg-tab[data-tab]'),
+            toolPanels: document.querySelectorAll('.cfg-tool-panel[data-panel]'),
             viewBtns: document.querySelectorAll('.cfg-view-btn'),
             drawer: document.querySelector('.cfg-drawer'),
             drawerTitle: document.querySelector('.cfg-drawer-title'),
             drawerContent: document.querySelector('.cfg-drawer-content'),
-            drawerClose: document.querySelector('.cfg-drawer-close'),
-            // YourSurprise style controls
+            drawerClose: document.getElementById('cfgDrawerClose'),
+            // Text controls
             textInput: document.getElementById('cfgTextInput'),
             textCounter: document.getElementById('cfgTextCount'),
             fontSelect: document.getElementById('cfgFontSelect'),
@@ -195,12 +197,12 @@
             // Photo upload
             uploadZone: document.getElementById('cfgUploadZone'),
             imageUpload: document.getElementById('cfgImageUpload'),
-            // Product color
-            productColors: document.querySelectorAll('.cfg-product-color-swatch'),
-            // Legacy
-            colorSwatches: document.querySelectorAll('.cfg-color-swatch'),
+            // Product colors - Support both selectors (V2 HTML uses .cfg-product-color)
+            productColors: document.querySelectorAll('.cfg-product-color, .cfg-product-color-swatch'),
+            // Text colors in panel
+            colorSwatches: document.querySelectorAll('.cfg-color-btn, .cfg-color-swatch'),
             techniqueItems: document.querySelectorAll('.cfg-technique-item'),
-            layersList: document.querySelector('.cfg-layers-list'),
+            layersList: document.getElementById('cfgLayersList'),
             layersCount: document.querySelector('.cfg-layers-count'),
             zoomIn: document.querySelector('.cfg-zoom-btn[data-action="zoom-in"]'),
             zoomOut: document.querySelector('.cfg-zoom-btn[data-action="zoom-out"]'),
@@ -213,6 +215,12 @@
             shareBtn: document.getElementById('cfgShareBtn'),
             addCartBtn: document.querySelector('.cfg-add-cart-btn'),
             priceValue: document.querySelector('.cfg-price-value'),
+            // Size selectors (V2)
+            sizeButtons: document.querySelectorAll('.cfg-size-btn'),
+            // Quantity controls (V2)
+            qtyMinus: document.getElementById('cfgQtyMinus'),
+            qtyPlus: document.getElementById('cfgQtyPlus'),
+            qtyInput: document.querySelector('.cfg-qty-input'),
             // Mobile
             mobileTabs: document.querySelectorAll('.cfg-mobile-tab'),
             mobileDrawer: document.querySelector('.cfg-mobile-drawer'),
@@ -1280,11 +1288,89 @@
     // EVENT LISTENERS
     // ===========================================
     function setupEventListeners() {
-        // Tool tabs
+        // Tool tabs - Support both data-tool and data-tab (V2 uses data-tab)
         DOM.toolTabs?.forEach(tab => {
             tab.addEventListener('click', () => {
-                const tool = tab.dataset.tool;
+                const tool = tab.dataset.tab || tab.dataset.tool;
                 switchTool(tool);
+            });
+        });
+
+        // ===========================================
+        // SIZE SELECTION (V2)
+        // ===========================================
+        DOM.sizeButtons?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update visual state
+                DOM.sizeButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                // The radio inside will be checked by label click
+                const radio = btn.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    state.selectedSize = radio.value;
+                }
+                saveDraft();
+            });
+        });
+
+        // ===========================================
+        // QUANTITY CONTROLS (V2)
+        // ===========================================
+        DOM.qtyMinus?.addEventListener('click', () => {
+            if (DOM.qtyInput) {
+                const current = parseInt(DOM.qtyInput.value) || 1;
+                if (current > 1) {
+                    DOM.qtyInput.value = current - 1;
+                }
+            }
+        });
+
+        DOM.qtyPlus?.addEventListener('click', () => {
+            if (DOM.qtyInput) {
+                const current = parseInt(DOM.qtyInput.value) || 1;
+                if (current < 99) {
+                    DOM.qtyInput.value = current + 1;
+                }
+            }
+        });
+
+        // ===========================================
+        // PRODUCT COLOR SELECTION (V2)
+        // ===========================================
+        DOM.productColors?.forEach(colorEl => {
+            colorEl.addEventListener('click', () => {
+                // Update visual state
+                DOM.productColors.forEach(c => c.classList.remove('selected'));
+                colorEl.classList.add('selected');
+
+                // Get color name from radio or data attribute
+                const radio = colorEl.querySelector('input[type="radio"]');
+                let colorName = colorEl.dataset.color;
+                if (radio) {
+                    radio.checked = true;
+                    colorName = radio.value;
+                }
+
+                state.selectedProductColor = colorName;
+                console.log('[Configurator] Product color changed to:', colorName);
+
+                // Update product image if color has variant images
+                const colorImages = window.__COLOR_IMAGES || {};
+                if (colorImages[colorName]) {
+                    const img = colorImages[colorName];
+                    const imageUrl = state.currentView === 'front' ? img.front : img.back;
+                    if (imageUrl) {
+                        changeProductImage(imageUrl, colorName);
+                        // Also update the background image in the DOM (non-Konva)
+                        const productImg = document.getElementById('cfgProductImg');
+                        if (productImg) {
+                            productImg.src = imageUrl;
+                        }
+                    }
+                }
+
+                saveDraft();
             });
         });
 
@@ -1402,55 +1488,18 @@
             });
         });
 
-        // Product color swatches
-        DOM.productColors?.forEach(swatch => {
-            swatch.addEventListener('click', () => {
-                const colorName = swatch.dataset.color;
-                const frontImage = swatch.dataset.front;
-                const backImage = swatch.dataset.back;
-
-                console.log('[Configurator] Changing product color to:', colorName);
-
-                // Track selected color
-                state.selectedProductColor = colorName;
-
-                // Mark selected
-                DOM.productColors.forEach(s => s.classList.remove('selected'));
-                swatch.classList.add('selected');
-
-                // Update product image if variant images are available
-                if (frontImage || backImage) {
-                    changeProductImage(
-                        state.currentView === 'front' ? frontImage : backImage,
-                        colorName
-                    );
-                }
-
-                saveDraft();
-            });
-        });
-
-        // Initialize selected product color from DOM
-        const initialColorSwatch = document.querySelector('.cfg-product-color-swatch.selected');
+        // Initialize selected product color from DOM (V2 uses .cfg-product-color)
+        const initialColorSwatch = document.querySelector('.cfg-product-color.selected, .cfg-product-color-swatch.selected');
         if (initialColorSwatch) {
-            state.selectedProductColor = initialColorSwatch.dataset.color;
+            const radio = initialColorSwatch.querySelector('input[type="radio"]');
+            state.selectedProductColor = radio ? radio.value : initialColorSwatch.dataset.color;
         }
 
-        // Size selection
-        const sizeButtons = document.querySelectorAll('.cfg-size-btn');
-        sizeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                sizeButtons.forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                state.selectedSize = btn.dataset.size;
-                saveDraft();
-            });
-        });
-
         // Initialize selected size from DOM
-        const initialSizeBtn = document.querySelector('.cfg-size-btn.selected');
+        const initialSizeBtn = document.querySelector('.cfg-size-btn.selected, .cfg-size-btn:has(input:checked)');
         if (initialSizeBtn) {
-            state.selectedSize = initialSizeBtn.dataset.size;
+            const radio = initialSizeBtn.querySelector('input[type="radio"]');
+            state.selectedSize = radio ? radio.value : initialSizeBtn.dataset.size;
         } else {
             state.selectedSize = 'M'; // Default
         }
@@ -1842,12 +1891,15 @@
     function switchTool(tool) {
         state.currentTool = tool;
 
+        // Support both data-tool and data-tab attributes (V2 uses data-tab)
         DOM.toolTabs?.forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.tool === tool);
+            const tabId = tab.dataset.tab || tab.dataset.tool;
+            tab.classList.toggle('active', tabId === tool);
         });
 
         DOM.toolPanels?.forEach(panel => {
-            panel.classList.toggle('active', panel.dataset.tool === tool);
+            const panelId = panel.dataset.panel || panel.dataset.tool;
+            panel.classList.toggle('active', panelId === tool);
         });
     }
 
