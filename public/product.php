@@ -318,6 +318,8 @@ $cartCount = Cart::count();
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/configurator.css?v=<?= time() ?>">
     <link rel="stylesheet" href="/public/assets/css/techniques.css?v=3">
+    <!-- Konva.js pour le canvas configurateur -->
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
     <style>
         body { background: var(--gray-light); }
 
@@ -393,6 +395,20 @@ $cartCount = Cart::count();
         /* Mobile Wizard Mode
            >> STYLES DÉPLACÉS DANS configurator.css << */
     </style>
+    <script>
+        // Données pour le configurateur JS
+        window.__PRODUCT_DATA = {
+            id: <?= $product['id'] ?>,
+            name: "<?= addslashes(h($product['name'])) ?>",
+            basePrice: <?= $product['base_price'] ?>
+        };
+        window.__FONTS_DATA = <?= json_encode($fonts) ?>;
+        window.__TEXT_COLORS_DATA = <?= json_encode($textColors) ?>;
+        window.__TECHNIQUES_DATA = <?= json_encode($techniques) ?>;
+        window.__SELECTED_FONT = "<?= h($selectedFont['value']) ?>";
+        window.__SELECTED_TEXT_COLOR = "<?= h($selectedTextColor['value']) ?>";
+        window.__SELECTED_TECHNIQUE = "<?= h($selectedTechnique['value']) ?>";
+    </script>
 </head>
 <body>
     <!-- Navbar -->
@@ -489,6 +505,11 @@ $cartCount = Cart::count();
                 <input type="hidden" name="position_y" id="positionY" value="<?= $preset ? h($preset['position']['y'] ?? 50) : 50 ?>">
                 <input type="hidden" name="position_zone_id" id="positionZoneId" value="<?= $printZone['id'] ?>">
                 <input type="hidden" name="view" id="viewInput" value="<?= $preset ? h($preset['view'] ?? 'front') : 'front' ?>">
+                <!-- Inputs pour le panier -->
+                <input type="hidden" name="custom_text" id="customTextInput" value="<?= $preset ? h($preset['text'] ?? '') : '' ?>">
+                <input type="hidden" name="font" id="fontInput" value="<?= h($selectedFont['value']) ?>">
+                <input type="hidden" name="text_color" id="textColorInput" value="<?= h($selectedTextColor['value']) ?>">
+                <input type="hidden" name="technique" id="techniqueInput" value="<?= h($selectedTechnique['value']) ?>">
 
                 <!-- =============================================
                      MOBILE WIZARD MODE (Step-by-Step)

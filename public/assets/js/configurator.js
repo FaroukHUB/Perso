@@ -2366,11 +2366,55 @@
         getCartData,
     };
 
+    // ===========================================
+    // SYNC FORM INPUTS FOR CART
+    // ===========================================
+    function syncFormInputs() {
+        // Get first text element for cart
+        const textElement = state.elements.find(el => el.type === 'text');
+        const text = textElement?.properties?.text || '';
+        const font = textElement?.properties?.fontFamily || window.__SELECTED_FONT || 'Poppins';
+        const fillHex = textElement?.properties?.fill || '#1A1A2E';
+        const technique = window.__SELECTED_TECHNIQUE || 'flex';
+
+        // Convert hex color to color name
+        const textColors = window.__TEXT_COLORS_DATA || [];
+        const colorMatch = textColors.find(c => c.hex?.toLowerCase() === fillHex?.toLowerCase());
+        const textColor = colorMatch?.value || window.__SELECTED_TEXT_COLOR || 'noir';
+
+        // Update hidden inputs
+        const customTextInput = document.getElementById('customTextInput');
+        const fontInput = document.getElementById('fontInput');
+        const textColorInput = document.getElementById('textColorInput');
+        const techniqueInput = document.getElementById('techniqueInput');
+
+        if (customTextInput) customTextInput.value = text;
+        if (fontInput) fontInput.value = font;
+        if (textColorInput) textColorInput.value = textColor;
+        if (techniqueInput) techniqueInput.value = technique;
+
+        console.log('[Configurator] Form synced:', { text, font, textColor, technique });
+    }
+
+    // Sync on form submit
+    function initFormSync() {
+        const form = document.getElementById('customizationForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                syncFormInputs();
+            });
+        }
+    }
+
     // Auto-init when DOM ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            initFormSync();
+        });
     } else {
         init();
+        initFormSync();
     }
 
 })();
