@@ -23,9 +23,53 @@
 
 **Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-5 terminés)
 
-**Statut global** : ✅ Configurateur V2.4 + UI Ultra-Moderne 2026 + Responsive Mobile Optimisé
+**Statut global** : ✅ Groupes de Tailles + Designs (Idées cadeaux) + Éléments (Cliparts/Formes)
 
-**Derniers travaux (session 2026-01-19 - soir)** :
+**Derniers travaux (session 2026-01-19 - nuit)** :
+
+### Groupes de Tailles, Designs & Éléments (STEP 5.C)
+> Refonte complète de la gestion admin avec nouvelles entités
+
+**Fichiers créés** :
+- `sql/migrate_sizes_designs_elements.sql` — Migration SQL 6 nouvelles tables
+- `app/models/SizeGroup.php` — Gestion groupes de tailles
+- `app/models/Size.php` — Gestion tailles avec groupes
+- `app/models/DesignCategory.php` — Catégories designs
+- `app/models/Design.php` — Designs (Idées cadeaux)
+- `app/models/ElementCategory.php` — Catégories éléments
+- `app/models/Element.php` — Éléments (Cliparts/Formes)
+
+**Fichiers modifiés** :
+- `admin/options.php` — Refonte complète avec 4 onglets
+
+**Structure implémentée** :
+
+1. **Groupes de Tailles** :
+   - Tables : `size_groups`, `sizes`
+   - Formulaire avec sélecteur groupe existant OU création nouveau groupe
+   - Méthode `findOrCreate()` pour création dynamique
+
+2. **Designs (Idées cadeaux)** :
+   - Tables : `design_categories`, `designs`
+   - Différent des Packs : ce sont des créations prêtes à l'emploi (peluche avec t-shirt, poupées, mugs décorés)
+   - Upload image + conversion WebP automatique
+
+3. **Éléments (Cliparts/Formes)** :
+   - Tables : `element_categories`, `elements`
+   - Petites icônes/formes à ajouter aux produits (cercles, étoiles, traits, thèmes)
+   - Toggle Premium avec prix optionnel
+
+**Admin options.php - 4 onglets** :
+- Techniques : customization_options type=technique
+- Tailles : nouveau système avec groupes
+- Designs : idées cadeaux avec images
+- Éléments : cliparts avec option premium
+
+**⚠️ À FAIRE** : Exécuter `sql/migrate_sizes_designs_elements.sql` sur la BDD production
+
+---
+
+**Travaux précédents (session 2026-01-19 - soir)** :
 
 ### Fix Responsive Mobile - Image centrée et bouton visible (DESIGN-2.10)
 > Corrections critiques du responsive mobile configurateur
