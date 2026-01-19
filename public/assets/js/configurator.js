@@ -487,14 +487,15 @@
         const imgWidth = state.productImage.width() * state.productImage.scaleX();
         const imgHeight = state.productImage.height() * state.productImage.scaleY();
 
+        // Zone d'impression - INVISIBLE (pas de bordures/pointillés)
+        // Utilisée uniquement pour le contrainte du drag & drop
         state.printZone = new Konva.Rect({
             x: imgX + (zoneData.x / 100) * imgWidth,
             y: imgY + (zoneData.y / 100) * imgHeight,
             width: (zoneData.width / 100) * imgWidth,
             height: (zoneData.height / 100) * imgHeight,
-            stroke: 'rgba(255, 105, 180, 0.4)',
-            strokeWidth: 2,
-            dash: [8, 4],
+            stroke: 'transparent',
+            strokeWidth: 0,
             listening: false,
         });
 
@@ -914,15 +915,14 @@
     }
 
     function toggleSnapGuide(orientation, show, position) {
-        // Create or update snap guide line
+        // Create or update snap guide line - ligne continue subtile (pas de pointillés)
         if (!state.snapGuides[orientation]) {
             state.snapGuides[orientation] = new Konva.Line({
                 points: orientation === 'horizontal'
                     ? [0, position, state.stage.width(), position]
                     : [position, 0, position, state.stage.height()],
-                stroke: '#FF69B4',
+                stroke: 'rgba(255, 105, 180, 0.5)',
                 strokeWidth: 1,
-                dash: [4, 4],
                 listening: false,
             });
             state.layer.add(state.snapGuides[orientation]);

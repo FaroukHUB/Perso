@@ -83,6 +83,14 @@ $sizesFromDb = $optionModel->getSizes();
 $textColorsFromDb = $optionModel->getTextColors();
 $techniquesFromDb = $optionModel->getTechniques();
 
+// === DESIGNS PRÉDÉFINIS depuis l'admin (packs de type thematique/inspiration) ===
+$packModelDesigns = new Pack();
+$designsFromDb = $packModelDesigns->findActive();
+// Filtrer uniquement les packs qui ont une image de couverture
+$designTemplates = array_filter($designsFromDb, function($p) {
+    return !empty($p['cover_image_url']);
+});
+
 // Couleurs du produit avec images (nouveau système prioritaire)
 $productColorImageModel = new ProductColorImage();
 $colorVariants = $productColorImageModel->findByProduct($productId);
@@ -642,13 +650,16 @@ $cartCount = Cart::count();
                             <div class="cfg-section" style="margin-top: 0; padding-top: 0; border-top: none;">
                                 <h4 class="cfg-section-title">Couleur du produit</h4>
                                 <div class="cfg-color-grid cfg-product-colors-grid" id="cfgProductColors">
-                                    <!-- Couleur originale (produit de base) -->
+                                    <!-- Bouton Original - retour image de base -->
                                     <button type="button" class="cfg-product-color-swatch cfg-color-original selected"
-                                            style="background-color: #FFFFFF"
                                             data-color="original"
                                             data-hex="#FFFFFF"
                                             data-has-image="0"
-                                            title="Original">
+                                            title="Retour image originale">
+                                        <svg class="cfg-original-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                            <path d="M3 3v5h5"/>
+                                        </svg>
                                         <input type="radio" name="color" value="original" checked>
                                     </button>
                                     <?php if (!empty($colors)):
@@ -682,15 +693,26 @@ $cartCount = Cart::count();
                                 </div>
                             </div>
 
-                            <!-- Designs prédéfinis -->
+                            <!-- Designs prédéfinis (chargés depuis l'admin) -->
                             <div class="cfg-section">
                                 <h4 class="cfg-section-title">Designs prédéfinis</h4>
                                 <div class="cfg-designs-grid" id="cfgDesignsGrid">
-                                    <!-- Les designs seront chargés depuis l'admin (DESIGN-3) -->
+                                    <?php if (!empty($designTemplates)): ?>
+                                        <?php foreach ($designTemplates as $design): ?>
+                                        <button type="button" class="cfg-design-card"
+                                                data-pack-id="<?= $design['id'] ?>"
+                                                data-pack-name="<?= h($design['name']) ?>"
+                                                data-preset='<?= h($design['preset_json'] ?? '{}') ?>'>
+                                            <img src="/public<?= h($design['cover_image_url']) ?>" alt="<?= h($design['name']) ?>" class="cfg-design-img">
+                                            <span class="cfg-design-name"><?= h($design['name']) ?></span>
+                                        </button>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
                                     <div class="cfg-designs-placeholder">
                                         <span class="cfg-placeholder-icon">🎨</span>
-                                        <span class="cfg-placeholder-text">Les designs seront bientôt disponibles</span>
+                                        <span class="cfg-placeholder-text">Aucun design disponible</span>
                                     </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
 
