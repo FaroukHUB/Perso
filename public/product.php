@@ -546,6 +546,10 @@ $cartCount = Cart::count();
                             <span class="cfg-tab-icon">📚</span>
                             <span class="cfg-tab-label">Calques</span>
                         </button>
+                        <button type="button" class="cfg-tab" data-tab="elements">
+                            <span class="cfg-tab-icon">✨</span>
+                            <span class="cfg-tab-label">Éléments</span>
+                        </button>
                     </div>
 
                     <!-- Panneau d'options (centre-gauche) -->
@@ -764,6 +768,40 @@ $cartCount = Cart::count();
                                 </div>
                             </div>
                         </div>
+
+                        <!-- ========== ONGLET ÉLÉMENTS ========== -->
+                        <div class="cfg-tool-panel" data-panel="elements">
+                            <h3 class="cfg-panel-title">Éléments décoratifs</h3>
+                            <p class="cfg-panel-desc">Ajoutez des icônes, formes et décorations</p>
+
+                            <div class="cfg-elements-coming-soon">
+                                <span class="cfg-placeholder-icon">✨</span>
+                                <span class="cfg-placeholder-text">Bientôt disponible</span>
+                                <span class="cfg-placeholder-hint">Icônes, formes, cliparts...</span>
+                            </div>
+                        </div>
+
+                        <!-- Boutons Sauvegarder / Partager (bas de colonne gauche) -->
+                        <div class="cfg-tools-footer">
+                            <button type="button" class="cfg-save-btn-left" id="cfgSaveBtnLeft" title="Sauvegarder">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17 21 17 13 7 13 7 21"/>
+                                    <polyline points="7 3 7 8 15 8"/>
+                                </svg>
+                                Sauvegarder
+                            </button>
+                            <button type="button" class="cfg-share-btn-left" id="cfgShareBtnLeft" title="Partager">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="18" cy="5" r="3"/>
+                                    <circle cx="6" cy="12" r="3"/>
+                                    <circle cx="18" cy="19" r="3"/>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                </svg>
+                                Partager
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Canvas central -->
@@ -796,35 +834,12 @@ $cartCount = Cart::count();
                     </div>
                 </div>
 
-                <!-- Barre d'actions produit compacte - Nouvelle disposition -->
-                <div class="cfg-product-actions cfg-product-actions-compact cfg-product-actions-v2">
-                    <!-- Boutons Sauvegarder/Partager en haut -->
-                    <div class="cfg-secondary-actions cfg-secondary-actions-top">
-                        <button type="button" class="cfg-save-btn" id="cfgSaveBtn" title="Sauvegarder">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                                <polyline points="17 21 17 13 7 13 7 21"/>
-                                <polyline points="7 3 7 8 15 8"/>
-                            </svg>
-                            Sauvegarder
-                        </button>
-                        <button type="button" class="cfg-share-btn" id="cfgShareBtn" title="Partager">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="18" cy="5" r="3"/>
-                                <circle cx="6" cy="12" r="3"/>
-                                <circle cx="18" cy="19" r="3"/>
-                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                            </svg>
-                            Partager
-                        </button>
-                    </div>
-                    <!-- Nom + Prix au-dessus du bouton panier -->
-                    <div class="cfg-product-info cfg-product-info-centered">
+                <!-- Zone achat (droite) - Prix + Panier uniquement -->
+                <div class="cfg-product-actions cfg-product-actions-right">
+                    <div class="cfg-product-info">
                         <h1 class="cfg-product-title"><?= h($product['name']) ?></h1>
                         <div class="cfg-product-price" id="cfgProductPrice"><?= formatPrice($product['base_price']) ?></div>
                     </div>
-                    <!-- Bouton Ajouter au panier en bas -->
                     <button type="submit" class="cfg-add-cart-btn cfg-add-cart-btn-full">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
@@ -848,6 +863,10 @@ $cartCount = Cart::count();
                     <button type="button" class="cfg-mobile-tab" data-tool="layers">
                         <span class="cfg-mobile-tab-icon">📚</span>
                         <span class="cfg-mobile-tab-label">Calques</span>
+                    </button>
+                    <button type="button" class="cfg-mobile-tab" data-tool="elements">
+                        <span class="cfg-mobile-tab-icon">✨</span>
+                        <span class="cfg-mobile-tab-label">Éléments</span>
                     </button>
                 </div>
 
@@ -905,6 +924,7 @@ $cartCount = Cart::count();
     </section>
 
     <!-- Configurator V2 Modern 2026 -->
+    <script src="/public/assets/js/real-render-modal.js?v=<?= time() ?>"></script>
     <script src="/public/assets/js/configurator.js?v=<?= time() ?>"></script>
     <script>
         window.__PRODUCT_DATA = {

@@ -2643,13 +2643,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 30px;
+    padding: 12px;
     position: relative;
 }
 
 .cfg-product-bg {
     max-width: 100%;
-    max-height: 450px;
+    max-height: 520px;
     object-fit: contain;
     border-radius: 12px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
@@ -3915,6 +3915,122 @@
 /* Responsive V2 */
 @media (max-width: 768px) {
     .cfg-product-actions-v2 {
+        display: none;
+    }
+}
+
+/* ===========================================
+   NOUVELLE STRUCTURE - Boutons gauche/droite
+   =========================================== */
+
+/* Zone achat (droite) - Prix + Panier uniquement */
+.cfg-product-actions-right {
+    background: white;
+    border-top: 1px solid var(--cfg-border);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.cfg-product-actions-right .cfg-product-info {
+    text-align: center;
+}
+
+.cfg-product-actions-right .cfg-product-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--cfg-text-primary);
+    margin: 0 0 8px 0;
+}
+
+.cfg-product-actions-right .cfg-product-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Footer outils gauche - Sauvegarder / Partager */
+.cfg-tools-footer {
+    margin-top: auto;
+    padding: 20px;
+    border-top: 1px solid var(--cfg-border);
+    display: flex;
+    gap: 12px;
+}
+
+.cfg-save-btn-left,
+.cfg-share-btn-left {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 1px solid var(--cfg-border);
+    border-radius: var(--radius-md);
+    background: white;
+    color: var(--cfg-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cfg-save-btn-left:hover,
+.cfg-share-btn-left:hover {
+    border-color: var(--pink-main);
+    color: var(--pink-main);
+    background: rgba(255, 105, 180, 0.04);
+}
+
+.cfg-save-btn-left svg,
+.cfg-share-btn-left svg {
+    flex-shrink: 0;
+}
+
+/* Placeholder éléments */
+.cfg-elements-coming-soon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, rgba(255, 105, 180, 0.04) 0%, rgba(61, 255, 192, 0.03) 100%);
+    border-radius: 14px;
+    border: 2px dashed rgba(0, 0, 0, 0.08);
+    text-align: center;
+    margin-top: 16px;
+}
+
+.cfg-elements-coming-soon .cfg-placeholder-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+}
+
+.cfg-elements-coming-soon .cfg-placeholder-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cfg-text-primary);
+    margin-bottom: 4px;
+}
+
+.cfg-elements-coming-soon .cfg-placeholder-hint {
+    font-size: 0.8rem;
+    color: var(--cfg-text-muted);
+}
+
+/* Responsive: cacher footer gauche sur mobile */
+@media (max-width: 768px) {
+    .cfg-tools-footer {
+        display: none;
+    }
+
+    .cfg-product-actions-right {
         display: none;
     }
 }
