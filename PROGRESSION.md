@@ -19,13 +19,33 @@
 
 ## État Actuel
 
-**Date dernière mise à jour** : 2026-01-18
+**Date dernière mise à jour** : 2026-01-19
 
 **Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-5 terminés)
 
-**Statut global** : ✅ Cart.php refonte terminée + Option B+ Variantes
+**Statut global** : ✅ Configurateur V2.2 + Responsive fixes + Boutons Save/Share
 
-**Derniers travaux (session 2026-01-18 - suite)** :
+**Derniers travaux (session 2026-01-19)** :
+
+### Fixes Responsive + Boutons Save/Share
+> Corrections UI mobile et ajout fonctionnalités manquantes
+
+**Fichiers modifiés** :
+- `public/assets/css/configurator.css` — +160 lignes (responsive + styles boutons)
+- `public/product.php` — Boutons Save/Share desktop + mobile
+- `public/assets/js/configurator.js` — Handlers refactorisés + mobile buttons
+
+**Corrections** :
+- Fix image non centrée sur mobile (flexbox + max-width)
+- Fix bouton "voir rendu réel" marges trop grandes (réduit à 8px)
+- Boutons Sauvegarder (mint) + Partager (pink) — Desktop
+- Boutons Sauvegarder + Partager — Mobile (CTA bar)
+- handleShare() refactorisé pour être réutilisable
+- handleSave() refactorisé avec paramètre btn
+
+---
+
+**Travaux précédents (session 2026-01-18 - suite)** :
 
 ### Refonte Cart.php — Design Ultra-Moderne 2026
 > Page panier complètement redessinée avec glassmorphism et fonctionnalités e-commerce avancées.

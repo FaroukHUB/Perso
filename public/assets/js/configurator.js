@@ -232,6 +232,8 @@
             mobileDrawerClose: document.querySelector('.cfg-mobile-drawer-close'),
             mobileCartBtn: document.querySelector('.cfg-mobile-cart-btn'),
             mobilePriceValue: document.querySelector('.cfg-mobile-price-value'),
+            mobileSaveBtn: document.getElementById('cfgMobileSaveBtn'),
+            mobileShareBtn: document.getElementById('cfgMobileShareBtn'),
         };
     }
 
@@ -1982,22 +1984,8 @@
         // Keyboard shortcuts
         document.addEventListener('keydown', handleKeyboard);
 
-        // Save button
-        DOM.saveBtn?.addEventListener('click', () => {
-            saveDraft();
-            // Visual feedback
-            DOM.saveBtn.classList.add('saved');
-            const originalText = DOM.saveBtn.innerHTML;
-            DOM.saveBtn.innerHTML = '✓ Sauvegardé';
-            setTimeout(() => {
-                DOM.saveBtn.classList.remove('saved');
-                DOM.saveBtn.innerHTML = originalText;
-            }, 2000);
-            showNotification('Design sauvegardé !', 'success');
-        });
-
-        // Share button
-        DOM.shareBtn?.addEventListener('click', async () => {
+        // Share button - reusable handler
+        async function handleShare() {
             try {
                 // Generate share URL with design data
                 const shareData = generateShareData();
@@ -2020,7 +2008,29 @@
                 console.error('[Configurator] Share failed:', err);
                 showNotification('Erreur lors du partage', 'error');
             }
-        });
+        }
+
+        // Save button - reusable handler
+        function handleSave(btn) {
+            saveDraft();
+            // Visual feedback
+            btn.classList.add('saved');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✓ Sauvegardé';
+            setTimeout(() => {
+                btn.classList.remove('saved');
+                btn.innerHTML = originalText;
+            }, 2000);
+            showNotification('Design sauvegardé !', 'success');
+        }
+
+        // Desktop Save/Share
+        DOM.shareBtn?.addEventListener('click', handleShare);
+        DOM.saveBtn?.addEventListener('click', () => handleSave(DOM.saveBtn));
+
+        // Mobile Save/Share
+        DOM.mobileSaveBtn?.addEventListener('click', () => handleSave(DOM.mobileSaveBtn));
+        DOM.mobileShareBtn?.addEventListener('click', handleShare);
 
         // Mobile tabs
         DOM.mobileTabs?.forEach(tab => {

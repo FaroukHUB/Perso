@@ -780,14 +780,36 @@ $cartCount = Cart::count();
                         <h1 class="cfg-product-title"><?= h($product['name']) ?></h1>
                         <div class="cfg-product-price" id="cfgProductPrice"><?= formatPrice($product['base_price']) ?></div>
                     </div>
-                    <button type="submit" class="cfg-add-cart-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                            <line x1="3" y1="6" x2="21" y2="6"/>
-                            <path d="M16 10a4 4 0 0 1-8 0"/>
-                        </svg>
-                        Ajouter au panier
-                    </button>
+                    <div class="cfg-bottom-actions">
+                        <div class="cfg-secondary-actions">
+                            <button type="button" class="cfg-save-btn" id="cfgSaveBtn" title="Sauvegarder">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17 21 17 13 7 13 7 21"/>
+                                    <polyline points="7 3 7 8 15 8"/>
+                                </svg>
+                                Sauvegarder
+                            </button>
+                            <button type="button" class="cfg-share-btn" id="cfgShareBtn" title="Partager">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="18" cy="5" r="3"/>
+                                    <circle cx="6" cy="12" r="3"/>
+                                    <circle cx="18" cy="19" r="3"/>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                </svg>
+                                Partager
+                            </button>
+                        </div>
+                        <button type="submit" class="cfg-add-cart-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                                <line x1="3" y1="6" x2="21" y2="6"/>
+                                <path d="M16 10a4 4 0 0 1-8 0"/>
+                            </svg>
+                            Ajouter au panier
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Mobile: Bottom toolbar (2 niveaux) -->
@@ -815,6 +837,28 @@ $cartCount = Cart::count();
                     <div class="cfg-mobile-drawer-content" id="cfgMobileDrawerContent">
                         <!-- Contenu dynamique selon l'onglet -->
                     </div>
+                </div>
+
+                <!-- Mobile: Boutons Save/Share -->
+                <div class="cfg-mobile-secondary-actions">
+                    <button type="button" class="cfg-mobile-save-btn" id="cfgMobileSaveBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        Sauvegarder
+                    </button>
+                    <button type="button" class="cfg-mobile-share-btn" id="cfgMobileShareBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="18" cy="5" r="3"/>
+                            <circle cx="6" cy="12" r="3"/>
+                            <circle cx="18" cy="19" r="3"/>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                        </svg>
+                        Partager
+                    </button>
                 </div>
 
                 <!-- Mobile: CTA toujours accessible -->

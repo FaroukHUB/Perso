@@ -3419,3 +3419,179 @@
 .cfg-canvas-footer {
     display: none;
 }
+
+/* ===========================================
+   FIXES RESPONSIVE MOBILE - 2026-01-19
+   =========================================== */
+
+/* Fix: Image centrée sur mobile */
+@media (max-width: 768px) {
+    .cfg-canvas {
+        padding: 12px;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .cfg-stage-container {
+        width: 100%;
+        max-width: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .cfg-product-bg {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: 350px;
+        object-fit: contain;
+        margin: 0 auto;
+        display: block;
+    }
+
+    /* Fix: Bouton "voir rendu réel" - marges réduites */
+    .cfg-preview-under-canvas {
+        width: calc(100% - 24px);
+        max-width: 400px;
+        margin: 8px auto 0;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Fix: Très petits écrans */
+@media (max-width: 400px) {
+    .cfg-stage-container {
+        max-width: 100%;
+    }
+
+    .cfg-product-bg {
+        max-height: 280px;
+    }
+
+    .cfg-preview-under-canvas {
+        width: calc(100% - 16px);
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
+}
+
+/* ===========================================
+   BOUTONS SAUVEGARDER / PARTAGER
+   =========================================== */
+
+/* Container des boutons secondaires */
+.cfg-secondary-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Style commun boutons Save/Share */
+.cfg-save-btn,
+.cfg-share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cfg-save-btn svg,
+.cfg-share-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Bouton Sauvegarder - Mint */
+.cfg-save-btn {
+    background: linear-gradient(135deg, rgba(61, 255, 192, 0.15) 0%, rgba(61, 255, 192, 0.08) 100%);
+    border: 2px solid var(--mint-main, #3DFFC0);
+    color: #1a8a6a;
+}
+
+.cfg-save-btn:hover {
+    background: linear-gradient(135deg, rgba(61, 255, 192, 0.25) 0%, rgba(61, 255, 192, 0.15) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(61, 255, 192, 0.3);
+}
+
+/* Bouton Partager - Pink */
+.cfg-share-btn {
+    background: linear-gradient(135deg, rgba(255, 105, 180, 0.15) 0%, rgba(255, 105, 180, 0.08) 100%);
+    border: 2px solid var(--pink-main, #FF69B4);
+    color: var(--pink-dark, #d45a9d);
+}
+
+.cfg-share-btn:hover {
+    background: linear-gradient(135deg, rgba(255, 105, 180, 0.25) 0%, rgba(255, 105, 180, 0.15) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
+}
+
+/* ===========================================
+   BOUTONS SAVE/SHARE MOBILE (CTA bar)
+   =========================================== */
+.cfg-mobile-secondary-actions {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 8px;
+}
+
+.cfg-mobile-save-btn,
+.cfg-mobile-share-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cfg-mobile-save-btn svg,
+.cfg-mobile-share-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.cfg-mobile-save-btn {
+    background: rgba(61, 255, 192, 0.12);
+    border: 1.5px solid var(--mint-main, #3DFFC0);
+    color: #1a8a6a;
+}
+
+.cfg-mobile-share-btn {
+    background: rgba(255, 105, 180, 0.12);
+    border: 1.5px solid var(--pink-main, #FF69B4);
+    color: var(--pink-dark, #d45a9d);
+}
+
+.cfg-mobile-save-btn:active,
+.cfg-mobile-share-btn:active {
+    transform: scale(0.96);
+}
+
+/* Desktop: masquer boutons mobile */
+@media (min-width: 769px) {
+    .cfg-mobile-secondary-actions {
+        display: none;
+    }
+}
+
+/* Mobile: masquer boutons desktop */
+@media (max-width: 768px) {
+    .cfg-secondary-actions {
+        display: none;
+    }
+}
