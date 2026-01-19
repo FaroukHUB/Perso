@@ -753,15 +753,21 @@
 
         if (element) {
             element.transformer.visible(true);
-            openDrawer(element);
             highlightLayerItem(element.id);
-            // Update YourSurprise controls with element values
+            // Update controls with element values
             updateControlsFromElement(element);
+            // Afficher les actions calques
+            const layersActions = document.getElementById('cfgLayersActions');
+            if (layersActions) layersActions.style.display = 'block';
         } else {
-            closeDrawer();
             clearControls();
+            // Masquer les actions calques
+            const layersActions = document.getElementById('cfgLayersActions');
+            if (layersActions) layersActions.style.display = 'none';
         }
 
+        // Rafraîchir le panneau calques
+        updateLayersPanel();
         state.layer.batchDraw();
     }
 
@@ -1392,7 +1398,7 @@
         });
 
         // ===========================================
-        // PRODUCT COLOR SELECTION (V2)
+        // PRODUCT COLOR SELECTION (V2.2 - avec support "original")
         // ===========================================
         DOM.productColors?.forEach(colorEl => {
             colorEl.addEventListener('click', () => {
@@ -1411,17 +1417,28 @@
                 state.selectedProductColor = colorName;
                 console.log('[Configurator] Product color changed to:', colorName);
 
-                // Update product image if color has variant images
-                const colorImages = window.__COLOR_IMAGES || {};
-                if (colorImages[colorName]) {
-                    const img = colorImages[colorName];
-                    const imageUrl = state.currentView === 'front' ? img.front : img.back;
-                    if (imageUrl) {
-                        changeProductImage(imageUrl, colorName);
-                        // Also update the background image in the DOM (non-Konva)
-                        const productImg = document.getElementById('cfgProductImg');
-                        if (productImg) {
-                            productImg.src = imageUrl;
+                const productImg = document.getElementById('cfgProductImg');
+
+                // Si "original" → revenir à l'image de base
+                if (colorName === 'original') {
+                    if (productImg) {
+                        const originalUrl = productImg.dataset.original || productImg.dataset.front;
+                        if (originalUrl) {
+                            productImg.src = originalUrl;
+                            changeProductImage(originalUrl, 'original');
+                        }
+                    }
+                } else {
+                    // Update product image if color has variant images
+                    const colorImages = window.__COLOR_IMAGES || {};
+                    if (colorImages[colorName]) {
+                        const img = colorImages[colorName];
+                        const imageUrl = state.currentView === 'front' ? img.front : img.back;
+                        if (imageUrl) {
+                            changeProductImage(imageUrl, colorName);
+                            if (productImg) {
+                                productImg.src = imageUrl;
+                            }
                         }
                     }
                 }
@@ -1737,36 +1754,68 @@
         });
 
         // ===========================================
-        // LAYERS ACTIONS (V2.1 - Calques)
+        // LAYERS ACTIONS (V2.2 - Calques avec fix monter/descendre)
         // ===========================================
         const layersActions = document.getElementById('cfgLayersActions');
         layersActions?.querySelectorAll('[data-action]').forEach(btn => {
             btn.addEventListener('click', () => {
-                if (!state.selectedElement) return;
+                if (!state.selectedElement) {
+                    console.warn('[Configurator] No element selected for layer action');
+                    return;
+                }
 
                 const action = btn.dataset.action;
                 const node = state.selectedElement.konvaNode;
+                const transformer = state.selectedElement.transformer;
+                const currentIndex = state.elements.indexOf(state.selectedElement);
+
+                console.log('[Configurator] Layer action:', action, 'on element at index:', currentIndex);
 
                 switch (action) {
                     case 'move-up':
-                        node.moveUp();
-                        state.selectedElement.transformer.moveToTop();
-                        break;
-                    case 'move-down':
-                        node.moveDown();
-                        // Keep product image at bottom
-                        if (state.productImage) {
-                            state.productImage.moveToBottom();
+                        // Monter = vers l'avant (z-index plus élevé)
+                        if (currentIndex < state.elements.length - 1) {
+                            // Swap dans le tableau
+                            [state.elements[currentIndex], state.elements[currentIndex + 1]] =
+                            [state.elements[currentIndex + 1], state.elements[currentIndex]];
+
+                            // Déplacer dans Konva
+                            node.moveUp();
+                            transformer.moveUp();
                         }
                         break;
+
+                    case 'move-down':
+                        // Descendre = vers l'arrière (z-index plus bas)
+                        if (currentIndex > 0) {
+                            // Swap dans le tableau
+                            [state.elements[currentIndex], state.elements[currentIndex - 1]] =
+                            [state.elements[currentIndex - 1], state.elements[currentIndex]];
+
+                            // Déplacer dans Konva
+                            node.moveDown();
+                            transformer.moveDown();
+
+                            // S'assurer que l'image produit reste en bas
+                            if (state.productImage) {
+                                state.productImage.moveToBottom();
+                            }
+                        }
+                        break;
+
                     case 'delete':
                         deleteElement(state.selectedElement);
-                        break;
+                        return; // deleteElement gère déjà le rafraîchissement
                 }
+
+                // Garder le transformer visible après le déplacement
+                transformer.moveToTop();
 
                 state.layer.batchDraw();
                 updateLayersPanel();
                 saveDraft();
+
+                console.log('[Configurator] Layer action completed');
             });
         });
 

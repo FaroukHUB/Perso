@@ -617,12 +617,6 @@ $cartCount = Cart::count();
                                 <div class="cfg-technique-details" id="cfgTechniqueDetails">
                                     <p class="technique-description"><?= h($techniques[0]['description'] ?? '') ?></p>
                                 </div>
-
-                                <!-- Bouton aperçu rendu réel -->
-                                <button type="button" class="cfg-preview-btn-pink" id="cfgTechniquePreviewBtn" data-technique="<?= h($techniques[0]['value'] ?? 'flex') ?>">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    Voir le rendu réel
-                                </button>
                             </div>
 
                             <!-- Couleur du texte -->
@@ -645,31 +639,35 @@ $cartCount = Cart::count();
                             <h3 class="cfg-panel-title">Design du produit</h3>
 
                             <!-- Couleur du produit -->
-                            <?php if (!empty($colors)): ?>
                             <div class="cfg-section" style="margin-top: 0; padding-top: 0; border-top: none;">
                                 <h4 class="cfg-section-title">Couleur du produit</h4>
                                 <div class="cfg-color-grid cfg-product-colors-grid" id="cfgProductColors">
-                                    <?php
-                                    $firstColor = true;
+                                    <!-- Couleur originale (produit de base) -->
+                                    <button type="button" class="cfg-product-color-swatch cfg-color-original selected"
+                                            style="background-color: #FFFFFF"
+                                            data-color="original"
+                                            data-hex="#FFFFFF"
+                                            data-has-image="0"
+                                            title="Original">
+                                        <input type="radio" name="color" value="original" checked>
+                                    </button>
+                                    <?php if (!empty($colors)):
                                     foreach ($colors as $name => $hex):
-                                        $isDefault = $firstColor;
                                         $hasImage = isset($colorImages[$name]) && !empty($colorImages[$name]['front']);
                                     ?>
-                                    <button type="button" class="cfg-product-color-swatch <?= $isDefault ? 'selected' : '' ?>"
+                                    <button type="button" class="cfg-product-color-swatch"
                                             style="background-color: <?= h($hex) ?>"
                                             data-color="<?= h($name) ?>"
                                             data-hex="<?= h($hex) ?>"
                                             data-has-image="<?= $hasImage ? '1' : '0' ?>"
                                             title="<?= ucfirst(h($name)) ?>">
-                                        <input type="radio" name="color" value="<?= h($name) ?>" <?= $isDefault ? 'checked' : '' ?>>
+                                        <input type="radio" name="color" value="<?= h($name) ?>">
                                     </button>
                                     <?php
-                                        $firstColor = false;
                                     endforeach;
-                                    ?>
+                                    endif; ?>
                                 </div>
                             </div>
-                            <?php endif; ?>
 
                             <!-- Taille du produit -->
                             <div class="cfg-section">
@@ -757,11 +755,6 @@ $cartCount = Cart::count();
                             </div>
                         </div>
                         <div class="cfg-stage-container" id="cfgStageContainer">
-                            <!-- Zone d'impression -->
-                            <div class="cfg-print-zone" id="cfgPrintZone"
-                                 style="left: <?= $printZone['x'] ?>%; top: <?= $printZone['y'] ?>%; width: <?= $printZone['width'] ?>%; height: <?= $printZone['height'] ?>%;">
-                                <span class="cfg-zone-label"><?= h($printZone['label'] ?? 'Zone d\'impression') ?></span>
-                            </div>
                             <!-- Image produit de fond -->
                             <?php if (!empty($product['image_front_url'])): ?>
                             <img src="/public<?= h($product['image_front_url']) ?>"
@@ -769,29 +762,20 @@ $cartCount = Cart::count();
                                  class="cfg-product-bg"
                                  id="cfgProductImg"
                                  data-front="/public<?= h($product['image_front_url']) ?>"
-                                 data-back="<?= !empty($product['image_back_url']) ? '/public' . h($product['image_back_url']) : '' ?>">
+                                 data-back="<?= !empty($product['image_back_url']) ? '/public' . h($product['image_back_url']) : '' ?>"
+                                 data-original="/public<?= h($product['image_front_url']) ?>">
                             <?php endif; ?>
                         </div>
-                        <div class="cfg-canvas-footer">
-                            <span class="cfg-hint">↔️ Glissez pour repositionner vos éléments</span>
-                        </div>
-                    </div>
-
-                    <!-- Drawer contextuel (droite) -->
-                    <div class="cfg-drawer" id="cfgDrawer">
-                        <div class="cfg-drawer-header">
-                            <h4 class="cfg-drawer-title">Propriétés</h4>
-                            <button type="button" class="cfg-drawer-close" id="cfgDrawerClose">✕</button>
-                        </div>
-                        <div class="cfg-drawer-content">
-                            <!-- Rempli dynamiquement par JS -->
-                            <p style="color: #999;">Sélectionnez un élément</p>
-                        </div>
+                        <!-- Bouton aperçu rendu réel sous l'image -->
+                        <button type="button" class="cfg-preview-btn-pink cfg-preview-under-canvas" id="cfgTechniquePreviewBtn" data-technique="<?= h($techniques[0]['value'] ?? 'flex') ?>">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            Voir le rendu réel
+                        </button>
                     </div>
                 </div>
 
-                <!-- Barre d'actions produit (simplifié - options dans onglet Design) -->
-                <div class="cfg-product-actions">
+                <!-- Barre d'actions produit compacte -->
+                <div class="cfg-product-actions cfg-product-actions-compact">
                     <div class="cfg-product-info">
                         <h1 class="cfg-product-title"><?= h($product['name']) ?></h1>
                         <div class="cfg-product-price" id="cfgProductPrice"><?= formatPrice($product['base_price']) ?></div>
