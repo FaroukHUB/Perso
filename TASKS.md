@@ -10,7 +10,7 @@
 
 ---
 
-## 📊 ÉTAT GLOBAL — 2026-01-17
+## 📊 ÉTAT GLOBAL — 2026-01-19
 
 | Phase | Statut | Détail |
 |-------|--------|--------|
@@ -370,7 +370,7 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 ---
 
-**Dernière mise à jour** : 2026-01-19 — Configurateur V2.3 UI ultra-moderne + architecture designs admin
+**Dernière mise à jour** : 2026-01-19 — Configurateur V2.4 UI ultra-moderne + responsive mobile optimisé
 
 ---
 
@@ -659,6 +659,16 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 - `public/assets/css/configurator.css` — +280 lignes styles ultra-modernes 2026
 - `public/assets/js/configurator.js` — Suppression pointillés zone/guides
 
+#### ✅ STEP DESIGN-2.10 — Fix Responsive Mobile (TERMINÉ 2026-01-19)
+- [x] **E.1.2.42** — Image produit centrée et agrandie sur mobile ✅
+- [x] **E.1.2.43** — Suppression marges excessives du canvas (padding 16px → 0) ✅
+- [x] **E.1.2.44** — Calcul dynamique hauteur image (100vh - 280px) ✅
+- [x] **E.1.2.45** — Bouton "Voir le rendu réel" visible (remonté) ✅
+- [x] **E.1.2.46** — Optimisation petits écrans (max-width: 400px) ✅
+
+**Fichiers modifiés** :
+- `public/assets/css/configurator.css` — Lignes 3683-3751 styles mobile optimisés
+
 #### STEP DESIGN-3 — Admin Designs (À VENIR)
 - [~] **E.1.3.1** — Table design_templates + CRUD (optionnel, packs déjà utilisables)
 - [~] **E.1.3.2** — Admin création designs (upload SVG/PNG)
@@ -667,4 +677,4 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 **Priorité** : 🟡 MOYENNE (architecture prête, packs utilisables)
 
-**Statut** : 🟢 CONFIGURATEUR V2.3 EN PRODUCTION — UI Ultra-Moderne 2026 complète
+**Statut** : 🟢 CONFIGURATEUR V2.4 EN PRODUCTION — UI Ultra-Moderne 2026 + Responsive Mobile Optimisé
