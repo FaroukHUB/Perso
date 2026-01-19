@@ -2885,3 +2885,468 @@
 .legacy-configurator.is-disabled {
     display: none;
 }
+
+/* ===========================================
+   V2.1 CONFIGURATEUR RESTRUCTURÉ - 2026-01-19
+   =========================================== */
+
+/* Barre d'actions produit simplifiée */
+.cfg-product-actions {
+    background: white;
+    border-top: 1px solid var(--cfg-border);
+    padding: 20px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.cfg-product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cfg-product-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.cfg-product-price {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Couleurs produit dans Design */
+.cfg-product-colors-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.cfg-product-color-swatch {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.cfg-product-color-swatch::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.cfg-product-color-swatch:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.cfg-product-color-swatch.selected {
+    border-color: #1a1a2e;
+    box-shadow: 0 0 0 3px white, 0 0 0 6px var(--pink-main), 0 4px 20px rgba(255, 105, 180, 0.4);
+    transform: scale(1.1);
+}
+
+.cfg-product-color-swatch input {
+    display: none;
+}
+
+/* Designs placeholder */
+.cfg-designs-grid {
+    min-height: 120px;
+}
+
+.cfg-designs-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    background: linear-gradient(135deg, rgba(255, 105, 180, 0.04) 0%, rgba(61, 255, 192, 0.03) 100%);
+    border-radius: 14px;
+    border: 2px dashed rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.cfg-placeholder-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    opacity: 0.7;
+}
+
+.cfg-placeholder-text {
+    font-size: 0.9rem;
+    color: var(--gray);
+    font-weight: 500;
+}
+
+/* Layers empty state */
+.cfg-layers-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.01) 100%);
+    border-radius: 14px;
+    border: 1px dashed rgba(0,0,0,0.1);
+}
+
+.cfg-empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+.cfg-empty-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.cfg-empty-hint {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+/* Layers actions */
+.cfg-layers-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--cfg-border);
+}
+
+.cfg-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.cfg-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border: 1px solid var(--cfg-border);
+    border-radius: 10px;
+    background: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cfg-action-btn:hover {
+    border-color: var(--pink-main);
+    color: var(--pink-main);
+    background: rgba(255, 105, 180, 0.05);
+}
+
+.cfg-action-btn.cfg-action-delete {
+    color: #dc3545;
+    border-color: rgba(220, 53, 69, 0.2);
+}
+
+.cfg-action-btn.cfg-action-delete:hover {
+    background: rgba(220, 53, 69, 0.08);
+    border-color: rgba(220, 53, 69, 0.4);
+}
+
+/* Layer item styling */
+.cfg-layer-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--cfg-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+}
+
+.cfg-layer-item:hover {
+    border-color: rgba(255, 105, 180, 0.3);
+    background: rgba(255, 105, 180, 0.02);
+}
+
+.cfg-layer-item.selected {
+    border-color: var(--pink-main);
+    background: rgba(255, 105, 180, 0.08);
+    box-shadow: 0 2px 12px rgba(255, 105, 180, 0.15);
+}
+
+.cfg-layer-item .cfg-layer-handle {
+    color: #ccc;
+    cursor: grab;
+}
+
+.cfg-layer-item .cfg-layer-icon {
+    font-size: 1.2rem;
+}
+
+.cfg-layer-item .cfg-layer-name {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cfg-layer-item .cfg-layer-visibility {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.cfg-layer-item .cfg-layer-visibility:hover {
+    background: rgba(0,0,0,0.05);
+    color: #666;
+}
+
+/* Labels dans les onglets */
+.cfg-layers-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.cfg-layers-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #666;
+}
+
+.cfg-layers-count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--pink-main);
+    background: rgba(255, 105, 180, 0.1);
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 768px) {
+    .cfg-product-actions {
+        display: none; /* Hidden on mobile, use cfg-mobile-cta instead */
+    }
+
+    /* Mobile drawer content styling */
+    .cfg-mobile-drawer-content .cfg-text-row {
+        margin-bottom: 16px;
+    }
+
+    .cfg-mobile-drawer-content .cfg-section {
+        margin-top: 16px;
+        padding-top: 16px;
+    }
+
+    .cfg-mobile-drawer-content .cfg-section-title {
+        margin-bottom: 10px;
+    }
+
+    .cfg-mobile-drawer-content .cfg-size-selector {
+        gap: 8px;
+    }
+
+    .cfg-mobile-drawer-content .cfg-size-btn {
+        min-width: 50px;
+        height: 44px;
+    }
+}
+
+/* Amélioration du sélecteur de taille */
+.cfg-size-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.cfg-size-btn {
+    min-width: 50px;
+    height: 44px;
+    padding: 0 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    background: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1a1a2e;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cfg-size-btn:hover {
+    border-color: rgba(255, 105, 180, 0.4);
+    background: rgba(255, 105, 180, 0.05);
+}
+
+.cfg-size-btn.selected,
+.cfg-size-btn:has(input:checked) {
+    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 16px rgba(255, 105, 180, 0.35);
+}
+
+.cfg-size-btn input {
+    display: none;
+}
+
+/* Amélioration quantité */
+.cfg-qty-selector {
+    display: inline-flex;
+    align-items: center;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 14px;
+    overflow: hidden;
+    background: white;
+}
+
+.cfg-qty-btn {
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cfg-qty-btn:hover {
+    background: rgba(255, 105, 180, 0.1);
+    color: var(--pink-main);
+}
+
+.cfg-qty-input {
+    width: 60px;
+    height: 48px;
+    border: none;
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    background: transparent;
+}
+
+.cfg-qty-input:focus {
+    outline: none;
+}
+
+/* Text input row amélioré */
+.cfg-text-row {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.cfg-text-row .cfg-text-input-wrapper {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.cfg-text-input {
+    width: 100%;
+    padding: 16px 60px 16px 18px;
+    border: 2px solid rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,248,252,0.9) 100%);
+}
+
+.cfg-text-input:focus {
+    outline: none;
+    border-color: var(--pink-main);
+    box-shadow: 0 4px 20px rgba(255, 105, 180, 0.15);
+}
+
+.cfg-text-counter {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: #999;
+    font-weight: 500;
+}
+
+.cfg-add-text-btn {
+    width: 56px;
+    min-width: 56px;
+    height: auto;
+    padding: 0;
+    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(255, 105, 180, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cfg-add-text-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 24px rgba(255, 105, 180, 0.5);
+}
+
+.cfg-add-text-btn:active {
+    transform: scale(0.98);
+}
+
+/* Grid layout ajusté pour 3 colonnes (sans onglet Image) */
+.configurator-v2 {
+    display: grid;
+    grid-template-columns: var(--cfg-tabs-width) var(--cfg-options-width) 1fr;
+    grid-template-rows: 1fr auto;
+    min-height: calc(100vh - 60px);
+    background: var(--cfg-bg);
+}
+
+.cfg-product-actions {
+    grid-column: 1 / -1;
+}

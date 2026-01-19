@@ -1,11 +1,14 @@
 /**
  * PERSONNALY - Configurateur de personnalisation produit (Konva.js)
- * Version: 2.0 (DESIGN-2)
- * Date: 2026-01-18
+ * Version: 2.1 (DESIGN-2.1 - Restructuration complète)
+ * Date: 2026-01-19
  *
  * Features:
  * - Canvas Konva.js pour drag & drop
- * - Panneau outils avec onglets
+ * - Onglets restructurés: Texte (polices, techniques, couleurs), Design (couleur produit, tailles, designs), Calques
+ * - Dropdowns ultra-modernes 2026
+ * - Changement d'image produit selon couleur
+ * - Mobile responsive avec bottom toolbar et drawer
  * - Drawer propriétés contextuel
  * - Snap magnétique soft
  * - Sérialisation JSON + localStorage
@@ -1129,6 +1132,32 @@
         ).join('');
     }
 
+    function renderMobileProductColors() {
+        const colorsData = window.__COLORS_DATA || {};
+        const colors = Object.entries(colorsData);
+        if (colors.length === 0) {
+            return '<p style="color: #999; font-size: 13px;">Aucune couleur disponible</p>';
+        }
+        return colors.map(([name, hex], idx) =>
+            `<button type="button" class="cfg-product-color-swatch ${idx === 0 || state.selectedProductColor === name ? 'selected' : ''}"
+                     style="background-color: ${hex}"
+                     data-color="${name}"
+                     data-hex="${hex}"
+                     title="${name.charAt(0).toUpperCase() + name.slice(1)}"></button>`
+        ).join('');
+    }
+
+    function renderMobileSizes() {
+        const sizes = window.__SIZES_DATA || ['XS', 'S', 'M', 'L', 'XL'];
+        const selectedSize = state.selectedSize || 'M';
+        return sizes.map(size =>
+            `<label class="cfg-size-btn ${size === selectedSize ? 'selected' : ''}" data-size="${size}">
+                <input type="radio" name="mobile-size" value="${size}" ${size === selectedSize ? 'checked' : ''}>
+                ${size}
+            </label>`
+        ).join('');
+    }
+
     function setupDrawerEvents(element) {
         // Font change
         const fontSelect = document.getElementById('drawer-font');
@@ -1228,24 +1257,51 @@
 
         const currentViewElements = state.elements.filter(el => el.view === state.currentView);
 
+        // Update count
+        const layersCount = document.getElementById('cfgLayersCount');
+        if (layersCount) {
+            layersCount.textContent = `${currentViewElements.length}/${CONFIG.maxElements}`;
+        }
         if (DOM.layersCount) {
             DOM.layersCount.textContent = `${currentViewElements.length}/${CONFIG.maxElements}`;
         }
 
-        DOM.layersList.innerHTML = currentViewElements.map(el => `
-            <div class="cfg-layer-item ${state.selectedElement === el ? 'selected' : ''}"
-                 data-id="${el.id}">
-                <span class="cfg-layer-handle">≡</span>
-                <span class="cfg-layer-icon">${el.type === 'text' ? '📝' : '🖼️'}</span>
-                <span class="cfg-layer-name">${getElementDisplayName(el)}</span>
-                <div class="cfg-layer-actions">
-                    <button class="cfg-layer-btn ${el.visible ? '' : 'hidden'}"
-                            data-action="toggle-visibility" title="Visibilité">
-                        ${el.visible ? '👁️' : '👁️‍🗨️'}
-                    </button>
+        // Show/hide empty state and actions
+        const layersEmpty = document.getElementById('cfgLayersEmpty');
+        const layersActions = document.getElementById('cfgLayersActions');
+
+        if (currentViewElements.length === 0) {
+            // Show empty state
+            DOM.layersList.innerHTML = `
+                <div class="cfg-layers-empty" id="cfgLayersEmpty">
+                    <span class="cfg-empty-icon">📭</span>
+                    <span class="cfg-empty-text">Aucun élément ajouté</span>
+                    <span class="cfg-empty-hint">Ajoutez du texte depuis l'onglet Texte</span>
                 </div>
-            </div>
-        `).join('');
+            `;
+            if (layersActions) layersActions.style.display = 'none';
+        } else {
+            // Show layers list
+            DOM.layersList.innerHTML = currentViewElements.map(el => `
+                <div class="cfg-layer-item ${state.selectedElement === el ? 'selected' : ''}"
+                     data-id="${el.id}">
+                    <span class="cfg-layer-handle">≡</span>
+                    <span class="cfg-layer-icon">${el.type === 'text' ? '📝' : '🖼️'}</span>
+                    <span class="cfg-layer-name">${getElementDisplayName(el)}</span>
+                    <div class="cfg-layer-actions">
+                        <button class="cfg-layer-btn ${el.visible ? '' : 'hidden'}"
+                                data-action="toggle-visibility" title="Visibilité">
+                            ${el.visible ? '👁️' : '👁️‍🗨️'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Show/hide actions based on selection
+            if (layersActions) {
+                layersActions.style.display = state.selectedElement ? 'block' : 'none';
+            }
+        }
 
         // Setup layer events
         DOM.layersList.querySelectorAll('.cfg-layer-item').forEach(item => {
@@ -1652,6 +1708,68 @@
             }
         });
 
+        // ===========================================
+        // TEXT COLOR SELECTION (V2.1 - Modern Grid)
+        // ===========================================
+        const textColorGrid = document.getElementById('cfgTextColorGrid');
+        textColorGrid?.querySelectorAll('.cfg-color-btn').forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                // Update visual state
+                textColorGrid.querySelectorAll('.cfg-color-btn').forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+
+                // Get color value
+                const hex = swatch.dataset.hex || swatch.style.backgroundColor;
+                const colorValue = swatch.dataset.color;
+
+                // Update hidden input
+                const textColorInput = document.getElementById('textColorInput');
+                if (textColorInput) textColorInput.value = colorValue;
+
+                // Update selected text element
+                if (state.selectedElement && state.selectedElement.type === 'text') {
+                    state.selectedElement.properties.fill = hex;
+                    state.selectedElement.konvaNode.fill(hex);
+                    state.layer.batchDraw();
+                    saveDraft();
+                }
+            });
+        });
+
+        // ===========================================
+        // LAYERS ACTIONS (V2.1 - Calques)
+        // ===========================================
+        const layersActions = document.getElementById('cfgLayersActions');
+        layersActions?.querySelectorAll('[data-action]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!state.selectedElement) return;
+
+                const action = btn.dataset.action;
+                const node = state.selectedElement.konvaNode;
+
+                switch (action) {
+                    case 'move-up':
+                        node.moveUp();
+                        state.selectedElement.transformer.moveToTop();
+                        break;
+                    case 'move-down':
+                        node.moveDown();
+                        // Keep product image at bottom
+                        if (state.productImage) {
+                            state.productImage.moveToBottom();
+                        }
+                        break;
+                    case 'delete':
+                        deleteElement(state.selectedElement);
+                        break;
+                }
+
+                state.layer.batchDraw();
+                updateLayersPanel();
+                saveDraft();
+            });
+        });
+
         // Color swatches in tools panel (legacy)
         DOM.colorSwatches?.forEach(swatch => {
             swatch.addEventListener('click', () => {
@@ -2031,8 +2149,42 @@
                         </div>
                     </div>
                 `;
+            case 'design':
+                return `
+                    <div class="cfg-mobile-section">
+                        <div class="cfg-mobile-label">Couleur du produit</div>
+                        <div class="cfg-mobile-colors" id="mobile-product-colors">
+                            ${renderMobileProductColors()}
+                        </div>
+                    </div>
+
+                    <div class="cfg-mobile-section">
+                        <div class="cfg-mobile-label">Taille</div>
+                        <div class="cfg-size-selector" id="mobile-sizes">
+                            ${renderMobileSizes()}
+                        </div>
+                    </div>
+
+                    <div class="cfg-mobile-section">
+                        <div class="cfg-mobile-label">Quantité</div>
+                        <div class="cfg-qty-selector">
+                            <button type="button" class="cfg-qty-btn" id="mobile-qty-minus">−</button>
+                            <input type="number" class="cfg-qty-input" value="${document.getElementById('cfgQtyInput')?.value || 1}" min="1" max="99" id="mobile-qty-input">
+                            <button type="button" class="cfg-qty-btn" id="mobile-qty-plus">+</button>
+                        </div>
+                    </div>
+                `;
             case 'layers':
                 const currentViewElements = state.elements.filter(el => el.view === state.currentView);
+                if (currentViewElements.length === 0) {
+                    return `
+                        <div class="cfg-layers-empty">
+                            <span class="cfg-empty-icon">📭</span>
+                            <span class="cfg-empty-text">Aucun élément ajouté</span>
+                            <span class="cfg-empty-hint">Ajoutez du texte depuis l'onglet Texte</span>
+                        </div>
+                    `;
+                }
                 return `
                     <div class="cfg-layers-header">
                         <span>Éléments</span>
@@ -2040,12 +2192,20 @@
                     </div>
                     <div class="cfg-layers-list" id="mobile-layers">
                         ${currentViewElements.map(el => `
-                            <div class="cfg-layer-item" data-id="${el.id}">
+                            <div class="cfg-layer-item ${state.selectedElement === el ? 'selected' : ''}" data-id="${el.id}">
                                 <span class="cfg-layer-icon">${el.type === 'text' ? '📝' : '🖼️'}</span>
                                 <span class="cfg-layer-name">${getElementDisplayName(el)}</span>
                             </div>
                         `).join('')}
                     </div>
+                    ${state.selectedElement ? `
+                        <div class="cfg-mobile-section" style="margin-top: 16px;">
+                            <button class="cfg-action-btn cfg-action-delete" id="mobile-delete-layer" style="width: 100%;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                Supprimer l'élément
+                            </button>
+                        </div>
+                    ` : ''}
                 `;
             default:
                 return '<p style="text-align: center; color: var(--gray);">Bientôt disponible</p>';
@@ -2145,15 +2305,102 @@
             });
         }
 
+        if (tool === 'design') {
+            // Product colors
+            const colorPalette = document.getElementById('mobile-product-colors');
+            colorPalette?.querySelectorAll('.cfg-product-color-swatch').forEach(swatch => {
+                swatch.addEventListener('click', () => {
+                    colorPalette.querySelectorAll('.cfg-product-color-swatch').forEach(s => s.classList.remove('selected'));
+                    swatch.classList.add('selected');
+
+                    const colorName = swatch.dataset.color;
+                    state.selectedProductColor = colorName;
+
+                    // Update desktop selector
+                    const desktopColors = document.getElementById('cfgProductColors');
+                    desktopColors?.querySelectorAll('.cfg-product-color-swatch').forEach(s => {
+                        s.classList.toggle('selected', s.dataset.color === colorName);
+                        const radio = s.querySelector('input[type="radio"]');
+                        if (radio) radio.checked = s.dataset.color === colorName;
+                    });
+
+                    // Change product image
+                    const colorImages = window.__COLOR_IMAGES || {};
+                    if (colorImages[colorName]) {
+                        const img = colorImages[colorName];
+                        const imageUrl = state.currentView === 'front' ? img.front : img.back;
+                        if (imageUrl) changeProductImage(imageUrl, colorName);
+                    }
+
+                    saveDraft();
+                });
+            });
+
+            // Sizes
+            const sizePalette = document.getElementById('mobile-sizes');
+            sizePalette?.querySelectorAll('.cfg-size-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizePalette.querySelectorAll('.cfg-size-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+
+                    const size = btn.dataset.size;
+                    state.selectedSize = size;
+
+                    // Update desktop selector
+                    const desktopSizes = document.getElementById('cfgSizeSelector');
+                    desktopSizes?.querySelectorAll('.cfg-size-btn').forEach(b => {
+                        b.classList.toggle('selected', b.querySelector('input')?.value === size);
+                        const radio = b.querySelector('input[type="radio"]');
+                        if (radio) radio.checked = radio.value === size;
+                    });
+
+                    saveDraft();
+                });
+            });
+
+            // Quantity
+            const qtyMinus = document.getElementById('mobile-qty-minus');
+            const qtyPlus = document.getElementById('mobile-qty-plus');
+            const qtyInput = document.getElementById('mobile-qty-input');
+            const desktopQtyInput = document.getElementById('cfgQtyInput');
+
+            qtyMinus?.addEventListener('click', () => {
+                const current = parseInt(qtyInput?.value) || 1;
+                if (current > 1) {
+                    qtyInput.value = current - 1;
+                    if (desktopQtyInput) desktopQtyInput.value = current - 1;
+                }
+            });
+
+            qtyPlus?.addEventListener('click', () => {
+                const current = parseInt(qtyInput?.value) || 1;
+                if (current < 99) {
+                    qtyInput.value = current + 1;
+                    if (desktopQtyInput) desktopQtyInput.value = current + 1;
+                }
+            });
+        }
+
         if (tool === 'layers') {
             document.querySelectorAll('#mobile-layers .cfg-layer-item').forEach(item => {
                 item.addEventListener('click', () => {
                     const el = state.elements.find(el => el.id === item.dataset.id);
                     if (el) {
                         selectElement(el);
-                        closeMobileDrawer();
+                        // Refresh mobile drawer to show delete button
+                        openMobileDrawer('layers');
                     }
                 });
+            });
+
+            // Delete button
+            const deleteBtn = document.getElementById('mobile-delete-layer');
+            deleteBtn?.addEventListener('click', () => {
+                if (state.selectedElement) {
+                    deleteElement(state.selectedElement);
+                    // Refresh mobile drawer
+                    openMobileDrawer('layers');
+                }
             });
         }
     }

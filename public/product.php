@@ -411,6 +411,9 @@ $cartCount = Cart::count();
         window.__FONTS_DATA = <?= json_encode($fonts) ?>;
         window.__TEXT_COLORS_DATA = <?= json_encode($textColors) ?>;
         window.__TECHNIQUES_DATA = <?= json_encode($techniques) ?>;
+        window.__COLORS_DATA = <?= json_encode($colors) ?>;
+        window.__COLOR_IMAGES = <?= json_encode($colorImages) ?>;
+        window.__SIZES_DATA = <?= json_encode($sizes) ?>;
         window.__SELECTED_FONT = "<?= h($defaultFont['value']) ?>";
         window.__SELECTED_TEXT_COLOR = "<?= h($defaultTextColor['value']) ?>";
         window.__SELECTED_TECHNIQUE = "<?= h($defaultTechnique['value']) ?>";
@@ -527,10 +530,6 @@ $cartCount = Cart::count();
                             <span class="cfg-tab-icon">✏️</span>
                             <span class="cfg-tab-label">Texte</span>
                         </button>
-                        <button type="button" class="cfg-tab" data-tab="image">
-                            <span class="cfg-tab-icon">🖼️</span>
-                            <span class="cfg-tab-label">Image</span>
-                        </button>
                         <button type="button" class="cfg-tab" data-tab="design">
                             <span class="cfg-tab-icon">🎨</span>
                             <span class="cfg-tab-label">Design</span>
@@ -543,56 +542,206 @@ $cartCount = Cart::count();
 
                     <!-- Panneau d'options (centre-gauche) -->
                     <div class="cfg-tools">
+                        <!-- ========== ONGLET TEXTE ========== -->
                         <div class="cfg-tool-panel active" data-panel="text">
-                            <h3 class="cfg-panel-title">Ajouter du texte</h3>
-                            <p class="cfg-panel-desc">Saisissez votre texte personnalisé</p>
-                            <input type="text" class="cfg-input" placeholder="Votre texte ici..." id="cfgTextInput">
-                            <button type="button" class="cfg-add-btn" id="cfgAddText">
-                                <span>+ Ajouter le texte</span>
-                            </button>
+                            <h3 class="cfg-panel-title">Texte personnalisé</h3>
 
-                            <div class="cfg-section">
-                                <h4 class="cfg-section-title">Police</h4>
-                                <select class="cfg-select" id="cfgFontSelect">
-                                    <?php foreach ($fonts as $font): ?>
-                                    <option value="<?= h($font['value']) ?>"><?= h($font['label']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
+                            <!-- Input texte avec bouton + -->
+                            <div class="cfg-text-row">
+                                <div class="cfg-text-input-wrapper">
+                                    <input type="text" class="cfg-text-input" placeholder="Votre texte ici..." id="cfgTextInput" maxlength="50">
+                                    <span class="cfg-text-counter"><span id="cfgTextCount">0</span>/50</span>
+                                </div>
+                                <button type="button" class="cfg-add-text-btn" id="cfgAddText" title="Ajouter le texte">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                                </button>
                             </div>
 
+                            <!-- Sélecteur Police Ultra-Moderne 2026 -->
+                            <div class="cfg-section">
+                                <h4 class="cfg-section-title">Police d'écriture</h4>
+                                <div class="cfg-modern-dropdown" id="cfgFontDropdown">
+                                    <div class="cfg-dropdown-trigger" id="cfgFontTrigger">
+                                        <div class="cfg-dropdown-preview">
+                                            <span class="cfg-dropdown-preview-text" id="cfgFontPreview" style="font-family: '<?= h($fonts[0]['value'] ?? 'Poppins') ?>'"><?= h($fonts[0]['label'] ?? 'Poppins') ?></span>
+                                        </div>
+                                        <svg class="cfg-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                    </div>
+                                    <div class="cfg-dropdown-list" id="cfgFontList">
+                                        <?php foreach ($fonts as $idx => $font): ?>
+                                        <div class="cfg-dropdown-item <?= $idx === 0 ? 'selected' : '' ?>"
+                                             data-font="<?= h($font['value']) ?>"
+                                             data-label="<?= h($font['label']) ?>"
+                                             style="--preview-font: '<?= h($font['value']) ?>'">
+                                            <div class="cfg-dropdown-item-content">
+                                                <span class="cfg-dropdown-item-name" style="font-family: '<?= h($font['value']) ?>'"><?= h($font['label']) ?></span>
+                                                <span class="cfg-dropdown-item-desc"><?= h($font['category'] ?? 'sans-serif') ?></span>
+                                            </div>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="cfgFontSelect" value="<?= h($fonts[0]['value'] ?? 'Poppins') ?>">
+                            </div>
+
+                            <!-- Sélecteur Technique Ultra-Moderne 2026 -->
+                            <div class="cfg-section">
+                                <h4 class="cfg-section-title">Technique d'impression</h4>
+                                <div class="cfg-modern-dropdown" id="cfgTechniqueDropdown">
+                                    <div class="cfg-dropdown-trigger" id="cfgTechniqueTrigger">
+                                        <div class="cfg-dropdown-preview">
+                                            <span class="cfg-dropdown-preview-text" id="cfgTechniquePreview"><?= h($techniques[0]['label'] ?? 'Flex') ?></span>
+                                            <span class="cfg-dropdown-item-badge" id="cfgTechniquePriceBadge"><?= ($techniques[0]['price'] ?? 0) > 0 ? '+' . number_format($techniques[0]['price'], 2, ',', '') . ' €' : 'Inclus' ?></span>
+                                        </div>
+                                        <svg class="cfg-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                    </div>
+                                    <div class="cfg-dropdown-list" id="cfgTechniqueList">
+                                        <?php foreach ($techniques as $idx => $t): ?>
+                                        <div class="cfg-dropdown-item <?= $idx === 0 ? 'selected' : '' ?>"
+                                             data-technique="<?= h($t['value']) ?>"
+                                             data-label="<?= h($t['label']) ?>"
+                                             data-price="<?= $t['price'] ?>"
+                                             data-desc="<?= h($t['description'] ?? '') ?>">
+                                            <div class="cfg-dropdown-item-content">
+                                                <span class="cfg-dropdown-item-name"><?= h($t['label']) ?></span>
+                                                <span class="cfg-dropdown-item-desc"><?= h($t['description'] ?? '') ?></span>
+                                            </div>
+                                            <span class="cfg-dropdown-item-badge <?= $t['price'] > 0 ? 'price' : '' ?>"><?= $t['price'] > 0 ? '+' . number_format($t['price'], 2, ',', '') . ' €' : 'Inclus' ?></span>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="cfgTechniqueSelect" value="<?= h($techniques[0]['value'] ?? 'flex') ?>">
+
+                                <!-- Description technique -->
+                                <div class="cfg-technique-details" id="cfgTechniqueDetails">
+                                    <p class="technique-description"><?= h($techniques[0]['description'] ?? '') ?></p>
+                                </div>
+
+                                <!-- Bouton aperçu rendu réel -->
+                                <button type="button" class="cfg-preview-btn-pink" id="cfgTechniquePreviewBtn" data-technique="<?= h($techniques[0]['value'] ?? 'flex') ?>">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    Voir le rendu réel
+                                </button>
+                            </div>
+
+                            <!-- Couleur du texte -->
                             <div class="cfg-section">
                                 <h4 class="cfg-section-title">Couleur du texte</h4>
-                                <div class="cfg-color-grid">
-                                    <?php foreach ($textColors as $tc): ?>
-                                    <button type="button" class="cfg-color-btn"
+                                <div class="cfg-color-grid" id="cfgTextColorGrid">
+                                    <?php foreach ($textColors as $idx => $tc): ?>
+                                    <button type="button" class="cfg-color-btn <?= $idx === 0 ? 'active' : '' ?>"
                                             style="background-color: <?= h($tc['hex']) ?>"
-                                            data-color="<?= h($tc['hex']) ?>"
+                                            data-color="<?= h($tc['value']) ?>"
+                                            data-hex="<?= h($tc['hex']) ?>"
                                             title="<?= h($tc['label']) ?>"></button>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="cfg-tool-panel" data-panel="image">
-                            <h3 class="cfg-panel-title">Ajouter une image</h3>
-                            <p class="cfg-panel-desc">Téléchargez votre propre image</p>
-                            <div class="cfg-upload-zone" id="cfgUploadZone">
-                                <span class="cfg-upload-icon">📤</span>
-                                <span>Glissez ou cliquez pour upload</span>
+                        <!-- ========== ONGLET DESIGN ========== -->
+                        <div class="cfg-tool-panel" data-panel="design">
+                            <h3 class="cfg-panel-title">Design du produit</h3>
+
+                            <!-- Couleur du produit -->
+                            <?php if (!empty($colors)): ?>
+                            <div class="cfg-section" style="margin-top: 0; padding-top: 0; border-top: none;">
+                                <h4 class="cfg-section-title">Couleur du produit</h4>
+                                <div class="cfg-color-grid cfg-product-colors-grid" id="cfgProductColors">
+                                    <?php
+                                    $firstColor = true;
+                                    foreach ($colors as $name => $hex):
+                                        $isDefault = $firstColor;
+                                        $hasImage = isset($colorImages[$name]) && !empty($colorImages[$name]['front']);
+                                    ?>
+                                    <button type="button" class="cfg-product-color-swatch <?= $isDefault ? 'selected' : '' ?>"
+                                            style="background-color: <?= h($hex) ?>"
+                                            data-color="<?= h($name) ?>"
+                                            data-hex="<?= h($hex) ?>"
+                                            data-has-image="<?= $hasImage ? '1' : '0' ?>"
+                                            title="<?= ucfirst(h($name)) ?>">
+                                        <input type="radio" name="color" value="<?= h($name) ?>" <?= $isDefault ? 'checked' : '' ?>>
+                                    </button>
+                                    <?php
+                                        $firstColor = false;
+                                    endforeach;
+                                    ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+                            <!-- Taille du produit -->
+                            <div class="cfg-section">
+                                <h4 class="cfg-section-title">Taille</h4>
+                                <div class="cfg-size-selector" id="cfgSizeSelector">
+                                    <?php foreach ($sizes as $size): ?>
+                                    <label class="cfg-size-btn <?= $size === 'M' ? 'selected' : '' ?>">
+                                        <input type="radio" name="size" value="<?= h($size) ?>" <?= $size === 'M' ? 'checked' : '' ?>>
+                                        <?= h($size) ?>
+                                    </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+
+                            <!-- Designs prédéfinis -->
+                            <div class="cfg-section">
+                                <h4 class="cfg-section-title">Designs prédéfinis</h4>
+                                <div class="cfg-designs-grid" id="cfgDesignsGrid">
+                                    <!-- Les designs seront chargés depuis l'admin (DESIGN-3) -->
+                                    <div class="cfg-designs-placeholder">
+                                        <span class="cfg-placeholder-icon">🎨</span>
+                                        <span class="cfg-placeholder-text">Les designs seront bientôt disponibles</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quantité -->
+                            <div class="cfg-section">
+                                <h4 class="cfg-section-title">Quantité</h4>
+                                <div class="cfg-qty-selector">
+                                    <button type="button" class="cfg-qty-btn" id="cfgQtyMinus">−</button>
+                                    <input type="number" name="quantity" class="cfg-qty-input" value="1" min="1" max="99" id="cfgQtyInput">
+                                    <button type="button" class="cfg-qty-btn" id="cfgQtyPlus">+</button>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="cfg-tool-panel" data-panel="design">
-                            <h3 class="cfg-panel-title">Éléments design</h3>
-                            <p class="cfg-panel-desc">Formes et décorations</p>
-                            <p style="color: #999; font-size: 13px;">Bientôt disponible...</p>
-                        </div>
-
+                        <!-- ========== ONGLET CALQUES ========== -->
                         <div class="cfg-tool-panel" data-panel="layers">
                             <h3 class="cfg-panel-title">Calques</h3>
-                            <p class="cfg-panel-desc">Gérez vos éléments</p>
+                            <p class="cfg-panel-desc">Gérez l'ordre et la visibilité de vos éléments</p>
+
+                            <div class="cfg-layers-header">
+                                <span class="cfg-layers-label">Éléments ajoutés</span>
+                                <span class="cfg-layers-count" id="cfgLayersCount">0/10</span>
+                            </div>
+
                             <div class="cfg-layers-list" id="cfgLayersList">
-                                <p style="color: #999; font-size: 13px;">Aucun élément ajouté</p>
+                                <div class="cfg-layers-empty" id="cfgLayersEmpty">
+                                    <span class="cfg-empty-icon">📭</span>
+                                    <span class="cfg-empty-text">Aucun élément ajouté</span>
+                                    <span class="cfg-empty-hint">Ajoutez du texte depuis l'onglet Texte</span>
+                                </div>
+                            </div>
+
+                            <!-- Actions sur l'élément sélectionné -->
+                            <div class="cfg-layers-actions" id="cfgLayersActions" style="display: none;">
+                                <h4 class="cfg-section-title">Actions</h4>
+                                <div class="cfg-action-buttons">
+                                    <button type="button" class="cfg-action-btn" data-action="move-up" title="Monter">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+                                        Monter
+                                    </button>
+                                    <button type="button" class="cfg-action-btn" data-action="move-down" title="Descendre">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                        Descendre
+                                    </button>
+                                    <button type="button" class="cfg-action-btn cfg-action-delete" data-action="delete" title="Supprimer">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        Supprimer
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -641,56 +790,12 @@ $cartCount = Cart::count();
                     </div>
                 </div>
 
-                <!-- Options produit (sous le configurator) -->
-                <div class="cfg-product-options">
-                    <div class="cfg-product-header">
+                <!-- Barre d'actions produit (simplifié - options dans onglet Design) -->
+                <div class="cfg-product-actions">
+                    <div class="cfg-product-info">
                         <h1 class="cfg-product-title"><?= h($product['name']) ?></h1>
-                        <div class="cfg-product-price"><?= formatPrice($product['base_price']) ?></div>
+                        <div class="cfg-product-price" id="cfgProductPrice"><?= formatPrice($product['base_price']) ?></div>
                     </div>
-
-                    <div class="cfg-options-row">
-                        <div class="cfg-option-group">
-                            <label class="cfg-option-label">Taille</label>
-                            <div class="cfg-size-options">
-                                <?php foreach ($sizes as $size): ?>
-                                <label class="cfg-size-btn <?= $size === 'M' ? 'selected' : '' ?>">
-                                    <input type="radio" name="size" value="<?= h($size) ?>" <?= $size === 'M' ? 'checked' : '' ?>>
-                                    <?= h($size) ?>
-                                </label>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                        <div class="cfg-option-group">
-                            <label class="cfg-option-label">Couleur</label>
-                            <div class="cfg-color-options">
-                                <?php
-                                $firstColor = true;
-                                foreach ($colors as $name => $hex):
-                                    $isDefault = $firstColor;
-                                ?>
-                                <label class="cfg-product-color <?= $isDefault ? 'selected' : '' ?>"
-                                       style="background-color: <?= $hex ?>"
-                                       title="<?= ucfirst($name) ?>">
-                                    <input type="radio" name="color" value="<?= $name ?>" <?= $isDefault ? 'checked' : '' ?>>
-                                </label>
-                                <?php
-                                    $firstColor = false;
-                                endforeach;
-                                ?>
-                            </div>
-                        </div>
-
-                        <div class="cfg-option-group">
-                            <label class="cfg-option-label">Quantité</label>
-                            <div class="cfg-qty-selector">
-                                <button type="button" class="cfg-qty-btn" id="cfgQtyMinus">−</button>
-                                <input type="number" name="quantity" class="cfg-qty-input" value="1" min="1" max="99">
-                                <button type="button" class="cfg-qty-btn" id="cfgQtyPlus">+</button>
-                            </div>
-                        </div>
-                    </div>
-
                     <button type="submit" class="cfg-add-cart-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
@@ -698,6 +803,49 @@ $cartCount = Cart::count();
                             <path d="M16 10a4 4 0 0 1-8 0"/>
                         </svg>
                         Ajouter au panier
+                    </button>
+                </div>
+
+                <!-- Mobile: Bottom toolbar (2 niveaux) -->
+                <div class="cfg-mobile-toolbar">
+                    <button type="button" class="cfg-mobile-tab active" data-tool="text">
+                        <span class="cfg-mobile-tab-icon">✏️</span>
+                        <span class="cfg-mobile-tab-label">Texte</span>
+                    </button>
+                    <button type="button" class="cfg-mobile-tab" data-tool="design">
+                        <span class="cfg-mobile-tab-icon">🎨</span>
+                        <span class="cfg-mobile-tab-label">Design</span>
+                    </button>
+                    <button type="button" class="cfg-mobile-tab" data-tool="layers">
+                        <span class="cfg-mobile-tab-icon">📚</span>
+                        <span class="cfg-mobile-tab-label">Calques</span>
+                    </button>
+                </div>
+
+                <!-- Mobile: Drawer qui slide up -->
+                <div class="cfg-mobile-drawer" id="cfgMobileDrawer">
+                    <div class="cfg-mobile-drawer-header">
+                        <span class="cfg-mobile-drawer-title" id="cfgMobileDrawerTitle">Texte</span>
+                        <button type="button" class="cfg-mobile-drawer-close" id="cfgMobileDrawerClose">&times;</button>
+                    </div>
+                    <div class="cfg-mobile-drawer-content" id="cfgMobileDrawerContent">
+                        <!-- Contenu dynamique selon l'onglet -->
+                    </div>
+                </div>
+
+                <!-- Mobile: CTA toujours accessible -->
+                <div class="cfg-mobile-cta">
+                    <div class="cfg-mobile-price">
+                        <span class="cfg-mobile-price-label">Total</span>
+                        <span class="cfg-mobile-price-value" id="cfgMobilePrice"><?= formatPrice($product['base_price']) ?></span>
+                    </div>
+                    <button type="submit" class="cfg-mobile-cart-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        Ajouter
                     </button>
                 </div>
 
