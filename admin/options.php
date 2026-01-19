@@ -681,7 +681,7 @@ $isSizeType = $currentType === 'size';
 </head>
 <body>
     <div class="admin-layout">
-        <?php include __DIR__ . '/includes/sidebar-alt.php'; ?>
+        <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
         <!-- Main Content -->
         <main class="admin-main">
