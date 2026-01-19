@@ -23,9 +23,27 @@
 
 **Phase actuelle** : P6 - FONCTIONNALITÉS RESTANTES (STEP 1-5 terminés)
 
-**Statut global** : ✅ Configurateur V2.3 + UI Ultra-Moderne 2026 + Architecture Designs Admin
+**Statut global** : ✅ Configurateur V2.4 + UI Ultra-Moderne 2026 + Responsive Mobile Optimisé
 
-**Derniers travaux (session 2026-01-19 - après-midi)** :
+**Derniers travaux (session 2026-01-19 - soir)** :
+
+### Fix Responsive Mobile - Image centrée et bouton visible (DESIGN-2.10)
+> Corrections critiques du responsive mobile configurateur
+
+**Fichiers modifiés** :
+- `public/assets/css/configurator.css` — Styles mobile optimisés (lignes 3683-3751)
+
+**Corrections** :
+- Image produit centrée et agrandie sur mobile (suppression marges excessives)
+- Réduction padding canvas de 16px à 0 pour maximiser l'espace image
+- Calcul dynamique hauteur image : `max-height: calc(100vh - 280px)`
+- Bouton "Voir le rendu réel" remonté et visible (marges 8px → 16px)
+- Stage container full-width avec padding minimal (8px)
+- Optimisation pour très petits écrans (max-width: 400px)
+
+---
+
+**Travaux précédents (session 2026-01-19 - après-midi)** :
 
 ### Polish UI Ultra-Moderne 2026 (DESIGN-2.9)
 > Finitions visuelles du configurateur selon références Canva/YourSurprise

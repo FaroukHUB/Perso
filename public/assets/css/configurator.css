@@ -1870,10 +1870,10 @@
         display: none;
     }
 
-    /* Canvas full width */
+    /* Canvas full width - marges minimales */
     .cfg-canvas-container {
         flex: 1;
-        padding: 16px;
+        padding: 0;
     }
 
     .cfg-canvas-wrapper {
@@ -3684,57 +3684,69 @@
    FIXES RESPONSIVE MOBILE - 2026-01-19
    =========================================== */
 
-/* Fix: Image centrée sur mobile */
+/* Fix: Image centrée et agrandie sur mobile */
 @media (max-width: 768px) {
     .cfg-canvas {
-        padding: 12px;
+        padding: 8px 0 0 0;
         align-items: center;
         justify-content: flex-start;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .cfg-canvas-header {
+        padding: 8px 16px;
+        margin-bottom: 4px;
     }
 
     .cfg-stage-container {
         width: 100%;
-        max-width: 400px;
+        max-width: none;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto;
+        padding: 0 8px;
+        flex: 1;
     }
 
     .cfg-product-bg {
-        width: 100%;
-        max-width: 100%;
+        width: auto;
+        max-width: calc(100% - 16px);
         height: auto;
-        max-height: 350px;
+        max-height: calc(100vh - 280px);
         object-fit: contain;
         margin: 0 auto;
         display: block;
     }
 
-    /* Fix: Bouton "voir rendu réel" - marges réduites */
+    /* Fix: Bouton "voir rendu réel" - visible au-dessus de la toolbar */
     .cfg-preview-under-canvas {
-        width: calc(100% - 24px);
-        max-width: 400px;
-        margin: 8px auto 0;
-        padding: 12px 20px;
-        font-size: 0.9rem;
+        width: calc(100% - 32px);
+        max-width: none;
+        margin: 8px 16px 16px;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        position: relative;
+        z-index: 10;
     }
 }
 
 /* Fix: Très petits écrans */
 @media (max-width: 400px) {
     .cfg-stage-container {
-        max-width: 100%;
+        padding: 0 4px;
     }
 
     .cfg-product-bg {
-        max-height: 280px;
+        max-width: calc(100% - 8px);
+        max-height: calc(100vh - 300px);
     }
 
     .cfg-preview-under-canvas {
         width: calc(100% - 16px);
-        padding: 10px 16px;
-        font-size: 0.85rem;
+        margin: 6px 8px 12px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
     }
 }
 
