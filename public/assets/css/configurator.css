@@ -1,2204 +1,101 @@
 /**
- * PERSONNALY - Configurateur de personnalisation produit
- * Version: 2.1 (DESIGN-2 - Style YourSurprise)
- * Date: 2026-01-18
+ * PERSONNALY - Configurateur Produit
+ * Design: Style Canva / YourSurprise
+ * Version: 3.0 (Cleaned)
+ * Date: 2026-01-19
  *
- * Architecture:
- * - Layout Desktop: Onglets verticaux | Options | Canvas | Drawer
- * - Bottom toolbar Mobile (Onglets + CTA)
- * - Konva.js pour le canvas
+ * Ce fichier stylise UNIQUEMENT les classes utilisées dans product.php :
+ * - .configurator-layout (grid 3 colonnes)
+ * - .config-left, .config-center, .config-right
+ * - .config-section, .product-hero, .product-preview
+ * - etc.
  */
 
 /* ===========================================
-   CSS VARIABLES (Configurator-specific)
+   CSS VARIABLES
    =========================================== */
 :root {
-    --cfg-tabs-width: 70px;
-    --cfg-options-width: 320px;
-    --cfg-drawer-width: 280px;
-    --cfg-drawer-width-closed: 0px;
-    --cfg-toolbar-height: 50px;
-    --cfg-cta-height: 80px;
-    --cfg-gap: 0px;
-    --cfg-radius: 0px;
-    --cfg-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    --cfg-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --cfg-bg: #f8f8f8;
-    --cfg-border: #e5e5e5;
-    --cfg-pink-light: #fff5f8;
+    --cfg-bg: #f5f5f7;
+    --cfg-card: #ffffff;
+    --cfg-border: #e8e8ed;
+    --cfg-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    --cfg-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --cfg-radius: 16px;
+    --cfg-radius-sm: 10px;
+    --cfg-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ===========================================
-   MAIN LAYOUT - Desktop (Tabs | Options | Canvas | Drawer)
+   MAIN LAYOUT - 3 Colonnes Style Canva
    =========================================== */
-.configurator-v2 {
-    display: grid;
-    grid-template-columns: var(--cfg-tabs-width) var(--cfg-options-width) 1fr var(--cfg-drawer-width-closed);
-    grid-template-rows: 1fr;
-    min-height: calc(100vh - 60px);
-    background: var(--cfg-bg);
-    transition: grid-template-columns var(--cfg-transition);
-}
-
-.configurator-v2.drawer-open {
-    grid-template-columns: var(--cfg-tabs-width) var(--cfg-options-width) 1fr var(--cfg-drawer-width);
-}
-
-/* ===========================================
-   VERTICAL TABS (Far left - YourSurprise style)
-   =========================================== */
-.cfg-tabs-bar {
-    background: white;
-    border-right: 1px solid var(--cfg-border);
-    display: flex;
-    flex-direction: column;
-    padding: 10px 0;
-}
-
-.cfg-tab {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 16px 8px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-size: 1.4rem;
-    color: #666;
-    transition: all 0.2s;
-    position: relative;
-    gap: 6px;
-}
-
-.cfg-tab:hover {
-    color: var(--pink-main);
-    background: var(--cfg-pink-light);
-}
-
-.cfg-tab.active {
-    color: var(--pink-main);
-    background: var(--cfg-pink-light);
-}
-
-.cfg-tab.active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 8px;
-    bottom: 8px;
-    width: 3px;
-    background: var(--pink-main);
-    border-radius: 0 3px 3px 0;
-}
-
-.cfg-tab-icon {
-    font-size: 1.5rem;
-}
-
-.cfg-tab-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: capitalize;
-    letter-spacing: 0;
-}
-
-/* ===========================================
-   OPTIONS PANEL (Second column)
-   =========================================== */
-.cfg-tools {
-    background: white;
-    border-right: 1px solid var(--cfg-border);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.cfg-tools-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--cfg-border);
-    background: white;
-}
-
-.cfg-tools-title {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #333;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.cfg-tools-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.cfg-tools-action-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    border: 1px solid var(--cfg-border);
-    border-radius: 6px;
-    background: white;
-    font-size: 0.8rem;
-    color: #666;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.cfg-tools-action-btn:hover {
-    border-color: var(--pink-main);
-    color: var(--pink-main);
-}
-
-/* Tool panel content */
-.cfg-tool-panel {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    display: none;
-}
-
-.cfg-tool-panel.active {
-    display: block;
-}
-
-/* ===========================================
-   TOOL PANEL: TEXT
-   =========================================== */
-.cfg-section-label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 12px;
-    display: block;
-}
-
-.cfg-text-input-wrapper {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.cfg-text-input {
-    width: 100%;
-    padding: 14px 50px 14px 16px;
-    border: 1px solid var(--cfg-border);
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-family: inherit;
-    transition: border-color 0.2s;
-    background: white;
-}
-
-.cfg-text-input:focus {
-    outline: none;
-    border-color: var(--pink-main);
-}
-
-.cfg-text-input::placeholder {
-    color: #999;
-}
-
-.cfg-text-counter {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.75rem;
-    color: #999;
-}
-
-/* Text input row with inline button */
-.cfg-text-row {
-    display: flex;
-    align-items: stretch;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.cfg-text-row .cfg-text-input-wrapper {
-    flex: 1;
-    margin-bottom: 0;
-}
-
-.cfg-add-text-btn {
-    width: 52px;
-    min-width: 52px;
-    height: auto;
-    padding: 0;
-    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
-    color: white;
-    border: none;
-    border-radius: 14px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 16px rgba(255, 105, 180, 0.35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.cfg-add-text-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 24px rgba(255, 105, 180, 0.5);
-}
-
-.cfg-add-text-btn:active {
-    transform: scale(0.98);
-}
-
-.cfg-add-text-btn svg {
-    stroke: white;
-}
-
-/* Font selector */
-.cfg-font-selector {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.cfg-font-dropdown {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-radius: var(--radius-md);
-    font-size: 0.95rem;
-    background: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.cfg-font-dropdown:hover {
-    border-color: var(--pink-light);
-}
-
-.cfg-font-preview {
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.cfg-font-list {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-radius: var(--radius-md);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    max-height: 300px;
-    overflow-y: auto;
-    z-index: 100;
-    display: none;
-}
-
-.cfg-font-list.open {
-    display: block;
-}
-
-.cfg-font-item {
-    padding: 12px 16px;
-    cursor: pointer;
-    transition: background 0.15s;
-}
-
-.cfg-font-item:hover {
-    background: rgba(255, 105, 180, 0.08);
-}
-
-.cfg-font-item.selected {
-    background: var(--pink-light);
-    color: white;
-}
-
-/* Color palette */
-.cfg-section-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--gray);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.cfg-section-label::before {
-    content: '';
-    width: 3px;
-    height: 12px;
-    background: var(--gradient-pink);
-    border-radius: 2px;
-}
-
-.cfg-color-palette {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.cfg-color-swatch {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 3px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-}
-
-.cfg-color-swatch:hover {
-    transform: scale(1.1);
-}
-
-.cfg-color-swatch.selected {
-    border-color: var(--black-soft);
-    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--pink-main);
-}
-
-.cfg-color-swatch[data-color="blanc"],
-.cfg-color-swatch[data-color="white"] {
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
-}
-
-/* Product color selector */
-.cfg-product-colors {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.cfg-product-color-swatch {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 3px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-}
-
-.cfg-product-color-swatch:hover {
-    transform: scale(1.1);
-}
-
-.cfg-product-color-swatch.selected {
-    border-color: var(--black-soft);
-    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--pink-main);
-}
-
-.cfg-product-color-swatch[data-color="blanc"],
-.cfg-product-color-swatch[data-color="white"] {
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
-}
-
-.cfg-product-color-swatch[data-color="blanc"].selected,
-.cfg-product-color-swatch[data-color="white"].selected {
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1), 0 0 0 2px white, 0 0 0 4px var(--pink-main);
-}
-
-/* Section divider */
-.cfg-section-divider {
-    height: 1px;
-    background: var(--cfg-border);
-    margin: 20px 0;
-}
-
-/* Designs Coming Soon */
-.cfg-designs-coming-soon {
-    text-align: center;
-    padding: 30px 20px;
-    background: linear-gradient(135deg, rgba(255, 105, 180, 0.05), rgba(61, 255, 192, 0.05));
-    border-radius: var(--radius-lg);
-    border: 2px dashed var(--cfg-border);
-}
-
-.cfg-coming-soon-icon {
-    font-size: 2.5rem;
-    margin-bottom: 12px;
-}
-
-.cfg-coming-soon-title {
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: var(--black-soft);
-    margin-bottom: 8px;
-}
-
-/* Size selector */
-.cfg-size-selector {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.cfg-size-btn {
-    min-width: 42px;
-    height: 36px;
-    padding: 0 12px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-radius: var(--radius-md);
-    background: white;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--black-soft);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.cfg-size-btn:hover {
-    border-color: var(--pink-light);
-    background: rgba(255, 105, 180, 0.05);
-}
-
-.cfg-size-btn.selected {
-    border-color: var(--pink-main);
-    background: var(--pink-main);
-    color: white;
-}
-
-.cfg-coming-soon-text {
-    font-size: 0.85rem;
-    color: var(--gray);
-    line-height: 1.4;
-}
-
-/* ===========================================
-   MODERN CUSTOM DROPDOWNS - 2026 Style
-   =========================================== */
-
-/* Custom dropdown wrapper */
-.cfg-modern-dropdown {
-    position: relative;
-    width: 100%;
-    margin-bottom: 16px;
-}
-
-/* Trigger button - modern glass style */
-.cfg-dropdown-trigger {
-    width: 100%;
-    padding: 14px 18px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,248,252,0.9) 100%);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(0,0,0,0.06);
-    border-radius: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
-}
-
-.cfg-dropdown-trigger:hover {
-    border-color: rgba(255, 105, 180, 0.3);
-    box-shadow: 0 4px 16px rgba(255, 105, 180, 0.12), 0 2px 4px rgba(0,0,0,0.04);
-    transform: translateY(-1px);
-}
-
-.cfg-dropdown-trigger.open {
-    border-color: var(--pink-main);
-    box-shadow: 0 4px 20px rgba(255, 105, 180, 0.2);
-}
-
-.cfg-dropdown-preview {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-    min-width: 0;
-}
-
-.cfg-dropdown-preview-text {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--black-soft);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.cfg-dropdown-preview-sub {
-    font-size: 0.75rem;
-    color: var(--gray);
-    white-space: nowrap;
-}
-
-.cfg-dropdown-arrow {
-    width: 20px;
-    height: 20px;
-    color: var(--gray);
-    transition: transform 0.3s ease;
-    flex-shrink: 0;
-}
-
-.cfg-dropdown-trigger.open .cfg-dropdown-arrow {
-    transform: rotate(180deg);
-    color: var(--pink-main);
-}
-
-/* Dropdown list - floating glass panel */
-.cfg-dropdown-list {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    right: 0;
-    background: rgba(255,255,255,0.98);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 16px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
-    max-height: 280px;
-    overflow-y: auto;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px) scale(0.98);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 8px;
-}
-
-.cfg-dropdown-list.open {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-}
-
-/* Scrollbar styling */
-.cfg-dropdown-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.cfg-dropdown-list::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.cfg-dropdown-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 105, 180, 0.3);
-    border-radius: 3px;
-}
-
-/* Dropdown item */
-.cfg-dropdown-item {
-    padding: 12px 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    transition: all 0.2s ease;
-    margin-bottom: 4px;
-}
-
-.cfg-dropdown-item:last-child {
-    margin-bottom: 0;
-}
-
-.cfg-dropdown-item:hover {
-    background: linear-gradient(135deg, rgba(255, 105, 180, 0.08) 0%, rgba(61, 255, 192, 0.05) 100%);
-}
-
-.cfg-dropdown-item.selected {
-    background: linear-gradient(135deg, rgba(255, 105, 180, 0.15) 0%, rgba(255, 182, 193, 0.1) 100%);
-}
-
-.cfg-dropdown-item-content {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-    min-width: 0;
-}
-
-.cfg-dropdown-item-name {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--black-soft);
-}
-
-.cfg-dropdown-item-desc {
-    font-size: 0.75rem;
-    color: var(--gray);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.cfg-dropdown-item-badge {
-    font-size: 0.7rem;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: linear-gradient(135deg, var(--mint-light) 0%, var(--mint-main) 100%);
-    color: var(--black-soft);
-    white-space: nowrap;
-}
-
-.cfg-dropdown-item-badge.price {
-    background: linear-gradient(135deg, rgba(255, 105, 180, 0.15) 0%, rgba(255, 182, 193, 0.2) 100%);
-    color: var(--pink-dark);
-}
-
-/* Check icon for selected item */
-.cfg-dropdown-item.selected::after {
-    content: '✓';
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--pink-main);
-}
-
-/* Font preview in dropdown */
-.cfg-dropdown-item[data-font] .cfg-dropdown-item-name {
-    font-family: var(--preview-font, inherit);
-}
-
-/* Description technique */
-.cfg-technique-details {
-    padding: 12px 16px;
-    background: linear-gradient(135deg, rgba(255, 105, 180, 0.04) 0%, rgba(61, 255, 192, 0.03) 100%);
-    border-radius: 12px;
-    margin-bottom: 16px;
-    border: 1px solid rgba(0,0,0,0.04);
-}
-
-.cfg-technique-details .technique-description {
-    font-size: 0.8rem;
-    color: var(--gray);
-    line-height: 1.5;
-    margin: 0;
-}
-
-/* ===========================================
-   BOUTON APERÇU RENDU RÉEL - Modern Style
-   =========================================== */
-.cfg-preview-btn-pink {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
-    max-width: 450px;
-    padding: 16px 28px;
-    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 50%, #FF69B4 100%);
-    background-size: 200% 200%;
-    border: none;
-    border-radius: 16px;
-    color: white;
-    font-weight: 700;
-    font-size: 1rem;
-    letter-spacing: 0.3px;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 6px 24px rgba(255, 105, 180, 0.4), 0 2px 8px rgba(255, 105, 180, 0.2);
-    margin-top: 20px;
-    position: relative;
-    overflow: hidden;
-}
-
-.cfg-preview-btn-pink::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.5s ease;
-}
-
-.cfg-preview-btn-pink:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 32px rgba(255, 105, 180, 0.5), 0 4px 12px rgba(255, 105, 180, 0.3);
-    background-position: 100% 0;
-}
-
-.cfg-preview-btn-pink:hover::before {
-    left: 100%;
-}
-
-.cfg-preview-btn-pink:active {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(255, 105, 180, 0.4);
-}
-
-.cfg-preview-btn-pink svg {
-    flex-shrink: 0;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-}
-
-/* Hide native selects when custom dropdowns are present */
-.cfg-font-select,
-.cfg-technique-select {
-    display: none;
-}
-
-/* ===========================================
-   YOURSURPRISE STYLE - Option Rows
-   =========================================== */
-.cfg-option-row {
-    display: flex;
-    align-items: center;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--cfg-border);
-}
-
-.cfg-option-label {
-    width: 100px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #333;
-    flex-shrink: 0;
-}
-
-.cfg-option-controls {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* Ecriture (Font select dropdown) */
-.cfg-font-select {
-    flex: 1;
-    padding: 12px 16px;
-    border: 1px solid var(--cfg-border);
-    border-radius: 8px;
-    background: white;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 40px;
-}
-
-.cfg-font-select:hover {
-    border-color: var(--pink-main);
-}
-
-.cfg-font-select:focus {
-    outline: none;
-    border-color: var(--pink-main);
-    box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.15);
-}
-
-.cfg-font-select option {
-    padding: 12px;
-}
-
-/* Couleur (Color swatch - square style) */
-.cfg-color-single {
-    width: 40px;
-    height: 40px;
-    border-radius: 6px;
-    border: 2px solid var(--cfg-border);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.cfg-color-single:hover {
-    border-color: var(--pink-main);
-}
-
-/* Style (Bold / Italic buttons) */
-.cfg-style-btn {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--cfg-border);
-    border-radius: 6px;
-    background: white;
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: #333;
-}
-
-.cfg-style-btn:hover {
-    border-color: var(--pink-main);
-    color: var(--pink-main);
-}
-
-.cfg-style-btn.active {
-    background: var(--pink-main);
-    border-color: var(--pink-main);
-    color: white;
-}
-
-.cfg-style-btn.italic {
-    font-style: italic;
-}
-
-/* Aligner (Alignment buttons) */
-.cfg-align-btn {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--cfg-border);
-    border-radius: 6px;
-    background: white;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.cfg-align-btn:hover {
-    border-color: var(--pink-main);
-}
-
-.cfg-align-btn.active {
-    background: var(--pink-main);
-    border-color: var(--pink-main);
-    color: white;
-}
-
-.cfg-align-btn svg {
-    width: 18px;
-    height: 18px;
-}
-
-/* Dimensions (+/- buttons) */
-.cfg-dim-btn {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--cfg-border);
-    border-radius: 6px;
-    background: white;
-    font-size: 1.3rem;
-    font-weight: 400;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: #333;
-}
-
-.cfg-dim-btn:hover {
-    border-color: var(--pink-main);
-    color: var(--pink-main);
-}
-
-.cfg-dim-btn:active {
-    background: var(--cfg-pink-light);
-}
-
-/* Pivoter (Rotation slider) */
-.cfg-rotation-slider {
-    flex: 1;
-    height: 6px;
-    -webkit-appearance: none;
-    appearance: none;
-    background: var(--cfg-border);
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-.cfg-rotation-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    background: white;
-    border: 2px solid var(--cfg-border);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.cfg-rotation-slider::-webkit-slider-thumb:hover {
-    border-color: var(--pink-main);
-    box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.2);
-}
-
-.cfg-rotation-marks {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.7rem;
-    color: #999;
-    margin-top: 4px;
-}
-
-/* Déplacer (Arrow buttons) */
-.cfg-move-btn {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--cfg-border);
-    border-radius: 6px;
-    background: white;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: #333;
-}
-
-.cfg-move-btn:hover {
-    border-color: var(--pink-main);
-    color: var(--pink-main);
-}
-
-.cfg-move-btn:active {
-    background: var(--cfg-pink-light);
-}
-
-/* Disposer (Layer order buttons) */
-.cfg-layer-btn {
-    padding: 8px 12px;
-    border: 1px solid var(--cfg-border);
-    border-radius: 6px;
-    background: white;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: #666;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.cfg-layer-btn:hover {
-    border-color: var(--pink-main);
-    color: var(--pink-main);
-}
-
-.cfg-layer-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* ===========================================
-   TOOL PANEL: PHOTO
-   =========================================== */
-.cfg-upload-zone {
-    border: 2px dashed rgba(0, 0, 0, 0.15);
-    border-radius: var(--radius-md);
-    padding: 40px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 20px;
-}
-
-.cfg-upload-zone:hover {
-    border-color: var(--pink-main);
-    background: rgba(255, 105, 180, 0.03);
-}
-
-.cfg-upload-zone.dragover {
-    border-color: var(--pink-main);
-    background: rgba(255, 105, 180, 0.08);
-    transform: scale(1.02);
-}
-
-.cfg-upload-icon {
-    font-size: 2.5rem;
-    margin-bottom: 12px;
-    color: var(--pink-main);
-}
-
-.cfg-upload-text {
-    font-weight: 600;
-    color: var(--black-soft);
-    margin-bottom: 4px;
-}
-
-.cfg-upload-hint {
-    font-size: 0.8rem;
-    color: var(--gray);
-}
-
-/* ===========================================
-   TOOL PANEL: DESIGN (Templates)
-   =========================================== */
-.cfg-design-category {
-    margin-bottom: 16px;
-}
-
-.cfg-design-category select {
-    width: 100%;
-    padding: 10px 14px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-radius: var(--radius-md);
-    font-size: 0.9rem;
-    background: white;
-}
-
-.cfg-design-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-}
-
-.cfg-design-item {
-    aspect-ratio: 1;
-    border: 2px solid rgba(0, 0, 0, 0.08);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    overflow: hidden;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.02);
-}
-
-.cfg-design-item:hover {
-    border-color: var(--pink-main);
-    transform: scale(1.05);
-}
-
-.cfg-design-item img {
-    max-width: 80%;
-    max-height: 80%;
-    object-fit: contain;
-}
-
-.cfg-design-item .placeholder {
-    font-size: 1.5rem;
-    color: var(--gray);
-}
-
-/* ===========================================
-   TOOL PANEL: LAYERS
-   =========================================== */
-.cfg-layers-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-}
-
-.cfg-layers-count {
-    font-size: 0.8rem;
-    color: var(--gray);
-    font-weight: 600;
-}
-
-.cfg-layers-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.cfg-layer-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: var(--radius-md);
-    cursor: grab;
-    transition: all 0.2s;
-}
-
-.cfg-layer-item:hover {
-    background: rgba(255, 105, 180, 0.08);
-}
-
-.cfg-layer-item.selected {
-    background: rgba(255, 105, 180, 0.15);
-    box-shadow: inset 0 0 0 2px var(--pink-main);
-}
-
-.cfg-layer-item.dragging {
-    opacity: 0.5;
-    cursor: grabbing;
-}
-
-.cfg-layer-handle {
-    color: var(--gray);
-    font-size: 0.9rem;
-    cursor: grab;
-}
-
-.cfg-layer-icon {
-    font-size: 1.1rem;
-}
-
-.cfg-layer-name {
-    flex: 1;
-    font-size: 0.85rem;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.cfg-layer-actions {
-    display: flex;
-    gap: 6px;
-}
-
-.cfg-layer-btn {
-    width: 28px;
-    height: 28px;
-    border: none;
-    background: transparent;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    color: var(--gray);
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.cfg-layer-btn:hover {
-    background: rgba(0, 0, 0, 0.08);
-    color: var(--black-soft);
-}
-
-.cfg-layer-btn.hidden {
-    color: rgba(0, 0, 0, 0.3);
-}
-
-/* Add element buttons */
-.cfg-add-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.cfg-add-btn {
-    flex: 1;
-    padding: 10px;
-    border: 2px dashed rgba(0, 0, 0, 0.15);
-    border-radius: var(--radius-md);
-    background: transparent;
-    cursor: pointer;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--gray);
-    transition: all 0.2s;
-}
-
-.cfg-add-btn:hover {
-    border-color: var(--pink-main);
-    color: var(--pink-main);
-    background: rgba(255, 105, 180, 0.05);
-}
-
-/* ===========================================
-   CANVAS (Center column)
-   =========================================== */
-.cfg-canvas-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-}
-
-.cfg-view-toggle {
-    display: flex;
-    gap: 10px;
-}
-
-.cfg-view-btn {
-    padding: 10px 20px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-radius: var(--radius-full);
-    background: white;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: var(--gray);
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.cfg-view-btn:hover {
-    border-color: var(--pink-light);
-    color: var(--pink-main);
-}
-
-.cfg-view-btn.active {
-    background: var(--gradient-pink);
-    border-color: transparent;
-    color: white;
-    box-shadow: var(--shadow-pink);
-}
-
-.cfg-canvas-wrapper {
-    position: relative;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
-    padding: 16px;
-    width: 100%;
-    max-width: 450px;
-}
-
-.cfg-canvas-stage {
-    width: 100%;
-    aspect-ratio: 1;
-    background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
-    border-radius: var(--radius-md);
-    position: relative;
-    overflow: hidden;
-}
-
-/* Konva canvas container */
-.cfg-canvas-stage .konvajs-content {
-    border-radius: var(--radius-md);
-}
-
-/* Print zone indicator */
-.cfg-print-zone {
-    position: absolute;
-    border: 2px dashed rgba(255, 105, 180, 0.4);
-    border-radius: 8px;
-    pointer-events: none;
-    transition: border-color 0.3s, background-color 0.3s;
-}
-
-.cfg-print-zone.active {
-    border-color: rgba(255, 105, 180, 0.7);
-    background: rgba(255, 105, 180, 0.05);
-}
-
-.cfg-print-zone-label {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    font-size: 10px;
-    color: var(--pink-main);
-    background: white;
-    padding: 2px 8px;
-    border-radius: 4px 4px 0 0;
-    font-weight: 600;
-}
-
-/* Zoom controls */
-.cfg-zoom-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.cfg-zoom-btn {
-    width: 36px;
-    height: 36px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-radius: var(--radius-md);
-    background: white;
-    cursor: pointer;
-    font-size: 1.1rem;
-    color: var(--gray);
-    transition: all 0.2s;
-}
-
-.cfg-zoom-btn:hover {
-    border-color: var(--pink-main);
-    color: var(--pink-main);
-}
-
-.cfg-zoom-level {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--gray);
-    min-width: 50px;
-    text-align: center;
-}
-
-/* Drag hint */
-.cfg-drag-hint {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: rgba(255, 105, 180, 0.08);
-    border-radius: var(--radius-md);
-    font-size: 0.85rem;
-    color: var(--gray);
-}
-
-.cfg-drag-hint svg {
-    color: var(--pink-main);
-}
-
-/* ===========================================
-   DRAWER (Right column - Properties)
-   =========================================== */
-.cfg-drawer {
-    background: white;
-    border-radius: var(--cfg-radius);
-    box-shadow: var(--cfg-shadow);
-    padding: 0;
-    overflow: hidden;
-    opacity: 0;
-    transform: translateX(20px);
-    transition: opacity var(--cfg-transition), transform var(--cfg-transition);
-    pointer-events: none;
-}
-
-.configurator-v2.drawer-open .cfg-drawer {
-    opacity: 1;
-    transform: translateX(0);
-    pointer-events: auto;
-}
-
-.cfg-drawer-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.cfg-drawer-title {
-    font-weight: 700;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--black-soft);
-}
-
-.cfg-drawer-close {
-    width: 28px;
-    height: 28px;
-    border: none;
-    background: transparent;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    color: var(--gray);
-    font-size: 1.2rem;
-    transition: all 0.15s;
-}
-
-.cfg-drawer-close:hover {
-    background: rgba(0, 0, 0, 0.08);
-    color: var(--black-soft);
-}
-
-.cfg-drawer-content {
-    padding: 20px;
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
-}
-
-/* Property controls */
-.cfg-prop-group {
-    margin-bottom: 20px;
-}
-
-.cfg-prop-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--gray);
-    margin-bottom: 10px;
-}
-
-.cfg-prop-row {
-    display: flex;
-    gap: 10px;
-}
-
-.cfg-prop-input {
-    flex: 1;
-    padding: 10px 12px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-radius: var(--radius-md);
-    font-size: 0.9rem;
-    text-align: center;
-}
-
-.cfg-prop-input:focus {
-    outline: none;
-    border-color: var(--pink-main);
-}
-
-.cfg-prop-input-label {
-    font-size: 0.7rem;
-    color: var(--gray);
-    text-align: center;
-    margin-top: 4px;
-}
-
-/* Slider */
-.cfg-slider {
-    width: 100%;
-    -webkit-appearance: none;
-    height: 6px;
-    border-radius: 3px;
-    background: rgba(0, 0, 0, 0.1);
-    outline: none;
-}
-
-.cfg-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--gradient-pink);
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(255, 105, 180, 0.4);
-}
-
-.cfg-slider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--gradient-pink);
-    cursor: pointer;
-    border: none;
-}
-
-/* Delete button */
-.cfg-delete-btn {
-    width: 100%;
-    padding: 14px;
-    margin-top: 20px;
-    border: 2px solid rgba(220, 53, 69, 0.3);
-    border-radius: var(--radius-md);
-    background: rgba(220, 53, 69, 0.05);
-    color: #dc3545;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.cfg-delete-btn:hover {
-    background: rgba(220, 53, 69, 0.1);
-    border-color: rgba(220, 53, 69, 0.5);
-}
-
-/* ===========================================
-   ACTION BAR (Bottom)
-   =========================================== */
-.cfg-actions {
-    grid-column: 1 / -1;
-    background: white;
-    border-radius: var(--cfg-radius);
-    box-shadow: var(--cfg-shadow);
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-}
-
-.cfg-actions-left {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.cfg-action-btn {
-    padding: 10px 16px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-radius: var(--radius-md);
-    background: white;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--gray);
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.cfg-action-btn:hover:not(:disabled) {
-    border-color: var(--pink-main);
-    color: var(--pink-main);
-}
-
-.cfg-action-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.cfg-snap-toggle {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.85rem;
-    color: var(--gray);
-}
-
-.cfg-snap-toggle input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--pink-main);
-}
-
-.cfg-actions-center {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.cfg-save-btn {
-    padding: 12px 20px;
-    border: 2px solid var(--mint-main);
-    border-radius: var(--radius-md);
-    background: rgba(61, 255, 192, 0.1);
-    color: var(--mint-dark);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.cfg-save-btn:hover {
-    background: rgba(61, 255, 192, 0.2);
-}
-
-.cfg-save-btn.saved {
-    background: var(--mint-main);
-    color: white;
-}
-
-.cfg-share-btn {
-    padding: 12px 20px;
-    border: 2px solid var(--pink-main);
-    border-radius: var(--radius-md);
-    background: rgba(255, 105, 180, 0.1);
-    color: var(--pink-dark);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.cfg-share-btn:hover {
-    background: rgba(255, 105, 180, 0.2);
-}
-
-.cfg-actions-right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.cfg-price-display {
-    text-align: right;
-}
-
-.cfg-price-label {
-    font-size: 0.75rem;
-    color: var(--gray);
-    text-transform: uppercase;
-}
-
-.cfg-price-value {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--pink-dark);
-}
-
-.cfg-add-cart-btn {
-    padding: 14px 28px;
-    background: var(--gradient-pink);
-    border: none;
-    border-radius: var(--radius-md);
-    color: white;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: var(--shadow-pink);
-}
-
-.cfg-add-cart-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
-}
-
-/* ===========================================
-   RESPONSIVE - Tablet
-   =========================================== */
-@media (max-width: 1200px) {
-    :root {
-        --cfg-tools-width: 200px;
-        --cfg-drawer-width: 260px;
-    }
-
-    .cfg-design-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* ===========================================
-   RESPONSIVE - Mobile (Bottom Toolbar)
-   =========================================== */
-@media (max-width: 768px) {
-    .configurator-v2 {
-        display: flex;
-        flex-direction: column;
-        padding: 0;
-        padding-bottom: calc(var(--cfg-toolbar-height) + var(--cfg-cta-height));
-        min-height: 100vh;
-    }
-
-    /* Hide desktop tabs bar */
-    .cfg-tabs-bar {
-        display: none;
-    }
-
-    /* Hide desktop tools panel */
-    .cfg-tools {
-        display: none;
-    }
-
-    /* Hide desktop drawer */
-    .cfg-drawer {
-        display: none;
-    }
-
-    /* Hide desktop action bar */
-    .cfg-actions {
-        display: none;
-    }
-
-    /* Canvas full width */
-    .cfg-canvas-container {
-        flex: 1;
-        padding: 16px;
-    }
-
-    .cfg-canvas-wrapper {
-        max-width: 100%;
-    }
-
-    /* Mobile toolbar - fixed bottom */
-    .cfg-mobile-toolbar {
-        display: flex;
-        position: fixed;
-        bottom: var(--cfg-cta-height);
-        left: 0;
-        right: 0;
-        height: var(--cfg-toolbar-height);
-        background: white;
-        border-top: 1px solid rgba(0, 0, 0, 0.08);
-        z-index: 100;
-    }
-
-    .cfg-mobile-tab {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        border: none;
-        background: transparent;
-        cursor: pointer;
-        color: var(--gray);
-        transition: color 0.2s;
-    }
-
-    .cfg-mobile-tab.active {
-        color: var(--pink-main);
-    }
-
-    .cfg-mobile-tab-icon {
-        font-size: 1.3rem;
-    }
-
-    .cfg-mobile-tab-label {
-        font-size: 0.65rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
-    /* Mobile CTA bar */
-    .cfg-mobile-cta {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: var(--cfg-cta-height);
-        background: white;
-        padding: 12px 16px;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-        z-index: 100;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .cfg-mobile-price {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .cfg-mobile-price-label {
-        font-size: 0.7rem;
-        color: var(--gray);
-    }
-
-    .cfg-mobile-price-value {
-        font-family: var(--font-display);
-        font-size: 1.3rem;
-        font-weight: 800;
-        color: var(--pink-dark);
-    }
-
-    .cfg-mobile-cart-btn {
-        padding: 14px 24px;
-        background: var(--gradient-pink);
-        border: none;
-        border-radius: var(--radius-md);
-        color: white;
-        font-weight: 700;
-        font-size: 0.95rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: var(--shadow-pink);
-    }
-
-    /* Mobile drawer (slide up) */
-    .cfg-mobile-drawer {
-        display: none;
-        position: fixed;
-        bottom: calc(var(--cfg-toolbar-height) + var(--cfg-cta-height));
-        left: 0;
-        right: 0;
-        max-height: 50vh;
-        background: white;
-        border-radius: var(--cfg-radius) var(--cfg-radius) 0 0;
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
-        z-index: 99;
-        overflow: hidden;
-        transform: translateY(100%);
-        transition: transform var(--cfg-transition);
-    }
-
-    .cfg-mobile-drawer.open {
-        display: block;
-        transform: translateY(0);
-    }
-
-    .cfg-mobile-drawer-header {
-        padding: 16px 20px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .cfg-mobile-drawer-title {
-        font-weight: 700;
-        font-size: 0.95rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .cfg-mobile-drawer-close {
-        width: 32px;
-        height: 32px;
-        border: none;
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 1.2rem;
-        color: var(--gray);
-    }
-
-    .cfg-mobile-drawer-content {
-        padding: 20px;
-        max-height: calc(50vh - 60px);
-        overflow-y: auto;
-    }
-
-    /* ===========================================
-       MODERN MOBILE STYLES - 2026
-       =========================================== */
-
-    .cfg-mobile-input {
-        width: 100%;
-        padding: 16px 18px;
-        background: rgba(255,255,255,0.95);
-        border: 1px solid rgba(0,0,0,0.06);
-        border-radius: 14px;
-        font-size: 1rem;
-        margin-bottom: 12px;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    .cfg-mobile-input:focus {
-        outline: none;
-        border-color: var(--pink-main);
-        box-shadow: 0 4px 16px rgba(255, 105, 180, 0.15);
-    }
-
-    .cfg-mobile-add-btn {
-        width: 100%;
-        padding: 16px 24px;
-        margin-bottom: 16px;
-        background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
-        border: none;
-        border-radius: 14px;
-        color: white;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
-        transition: all 0.3s ease;
-    }
-
-    .cfg-mobile-add-btn:active {
-        transform: scale(0.98);
-        box-shadow: 0 3px 12px rgba(255, 105, 180, 0.3);
-    }
-
-    .cfg-mobile-divider {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
-        margin: 20px 0;
-    }
-
-    .cfg-mobile-section {
-        margin-bottom: 20px;
-    }
-
-    .cfg-mobile-label {
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--gray);
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .cfg-mobile-label::before {
-        content: '';
-        width: 3px;
-        height: 12px;
-        background: var(--gradient-pink);
-        border-radius: 2px;
-    }
-
-    /* Mobile Modern Dropdown */
-    .cfg-mobile-dropdown {
-        position: relative;
-    }
-
-    .cfg-mobile-dropdown-trigger {
-        width: 100%;
-        padding: 14px 16px;
-        background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,248,252,0.95) 100%);
-        border: 1px solid rgba(0,0,0,0.06);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    .cfg-mobile-dropdown-trigger:active {
-        transform: scale(0.98);
-    }
-
-    .cfg-mobile-dropdown-text {
-        font-size: 0.95rem;
-        font-weight: 500;
-        color: var(--black-soft);
-        flex: 1;
-    }
-
-    .cfg-mobile-dropdown-badge {
-        font-size: 0.7rem;
-        font-weight: 600;
-        padding: 4px 10px;
-        border-radius: 20px;
-        background: linear-gradient(135deg, var(--mint-light) 0%, var(--mint-main) 100%);
-        color: var(--black-soft);
-    }
-
-    .cfg-mobile-dropdown-list {
-        position: absolute;
-        top: calc(100% + 6px);
-        left: 0;
-        right: 0;
-        background: rgba(255,255,255,0.98);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(0,0,0,0.08);
-        border-radius: 14px;
-        box-shadow: 0 10px 32px rgba(0,0,0,0.15);
-        max-height: 200px;
-        overflow-y: auto;
-        z-index: 1000;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-8px);
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        padding: 6px;
-    }
-
-    .cfg-mobile-dropdown-list.open {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }
-
-    .cfg-mobile-dropdown-item {
-        padding: 12px 14px;
-        border-radius: 10px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        transition: all 0.2s ease;
-        margin-bottom: 4px;
-    }
-
-    .cfg-mobile-dropdown-item:last-child {
-        margin-bottom: 0;
-    }
-
-    .cfg-mobile-dropdown-item:active {
-        background: rgba(255, 105, 180, 0.15);
-    }
-
-    .cfg-mobile-dropdown-item.selected {
-        background: linear-gradient(135deg, rgba(255, 105, 180, 0.12) 0%, rgba(255, 182, 193, 0.08) 100%);
-    }
-
-    .cfg-mobile-dropdown-item.selected::after {
-        content: '✓';
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: var(--pink-main);
-    }
-
-    .cfg-mobile-dropdown-item .item-name {
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: var(--black-soft);
-        flex: 1;
-    }
-
-    .cfg-mobile-dropdown-item .item-badge {
-        font-size: 0.65rem;
-        font-weight: 600;
-        padding: 3px 8px;
-        border-radius: 12px;
-        background: var(--mint-light);
-        color: var(--black-soft);
-    }
-
-    .cfg-mobile-dropdown-item .item-badge.price {
-        background: rgba(255, 105, 180, 0.15);
-        color: var(--pink-dark);
-    }
-
-    /* Mobile colors palette */
-    .cfg-mobile-colors {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .cfg-mobile-colors .cfg-color-swatch {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        border: 2px solid transparent;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    .cfg-mobile-colors .cfg-color-swatch.selected {
-        border-color: var(--pink-main);
-        transform: scale(1.1);
-        box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
-    }
-
-    .cfg-mobile-drawer-apply {
-        width: 100%;
-        padding: 14px;
-        margin-top: 16px;
-        background: var(--gradient-pink);
-        border: none;
-        border-radius: var(--radius-md);
-        color: white;
-        font-weight: 700;
-        cursor: pointer;
-    }
-}
-
-/* Hide mobile elements on desktop */
-@media (min-width: 769px) {
-    .cfg-mobile-toolbar,
-    .cfg-mobile-cta,
-    .cfg-mobile-drawer {
-        display: none !important;
-    }
-}
-
-/* ===========================================
-   SNAP GUIDES
-   =========================================== */
-.cfg-snap-guide {
-    position: absolute;
-    background: var(--pink-main);
-    z-index: 50;
-    pointer-events: none;
-}
-
-.cfg-snap-guide.horizontal {
-    height: 1px;
-    left: 0;
-    right: 0;
-}
-
-.cfg-snap-guide.vertical {
-    width: 1px;
-    top: 0;
-    bottom: 0;
-}
-
-/* ===========================================
-   LOADING STATE
-   =========================================== */
-.cfg-loading {
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-}
-
-.cfg-loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255, 105, 180, 0.2);
-    border-top-color: var(--pink-main);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* ===========================================
-   MAPPING: Classes existantes product.php
-   Applique le design moderne sur le HTML actuel
-   =========================================== */
-
-/* Layout principal - 3 colonnes */
 .configurator-layout {
     display: grid;
     grid-template-columns: 320px 1fr 300px;
     gap: 0;
-    min-height: calc(100vh - 200px);
-    background: var(--cfg-bg, #f8f8f8);
-    border-radius: 16px;
+    min-height: calc(100vh - 180px);
+    background: var(--cfg-card);
+    border-radius: var(--cfg-radius);
     overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--cfg-shadow);
+    margin-top: 20px;
 }
 
-/* Colonne gauche - Options texte */
+/* ===========================================
+   COLONNE GAUCHE - Options de personnalisation
+   =========================================== */
 .config-left {
-    background: white;
-    border-right: 1px solid #e5e5e5;
-    padding: 24px;
+    background: var(--cfg-card);
+    border-right: 1px solid var(--cfg-border);
+    padding: 0;
     overflow-y: auto;
-    max-height: calc(100vh - 200px);
+    max-height: calc(100vh - 180px);
 }
 
-/* Colonne centrale - Preview */
+/* ===========================================
+   COLONNE CENTRALE - Preview Produit
+   =========================================== */
 .config-center {
-    background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
+    background: linear-gradient(180deg, #f8f8fa 0%, #eeeef2 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 30px;
+    position: relative;
 }
 
-/* Colonne droite - Options produit */
+/* ===========================================
+   COLONNE DROITE - Options produit + CTA
+   =========================================== */
 .config-right {
-    background: white;
-    border-left: 1px solid #e5e5e5;
-    padding: 24px;
+    background: var(--cfg-card);
+    border-left: 1px solid var(--cfg-border);
+    padding: 0;
     overflow-y: auto;
-    max-height: calc(100vh - 200px);
+    max-height: calc(100vh - 180px);
+    display: flex;
+    flex-direction: column;
 }
 
-/* Sections */
+/* ===========================================
+   SECTIONS - Style Canva épuré
+   =========================================== */
 .config-section {
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--cfg-border);
 }
 
 .config-section:last-child {
     border-bottom: none;
-    margin-bottom: 0;
 }
 
 .config-section-title {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #666;
-    margin: 0 0 12px 0;
+    letter-spacing: 1px;
+    color: #8e8e93;
+    margin: 0 0 14px 0;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2207,65 +104,522 @@
 .config-section-title::before {
     content: '';
     width: 3px;
-    height: 14px;
-    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
+    height: 12px;
+    background: var(--pink-main, #FF69B4);
     border-radius: 2px;
 }
 
-/* Product Hero / Preview */
+/* ===========================================
+   ACCORDION (Mobile) - Headers
+   =========================================== */
+.accordion-header {
+    display: none; /* Caché sur desktop */
+}
+
+/* ===========================================
+   INPUT TEXTE - Style moderne
+   =========================================== */
+.custom-text-input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: #f8f8fa;
+    border: 2px solid transparent;
+    border-radius: var(--cfg-radius-sm);
+    transition: all var(--cfg-transition);
+    color: var(--black-soft, #1A1A2E);
+}
+
+.custom-text-input:focus {
+    outline: none;
+    border-color: var(--pink-main, #FF69B4);
+    background: var(--cfg-card);
+    box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.1);
+}
+
+.custom-text-input::placeholder {
+    color: #a0a0a5;
+}
+
+/* ===========================================
+   SÉLECTEUR DE POLICE - Dropdown moderne
+   =========================================== */
+.font-selector-wrapper {
+    position: relative;
+}
+
+.font-selector-trigger {
+    width: 100%;
+    padding: 12px 16px;
+    background: #f8f8fa;
+    border: 2px solid transparent;
+    border-radius: var(--cfg-radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all var(--cfg-transition);
+}
+
+.font-selector-trigger:hover {
+    border-color: var(--cfg-border);
+}
+
+.font-selector-trigger.open {
+    border-color: var(--pink-main, #FF69B4);
+    background: var(--cfg-card);
+}
+
+.font-selector-preview {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--black-soft, #1A1A2E);
+}
+
+.font-selector-arrow {
+    color: #8e8e93;
+    transition: transform var(--cfg-transition);
+}
+
+.font-selector-trigger.open .font-selector-arrow {
+    transform: rotate(180deg);
+    color: var(--pink-main, #FF69B4);
+}
+
+.font-selector-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: var(--cfg-card);
+    border: 1px solid var(--cfg-border);
+    border-radius: var(--cfg-radius-sm);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    max-height: 280px;
+    overflow: hidden;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+}
+
+.font-selector-dropdown.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.font-search-box {
+    padding: 12px;
+    border-bottom: 1px solid var(--cfg-border);
+}
+
+.font-search-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    background: #f8f8fa;
+    border: none;
+    border-radius: 8px;
+}
+
+.font-search-input:focus {
+    outline: none;
+    background: #f0f0f5;
+}
+
+.font-list {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.font-list-item {
+    padding: 12px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.15s ease;
+}
+
+.font-list-item:hover {
+    background: #f8f8fa;
+}
+
+.font-list-item.selected {
+    background: rgba(255, 105, 180, 0.1);
+}
+
+.font-list-item.hidden {
+    display: none;
+}
+
+.font-item-name {
+    font-size: 0.95rem;
+    color: var(--black-soft, #1A1A2E);
+}
+
+.font-item-category {
+    font-size: 0.7rem;
+    color: #8e8e93;
+    text-transform: uppercase;
+}
+
+/* ===========================================
+   COULEURS DE TEXTE - Palette moderne
+   =========================================== */
+.text-color-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.text-color-option {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.text-color-option:hover {
+    transform: scale(1.1);
+}
+
+.text-color-option.selected {
+    border-color: var(--black-soft, #1A1A2E);
+    box-shadow: 0 0 0 3px var(--cfg-card), 0 0 0 5px var(--pink-main, #FF69B4);
+    transform: scale(1.1);
+}
+
+.text-color-option input {
+    display: none;
+}
+
+.text-color-option .color-label {
+    display: none;
+}
+
+/* ===========================================
+   SÉLECTEUR DE TECHNIQUE - Dropdown
+   =========================================== */
+.technique-selector-wrapper {
+    position: relative;
+}
+
+.technique-selector-trigger {
+    width: 100%;
+    padding: 14px 16px;
+    background: #f8f8fa;
+    border: 2px solid transparent;
+    border-radius: var(--cfg-radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all var(--cfg-transition);
+}
+
+.technique-selector-trigger:hover {
+    border-color: var(--cfg-border);
+}
+
+.technique-selector-trigger.open {
+    border-color: var(--pink-main, #FF69B4);
+    background: var(--cfg-card);
+}
+
+.technique-trigger-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.technique-selector-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--black-soft, #1A1A2E);
+}
+
+.technique-selector-desc {
+    font-size: 0.75rem;
+    color: #8e8e93;
+}
+
+.technique-trigger-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.technique-selector-price {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--mint-dark, #00D9A0);
+    background: rgba(61, 255, 192, 0.15);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.technique-selector-arrow {
+    color: #8e8e93;
+    transition: transform var(--cfg-transition);
+}
+
+.technique-selector-trigger.open .technique-selector-arrow {
+    transform: rotate(180deg);
+    color: var(--pink-main, #FF69B4);
+}
+
+.technique-selector-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: var(--cfg-card);
+    border: 1px solid var(--cfg-border);
+    border-radius: var(--cfg-radius-sm);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    max-height: 320px;
+    overflow: hidden;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+}
+
+.technique-selector-dropdown.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Open upward variant */
+.technique-selector-dropdown.open-up {
+    top: auto;
+    bottom: calc(100% + 8px);
+    transform: translateY(8px);
+}
+
+.technique-selector-dropdown.open-up.open {
+    transform: translateY(0);
+}
+
+.technique-search-box {
+    padding: 12px;
+    border-bottom: 1px solid var(--cfg-border);
+}
+
+.technique-search-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    background: #f8f8fa;
+    border: none;
+    border-radius: 8px;
+}
+
+.technique-search-input:focus {
+    outline: none;
+    background: #f0f0f5;
+}
+
+.technique-list {
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.technique-list-item {
+    padding: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+    transition: background 0.15s ease;
+}
+
+.technique-list-item:hover {
+    background: #f8f8fa;
+}
+
+.technique-list-item.selected {
+    background: rgba(255, 105, 180, 0.1);
+}
+
+.technique-list-item.hidden {
+    display: none;
+}
+
+.technique-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.technique-item-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--black-soft, #1A1A2E);
+}
+
+.technique-item-desc {
+    font-size: 0.75rem;
+    color: #8e8e93;
+}
+
+.technique-item-price {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--pink-dark, #FF1493);
+    background: rgba(255, 105, 180, 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.technique-item-price.free {
+    color: var(--mint-dark, #00D9A0);
+    background: rgba(61, 255, 192, 0.15);
+}
+
+/* ===========================================
+   PRODUCT HERO - Zone centrale
+   =========================================== */
 .product-hero {
     width: 100%;
-    max-width: 450px;
+    max-width: 480px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 16px;
 }
 
+/* ===========================================
+   VIEW TOGGLE - Bascule Face/Dos
+   =========================================== */
+.view-toggle {
+    display: flex;
+    gap: 8px;
+    background: var(--cfg-card);
+    padding: 6px;
+    border-radius: 30px;
+    box-shadow: var(--cfg-shadow);
+}
+
+.view-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    background: transparent;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #8e8e93;
+    cursor: pointer;
+    transition: all var(--cfg-transition);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.view-btn:hover {
+    color: var(--black-soft, #1A1A2E);
+    background: #f8f8fa;
+}
+
+.view-btn.active {
+    background: var(--pink-main, #FF69B4);
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 105, 180, 0.35);
+}
+
+.view-icon {
+    font-size: 1rem;
+}
+
+/* ===========================================
+   PRODUCT PREVIEW - Canvas principal
+   =========================================== */
 .product-preview {
     position: relative;
     width: 100%;
     aspect-ratio: 1;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    background: var(--cfg-card);
+    border-radius: var(--cfg-radius);
+    box-shadow: var(--cfg-shadow);
     overflow: hidden;
+    transition: box-shadow var(--cfg-transition);
+}
+
+.product-preview:hover {
+    box-shadow: var(--cfg-shadow-hover);
 }
 
 .product-preview .preview-product-img {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    transition: transform 0.3s ease;
 }
 
-/* Zone d'impression */
+.preview-icon {
+    font-size: 6rem;
+    opacity: 0.3;
+}
+
+/* ===========================================
+   ZONE D'IMPRESSION - Overlay
+   =========================================== */
 .print-zone-overlay {
     position: absolute;
-    border: 2px dashed rgba(255, 105, 180, 0.5);
+    border: 2px dashed rgba(255, 105, 180, 0.4);
     border-radius: 8px;
     pointer-events: none;
     transition: all 0.3s ease;
+    background: transparent;
 }
 
 .print-zone-overlay.active {
-    border-color: #FF69B4;
-    background: rgba(255, 105, 180, 0.08);
+    border-color: var(--pink-main, #FF69B4);
+    background: rgba(255, 105, 180, 0.05);
+    border-width: 3px;
 }
 
 .print-zone-label {
     position: absolute;
-    top: -24px;
-    left: 0;
-    font-size: 10px;
-    font-weight: 600;
-    color: #FF69B4;
-    background: white;
-    padding: 4px 10px;
-    border-radius: 6px 6px 0 0;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--pink-main, #FF69B4);
+    background: var(--cfg-card);
+    padding: 4px 12px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
 }
 
-/* Texte preview draggable */
+/* ===========================================
+   PREVIEW TEXT - Texte draggable
+   =========================================== */
 .preview-text {
     position: absolute;
     left: 50%;
@@ -2273,59 +627,97 @@
     transform: translate(-50%, -50%);
     font-size: 1.5rem;
     font-weight: 600;
-    cursor: move;
+    cursor: grab;
     user-select: none;
     white-space: nowrap;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.15s ease;
+    transition: transform 0.1s ease, opacity 0.2s ease;
     z-index: 10;
 }
 
 .preview-text.empty {
-    opacity: 0.4;
+    opacity: 0.35;
     font-style: italic;
+    color: #8e8e93;
 }
 
 .preview-text.dragging {
     cursor: grabbing;
     transform: translate(-50%, -50%) scale(1.05);
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* View toggle (Face/Dos) */
-.view-toggle {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
+/* Styles techniques pour le texte */
+.preview-text.technique-flex {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-.view-btn {
-    padding: 10px 20px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-radius: 25px;
-    background: white;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #666;
+.preview-text.technique-flock {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    filter: blur(0.3px);
+}
+
+.preview-text.technique-broderie {
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3), 2px 2px 0 rgba(0, 0, 0, 0.1);
+    font-weight: 700;
+}
+
+/* ===========================================
+   ZOOM & CATEGORY BADGE
+   =========================================== */
+.zoom-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    background: var(--cfg-card);
+    border: none;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.25s ease;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    box-shadow: var(--cfg-shadow);
+    transition: all 0.2s ease;
+    z-index: 5;
+    color: #8e8e93;
 }
 
-.view-btn:hover {
-    border-color: rgba(255, 105, 180, 0.4);
-    color: #FF69B4;
+.zoom-btn:hover {
+    transform: scale(1.08);
+    box-shadow: var(--cfg-shadow-hover);
+    color: var(--pink-main, #FF69B4);
 }
 
-.view-btn.active {
-    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
-    border-color: transparent;
-    color: white;
-    box-shadow: 0 4px 16px rgba(255, 105, 180, 0.35);
+.product-category-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 5;
 }
 
-/* Drag hint */
+/* ===========================================
+   TECHNIQUE INDICATOR
+   =========================================== */
+.technique-indicator {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    padding: 6px 14px;
+    background: var(--cfg-card);
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--pink-main, #FF69B4);
+    box-shadow: var(--cfg-shadow);
+    text-transform: uppercase;
+}
+
+/* ===========================================
+   DRAG HINT
+   =========================================== */
 .drag-hint {
     display: flex;
     align-items: center;
@@ -2334,33 +726,36 @@
     padding: 10px 20px;
     background: rgba(255, 105, 180, 0.08);
     border-radius: 25px;
-    font-size: 0.85rem;
-    color: #666;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #8e8e93;
 }
 
 .drag-hint svg {
-    color: #FF69B4;
+    color: var(--pink-main, #FF69B4);
 }
 
-/* Bouton rendu réel */
+/* ===========================================
+   BOUTON RENDU RÉEL
+   =========================================== */
 .real-render-btn {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     width: 100%;
-    max-width: 300px;
+    max-width: 280px;
     padding: 14px 24px;
     background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
     border: none;
     border-radius: 14px;
     color: white;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 16px rgba(255, 105, 180, 0.35);
-    margin-top: 16px;
+    margin-top: 12px;
 }
 
 .real-render-btn:hover {
@@ -2368,30 +763,38 @@
     box-shadow: 0 6px 24px rgba(255, 105, 180, 0.45);
 }
 
-/* Product info header */
+.real-render-btn:active {
+    transform: translateY(0);
+}
+
+/* ===========================================
+   PRODUCT INFO HEADER
+   =========================================== */
 .product-info-header {
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 24px 24px 20px;
+    border-bottom: 1px solid var(--cfg-border);
 }
 
 .product-title {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: #1a1a2e;
+    color: var(--black-soft, #1A1A2E);
     margin: 0 0 8px 0;
+    line-height: 1.3;
 }
 
 .product-price {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
+    background: linear-gradient(135deg, #FF69B4 0%, #FF1493 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
-/* Tailles */
+/* ===========================================
+   TAILLES - Style Canva
+   =========================================== */
 .size-options {
     display: flex;
     flex-wrap: wrap;
@@ -2400,14 +803,14 @@
 
 .size-option {
     min-width: 48px;
-    height: 40px;
+    height: 42px;
     padding: 0 14px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--cfg-border);
     border-radius: 10px;
-    background: white;
+    background: var(--cfg-card);
     font-weight: 600;
     font-size: 0.9rem;
-    color: #1a1a2e;
+    color: var(--black-soft, #1A1A2E);
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -2416,20 +819,29 @@
 }
 
 .size-option:hover {
-    border-color: rgba(255, 105, 180, 0.4);
+    border-color: var(--pink-light, #FFB6C1);
+    background: #fdf5f7;
 }
 
 .size-option.selected {
-    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
-    border-color: transparent;
+    background: var(--pink-main, #FF69B4);
+    border-color: var(--pink-main, #FF69B4);
     color: white;
+    box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
+}
+
+.size-option.unavailable {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 .size-option input {
     display: none;
 }
 
-/* Couleurs produit */
+/* ===========================================
+   COULEURS PRODUIT
+   =========================================== */
 .color-options {
     display: flex;
     flex-wrap: wrap;
@@ -2447,28 +859,34 @@
 }
 
 .color-option:hover {
-    transform: scale(1.1);
+    transform: scale(1.12);
 }
 
 .color-option.selected {
-    border-color: #1a1a2e;
-    box-shadow: 0 0 0 3px white, 0 0 0 5px #FF69B4;
-    transform: scale(1.1);
+    border-color: var(--black-soft, #1A1A2E);
+    box-shadow: 0 0 0 3px var(--cfg-card), 0 0 0 5px var(--pink-main, #FF69B4);
+    transform: scale(1.12);
 }
 
 .color-option input {
     display: none;
 }
 
-/* Quantité */
-.quantity-selector {
+/* ===========================================
+   QUANTITÉ
+   =========================================== */
+.quantity-row {
     display: flex;
     align-items: center;
-    background: white;
-    border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.quantity-selector {
+    display: inline-flex;
+    align-items: center;
+    background: var(--cfg-card);
+    border: 2px solid var(--cfg-border);
     border-radius: 12px;
     overflow: hidden;
-    width: fit-content;
 }
 
 .qty-btn {
@@ -2477,44 +895,62 @@
     border: none;
     background: transparent;
     font-size: 1.3rem;
-    font-weight: 500;
-    color: #666;
+    font-weight: 400;
+    color: #8e8e93;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .qty-btn:hover {
-    background: rgba(255, 105, 180, 0.1);
-    color: #FF69B4;
+    background: #f8f8fa;
+    color: var(--pink-main, #FF69B4);
+}
+
+.qty-btn:active {
+    background: #f0f0f5;
 }
 
 .qty-input {
-    width: 60px;
+    width: 56px;
     height: 44px;
     border: none;
-    border-left: 1px solid rgba(0, 0, 0, 0.1);
-    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    border-left: 1px solid var(--cfg-border);
+    border-right: 1px solid var(--cfg-border);
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--black-soft, #1A1A2E);
+    background: transparent;
 }
 
 .qty-input:focus {
     outline: none;
 }
 
-/* Desktop CTA */
+/* Hide number input arrows */
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.qty-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* ===========================================
+   DESKTOP CTA - Bouton Ajouter
+   =========================================== */
 .desktop-only-cta {
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 20px 24px 24px;
+    margin-top: auto;
+    border-top: 1px solid var(--cfg-border);
 }
 
 .add-to-cart-btn {
     width: 100%;
     padding: 16px 24px;
-    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
+    background: linear-gradient(135deg, #FF69B4 0%, #FF1493 100%);
     border: none;
     border-radius: 14px;
     color: white;
@@ -2534,86 +970,557 @@
     box-shadow: 0 6px 28px rgba(255, 105, 180, 0.5);
 }
 
-/* Zoom button */
-.zoom-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 40px;
-    height: 40px;
-    background: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-    z-index: 5;
+.add-to-cart-btn:active {
+    transform: translateY(0);
 }
 
-.zoom-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+/* ===========================================
+   STICKY CTA MOBILE
+   =========================================== */
+.sticky-cta {
+    display: none;
 }
 
-/* Category badge */
-.product-category-badge {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    z-index: 5;
+/* ===========================================
+   MOBILE WIZARD - Caché sur desktop
+   =========================================== */
+.mobile-wizard {
+    display: none;
 }
 
-/* Technique indicator */
-.technique-indicator {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    padding: 6px 12px;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 8px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: #FF69B4;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+/* ===========================================
+   ALERTS
+   =========================================== */
+.alert {
+    padding: 14px 18px;
+    border-radius: var(--cfg-radius-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: rgba(61, 255, 192, 0.15);
+    color: var(--mint-dark, #00D9A0);
+    border: 1px solid rgba(61, 255, 192, 0.3);
+}
+
+.alert-success a {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.alert-error {
+    background: rgba(255, 59, 48, 0.1);
+    color: #FF3B30;
+    border: 1px solid rgba(255, 59, 48, 0.2);
+}
+
+/* ===========================================
+   RESPONSIVE - Tablette
+   =========================================== */
+@media (max-width: 1100px) {
+    .configurator-layout {
+        grid-template-columns: 280px 1fr 260px;
+    }
 }
 
 /* ===========================================
    RESPONSIVE - Mobile
    =========================================== */
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
     .configurator-layout {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
+        grid-template-rows: auto;
+        min-height: auto;
     }
 
     .config-left,
     .config-right {
-        border: none;
         max-height: none;
+        border: none;
     }
 
     .config-center {
         order: -1;
         padding: 20px;
+        min-height: 400px;
+    }
+
+    .product-hero {
+        max-width: 100%;
+    }
+
+    .desktop-only-cta {
+        display: none;
+    }
+
+    /* Sticky CTA visible */
+    .sticky-cta {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--cfg-card);
+        padding: 12px 16px;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .sticky-cta .price-display {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--pink-dark, #FF1493);
+    }
+
+    .sticky-cta .btn {
+        padding: 14px 24px;
     }
 }
 
+/* ===========================================
+   RESPONSIVE - Petit mobile
+   =========================================== */
 @media (max-width: 600px) {
     .configurator-layout {
         border-radius: 0;
+        margin-top: 0;
     }
 
-    .config-left,
-    .config-center,
-    .config-right {
+    .config-section {
         padding: 16px;
     }
 
-    .product-preview {
-        border-radius: 12px;
+    .config-center {
+        padding: 16px;
+        min-height: 350px;
     }
+
+    .product-info-header {
+        padding: 16px;
+    }
+
+    .view-toggle {
+        padding: 4px;
+    }
+
+    .view-btn {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+    }
+
+    /* Accordion mobile */
+    .accordion-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--black-soft, #1A1A2E);
+        background: var(--cfg-card);
+        border-bottom: 1px solid var(--cfg-border);
+    }
+
+    .accordion-header::after {
+        content: '▼';
+        font-size: 0.7rem;
+        color: #8e8e93;
+        transition: transform 0.2s ease;
+    }
+
+    .accordion-header.collapsed::after {
+        transform: rotate(-90deg);
+    }
+
+    .accordion-content {
+        padding: 16px;
+    }
+
+    .accordion-content.collapsed {
+        display: none;
+    }
+
+    .config-section.mobile-accordion {
+        padding: 0;
+        border-bottom: none;
+    }
+
+    .config-section.mobile-accordion .config-section-title {
+        display: none;
+    }
+
+    /* Mobile wizard visible */
+    .mobile-wizard {
+        display: block;
+    }
+
+    .configurator-layout {
+        display: none;
+    }
+}
+
+/* ===========================================
+   MOBILE WIZARD STYLES
+   =========================================== */
+.wizard-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: var(--cfg-card);
+    border-bottom: 1px solid var(--cfg-border);
+}
+
+.wizard-progress-steps {
+    display: flex;
+    gap: 8px;
+}
+
+.wizard-step-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--cfg-border);
+    transition: all 0.2s ease;
+}
+
+.wizard-step-dot.active {
+    background: var(--pink-main, #FF69B4);
+    transform: scale(1.2);
+}
+
+.wizard-step-dot.completed {
+    background: var(--mint-main, #3DFFC0);
+}
+
+.wizard-step-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #8e8e93;
+}
+
+.wizard-mini-preview {
+    width: 50px;
+    height: 50px;
+    background: #f8f8fa;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.wizard-mini-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.mini-text {
+    position: absolute;
+    font-size: 0.4rem;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+.wizard-step {
+    display: none;
+    padding: 24px 16px;
+}
+
+.wizard-step.active {
+    display: block;
+}
+
+.wizard-step-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--black-soft, #1A1A2E);
+    margin: 0 0 8px 0;
+}
+
+.wizard-step-subtitle {
+    font-size: 0.9rem;
+    color: #8e8e93;
+    margin: 0 0 24px 0;
+}
+
+.wizard-text-input {
+    width: 100%;
+    padding: 16px;
+    font-size: 1rem;
+    background: #f8f8fa;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.wizard-text-input:focus {
+    outline: none;
+    border-color: var(--pink-main, #FF69B4);
+    background: var(--cfg-card);
+}
+
+.wizard-fonts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.wizard-font-btn {
+    padding: 12px 16px;
+    background: #f8f8fa;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wizard-font-btn.selected {
+    background: rgba(255, 105, 180, 0.1);
+    border-color: var(--pink-main, #FF69B4);
+    color: var(--pink-dark, #FF1493);
+}
+
+.wizard-colors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.wizard-color-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.wizard-color-btn.selected {
+    border-color: var(--black-soft, #1A1A2E);
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.position-presets {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.position-preset-btn {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: #f8f8fa;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.position-preset-btn.selected {
+    background: rgba(255, 105, 180, 0.08);
+    border-color: var(--pink-main, #FF69B4);
+}
+
+.position-preset-icon {
+    width: 40px;
+    height: 50px;
+    background: var(--cfg-card);
+    border-radius: 6px;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pos-indicator {
+    position: absolute;
+    left: 50%;
+    width: 16px;
+    height: 4px;
+    background: var(--pink-main, #FF69B4);
+    border-radius: 2px;
+    transform: translateX(-50%);
+}
+
+[data-position="top"] .pos-indicator {
+    top: 8px;
+}
+
+[data-position="center"] .pos-indicator {
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+[data-position="bottom"] .pos-indicator {
+    bottom: 8px;
+}
+
+.position-preset-info {
+    flex: 1;
+}
+
+.position-preset-name {
+    font-weight: 600;
+    color: var(--black-soft, #1A1A2E);
+    margin-bottom: 2px;
+}
+
+.position-preset-desc {
+    font-size: 0.8rem;
+    color: #8e8e93;
+}
+
+.wizard-options-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.wizard-option {
+    min-width: 52px;
+    padding: 12px 16px;
+    background: #f8f8fa;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wizard-option.selected {
+    background: var(--pink-main, #FF69B4);
+    border-color: var(--pink-main, #FF69B4);
+    color: white;
+}
+
+.wizard-summary-preview {
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto 24px;
+    aspect-ratio: 1;
+    background: #f8f8fa;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.wizard-summary-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.summary-text {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.wizard-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.wizard-summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--cfg-border);
+}
+
+.wizard-summary-label {
+    color: #8e8e93;
+}
+
+.wizard-summary-value {
+    font-weight: 600;
+    color: var(--black-soft, #1A1A2E);
+}
+
+.wizard-total-price {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--pink-dark, #FF1493);
+}
+
+.wizard-nav {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: var(--cfg-card);
+    border-top: 1px solid var(--cfg-border);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.wizard-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wizard-btn-prev {
+    background: #f8f8fa;
+    color: #8e8e93;
+}
+
+.wizard-btn-next {
+    background: var(--pink-main, #FF69B4);
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 105, 180, 0.35);
+}
+
+.wizard-btn-add {
+    background: linear-gradient(135deg, #FF69B4 0%, #FF1493 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(255, 105, 180, 0.4);
+}
+
+/* ===========================================
+   BADGES
+   =========================================== */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 20px;
+}
+
+.badge-pink {
+    background: rgba(255, 105, 180, 0.15);
+    color: var(--pink-dark, #FF1493);
+}
+
+.badge-mint {
+    background: rgba(61, 255, 192, 0.15);
+    color: var(--mint-dark, #00D9A0);
 }
