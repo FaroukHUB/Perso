@@ -370,7 +370,7 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 ---
 
-**Dernière mise à jour** : 2026-01-18 — Design ultra-moderne 2026 dropdowns + fixes mobile
+**Dernière mise à jour** : 2026-01-19 — Configurateur V2.3 UI ultra-moderne + architecture designs admin
 
 ---
 
@@ -643,12 +643,28 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 - `public/assets/css/configurator.css` — +200 lignes glass morphism
 - `public/assets/js/configurator.js` — Dropdown handlers + mobile content
 
+#### ✅ STEP DESIGN-2.9 — Polish UI Ultra-Moderne 2026 (TERMINÉ 2026-01-19)
+- [x] **E.1.2.33** — Suppression tous pointillés (zone impression, snap guides) ✅
+- [x] **E.1.2.34** — Sélecteur police amélioré (aperçu, animations hover, selected effect) ✅
+- [x] **E.1.2.35** — Sélecteur technique avec badges prix premium (gradient pink) ✅
+- [x] **E.1.2.36** — Bouton Original avec icône reset dans onglet Design ✅
+- [x] **E.1.2.37** — Tailles produit redesignées (glassmorphism, hover lift) ✅
+- [x] **E.1.2.38** — Quantité +/- modernisé (style 2026) ✅
+- [x] **E.1.2.39** — CTA Ajouter au panier premium (shimmer effect) ✅
+- [x] **E.1.2.40** — Toolbar mobile améliorée (backdrop blur, indicateurs actifs) ✅
+- [x] **E.1.2.41** — Architecture designs admin prête (chargement packs avec images) ✅
+
+**Fichiers modifiés** :
+- `public/product.php` — Bouton Original SVG, designs depuis packs admin
+- `public/assets/css/configurator.css` — +280 lignes styles ultra-modernes 2026
+- `public/assets/js/configurator.js` — Suppression pointillés zone/guides
+
 #### STEP DESIGN-3 — Admin Designs (À VENIR)
-- [ ] **E.1.3.1** — Table design_templates + CRUD
-- [ ] **E.1.3.2** — Admin création designs (upload SVG/PNG)
-- [ ] **E.1.3.3** — Grille templates côté client
-- [ ] **E.1.3.4** — JS ajout design au canvas (click → addDesignElement())
+- [~] **E.1.3.1** — Table design_templates + CRUD (optionnel, packs déjà utilisables)
+- [~] **E.1.3.2** — Admin création designs (upload SVG/PNG)
+- [x] **E.1.3.3** — Grille templates côté client (utilise packs actifs avec cover_image) ✅
+- [ ] **E.1.3.4** — JS ajout design au canvas (click → loadPreset())
 
-**Priorité** : 🟡 MOYENNE (peut être Phase 2)
+**Priorité** : 🟡 MOYENNE (architecture prête, packs utilisables)
 
-**Statut** : 🟢 CONFIGURATEUR V2 EN PRODUCTION + DESIGN ULTRA-MODERNE 2026 — DESIGN-3 optionnel
+**Statut** : 🟢 CONFIGURATEUR V2.3 EN PRODUCTION — UI Ultra-Moderne 2026 complète
