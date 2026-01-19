@@ -395,6 +395,12 @@ $cartCount = Cart::count();
         /* Mobile Wizard Mode
            >> STYLES DÉPLACÉS DANS configurator.css << */
     </style>
+    <?php
+    // === Pré-calcul des sélections pour le head (évite undefined variable) ===
+    $defaultFont = $fonts[0] ?? ['value' => 'Poppins', 'label' => 'Poppins', 'category' => 'sans-serif'];
+    $defaultTextColor = $textColors[0] ?? ['value' => 'noir', 'label' => 'Noir', 'hex' => '#1A1A2E'];
+    $defaultTechnique = $techniques[0] ?? ['value' => 'flex', 'label' => 'Flex', 'description' => '', 'price' => 0];
+    ?>
     <script>
         // Données pour le configurateur JS
         window.__PRODUCT_DATA = {
@@ -405,9 +411,9 @@ $cartCount = Cart::count();
         window.__FONTS_DATA = <?= json_encode($fonts) ?>;
         window.__TEXT_COLORS_DATA = <?= json_encode($textColors) ?>;
         window.__TECHNIQUES_DATA = <?= json_encode($techniques) ?>;
-        window.__SELECTED_FONT = "<?= h($selectedFont['value']) ?>";
-        window.__SELECTED_TEXT_COLOR = "<?= h($selectedTextColor['value']) ?>";
-        window.__SELECTED_TECHNIQUE = "<?= h($selectedTechnique['value']) ?>";
+        window.__SELECTED_FONT = "<?= h($defaultFont['value']) ?>";
+        window.__SELECTED_TEXT_COLOR = "<?= h($defaultTextColor['value']) ?>";
+        window.__SELECTED_TECHNIQUE = "<?= h($defaultTechnique['value']) ?>";
     </script>
 </head>
 <body>
