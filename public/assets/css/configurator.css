@@ -3855,3 +3855,66 @@
         display: none;
     }
 }
+
+/* ===========================================
+   V2.4 - NOUVELLE DISPOSITION BARRE ACTIONS
+   Boutons Save/Share en haut, Nom+Prix au milieu,
+   Ajouter au panier en bas (pleine largeur)
+   =========================================== */
+
+.cfg-product-actions-v2 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 30px;
+}
+
+/* Boutons secondaires en haut - centrés */
+.cfg-secondary-actions-top {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+}
+
+/* Info produit centrée */
+.cfg-product-info-centered {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.cfg-product-info-centered .cfg-product-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.cfg-product-info-centered .cfg-product-price {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Bouton Ajouter au panier - pleine largeur */
+.cfg-add-cart-btn-full {
+    width: 100%;
+    max-width: 400px;
+    justify-content: center;
+    padding: 16px 32px;
+    font-size: 1rem;
+}
+
+/* Responsive V2 */
+@media (max-width: 768px) {
+    .cfg-product-actions-v2 {
+        display: none;
+    }
+}
