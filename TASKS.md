@@ -17,7 +17,7 @@
 | P1-P3 | ✅ TERMINÉ | Polices, Drag&Drop, Zones |
 | P4 | ✅ TERMINÉ | Packs / Idées |
 | P5 | ✅ TERMINÉ | Page d'accueil dynamique |
-| P6 STEP 1-5 | 🟡 EN COURS | Correctifs, WebP, Catégories, Techniques, Upsells+Codes Promo (CSS à refaire) |
+| P6 STEP 1-5 | 🟡 EN COURS | Correctifs, WebP, Catégories, Techniques, Upsells+Codes Promo+Tailles/Designs/Éléments |
 | P6 STEP 6-10 | 🔴 À FAIRE | Stats, Archives, Organisation, Marketing, Paiement |
 
 ---
@@ -179,6 +179,57 @@
 - SOUS-STEP 0 terminé : nettoyage CSS inline (commit bae8245)
 - STEP 1 terminé : layout `.upsells-layout` défini dans admin.css (grid 320px | 1fr)
 - STEP 2 à venir : styles visuels (panels, cards, forms, etc.)
+
+### ✅ 5.C — Groupes de Tailles, Designs & Éléments (TERMINÉ 2026-01-19)
+
+> Refonte complète de la gestion des tailles avec groupes dynamiques, ajout des Designs (Idées cadeaux) et Éléments (Cliparts/Formes).
+
+#### 5.C.1 — Groupes de Tailles
+
+- [x] **5.C.1.1** — Table `size_groups` (id, name, sort_order, active) ✅
+- [x] **5.C.1.2** — Table `sizes` (id, label, size_group_id, sort_order, active) ✅
+- [x] **5.C.1.3** — Modèle `SizeGroup.php` avec `findOrCreate()` ✅
+- [x] **5.C.1.4** — Modèle `Size.php` avec `findAllGrouped()` ✅
+- [x] **5.C.1.5** — Formulaire taille : sélecteur groupe OU création nouveau groupe ✅
+
+#### 5.C.2 — Designs (Idées cadeaux)
+
+- [x] **5.C.2.1** — Table `design_categories` (id, name, sort_order, active) ✅
+- [x] **5.C.2.2** — Table `designs` (id, name, image_path, category_id, active) ✅
+- [x] **5.C.2.3** — Modèle `DesignCategory.php` avec `findOrCreate()` ✅
+- [x] **5.C.2.4** — Modèle `Design.php` avec `findAllGrouped()` ✅
+- [x] **5.C.2.5** — Onglet Designs dans admin/options.php ✅
+- [x] **5.C.2.6** — Upload image + conversion WebP ✅
+
+#### 5.C.3 — Éléments (Cliparts/Formes)
+
+- [x] **5.C.3.1** — Table `element_categories` (id, name, sort_order, active) ✅
+- [x] **5.C.3.2** — Table `elements` (id, name, image_path, category_id, is_premium, price, active) ✅
+- [x] **5.C.3.3** — Modèle `ElementCategory.php` avec `findOrCreate()` ✅
+- [x] **5.C.3.4** — Modèle `Element.php` avec support premium/prix ✅
+- [x] **5.C.3.5** — Onglet Éléments dans admin/options.php ✅
+- [x] **5.C.3.6** — Toggle Premium avec champ prix conditionnel ✅
+
+**Fichiers créés** :
+- `sql/migrate_sizes_designs_elements.sql` — Migration complète 6 tables
+- `app/models/SizeGroup.php` — CRUD + findOrCreate()
+- `app/models/Size.php` — CRUD + findAllGrouped()
+- `app/models/DesignCategory.php` — CRUD + findOrCreate()
+- `app/models/Design.php` — CRUD + findAllGrouped() + upload image
+- `app/models/ElementCategory.php` — CRUD + findOrCreate()
+- `app/models/Element.php` — CRUD + is_premium + price
+
+**Fichiers modifiés** :
+- `admin/options.php` — Refonte complète avec 4 onglets (Techniques, Tailles, Designs, Éléments)
+
+**Structure admin/options.php** :
+- Onglet Techniques : inchangé (customization_options type=technique)
+- Onglet Tailles : formulaire avec sélecteur groupe OU nouveau groupe
+- Onglet Designs : upload image + nom + catégorie
+- Onglet Éléments : upload image + nom + catégorie + toggle premium + prix
+
+**⚠️ À FAIRE** :
+- Exécuter `sql/migrate_sizes_designs_elements.sql` sur la BDD production
 
 ---
 
@@ -370,7 +421,7 @@ STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5 → STEP 6 → STEP 7 → STE
 
 ---
 
-**Dernière mise à jour** : 2026-01-19 — Configurateur V2.4 UI ultra-moderne + responsive mobile optimisé
+**Dernière mise à jour** : 2026-01-19 — Groupes de Tailles + Designs (Idées cadeaux) + Éléments (Cliparts/Formes)
 
 ---
 
