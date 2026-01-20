@@ -326,8 +326,8 @@ $cartCount = Cart::count();
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/configurator.css?v=<?= time() ?>">
     <link rel="stylesheet" href="/public/assets/css/techniques.css?v=3">
-    <!-- Konva.js pour le canvas configurateur -->
-    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+    <!-- interact.js pour drag & drop -->
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <style>
         body { background: var(--gray-light); }
 
@@ -815,16 +815,14 @@ $cartCount = Cart::count();
                             </div>
                         </div>
                         <div class="cfg-stage-container" id="cfgStageContainer">
-                            <!-- Image produit de fond -->
-                            <?php if (!empty($product['image_front_url'])): ?>
-                            <img src="/public<?= h($product['image_front_url']) ?>"
-                                 alt="<?= h($product['name']) ?>"
-                                 class="cfg-product-bg"
-                                 id="cfgProductImg"
-                                 data-front="/public<?= h($product['image_front_url']) ?>"
-                                 data-back="<?= !empty($product['image_back_url']) ? '/public' . h($product['image_back_url']) : '' ?>"
-                                 data-original="/public<?= h($product['image_front_url']) ?>">
-                            <?php endif; ?>
+                            <!-- NOUVELLE ARCHITECTURE HTML (Sans Konva) -->
+                            <div id="preview">
+                                <div id="product"
+                                     data-front="/public<?= h($product['image_front_url']) ?>"
+                                     data-back="<?= !empty($product['image_back_url']) ? '/public' . h($product['image_back_url']) : '' ?>">
+                                </div>
+                                <div id="layers"></div>
+                            </div>
                         </div>
                         <!-- Bouton aperçu rendu réel sous l'image -->
                         <button type="button" class="cfg-preview-btn-pink cfg-preview-under-canvas" id="cfgTechniquePreviewBtn" data-technique="<?= h($techniques[0]['value'] ?? 'flex') ?>">
