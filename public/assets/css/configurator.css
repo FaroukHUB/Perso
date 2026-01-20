@@ -3681,51 +3681,91 @@
 }
 
 /* ===========================================
-   RESPONSIVE MOBILE - 2026-01-20
+   RESPONSIVE MOBILE - CONSOLIDATED FIX
    =========================================== */
 
-/* Mobile: Static image only (no Konva canvas) */
 @media (max-width: 768px) {
-    /* Clean background */
+    /* Force white background everywhere - no gray bands */
     .configurator-v2 {
-        background: white;
+        background: white !important;
     }
 
-    /* Canvas: remove gray background, force full width */
     .cfg-canvas {
-        background: white;
-        width: 100%;
-        padding: 0;
-        margin: 0;
-    }
-
-    /* Stage container: simple flex centering */
-    .cfg-stage-container {
+        background: white !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
         display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        padding: 0;
-        margin: 0;
+        flex-direction: column;
     }
 
-    /* Static product image: full width, centered */
+    /* Stage container - full width, no padding */
+    .cfg-stage-container {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white;
+        flex: 1;
+    }
+
+    /* Product image - full width, large, centered */
     .cfg-product-bg {
-        width: 100%;
-        max-width: 100%;
-        max-height: calc(100vh - 200px);
-        height: auto;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: calc(100vh - 250px) !important;
+        height: auto !important;
         object-fit: contain;
+        display: block !important;
+        margin: 0 !important;
+    }
+
+    /* Canvas wrapper - no constraints */
+    .cfg-canvas-wrapper {
+        max-width: none !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Preview button - JUST UNDER IMAGE */
+    .cfg-preview-under-canvas,
+    .cfg-preview-btn-pink {
+        width: calc(100% - 32px);
+        max-width: 400px;
+        margin: 8px auto !important;
+        padding: 12px 20px;
+        font-size: 0.9rem;
         display: block;
     }
 
-    /* Preview button under image */
-    .cfg-preview-under-canvas {
-        width: calc(100% - 32px);
-        max-width: 400px;
-        margin: 12px auto;
-        padding: 12px 20px;
+    /* Mobile save/share buttons - VISIBLE */
+    .cfg-mobile-save-btn,
+    .cfg-mobile-share-btn {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
         font-size: 0.9rem;
+    }
+
+    /* Mobile CTA bar - VISIBLE */
+    .cfg-mobile-cta {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 200;
+    }
+
+    /* Mobile price - VISIBLE */
+    .cfg-mobile-price {
+        display: flex !important;
     }
 }
 

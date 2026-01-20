@@ -2656,11 +2656,25 @@
         const techniquePrice = getTechniquePrice();
         const total = basePrice + techniquePrice;
 
+        // Desktop price
         if (DOM.priceValue) {
             DOM.priceValue.textContent = formatPrice(total);
         }
+
+        // Mobile price - try multiple selectors
         if (DOM.mobilePriceValue) {
             DOM.mobilePriceValue.textContent = formatPrice(total);
+        } else {
+            const mobilePriceEl = document.getElementById('cfgMobilePrice');
+            if (mobilePriceEl) {
+                mobilePriceEl.textContent = formatPrice(total);
+            }
+        }
+
+        // Desktop product price
+        const productPriceEl = document.getElementById('cfgProductPrice');
+        if (productPriceEl) {
+            productPriceEl.textContent = formatPrice(total);
         }
     }
 
