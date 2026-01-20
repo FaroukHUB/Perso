@@ -3684,11 +3684,18 @@
 
 /* Fix: Image centrée et agrandie sur mobile */
 @media (max-width: 768px) {
+    /* Force pleine largeur sur tous les conteneurs */
+    .cfg-canvas,
+    .cfg-stage-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;  /* Override le padding: 20px de 600px */
+    }
+
     .cfg-canvas {
-        width: 100%;
-        padding: 0;
-        background: transparent;  /* Supprime le fond gris clair */
-        align-items: stretch;
+        background: transparent;
+        align-items: stretch;   /* Force pleine largeur enfants */
         justify-content: flex-start;
         flex: 1;
         min-height: 0;
@@ -3696,17 +3703,14 @@
 
     .cfg-canvas-header {
         padding: 8px 16px;
-        margin-bottom: 0;        /* Suppression marge inutile */
+        margin-bottom: 0;
     }
 
     .cfg-stage-container {
-        width: 100%;
-        max-width: 100%;
-        margin: 0;
-        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;  /* Centre l'image dans le container */
         flex: none;
-        display: block;
-        text-align: center;      /* Centre l'image */
     }
 
     .cfg-product-bg {
@@ -3714,15 +3718,15 @@
         max-height: calc(100vh - 200px);
         height: auto;
         object-fit: contain;
-        display: inline-block;   /* Permet le centrage avec text-align */
+        display: block;
         margin: 0 auto;
     }
 
     /* Fix: Bouton "voir rendu réel" - JUSTE SOUS l'image */
     .cfg-preview-under-canvas {
         width: calc(100% - 32px);
-        max-width: 400px;        /* Limite largeur pour meilleur UX */
-        margin: 12px auto;       /* Centré et proche de l'image */
+        max-width: 400px;
+        margin: 12px auto;
         padding: 12px 20px;
         font-size: 0.9rem;
         position: relative;
