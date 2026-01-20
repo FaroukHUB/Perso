@@ -73,13 +73,7 @@
     white-space: nowrap;
 }
 
-/* Mobile: full width */
-@media (max-width: 768px) {
-    #preview {
-        max-width: 100%;
-        width: 100%;
-    }
-}
+/* Mobile: full width - See RESPONSIVE MOBILE section below for consolidated rules */
 
 /* ===========================================
    MAIN LAYOUT - Desktop (Tabs | Options | Canvas | Drawer)
@@ -3764,6 +3758,24 @@
         margin: 0 !important;
         background: white;
         flex: 1;
+    }
+
+    /* NEW HTML ARCHITECTURE - Full width, no offset */
+    #preview {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    #product {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    #layers {
+        width: 100% !important;
+        height: 100% !important;
     }
 
     /* Product image - full width, large, centered */

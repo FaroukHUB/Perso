@@ -84,6 +84,10 @@
 
             // Mobile
             mobileTabs: document.querySelectorAll('.cfg-mobile-tab'),
+            mobileDrawer: document.getElementById('cfgMobileDrawer'),
+            mobileDrawerTitle: document.getElementById('cfgMobileDrawerTitle'),
+            mobileDrawerContent: document.getElementById('cfgMobileDrawerContent'),
+            mobileDrawerClose: document.getElementById('cfgMobileDrawerClose'),
         };
     }
 
@@ -91,28 +95,39 @@
     // PRODUCT IMAGE (CSS BACKGROUND)
     // ===========================================
     function updateProductImage() {
-        if (!DOM.product) return;
+        if (!DOM.product) {
+            console.error('[Configurator] #product element not found');
+            return;
+        }
 
-        const productData = window.__PRODUCT_DATA || {};
-        const colorImages = window.__COLOR_IMAGES || {};
+        // PRIORITÉ: Lire les data-attributes directement
+        const frontUrl = DOM.product.dataset.front;
+        const backUrl = DOM.product.dataset.back;
 
         let imageUrl;
 
+        // Gestion changement couleur
+        const colorImages = window.__COLOR_IMAGES || {};
+
         if (state.selectedProductColor === 'original') {
-            imageUrl = state.currentView === 'front'
-                ? productData.imageFront
-                : productData.imageBack;
+            imageUrl = state.currentView === 'front' ? frontUrl : backUrl;
         } else {
             const colorData = colorImages[state.selectedProductColor];
             if (colorData) {
                 imageUrl = state.currentView === 'front'
                     ? colorData.front
                     : colorData.back;
+            } else {
+                // Fallback vers image originale
+                imageUrl = state.currentView === 'front' ? frontUrl : backUrl;
             }
         }
 
         if (imageUrl) {
             DOM.product.style.backgroundImage = `url('${imageUrl}')`;
+            console.log('[Configurator] Image loaded:', imageUrl);
+        } else {
+            console.warn('[Configurator] No image URL found');
         }
     }
 
@@ -373,6 +388,123 @@
                 DOM.techniqueList?.classList.remove('open');
             }
         });
+
+        // Mobile tabs
+        DOM.mobileTabs?.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tool = tab.dataset.tool;
+
+                // Update active state
+                DOM.mobileTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Open drawer with tool content
+                openMobileDrawer(tool);
+            });
+        });
+
+        // Mobile drawer close button
+        DOM.mobileDrawerClose?.addEventListener('click', () => {
+            closeMobileDrawer();
+        });
+    }
+
+    // ===========================================
+    // MOBILE DRAWER
+    // ===========================================
+    function openMobileDrawer(tool) {
+        if (!DOM.mobileDrawer) return;
+
+        // Set drawer title
+        const titles = {
+            text: 'Texte',
+            design: 'Design',
+            layers: 'Calques',
+            elements: 'Éléments',
+        };
+
+        if (DOM.mobileDrawerTitle) {
+            DOM.mobileDrawerTitle.textContent = titles[tool] || 'Options';
+        }
+
+        // Populate drawer content based on tool
+        if (DOM.mobileDrawerContent) {
+            let content = '';
+
+            switch (tool) {
+                case 'text':
+                    content = `
+                        <div style="padding: 16px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Ajouter du texte</label>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text"
+                                       id="cfgMobileTextInput"
+                                       placeholder="Votre texte..."
+                                       style="flex: 1; padding: 10px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 14px;">
+                                <button type="button"
+                                        id="cfgMobileAddText"
+                                        style="padding: 10px 20px; background: #FF69B4; color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">
+                                    Ajouter
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'design':
+                    content = '<div style="padding: 16px; text-align: center; color: #666;">Options de design à venir</div>';
+                    break;
+
+                case 'layers':
+                    content = '<div style="padding: 16px; text-align: center; color: #666;">Gestion des calques à venir</div>';
+                    break;
+
+                case 'elements':
+                    content = '<div style="padding: 16px; text-align: center; color: #666;">Éléments à venir</div>';
+                    break;
+
+                default:
+                    content = '<div style="padding: 16px; text-align: center; color: #666;">Outil non disponible</div>';
+            }
+
+            DOM.mobileDrawerContent.innerHTML = content;
+
+            // If text tool, add event listener to the add button
+            if (tool === 'text') {
+                setTimeout(() => {
+                    const mobileTextInput = document.getElementById('cfgMobileTextInput');
+                    const mobileAddTextBtn = document.getElementById('cfgMobileAddText');
+
+                    mobileAddTextBtn?.addEventListener('click', () => {
+                        const text = mobileTextInput?.value.trim();
+                        if (text) {
+                            addTextLayer(text);
+                            mobileTextInput.value = '';
+                            closeMobileDrawer();
+                        }
+                    });
+
+                    mobileTextInput?.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            const text = mobileTextInput.value.trim();
+                            if (text) {
+                                addTextLayer(text);
+                                mobileTextInput.value = '';
+                                closeMobileDrawer();
+                            }
+                        }
+                    });
+                }, 0);
+            }
+        }
+
+        // Show drawer
+        DOM.mobileDrawer.classList.add('open');
+    }
+
+    function closeMobileDrawer() {
+        if (!DOM.mobileDrawer) return;
+        DOM.mobileDrawer.classList.remove('open');
     }
 
     // ===========================================
