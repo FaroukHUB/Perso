@@ -1877,7 +1877,9 @@
     }
 
     .cfg-canvas-wrapper {
-        max-width: 100%;
+        max-width: none;
+        width: 100%;
+        padding: 0;
     }
 
     /* Mobile toolbar - ULTRA MODERN 2026 - fixed bottom */
