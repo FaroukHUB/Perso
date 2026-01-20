@@ -1842,6 +1842,11 @@
    RESPONSIVE - Mobile (Bottom Toolbar)
    =========================================== */
 @media (max-width: 768px) {
+    /* Supprime le padding du container parent */
+    .product-page .container {
+        padding: 0;
+    }
+
     .configurator-v2 {
         display: flex;
         flex-direction: column;
