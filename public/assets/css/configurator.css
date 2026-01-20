@@ -3687,7 +3687,7 @@
 /* Fix: Image centrée et agrandie sur mobile */
 @media (max-width: 768px) {
     .cfg-canvas {
-        padding: 8px 0 0 0;
+        padding: 0;              /* AUCUNE marge - image maximale */
         align-items: center;
         justify-content: flex-start;
         flex: 1;
@@ -3696,33 +3696,37 @@
 
     .cfg-canvas-header {
         padding: 8px 16px;
-        margin-bottom: 4px;
+        margin-bottom: 0;        /* Suppression marge inutile */
     }
 
     .cfg-stage-container {
-        width: fit-content;      /* Conteneur épouse l'image */
+        width: 100%;             /* Pleine largeur pour centrage parfait */
         max-width: 100%;
-        margin: 0 auto;          /* Centre le conteneur */
-        display: block;
+        margin: 0;
+        display: flex;           /* Flex pour centrer l'image */
+        align-items: center;
+        justify-content: center;
         padding: 0;
-        flex: none;              /* Retire flex:1 qui éloigne le bouton */
+        flex: none;
     }
 
     .cfg-product-bg {
-        max-width: calc(100vw - 32px);  /* Marge de sécurité */
-        max-height: calc(100vh - 300px);
+        width: 100%;             /* Image GRANDE - pleine largeur */
+        max-width: 100%;
+        max-height: calc(100vh - 200px);  /* Plus d'espace pour l'image */
         height: auto;
         object-fit: contain;
         display: block;
+        margin: 0 auto;          /* Centrage parfait */
     }
 
-    /* Fix: Bouton "voir rendu réel" - rapproché de l'image */
+    /* Fix: Bouton "voir rendu réel" - JUSTE SOUS l'image */
     .cfg-preview-under-canvas {
         width: calc(100% - 32px);
-        max-width: none;
-        margin: 4px 16px 12px;   /* Réduit margin-top */
-        padding: 10px 16px;
-        font-size: 0.85rem;
+        max-width: 400px;        /* Limite largeur pour meilleur UX */
+        margin: 12px auto;       /* Centré et proche de l'image */
+        padding: 12px 20px;
+        font-size: 0.9rem;
         position: relative;
         z-index: 10;
     }
@@ -3731,15 +3735,14 @@
 /* Fix: Très petits écrans */
 @media (max-width: 400px) {
     .cfg-product-bg {
-        max-width: calc(100vw - 16px);
-        max-height: calc(100vh - 320px);
+        max-height: calc(100vh - 180px);  /* Encore plus d'espace image */
     }
 
     .cfg-preview-under-canvas {
-        width: calc(100% - 16px);
-        margin: 4px 8px 10px;
-        padding: 8px 12px;
-        font-size: 0.8rem;
+        width: calc(100% - 24px);
+        margin: 10px auto;
+        padding: 10px 16px;
+        font-size: 0.85rem;
     }
 }
 
