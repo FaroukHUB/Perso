@@ -3135,6 +3135,7 @@
         transform: translateY(0);
     }
 
+    /* Supprimé: conflits avec @media 768px pour centrage image
     .cfg-stage-container {
         padding: 20px;
     }
@@ -3142,6 +3143,7 @@
     .cfg-product-bg {
         max-height: 300px;
     }
+    */
 
     .cfg-options-row {
         flex-direction: column;
@@ -3682,20 +3684,26 @@
    FIXES RESPONSIVE MOBILE - 2026-01-19
    =========================================== */
 
-/* Fix: Image centrée et agrandie sur mobile */
+/* Fix: Image centrée et agrandie sur mobile - CONSOLIDATION PROPRE */
 @media (max-width: 768px) {
-    /* Force pleine largeur sur tous les conteneurs */
+    /* Supprime le fond gris du configurator */
+    .configurator-v2 {
+        background: white !important;
+    }
+
+    /* Force pleine largeur - ZERO padding/margin */
     .cfg-canvas,
     .cfg-stage-container {
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 !important;
-        padding: 0 !important;  /* Override le padding: 20px de 600px */
+        padding: 0 !important;
+        box-sizing: border-box !important;
     }
 
     .cfg-canvas {
-        background: transparent;
-        align-items: stretch;   /* Force pleine largeur enfants */
+        background: white !important;  /* Fond blanc au lieu de transparent pour éviter voir le gris parent */
+        align-items: stretch;
         justify-content: flex-start;
         flex: 1;
         min-height: 0;
@@ -3707,22 +3715,23 @@
     }
 
     .cfg-stage-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;  /* Centre l'image dans le container */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         flex: none;
     }
 
     .cfg-product-bg {
-        max-width: 100%;
+        width: 100% !important;
+        max-width: 100% !important;
         max-height: calc(100vh - 200px);
-        height: auto;
+        height: auto !important;
         object-fit: contain;
-        display: block;
-        margin: 0 auto;
+        display: block !important;
+        margin: 0 auto !important;
     }
 
-    /* Fix: Bouton "voir rendu réel" - JUSTE SOUS l'image */
+    /* Bouton "voir rendu réel" - JUSTE SOUS l'image */
     .cfg-preview-under-canvas {
         width: calc(100% - 32px);
         max-width: 400px;
