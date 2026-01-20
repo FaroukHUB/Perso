@@ -3695,6 +3695,12 @@
         flex: none;
     }
 
+    /* Centrer le wrapper Konva (inséré dynamiquement) */
+    .cfg-stage-container > div {
+        margin: 0 auto !important;
+        position: relative !important;
+    }
+
     .cfg-product-bg {
         width: 100%;             /* Image GRANDE - pleine largeur */
         max-width: 100%;
