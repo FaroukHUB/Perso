@@ -29,6 +29,9 @@
         autoSaveInterval: 5000, // ms
     };
 
+    // Mobile detection - Disable Konva on mobile (≤768px)
+    const IS_MOBILE = window.innerWidth <= 768;
+
     // ===========================================
     // FONT LOADING
     // ===========================================
@@ -119,6 +122,20 @@
     function init() {
         console.log('[Configurator] Starting init...');
 
+        // MOBILE MODE: Skip Konva, use static image only
+        if (IS_MOBILE) {
+            console.log('[Configurator] Mobile detected - Using static image only (no Konva)');
+            // Cache DOM for mobile controls
+            cacheDOM();
+            // Setup basic event listeners (product color change, etc)
+            setupEventListeners();
+            // Initialize price display
+            updatePrice();
+            console.log('[Configurator] ✅ Mobile mode initialized (static image)');
+            return;
+        }
+
+        // DESKTOP MODE: Full Konva initialization
         // Check if Konva is loaded
         if (typeof Konva === 'undefined') {
             console.error('[Configurator] Konva.js NOT LOADED!');
@@ -241,6 +258,9 @@
     // KONVA STAGE
     // ===========================================
     function initKonvaStage() {
+        // Skip Konva on mobile
+        if (IS_MOBILE) return;
+
         if (!DOM.stageContainer) return;
 
         const containerWidth = DOM.stageContainer.offsetWidth;
@@ -260,6 +280,9 @@
     }
 
     function handleResize() {
+        // Skip resize on mobile (no Konva)
+        if (IS_MOBILE) return;
+
         if (!state.stage || !DOM.stageContainer) return;
 
         const containerWidth = DOM.stageContainer.offsetWidth;
@@ -288,6 +311,9 @@
     // PRODUCT IMAGE
     // ===========================================
     function loadProductImage() {
+        // Skip Konva image loading on mobile (uses static HTML <img>)
+        if (IS_MOBILE) return;
+
         const productData = window.__PRODUCT_DATA || {};
         const imageUrl = state.currentView === 'front'
             ? productData.imageFront

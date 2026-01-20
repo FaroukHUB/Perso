@@ -3681,72 +3681,50 @@
 }
 
 /* ===========================================
-   FIXES RESPONSIVE MOBILE - 2026-01-19
+   RESPONSIVE MOBILE - 2026-01-20
    =========================================== */
 
-/* Fix: Image centrée et agrandie sur mobile - CONSOLIDATION PROPRE */
+/* Mobile: Static image only (no Konva canvas) */
 @media (max-width: 768px) {
-    /* Supprime le fond gris du configurator */
+    /* Clean background */
     .configurator-v2 {
-        background: white !important;
+        background: white;
     }
 
-    /* Force pleine largeur - ZERO padding/margin */
-    .cfg-canvas,
+    /* Stage container: simple flex centering */
     .cfg-stage-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 0;
+        margin: 0;
     }
 
-    .cfg-canvas {
-        background: white !important;  /* Fond blanc au lieu de transparent pour éviter voir le gris parent */
-        align-items: stretch;
-        justify-content: flex-start;
-        flex: 1;
-        min-height: 0;
-    }
-
-    .cfg-canvas-header {
-        padding: 8px 16px;
-        margin-bottom: 0;
-    }
-
-    .cfg-stage-container {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        flex: none;
-    }
-
+    /* Static product image: full width, centered */
     .cfg-product-bg {
-        width: 100% !important;
-        max-width: 100% !important;
+        width: 100%;
+        max-width: 100%;
         max-height: calc(100vh - 200px);
-        height: auto !important;
+        height: auto;
         object-fit: contain;
-        display: block !important;
-        margin: 0 auto !important;
+        display: block;
     }
 
-    /* Bouton "voir rendu réel" - JUSTE SOUS l'image */
+    /* Preview button under image */
     .cfg-preview-under-canvas {
         width: calc(100% - 32px);
         max-width: 400px;
         margin: 12px auto;
         padding: 12px 20px;
         font-size: 0.9rem;
-        position: relative;
-        z-index: 10;
     }
 }
 
-/* Fix: Très petits écrans */
+/* Extra small screens */
 @media (max-width: 400px) {
     .cfg-product-bg {
-        max-height: calc(100vh - 180px);  /* Encore plus d'espace image */
+        max-height: calc(100vh - 180px);
     }
 
     .cfg-preview-under-canvas {
