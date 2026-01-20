@@ -3673,9 +3673,9 @@
 /* Fix: Image centrée et agrandie sur mobile */
 @media (max-width: 768px) {
     .cfg-canvas {
-        padding: 0 !important;   /* AUCUNE marge - image maximale */
-        margin: 0 auto !important;
-        align-items: center;
+        width: 100%;
+        padding: 0;
+        align-items: stretch;    /* Force pleine largeur enfants */
         justify-content: flex-start;
         flex: 1;
         min-height: 0;
@@ -3687,20 +3687,12 @@
     }
 
     .cfg-stage-container {
-        width: 100% !important;  /* Pleine largeur pour centrage parfait */
+        width: 100%;
         max-width: 100%;
-        margin: 0 !important;
-        display: flex;           /* Flex pour centrer l'image */
-        align-items: center;
-        justify-content: center;
-        padding: 0 !important;
+        margin: 0;
+        padding: 0;
         flex: none;
-    }
-
-    /* Centrer le wrapper Konva (inséré dynamiquement) */
-    .cfg-stage-container > div {
-        margin: 0 auto !important;
-        position: relative !important;
+        display: block;          /* Block pour pleine largeur */
     }
 
     .cfg-product-bg {
