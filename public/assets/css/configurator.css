@@ -3700,17 +3700,17 @@
         margin: 0;
         padding: 0;
         flex: none;
-        display: block;          /* Block pour pleine largeur */
+        display: block;
+        text-align: center;      /* Centre l'image */
     }
 
     .cfg-product-bg {
-        width: 100%;             /* Image GRANDE - pleine largeur */
         max-width: 100%;
-        max-height: calc(100vh - 200px);  /* Plus d'espace pour l'image */
+        max-height: calc(100vh - 200px);
         height: auto;
         object-fit: contain;
-        display: block;
-        margin: 0 auto;          /* Centrage parfait */
+        display: inline-block;   /* Permet le centrage avec text-align */
+        margin: 0 auto;
     }
 
     /* Fix: Bouton "voir rendu réel" - JUSTE SOUS l'image */
