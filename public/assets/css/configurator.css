@@ -3691,6 +3691,14 @@
         background: white;
     }
 
+    /* Canvas: remove gray background, force full width */
+    .cfg-canvas {
+        background: white;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
     /* Stage container: simple flex centering */
     .cfg-stage-container {
         display: flex;
