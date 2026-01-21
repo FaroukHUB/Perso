@@ -1,63 +1,36 @@
 <?php
 /**
  * PERSONNALY - Page Éditeur V2 (POC)
- * Route standalone pour tester le nouvel éditeur
+ * Version DÉCOUPLÉE - aucune dépendance backend
+ * Mock statique uniquement
  */
 
-require_once __DIR__ . '/../app/helpers/functions.php';
-require_once __DIR__ . '/../app/core/Database.php';
-require_once __DIR__ . '/../app/models/Product.php';
-require_once __DIR__ . '/../app/models/ProductPrintZone.php';
-require_once __DIR__ . '/../app/models/ProductColorImage.php';
+// ============================================
+// MOCK STATIQUE - AUCUN BACKEND
+// ============================================
+$productId = 1;
+$productName = 'T-Shirt Classic';
+$basePrice = 29.90;
 
-// Récupération du produit (si fourni, sinon produit par défaut)
-$productId = (int) get('id', 1); // Par défaut produit ID 1
-$productModel = new Product();
-$product = $productModel->findById($productId);
-
-// Produit introuvable ou inactif → redirection
-if (!$product || !$product['active']) {
-    redirect('/');
-}
-
-// Zones d'impression
-$printZoneModel = new ProductPrintZone();
-$allZones = $printZoneModel->findByProduct($productId);
-
-// Images couleur pour face/dos
-$colorImageModel = new ProductColorImage();
-$allColorImages = $colorImageModel->getByProduct($productId);
-
-// Organiser les images par vue
+// Image produit mockée (SVG local)
 $productImages = [
-    'front' => '/public/assets/images/products/default-front.png',
+    'front' => '/editor-v2/tshirt-front.svg',
     'back' => null
 ];
 
-foreach ($allColorImages as $img) {
-    $view = strtolower($img['view'] ?? 'front');
-    if ($view === 'front' || $view === 'back') {
-        $productImages[$view] = $img['image_path'];
-    }
-}
+// Zone d'impression mockée (en %)
+$printZone = [
+    'id' => 1,
+    'x' => 30,
+    'y' => 20,
+    'width' => 40,
+    'height' => 50
+];
 
-// Zone d'impression principale (front par défaut)
-$printZone = null;
-foreach ($allZones as $z) {
-    if (strtolower($z['zone_name']) === 'front') {
-        $printZone = [
-            'id' => (int) $z['id'],
-            'x' => (float) $z['pos_x'],
-            'y' => (float) $z['pos_y'],
-            'width' => (float) $z['width'],
-            'height' => (float) $z['height']
-        ];
-        break;
-    }
+// Helper d'échappement HTML (standalone)
+function h($str) {
+    return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 }
-
-// Prix de base
-$basePrice = (float) $product['base_price'];
 
 ?>
 <!DOCTYPE html>
@@ -65,13 +38,14 @@ $basePrice = (float) $product['base_price'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Éditeur V2 - <?= h($product['name']) ?></title>
+    <title>Éditeur V2 - <?= h($productName) ?></title>
     <link rel="stylesheet" href="/editor-v2/editor.css">
     <style>
         body {
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
         }
         .v2-header {
             background: #1A1A2E;
@@ -84,6 +58,15 @@ $basePrice = (float) $product['base_price'];
         .v2-header h1 {
             margin: 0;
             font-size: 18px;
+        }
+        .v2-badge {
+            background: #3DFFC0;
+            color: #1A1A2E;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
         }
         .v2-back-link {
             color: #3DFFC0;
@@ -98,8 +81,11 @@ $basePrice = (float) $product['base_price'];
 <body>
 
 <div class="v2-header">
-    <h1>Éditeur V2 - <?= h($product['name']) ?></h1>
-    <a href="/public/product.php?id=<?= $productId ?>" class="v2-back-link">← Retour éditeur classique</a>
+    <div style="display: flex; align-items: center;">
+        <h1>Éditeur V2 - <?= h($productName) ?></h1>
+        <span class="v2-badge">POC</span>
+    </div>
+    <a href="/" class="v2-back-link">← Retour accueil</a>
 </div>
 
 <!-- Inclure l'éditeur V2 -->
@@ -125,7 +111,7 @@ $basePrice = (float) $product['base_price'];
             <h3>Vue</h3>
             <div class="ps-view-toggle">
                 <button id="btnFront" class="ps-btn active">Face</button>
-                <button id="btnBack" class="ps-btn" <?= $productImages['back'] ? '' : 'disabled' ?>>Dos</button>
+                <button id="btnBack" class="ps-btn" disabled>Dos</button>
             </div>
         </div>
 
@@ -175,7 +161,7 @@ $basePrice = (float) $product['base_price'];
 <script>
 window.__PRODUCT_DATA_V2 = {
     productId: <?= $productId ?>,
-    productName: <?= json_encode($product['name']) ?>,
+    productName: <?= json_encode($productName) ?>,
     basePrice: <?= $basePrice ?>,
     imageFront: <?= json_encode($productImages['front']) ?>,
     imageBack: <?= json_encode($productImages['back']) ?>,
