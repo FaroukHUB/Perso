@@ -2594,11 +2594,12 @@
    CONFIGURATOR V2 - Styles complémentaires
    =========================================== */
 
-/* Canvas central */
+/* Canvas central - NEUTRALISÉ */
 .cfg-canvas {
-    background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
-    display: flex;
-    flex-direction: column;
+    background: white;
+    display: block;
+    padding: 0;
+    margin: 0;
     position: relative;
 }
 
@@ -2654,10 +2655,9 @@
 
 .editor-stage {
     position: relative;
-    width: 100%;
-    max-width: 600px;
-    aspect-ratio: 1 / 1;
-    margin: 0 auto;
+    width: min(90vw, 420px);
+    aspect-ratio: 1 / 1.25;
+    margin: 0;
 }
 
 .product-base {
@@ -2694,11 +2694,9 @@
 }
 
 .cfg-stage-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     padding: 0;
+    margin: 0;
+    display: block;
     position: relative;
 }
 
@@ -3739,14 +3737,12 @@
    FIXES RESPONSIVE MOBILE - 2026-01-19
    =========================================== */
 
-/* Fix: Image centrée et agrandie sur mobile */
+/* Fix: Image centrée et agrandie sur mobile - NEUTRALISÉ */
 @media (max-width: 768px) {
     .cfg-canvas {
-        padding: 8px 0 0 0;
-        align-items: center;
-        justify-content: flex-start;
-        flex: 1;
-        min-height: 0;
+        padding: 0;
+        margin: 0;
+        display: block;
     }
 
     .cfg-canvas-header {
@@ -3755,23 +3751,13 @@
     }
 
     .cfg-stage-container {
-        width: 100%;
-        max-width: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 8px;
-        flex: 1;
+        padding: 0;
+        margin: 0;
+        display: block;
     }
 
     .cfg-product-bg {
-        width: auto;
-        max-width: calc(100% - 16px);
-        height: auto;
-        max-height: calc(100vh - 280px);
-        object-fit: contain;
-        margin: 0 auto;
-        display: block;
+        /* Legacy, pas utilisé avec editor-stage */
     }
 
     /* Fix: Bouton "voir rendu réel" - visible au-dessus de la toolbar */
@@ -3786,15 +3772,15 @@
     }
 }
 
-/* Fix: Très petits écrans */
+/* Fix: Très petits écrans - NEUTRALISÉ */
 @media (max-width: 400px) {
     .cfg-stage-container {
-        padding: 0 4px;
+        padding: 0;
+        margin: 0;
     }
 
     .cfg-product-bg {
-        max-width: calc(100% - 8px);
-        max-height: calc(100vh - 300px);
+        /* Legacy, pas utilisé avec editor-stage */
     }
 
     .cfg-preview-under-canvas {
