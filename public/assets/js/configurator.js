@@ -1,41 +1,116 @@
 /**
  * PERSONNALY - Configurateur de personnalisation produit (HTML/CSS/JS pur)
- * Version: 3.0 (REFONTE TOTALE - Sans Konva)
- * Date: 2026-01-20
+ * Version: 3.0 (REFONTE - Sans Konva, Avec toutes fonctionnalités)
+ * Date: 2026-01-21
  *
  * Architecture:
  * - Image produit en CSS background-image
  * - Textes/éléments = <div> draggables avec interact.js
  * - Même comportement desktop + mobile
  * - Aucune dépendance canvas/Konva
+ *
+ * Features complètes:
+ * - Onglets: Texte (polices, techniques, couleurs), Design (couleur produit, tailles), Calques
+ * - Drag & drop tactile
+ * - Changement couleur produit
+ * - Calcul prix avec techniques
  */
 
 (function() {
     'use strict';
 
     // ===========================================
+    // CONFIGURATION
+    // ===========================================
+    const CONFIG = {
+        maxElements: 10,
+        snapThreshold: 5,
+        snapEnabled: true,
+        autoSaveKey: 'personnaly_design_draft',
+        autoSaveInterval: 5000,
+    };
+
+    // ===========================================
+    // FONT LOADING
+    // ===========================================
+    const loadedFonts = new Set(['Inter', 'Arial', 'Helvetica', 'sans-serif', 'serif']);
+
+    function loadGoogleFont(fontFamily) {
+        if (loadedFonts.has(fontFamily)) {
+            return Promise.resolve();
+        }
+
+        return new Promise((resolve, reject) => {
+            const familyEncoded = fontFamily.replace(/\s+/g, '+');
+            const url = `https://fonts.googleapis.com/css2?family=${familyEncoded}:wght@400;500;600;700&display=swap`;
+
+            const existingLink = document.querySelector(`link[href*="${familyEncoded}"]`);
+            if (existingLink) {
+                loadedFonts.add(fontFamily);
+                resolve();
+                return;
+            }
+
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = url;
+
+            link.onload = () => {
+                console.log(`[Configurator] Font loaded: ${fontFamily}`);
+                loadedFonts.add(fontFamily);
+                resolve();
+            };
+
+            link.onerror = () => {
+                console.warn(`[Configurator] Failed to load font: ${fontFamily}`);
+                reject(new Error(`Failed to load font: ${fontFamily}`));
+            };
+
+            document.head.appendChild(link);
+        });
+    }
+
+    function preloadFonts() {
+        const fonts = window.__FONTS_DATA || [];
+        console.log('[Configurator] Preloading fonts:', fonts.map(f => f.value || f.family));
+
+        fonts.forEach(font => {
+            const family = font.value || font.family;
+            if (family && !loadedFonts.has(family)) {
+                loadGoogleFont(family).catch(() => {});
+            }
+        });
+    }
+
+    // ===========================================
     // STATE
     // ===========================================
     const state = {
-        layers: [],
-        selectedLayer: null,
+        elements: [],
+        selectedElement: null,
         currentView: 'front',
         selectedProductColor: 'original',
         selectedSize: 'M',
         selectedTechnique: null,
+        selectedFont: null,
+        selectedTextColor: '#000000',
         basePrice: 0,
+        nextZIndex: 1,
     };
 
     let DOM = {};
 
     // ===========================================
-    // INITIALIZATION
+    // INIT
     // ===========================================
     function init() {
         console.log('[Configurator] Starting init (HTML mode)...');
 
         // Cache DOM
         cacheDOM();
+
+        // Preload fonts
+        preloadFonts();
 
         // Load product data
         state.basePrice = window.__PRODUCT_DATA?.basePrice || 0;
@@ -44,13 +119,13 @@
         // Setup event listeners
         setupEventListeners();
 
-        // Initialize price
-        updatePrice();
-
-        // Load initial product image
+        // Load initial image
         updateProductImage();
 
-        console.log('[Configurator] ✅ Initialized (HTML mode)');
+        // Initial price
+        updatePrice();
+
+        console.log('[Configurator] Init complete');
     }
 
     function cacheDOM() {
@@ -63,12 +138,22 @@
             textInput: document.getElementById('cfgTextInput'),
             addTextBtn: document.getElementById('cfgAddText'),
 
-            // Technique
+            // Font dropdown
+            fontDropdown: document.getElementById('cfgFontDropdown'),
+            fontTrigger: document.getElementById('cfgFontTrigger'),
+            fontList: document.getElementById('cfgFontList'),
+            fontPreview: document.getElementById('cfgFontPreview'),
+
+            // Technique dropdown
             techniqueDropdown: document.getElementById('cfgTechniqueDropdown'),
             techniqueTrigger: document.getElementById('cfgTechniqueTrigger'),
             techniqueList: document.getElementById('cfgTechniqueList'),
             techniquePreview: document.getElementById('cfgTechniquePreview'),
             techniquePriceBadge: document.getElementById('cfgTechniquePriceBadge'),
+
+            // Color
+            textColorInput: document.getElementById('cfgTextColor'),
+            colorPreviewsContainer: document.getElementById('cfgColorPreviews'),
 
             // Product colors
             productColors: document.querySelectorAll('.cfg-product-color-swatch'),
@@ -76,14 +161,14 @@
             // Size
             sizeButtons: document.querySelectorAll('.cfg-size-btn'),
 
+            // View toggle
+            viewBtns: document.querySelectorAll('.cfg-view-btn'),
+
             // Price
             priceValue: document.querySelector('.cfg-price-value'),
             mobilePriceValue: document.querySelector('.cfg-mobile-price-value'),
             productPrice: document.getElementById('cfgProductPrice'),
             mobilePrice: document.getElementById('cfgMobilePrice'),
-
-            // View toggle
-            viewBtns: document.querySelectorAll('.cfg-view-btn'),
 
             // Mobile
             mobileTabs: document.querySelectorAll('.cfg-mobile-tab'),
@@ -103,13 +188,12 @@
             return;
         }
 
-        // PRIORITÉ: Lire les data-attributes directement
         const frontUrl = DOM.product.dataset.front;
         const backUrl = DOM.product.dataset.back;
 
         let imageUrl;
 
-        // Gestion changement couleur
+        // Color change handling
         const colorImages = window.__COLOR_IMAGES || {};
 
         if (state.selectedProductColor === 'original') {
@@ -121,7 +205,6 @@
                     ? colorData.front
                     : colorData.back;
             } else {
-                // Fallback vers image originale
                 imageUrl = state.currentView === 'front' ? frontUrl : backUrl;
             }
         }
@@ -143,6 +226,11 @@
             return;
         }
 
+        if (state.elements.length >= CONFIG.maxElements) {
+            showNotification(`Maximum ${CONFIG.maxElements} éléments atteints`, 'error');
+            return;
+        }
+
         const layerId = 'layer-' + Date.now();
 
         const el = document.createElement('div');
@@ -157,23 +245,31 @@
         el.style.userSelect = 'none';
         el.style.fontSize = '24px';
         el.style.fontWeight = 'bold';
-        el.style.color = '#1A1A2E';
+        el.style.color = state.selectedTextColor || '#1A1A2E';
         el.style.padding = '4px 8px';
+        el.style.zIndex = state.nextZIndex++;
         el.dataset.x = 0;
         el.dataset.y = 0;
+
+        // Apply selected font
+        if (state.selectedFont) {
+            el.style.fontFamily = state.selectedFont;
+        }
 
         if (DOM.layers) {
             DOM.layers.appendChild(el);
         }
 
         // Store in state
-        state.layers.push({
+        state.elements.push({
             id: layerId,
             type: 'text',
             element: el,
             text: text,
             x: 50,
             y: 40,
+            font: state.selectedFont,
+            color: state.selectedTextColor,
         });
 
         // Make draggable
@@ -191,7 +287,6 @@
     // DRAG & DROP (INTERACT.JS)
     // ===========================================
     function makeDraggable(element) {
-        // Check if interact.js is loaded
         if (typeof interact === 'undefined') {
             console.warn('[Configurator] interact.js not loaded, using basic drag');
             makeBasicDraggable(element);
@@ -219,7 +314,6 @@
         });
     }
 
-    // Fallback basic drag (si interact.js pas chargé)
     function makeBasicDraggable(element) {
         let isDragging = false;
         let startX, startY, initialX, initialY;
@@ -278,10 +372,10 @@
             total += technique.price;
         }
 
-        // Add layers price (if paid elements)
-        state.layers.forEach(layer => {
-            if (layer.price) {
-                total += layer.price;
+        // Add elements price (if paid)
+        state.elements.forEach(el => {
+            if (el.price) {
+                total += el.price;
             }
         });
 
@@ -302,7 +396,7 @@
     // EVENT LISTENERS
     // ===========================================
     function setupEventListeners() {
-        // Add text button
+        // Add text button (desktop)
         DOM.addTextBtn?.addEventListener('click', () => {
             const text = DOM.textInput?.value.trim();
             if (text) {
@@ -310,7 +404,6 @@
             }
         });
 
-        // Text input - Enter key
         DOM.textInput?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const text = DOM.textInput.value.trim();
@@ -320,45 +413,44 @@
             }
         });
 
-        // Product colors
-        DOM.productColors?.forEach(colorEl => {
-            colorEl.addEventListener('click', () => {
-                DOM.productColors.forEach(c => c.classList.remove('selected'));
-                colorEl.classList.add('selected');
+        // Font dropdown
+        DOM.fontList?.querySelectorAll('.cfg-dropdown-item').forEach(item => {
+            item.addEventListener('click', async () => {
+                const fontFamily = item.dataset.font;
+                const label = item.dataset.label;
 
-                const colorName = colorEl.dataset.color;
-                state.selectedProductColor = colorName;
-                updateProductImage();
-            });
-        });
-
-        // Size buttons
-        DOM.sizeButtons?.forEach(btn => {
-            btn.addEventListener('click', () => {
-                DOM.sizeButtons.forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                const radio = btn.querySelector('input[type="radio"]');
-                if (radio) {
-                    radio.checked = true;
-                    state.selectedSize = radio.value;
+                // Load font
+                try {
+                    await loadGoogleFont(fontFamily);
+                } catch (e) {
+                    console.warn('Font load failed:', e);
                 }
+
+                // Update preview
+                if (DOM.fontPreview) {
+                    DOM.fontPreview.textContent = label;
+                    DOM.fontPreview.style.fontFamily = fontFamily;
+                }
+
+                // Update selection
+                DOM.fontList.querySelectorAll('.cfg-dropdown-item').forEach(i =>
+                    i.classList.remove('selected')
+                );
+                item.classList.add('selected');
+
+                // Close dropdown
+                DOM.fontTrigger?.classList.remove('open');
+                DOM.fontList?.classList.remove('open');
+
+                // Store font
+                state.selectedFont = fontFamily;
             });
         });
 
-        // View toggle (Face/Dos)
-        DOM.viewBtns?.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const view = btn.dataset.view;
-                if (!view) return;
-
-                // Update active state
-                DOM.viewBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                // Update state and image
-                state.currentView = view;
-                updateProductImage();
-            });
+        DOM.fontTrigger?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            DOM.fontTrigger.classList.toggle('open');
+            DOM.fontList?.classList.toggle('open');
         });
 
         // Technique dropdown
@@ -393,16 +485,66 @@
             });
         });
 
-        // Technique trigger
         DOM.techniqueTrigger?.addEventListener('click', (e) => {
             e.stopPropagation();
             DOM.techniqueTrigger.classList.toggle('open');
             DOM.techniqueList?.classList.toggle('open');
         });
 
-        // Close dropdown when clicking outside
+        // Text color input
+        DOM.textColorInput?.addEventListener('input', (e) => {
+            state.selectedTextColor = e.target.value;
+        });
+
+        // Product color swatches
+        DOM.productColors?.forEach(colorEl => {
+            colorEl.addEventListener('click', () => {
+                const colorName = colorEl.dataset.color;
+
+                // Update selection
+                DOM.productColors.forEach(c => c.classList.remove('selected'));
+                colorEl.classList.add('selected');
+
+                // Update state and image
+                state.selectedProductColor = colorName;
+                updateProductImage();
+            });
+        });
+
+        // Size buttons
+        DOM.sizeButtons?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                DOM.sizeButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                const radio = btn.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    state.selectedSize = radio.value;
+                }
+            });
+        });
+
+        // View toggle (Face/Dos)
+        DOM.viewBtns?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const view = btn.dataset.view;
+                if (!view) return;
+
+                // Update active state
+                DOM.viewBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Update state and image
+                state.currentView = view;
+                updateProductImage();
+            });
+        });
+
+        // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.cfg-modern-dropdown')) {
+                DOM.fontTrigger?.classList.remove('open');
+                DOM.fontList?.classList.remove('open');
                 DOM.techniqueTrigger?.classList.remove('open');
                 DOM.techniqueList?.classList.remove('open');
             }
@@ -417,12 +559,12 @@
                 DOM.mobileTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
 
-                // Open drawer with tool content
+                // Open drawer
                 openMobileDrawer(tool);
             });
         });
 
-        // Mobile drawer close button
+        // Mobile drawer close
         DOM.mobileDrawerClose?.addEventListener('click', () => {
             closeMobileDrawer();
         });
@@ -434,7 +576,6 @@
     function openMobileDrawer(tool) {
         if (!DOM.mobileDrawer) return;
 
-        // Set drawer title
         const titles = {
             text: 'Texte',
             design: 'Design',
@@ -446,7 +587,6 @@
             DOM.mobileDrawerTitle.textContent = titles[tool] || 'Options';
         }
 
-        // Populate drawer content based on tool
         if (DOM.mobileDrawerContent) {
             let content = '';
 
@@ -488,7 +628,7 @@
 
             DOM.mobileDrawerContent.innerHTML = content;
 
-            // If text tool, add event listener to the add button
+            // If text tool, add event listeners
             if (tool === 'text') {
                 setTimeout(() => {
                     const mobileTextInput = document.getElementById('cfgMobileTextInput');
@@ -517,7 +657,6 @@
             }
         }
 
-        // Show drawer
         DOM.mobileDrawer.classList.add('open');
     }
 
@@ -530,49 +669,15 @@
     // NOTIFICATIONS
     // ===========================================
     function showNotification(message, type = 'info') {
-        // Simple notification (peut être amélioré)
         console.log(`[Notification ${type}]:`, message);
-
-        // Create toast if needed
-        const toast = document.createElement('div');
-        toast.className = `cfg-toast cfg-toast-${type}`;
-        toast.textContent = message;
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${type === 'error' ? '#ff4444' : '#3dffc0'};
-            color: ${type === 'error' ? 'white' : '#1a8a6a'};
-            padding: 12px 24px;
-            border-radius: 8px;
-            z-index: 9999;
-            animation: slideUp 0.3s ease;
-        `;
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
     }
 
     // ===========================================
-    // AUTO-INIT
+    // START
     // ===========================================
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
-
-    // ===========================================
-    // EXPOSE API
-    // ===========================================
-    window.PersonnalyConfigurator = {
-        init,
-        addTextLayer,
-        updatePrice,
-        updateProductImage,
-    };
-
 })();

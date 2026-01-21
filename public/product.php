@@ -326,7 +326,7 @@ $cartCount = Cart::count();
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/configurator.css?v=<?= time() ?>">
     <link rel="stylesheet" href="/public/assets/css/techniques.css?v=3">
-    <!-- interact.js pour drag & drop -->
+    <!-- interact.js pour drag & drop HTML -->
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <style>
         body { background: var(--gray-light); }
@@ -814,14 +814,12 @@ $cartCount = Cart::count();
                                 <?php endif; ?>
                             </div>
                         </div>
-                        <div class="cfg-stage-container" id="cfgStageContainer">
-                            <!-- NOUVELLE ARCHITECTURE HTML (Sans Konva) -->
-                            <div id="preview">
-                                <div id="product"
+                        <div class="cfg-stage-container editor-viewport" id="cfgStageContainer">
+                            <div class="editor-stage">
+                                <div id="product" class="product-base"
                                      data-front="/public<?= h($product['image_front_url']) ?>"
-                                     data-back="<?= !empty($product['image_back_url']) ? '/public' . h($product['image_back_url']) : '' ?>">
-                                </div>
-                                <div id="layers"></div>
+                                     data-back="<?= !empty($product['image_back_url']) ? '/public' . h($product['image_back_url']) : '' ?>"></div>
+                                <div id="layers" class="editor-layer"></div>
                             </div>
                         </div>
                         <!-- Bouton aperçu rendu réel sous l'image -->

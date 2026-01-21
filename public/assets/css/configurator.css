@@ -29,53 +29,6 @@
 }
 
 /* ===========================================
-   NOUVELLE ARCHITECTURE HTML (Sans Konva)
-   =========================================== */
-
-#preview {
-    position: relative;
-    width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-    aspect-ratio: 1 / 1;
-}
-
-#product {
-    width: 100%;
-    height: 100%;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-color: white;
-}
-
-#layers {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
-
-#layers > * {
-    pointer-events: auto;
-}
-
-.layer {
-    position: absolute;
-    cursor: move;
-    user-select: none;
-}
-
-.text-layer {
-    font-size: 24px;
-    font-weight: bold;
-    color: #1A1A2E;
-    padding: 4px 8px;
-    white-space: nowrap;
-}
-
-/* Mobile: full width - See RESPONSIVE MOBILE section below for consolidated rules */
-
-/* ===========================================
    MAIN LAYOUT - Desktop (Tabs | Options | Canvas | Drawer)
    =========================================== */
 .configurator-v2 {
@@ -1889,24 +1842,12 @@
    RESPONSIVE - Mobile (Bottom Toolbar)
    =========================================== */
 @media (max-width: 768px) {
-    /* Supprime le padding du container parent */
-    .product-page .container {
-        padding: 0;
-    }
-
     .configurator-v2 {
         display: flex;
         flex-direction: column;
-        width: 100vw;
-        max-width: 100vw;
         padding: 0;
-        padding-left: 0;
-        padding-right: 0;
         padding-bottom: calc(var(--cfg-toolbar-height) + var(--cfg-cta-height));
-        margin-left: 0;
-        margin-right: 0;
         min-height: 100vh;
-        overflow-x: hidden;
     }
 
     /* Hide desktop tabs bar */
@@ -1936,9 +1877,7 @@
     }
 
     .cfg-canvas-wrapper {
-        max-width: none;
-        width: 100%;
-        padding: 0;
+        max-width: 100%;
     }
 
     /* Mobile toolbar - ULTRA MODERN 2026 - fixed bottom */
@@ -2699,12 +2638,67 @@
     color: white;
 }
 
+/* ===========================================
+   EDITOR VIEWPORT / STAGE ARCHITECTURE
+   =========================================== */
+
+.editor-viewport {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    overflow: hidden;
+    background: white;
+}
+
+.editor-stage {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+}
+
+.product-base {
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: white;
+}
+
+.editor-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.editor-layer > * {
+    pointer-events: auto;
+}
+
+.layer {
+    position: absolute;
+    cursor: move;
+    user-select: none;
+}
+
+.text-layer {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1A1A2E;
+    padding: 4px 8px;
+    white-space: nowrap;
+}
+
 .cfg-stage-container {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px;
+    padding: 0;
     position: relative;
 }
 
@@ -3182,7 +3176,6 @@
         transform: translateY(0);
     }
 
-    /* Supprimé: conflits avec @media 768px pour centrage image
     .cfg-stage-container {
         padding: 20px;
     }
@@ -3190,7 +3183,6 @@
     .cfg-product-bg {
         max-height: 300px;
     }
-    */
 
     .cfg-options-row {
         flex-direction: column;
@@ -3707,6 +3699,22 @@
     font-size: 0.95rem;
 }
 
+/* Canvas avec moins d'espace */
+.cfg-canvas {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f5f5f7;
+}
+
+.cfg-stage-container {
+    background: transparent;
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 100%;
+}
+
 /* Barre d'actions compacte */
 .cfg-product-actions-compact {
     padding: 16px 24px;
@@ -3728,123 +3736,72 @@
 }
 
 /* ===========================================
-   RESPONSIVE MOBILE - CONSOLIDATED FIX
+   FIXES RESPONSIVE MOBILE - 2026-01-19
    =========================================== */
 
+/* Fix: Image centrée et agrandie sur mobile */
 @media (max-width: 768px) {
-    /* Force white background everywhere - no gray bands */
-    .configurator-v2 {
-        background: white !important;
-    }
-
     .cfg-canvas {
-        background: white !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        display: flex;
-        flex-direction: column;
+        padding: 8px 0 0 0;
+        align-items: center;
+        justify-content: flex-start;
+        flex: 1;
+        min-height: 0;
     }
 
-    /* Stage container - full width, no padding */
+    .cfg-canvas-header {
+        padding: 8px 16px;
+        margin-bottom: 4px;
+    }
+
     .cfg-stage-container {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        background: white;
+        width: 100%;
+        max-width: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 8px;
         flex: 1;
     }
 
-    /* NEW HTML ARCHITECTURE - Full width, no offset */
-    #preview {
-        max-width: 100% !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    #product {
-        width: 100% !important;
-        height: 100% !important;
-    }
-
-    #layers {
-        width: 100% !important;
-        height: 100% !important;
-    }
-
-    /* Product image - full width, large, centered */
     .cfg-product-bg {
-        width: 100% !important;
-        max-width: 100% !important;
-        max-height: calc(100vh - 250px) !important;
-        height: auto !important;
+        width: auto;
+        max-width: calc(100% - 16px);
+        height: auto;
+        max-height: calc(100vh - 280px);
         object-fit: contain;
-        display: block !important;
-        margin: 0 !important;
-    }
-
-    /* Canvas wrapper - no constraints */
-    .cfg-canvas-wrapper {
-        max-width: none !important;
-        width: 100% !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    /* Preview button - JUST UNDER IMAGE */
-    .cfg-preview-under-canvas,
-    .cfg-preview-btn-pink {
-        width: calc(100% - 32px);
-        max-width: 400px;
-        margin: 8px auto !important;
-        padding: 12px 20px;
-        font-size: 0.9rem;
+        margin: 0 auto;
         display: block;
     }
 
-    /* Mobile save/share buttons - VISIBLE */
-    .cfg-mobile-save-btn,
-    .cfg-mobile-share-btn {
-        display: flex !important;
-        align-items: center;
-        gap: 8px;
+    /* Fix: Bouton "voir rendu réel" - visible au-dessus de la toolbar */
+    .cfg-preview-under-canvas {
+        width: calc(100% - 32px);
+        max-width: none;
+        margin: 8px 16px 16px;
         padding: 10px 16px;
-        font-size: 0.9rem;
-    }
-
-    /* Mobile CTA bar - VISIBLE */
-    .cfg-mobile-cta {
-        display: flex !important;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 200;
-    }
-
-    /* Mobile price - VISIBLE */
-    .cfg-mobile-price {
-        display: flex !important;
+        font-size: 0.85rem;
+        position: relative;
+        z-index: 10;
     }
 }
 
-/* Extra small screens */
+/* Fix: Très petits écrans */
 @media (max-width: 400px) {
+    .cfg-stage-container {
+        padding: 0 4px;
+    }
+
     .cfg-product-bg {
-        max-height: calc(100vh - 180px);
+        max-width: calc(100% - 8px);
+        max-height: calc(100vh - 300px);
     }
 
     .cfg-preview-under-canvas {
-        width: calc(100% - 24px);
-        margin: 10px auto;
-        padding: 10px 16px;
-        font-size: 0.85rem;
+        width: calc(100% - 16px);
+        margin: 6px 8px 12px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
     }
 }
 
