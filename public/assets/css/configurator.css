@@ -2644,6 +2644,8 @@
    =========================================== */
 
 .editor-viewport {
+    /* Simple flex container - no tricks */
+    width: 100%;
     flex: 1;
     display: flex;
     align-items: center;

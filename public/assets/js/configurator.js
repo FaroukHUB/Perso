@@ -125,7 +125,39 @@
         // Initial price
         updatePrice();
 
+        // Calculate and apply viewport height
+        calculateViewportHeight();
+        window.addEventListener('resize', calculateViewportHeight);
+        window.addEventListener('orientationchange', calculateViewportHeight);
+
         console.log('[Configurator] Init complete');
+    }
+
+    // ===========================================
+    // VIEWPORT HEIGHT CALCULATION
+    // ===========================================
+    function calculateViewportHeight() {
+        const viewport = document.querySelector('.editor-viewport');
+        if (!viewport) return;
+
+        // Calculate available height: 100svh - header - footer
+        const header = document.querySelector('.navbar');
+        const mobileToolbar = document.querySelector('.cfg-mobile-toolbar');
+        const mobileCta = document.querySelector('.cfg-mobile-cta');
+
+        let availableHeight = window.innerHeight;
+
+        if (header) {
+            availableHeight -= header.offsetHeight;
+        }
+
+        if (window.innerWidth <= 768) {
+            if (mobileToolbar) availableHeight -= mobileToolbar.offsetHeight;
+            if (mobileCta) availableHeight -= mobileCta.offsetHeight;
+        }
+
+        viewport.style.height = `${availableHeight}px`;
+        console.log('[Configurator] Viewport height calculated:', availableHeight + 'px');
     }
 
     function cacheDOM() {
@@ -573,6 +605,23 @@
     // ===========================================
     // MOBILE DRAWER
     // ===========================================
+    function buildFontOptionsHTML() {
+        const fonts = window.__FONTS_DATA || [];
+        return fonts.map(font => {
+            const family = font.value || font.family;
+            const label = font.label || font.family;
+            return `<option value="${family}" ${family === state.selectedFont ? 'selected' : ''}>${label}</option>`;
+        }).join('');
+    }
+
+    function buildTechniqueOptionsHTML() {
+        const techniques = window.__TECHNIQUES_DATA || [];
+        return techniques.map(tech => {
+            const price = tech.price > 0 ? ` (+${tech.price.toFixed(2).replace('.', ',')} €)` : ' (Inclus)';
+            return `<option value="${tech.value}" ${tech.value === state.selectedTechnique ? 'selected' : ''}>${tech.label}${price}</option>`;
+        }).join('');
+    }
+
     function openMobileDrawer(tool) {
         if (!DOM.mobileDrawer) return;
 
@@ -593,19 +642,47 @@
             switch (tool) {
                 case 'text':
                     content = `
-                        <div style="padding: 16px;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Ajouter du texte</label>
-                            <div style="display: flex; gap: 8px;">
+                        <div style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+                            <!-- Input texte -->
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Texte</label>
                                 <input type="text"
                                        id="cfgMobileTextInput"
                                        placeholder="Votre texte..."
-                                       style="flex: 1; padding: 10px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 14px;">
-                                <button type="button"
-                                        id="cfgMobileAddText"
-                                        style="padding: 10px 20px; background: #FF69B4; color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">
-                                    Ajouter
-                                </button>
+                                       style="width: 100%; padding: 10px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
                             </div>
+
+                            <!-- Police -->
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Police</label>
+                                <select id="cfgMobileFontSelect" style="width: 100%; padding: 10px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 14px; background: white;">
+                                    ${buildFontOptionsHTML()}
+                                </select>
+                            </div>
+
+                            <!-- Couleur texte -->
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Couleur</label>
+                                <input type="color"
+                                       id="cfgMobileTextColor"
+                                       value="${state.selectedTextColor}"
+                                       style="width: 100%; height: 44px; border: 1px solid #e5e5e5; border-radius: 6px; cursor: pointer;">
+                            </div>
+
+                            <!-- Technique -->
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Technique d'impression</label>
+                                <select id="cfgMobileTechniqueSelect" style="width: 100%; padding: 10px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 14px; background: white;">
+                                    ${buildTechniqueOptionsHTML()}
+                                </select>
+                            </div>
+
+                            <!-- Bouton ajouter -->
+                            <button type="button"
+                                    id="cfgMobileAddText"
+                                    style="width: 100%; padding: 14px; background: linear-gradient(135deg, #FF69B4 0%, #FF8DC7 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 2px 8px rgba(255, 105, 180, 0.3);">
+                                Ajouter le texte
+                            </button>
                         </div>
                     `;
                     break;
@@ -633,7 +710,37 @@
                 setTimeout(() => {
                     const mobileTextInput = document.getElementById('cfgMobileTextInput');
                     const mobileAddTextBtn = document.getElementById('cfgMobileAddText');
+                    const mobileFontSelect = document.getElementById('cfgMobileFontSelect');
+                    const mobileTextColor = document.getElementById('cfgMobileTextColor');
+                    const mobileTechniqueSelect = document.getElementById('cfgMobileTechniqueSelect');
 
+                    // Font change
+                    mobileFontSelect?.addEventListener('change', async (e) => {
+                        const fontFamily = e.target.value;
+                        try {
+                            await loadGoogleFont(fontFamily);
+                            state.selectedFont = fontFamily;
+                            console.log('[Configurator] Mobile font selected:', fontFamily);
+                        } catch (err) {
+                            console.warn('[Configurator] Font load failed:', err);
+                        }
+                    });
+
+                    // Color change
+                    mobileTextColor?.addEventListener('input', (e) => {
+                        state.selectedTextColor = e.target.value;
+                        console.log('[Configurator] Mobile text color selected:', e.target.value);
+                    });
+
+                    // Technique change
+                    mobileTechniqueSelect?.addEventListener('change', (e) => {
+                        state.selectedTechnique = e.target.value;
+                        window.__SELECTED_TECHNIQUE = e.target.value;
+                        updatePrice();
+                        console.log('[Configurator] Mobile technique selected:', e.target.value);
+                    });
+
+                    // Add text button
                     mobileAddTextBtn?.addEventListener('click', () => {
                         const text = mobileTextInput?.value.trim();
                         if (text) {
@@ -643,6 +750,7 @@
                         }
                     });
 
+                    // Enter key
                     mobileTextInput?.addEventListener('keypress', (e) => {
                         if (e.key === 'Enter') {
                             const text = mobileTextInput.value.trim();
@@ -653,6 +761,8 @@
                             }
                         }
                     });
+
+                    console.log('[Configurator] Mobile text controls initialized');
                 }, 0);
             }
         }
