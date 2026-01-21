@@ -1,0 +1,223 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* EDITOR LAYOUT */
+.ps-editor {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* PREVIEW */
+.ps-preview {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.ps-product-frame {
+  width: min(90vw, 420px);
+  aspect-ratio: 1 / 1.25;
+  background: #fff;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ps-product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ps-print-area {
+  position: absolute;
+  inset: 15% 10%;
+  pointer-events: none;
+}
+
+.ps-print-area-debug {
+  position: absolute;
+  inset: 15% 10%;
+  border: 2px dashed rgba(255, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+/* LAYERS */
+.ps-layer {
+  position: absolute;
+  cursor: move;
+  pointer-events: auto;
+  user-select: none;
+  touch-action: none;
+}
+
+.ps-layer.active {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* CONTROLS */
+.ps-controls {
+  background: #fff;
+  padding: 20px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.ps-control-group {
+  margin-bottom: 24px;
+}
+
+.ps-control-group:last-child {
+  margin-bottom: 0;
+}
+
+.ps-control-group h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  color: #666;
+  letter-spacing: 0.5px;
+}
+
+/* BUTTONS */
+.ps-btn {
+  padding: 10px 16px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ps-btn:hover {
+  background: #f9f9f9;
+  border-color: #ccc;
+}
+
+.ps-btn.active {
+  background: #667eea;
+  color: #fff;
+  border-color: #667eea;
+}
+
+.ps-btn-primary {
+  background: #667eea;
+  color: #fff;
+  border-color: #667eea;
+  width: 100%;
+}
+
+.ps-btn-primary:hover {
+  background: #5568d3;
+  border-color: #5568d3;
+}
+
+.ps-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* VIEW TOGGLE */
+.ps-view-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.ps-view-toggle .ps-btn {
+  flex: 1;
+}
+
+/* TEXT CONTROLS */
+.ps-text-controls {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ps-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.ps-text-style {
+  display: flex;
+  gap: 8px;
+}
+
+.ps-select {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+}
+
+.ps-color {
+  width: 60px;
+  height: 40px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* PRIX */
+.ps-price {
+  background: #f9f9f9;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.ps-price-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.ps-price-total {
+  border-top: 2px solid #ddd;
+  margin-top: 6px;
+  padding-top: 12px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* DESKTOP */
+@media (min-width: 768px) {
+  .ps-editor {
+    flex-direction: row;
+  }
+
+  .ps-preview {
+    flex: 1;
+  }
+
+  .ps-controls {
+    width: 360px;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+  }
+}

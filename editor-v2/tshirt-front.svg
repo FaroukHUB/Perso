@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" fill="none">
+  <!-- T-shirt body -->
+  <path d="M80 80 L80 480 L320 480 L320 80 L280 80 L280 40 L260 20 L140 20 L120 40 L120 80 Z" fill="#f0f0f0" stroke="#ddd" stroke-width="2"/>
+
+  <!-- Sleeves -->
+  <path d="M80 80 L40 120 L40 200 L80 180 Z" fill="#e8e8e8" stroke="#ddd" stroke-width="2"/>
+  <path d="M320 80 L360 120 L360 200 L320 180 Z" fill="#e8e8e8" stroke="#ddd" stroke-width="2"/>
+
+  <!-- Collar -->
+  <circle cx="200" cy="60" r="30" fill="#fff" stroke="#ddd" stroke-width="2"/>
+  <path d="M170 60 L230 60" stroke="#ddd" stroke-width="2" fill="none"/>
+</svg>
