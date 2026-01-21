@@ -3697,22 +3697,6 @@
     font-size: 0.95rem;
 }
 
-/* Canvas avec moins d'espace */
-.cfg-canvas {
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: #f5f5f7;
-}
-
-.cfg-stage-container {
-    background: transparent;
-    border-radius: 16px;
-    overflow: hidden;
-    max-width: 100%;
-}
-
 /* Barre d'actions compacte */
 .cfg-product-actions-compact {
     padding: 16px 24px;
