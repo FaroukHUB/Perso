@@ -82,6 +82,9 @@
             productPrice: document.getElementById('cfgProductPrice'),
             mobilePrice: document.getElementById('cfgMobilePrice'),
 
+            // View toggle
+            viewBtns: document.querySelectorAll('.cfg-view-btn'),
+
             // Mobile
             mobileTabs: document.querySelectorAll('.cfg-mobile-tab'),
             mobileDrawer: document.getElementById('cfgMobileDrawer'),
@@ -339,6 +342,22 @@
                     radio.checked = true;
                     state.selectedSize = radio.value;
                 }
+            });
+        });
+
+        // View toggle (Face/Dos)
+        DOM.viewBtns?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const view = btn.dataset.view;
+                if (!view) return;
+
+                // Update active state
+                DOM.viewBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Update state and image
+                state.currentView = view;
+                updateProductImage();
             });
         });
 
