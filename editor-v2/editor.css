@@ -1,66 +1,11 @@
 /**
  * PERSONNALY - Editor V2 CSS
- * Design System intégré (Rose + Vert Menthe + Noir)
+ * Utilise les variables globales de style.css
  * Mobile-first • 2026
+ *
+ * IMPORTANT: Ce fichier doit être chargé APRÈS style.css
+ * Les variables sont définies dans /public/assets/css/style.css
  */
-
-/* ========================================
-   TOKENS (référence style.css principal)
-   ======================================== */
-:root {
-  /* Couleurs Personnaly */
-  --ps-pink-light: #FFB6C1;
-  --ps-pink-main: #FF69B4;
-  --ps-pink-dark: #FF1493;
-  --ps-pink-glow: rgba(255, 105, 180, 0.3);
-
-  --ps-mint-light: #98FFD6;
-  --ps-mint-main: #3DFFC0;
-  --ps-mint-dark: #00D9A0;
-  --ps-mint-glow: rgba(61, 255, 192, 0.3);
-
-  --ps-black: #0D0D0D;
-  --ps-black-soft: #1A1A2E;
-  --ps-black-card: #16213E;
-
-  --ps-white: #FFFFFF;
-  --ps-gray-light: #F8F9FA;
-  --ps-gray: #6C757D;
-  --ps-gray-dark: #343A40;
-
-  /* Gradients */
-  --ps-gradient-pink: linear-gradient(135deg, #FF69B4 0%, #FF1493 100%);
-  --ps-gradient-mint: linear-gradient(135deg, #3DFFC0 0%, #00D9A0 100%);
-  --ps-gradient-dark: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
-
-  /* Typography */
-  --ps-font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --ps-font-display: 'Poppins', var(--ps-font-main);
-
-  /* Spacing */
-  --ps-spacing-xs: 4px;
-  --ps-spacing-sm: 8px;
-  --ps-spacing-md: 16px;
-  --ps-spacing-lg: 24px;
-  --ps-spacing-xl: 40px;
-
-  /* Radius */
-  --ps-radius-sm: 8px;
-  --ps-radius-md: 12px;
-  --ps-radius-lg: 20px;
-  --ps-radius-full: 50px;
-
-  /* Shadows */
-  --ps-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --ps-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
-  --ps-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.16);
-  --ps-shadow-pink: 0 4px 20px rgba(255, 105, 180, 0.4);
-  --ps-shadow-mint: 0 4px 20px rgba(61, 255, 192, 0.4);
-
-  /* Transitions */
-  --ps-transition-fast: 0.15s ease;
-  --ps-transition-normal: 0.3s ease;
-}
 
 /* ========================================
    RESET & BASE
@@ -72,11 +17,11 @@
 }
 
 body {
-  font-family: var(--ps-font-main);
+  font-family: var(--font-main);
   font-size: 15px;
   line-height: 1.5;
-  color: var(--ps-black);
-  background: var(--ps-gray-light);
+  color: var(--black);
+  background: var(--gray-light);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -84,8 +29,8 @@ body {
    HEADER V2
    ======================================== */
 .ps-header {
-  background: var(--ps-gradient-dark);
-  color: var(--ps-white);
+  background: var(--gradient-dark);
+  color: var(--white);
   padding: 12px 16px;
   display: flex;
   justify-content: space-between;
@@ -102,32 +47,32 @@ body {
 }
 
 .ps-header h1 {
-  font-family: var(--ps-font-display);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   margin: 0;
 }
 
 .ps-badge {
-  background: var(--ps-mint-main);
-  color: var(--ps-black);
+  background: var(--mint-main);
+  color: var(--black);
   padding: 4px 10px;
-  border-radius: var(--ps-radius-full);
+  border-radius: var(--radius-full);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .ps-back-link {
-  color: var(--ps-mint-main);
+  color: var(--mint-main);
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
-  transition: color var(--ps-transition-fast);
+  transition: color var(--transition-fast);
 }
 
 .ps-back-link:hover {
-  color: var(--ps-mint-light);
+  color: var(--mint-light);
 }
 
 /* ========================================
@@ -149,16 +94,16 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: var(--ps-gradient-dark);
+  background: var(--gradient-dark);
   min-height: 50vh;
 }
 
 .ps-product-frame {
   width: min(85vw, 380px);
   aspect-ratio: 1 / 1.2;
-  background: var(--ps-white);
-  box-shadow: var(--ps-shadow-lg);
-  border-radius: var(--ps-radius-md);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
   position: relative;
   overflow: hidden;
 }
@@ -202,7 +147,7 @@ body {
   touch-action: none;
   padding: 4px 8px;
   border-radius: 4px;
-  transition: box-shadow var(--ps-transition-fast);
+  transition: box-shadow var(--transition-fast);
 }
 
 .ps-layer:hover {
@@ -210,7 +155,7 @@ body {
 }
 
 .ps-layer.active {
-  box-shadow: 0 0 0 2px var(--ps-pink-main), 0 0 0 4px var(--ps-pink-glow);
+  box-shadow: 0 0 0 2px var(--pink-main), 0 0 0 4px var(--pink-glow);
 }
 
 .ps-layer-text {
@@ -228,9 +173,9 @@ body {
    CONTROLS PANEL
    ======================================== */
 .ps-controls {
-  background: var(--ps-white);
+  background: var(--white);
   box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.1);
-  border-radius: var(--ps-radius-lg) var(--ps-radius-lg) 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   display: flex;
   flex-direction: column;
   max-height: 50vh;
@@ -260,23 +205,23 @@ body {
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
-  font-family: var(--ps-font-main);
+  font-family: var(--font-main);
   font-size: 13px;
   font-weight: 600;
-  color: var(--ps-gray);
+  color: var(--gray);
   cursor: pointer;
-  transition: all var(--ps-transition-fast);
+  transition: all var(--transition-fast);
   white-space: nowrap;
   text-align: center;
 }
 
 .ps-tab:hover {
-  color: var(--ps-pink-main);
+  color: var(--pink-main);
 }
 
 .ps-tab.active {
-  color: var(--ps-pink-dark);
-  border-bottom-color: var(--ps-pink-main);
+  color: var(--pink-dark);
+  border-bottom-color: var(--pink-main);
 }
 
 .ps-tab-icon {
@@ -311,13 +256,13 @@ body {
   justify-content: center;
   gap: 8px;
   padding: 12px 20px;
-  font-family: var(--ps-font-main);
+  font-family: var(--font-main);
   font-size: 14px;
   font-weight: 600;
   border: none;
-  border-radius: var(--ps-radius-full);
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all var(--ps-transition-normal);
+  transition: all var(--transition-normal);
   text-decoration: none;
 }
 
@@ -327,9 +272,9 @@ body {
 }
 
 .ps-btn-primary {
-  background: var(--ps-gradient-pink);
-  color: var(--ps-white);
-  box-shadow: var(--ps-shadow-pink);
+  background: var(--gradient-pink);
+  color: var(--white);
+  box-shadow: var(--shadow-pink);
 }
 
 .ps-btn-primary:hover:not(:disabled) {
@@ -338,9 +283,9 @@ body {
 }
 
 .ps-btn-secondary {
-  background: var(--ps-gradient-mint);
-  color: var(--ps-black);
-  box-shadow: var(--ps-shadow-mint);
+  background: var(--gradient-mint);
+  color: var(--black);
+  box-shadow: var(--shadow-mint);
 }
 
 .ps-btn-secondary:hover:not(:disabled) {
@@ -350,24 +295,24 @@ body {
 
 .ps-btn-ghost {
   background: transparent;
-  color: var(--ps-gray-dark);
-  border: 2px solid var(--ps-gray-light);
+  color: var(--gray-dark);
+  border: 2px solid var(--gray-light);
 }
 
 .ps-btn-ghost:hover:not(:disabled) {
-  border-color: var(--ps-pink-main);
-  color: var(--ps-pink-main);
+  border-color: var(--pink-main);
+  color: var(--pink-main);
 }
 
 .ps-btn-outline {
   background: transparent;
-  border: 2px solid var(--ps-pink-main);
-  color: var(--ps-pink-main);
+  border: 2px solid var(--pink-main);
+  color: var(--pink-main);
 }
 
 .ps-btn-outline:hover:not(:disabled) {
-  background: var(--ps-pink-main);
-  color: var(--ps-white);
+  background: var(--pink-main);
+  color: var(--white);
 }
 
 .ps-btn-sm {
@@ -383,7 +328,7 @@ body {
   width: 40px;
   height: 40px;
   padding: 0;
-  border-radius: var(--ps-radius-sm);
+  border-radius: var(--radius-sm);
 }
 
 /* ========================================
@@ -401,7 +346,7 @@ body {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: var(--ps-gray);
+  color: var(--gray);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -410,36 +355,36 @@ body {
 .ps-input {
   width: 100%;
   padding: 12px 14px;
-  font-family: var(--ps-font-main);
+  font-family: var(--font-main);
   font-size: 14px;
-  color: var(--ps-black);
-  background: var(--ps-white);
-  border: 2px solid var(--ps-gray-light);
-  border-radius: var(--ps-radius-md);
-  transition: all var(--ps-transition-fast);
+  color: var(--black);
+  background: var(--white);
+  border: 2px solid var(--gray-light);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
 }
 
 .ps-input:focus {
   outline: none;
-  border-color: var(--ps-pink-main);
-  box-shadow: 0 0 0 4px var(--ps-pink-glow);
+  border-color: var(--pink-main);
+  box-shadow: 0 0 0 4px var(--pink-glow);
 }
 
 .ps-input::placeholder {
-  color: var(--ps-gray);
+  color: var(--gray);
 }
 
 .ps-select {
   width: 100%;
   padding: 12px 14px;
-  font-family: var(--ps-font-main);
+  font-family: var(--font-main);
   font-size: 14px;
-  color: var(--ps-black);
-  background: var(--ps-white);
-  border: 2px solid var(--ps-gray-light);
-  border-radius: var(--ps-radius-md);
+  color: var(--black);
+  background: var(--white);
+  border: 2px solid var(--gray-light);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all var(--ps-transition-fast);
+  transition: all var(--transition-fast);
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236C757D' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -449,18 +394,18 @@ body {
 
 .ps-select:focus {
   outline: none;
-  border-color: var(--ps-pink-main);
-  box-shadow: 0 0 0 4px var(--ps-pink-glow);
+  border-color: var(--pink-main);
+  box-shadow: 0 0 0 4px var(--pink-glow);
 }
 
 .ps-color-input {
   width: 48px;
   height: 44px;
   padding: 4px;
-  border: 2px solid var(--ps-gray-light);
-  border-radius: var(--ps-radius-sm);
+  border: 2px solid var(--gray-light);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  background: var(--ps-white);
+  background: var(--white);
 }
 
 .ps-color-input::-webkit-color-swatch-wrapper {
@@ -475,7 +420,7 @@ body {
 .ps-range {
   width: 100%;
   height: 6px;
-  background: var(--ps-gray-light);
+  background: var(--gray-light);
   border-radius: 3px;
   appearance: none;
   cursor: pointer;
@@ -485,9 +430,9 @@ body {
   appearance: none;
   width: 20px;
   height: 20px;
-  background: var(--ps-gradient-pink);
+  background: var(--gradient-pink);
   border-radius: 50%;
-  box-shadow: var(--ps-shadow-pink);
+  box-shadow: var(--shadow-pink);
   cursor: grab;
 }
 
@@ -523,20 +468,20 @@ body {
 .ps-align-btn {
   flex: 1;
   padding: 10px;
-  background: var(--ps-gray-light);
+  background: var(--gray-light);
   border: none;
-  border-radius: var(--ps-radius-sm);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all var(--ps-transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .ps-align-btn:hover {
-  background: var(--ps-pink-glow);
+  background: var(--pink-glow);
 }
 
 .ps-align-btn.active {
-  background: var(--ps-pink-main);
-  color: var(--ps-white);
+  background: var(--pink-main);
+  color: var(--white);
 }
 
 .ps-align-btn svg {
@@ -555,11 +500,11 @@ body {
 
 .ps-grid-item {
   aspect-ratio: 1;
-  background: var(--ps-gray-light);
+  background: var(--gray-light);
   border: 2px solid transparent;
-  border-radius: var(--ps-radius-sm);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all var(--ps-transition-fast);
+  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -567,7 +512,7 @@ body {
 }
 
 .ps-grid-item:hover {
-  border-color: var(--ps-pink-light);
+  border-color: var(--pink-light);
   transform: scale(1.05);
 }
 
@@ -591,29 +536,29 @@ body {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  background: var(--ps-gray-light);
+  background: var(--gray-light);
   border: 2px solid transparent;
-  border-radius: var(--ps-radius-sm);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all var(--ps-transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .ps-layer-item:hover {
-  background: var(--ps-white);
-  border-color: var(--ps-pink-light);
+  background: var(--white);
+  border-color: var(--pink-light);
 }
 
 .ps-layer-item.active {
-  background: var(--ps-white);
-  border-color: var(--ps-pink-main);
-  box-shadow: var(--ps-shadow-sm);
+  background: var(--white);
+  border-color: var(--pink-main);
+  box-shadow: var(--shadow-sm);
 }
 
 .ps-layer-icon {
   width: 32px;
   height: 32px;
-  background: var(--ps-white);
-  border-radius: var(--ps-radius-sm);
+  background: var(--white);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -628,7 +573,7 @@ body {
 .ps-layer-name {
   font-size: 13px;
   font-weight: 600;
-  color: var(--ps-black);
+  color: var(--black);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -636,7 +581,7 @@ body {
 
 .ps-layer-type {
   font-size: 11px;
-  color: var(--ps-gray);
+  color: var(--gray);
   text-transform: uppercase;
 }
 
@@ -649,20 +594,20 @@ body {
   width: 28px;
   height: 28px;
   padding: 0;
-  background: var(--ps-white);
-  border: 1px solid var(--ps-gray-light);
-  border-radius: var(--ps-radius-sm);
+  background: var(--white);
+  border: 1px solid var(--gray-light);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  transition: all var(--ps-transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .ps-layer-action:hover {
-  border-color: var(--ps-pink-main);
-  color: var(--ps-pink-main);
+  border-color: var(--pink-main);
+  color: var(--pink-main);
 }
 
 .ps-layer-action.danger:hover {
@@ -674,9 +619,9 @@ body {
    PRICE CARD
    ======================================== */
 .ps-price-card {
-  background: var(--ps-gradient-dark);
-  color: var(--ps-white);
-  border-radius: var(--ps-radius-md);
+  background: var(--gradient-dark);
+  color: var(--white);
+  border-radius: var(--radius-md);
   padding: 16px;
   margin-top: 16px;
 }
@@ -701,18 +646,18 @@ body {
 }
 
 .ps-price-total span:first-child {
-  color: var(--ps-white);
+  color: var(--white);
 }
 
 .ps-price-total span:last-child {
-  color: var(--ps-mint-main);
+  color: var(--mint-main);
 }
 
 /* ========================================
    CTA STICKY
    ======================================== */
 .ps-cta-sticky {
-  background: var(--ps-white);
+  background: var(--white);
   padding: 12px 16px;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -726,14 +671,14 @@ body {
 
 .ps-cta-price-label {
   font-size: 11px;
-  color: var(--ps-gray);
+  color: var(--gray);
   text-transform: uppercase;
 }
 
 .ps-cta-price-value {
   font-size: 22px;
   font-weight: 700;
-  color: var(--ps-pink-dark);
+  color: var(--pink-dark);
 }
 
 /* ========================================
@@ -748,7 +693,7 @@ body {
 }
 
 .ps-editor.preview-mode {
-  background: var(--ps-black-soft);
+  background: var(--black-soft);
 }
 
 .ps-editor.preview-mode .ps-preview {
@@ -774,7 +719,7 @@ body {
 .ps-empty {
   text-align: center;
   padding: 30px 20px;
-  color: var(--ps-gray);
+  color: var(--gray);
 }
 
 .ps-empty-icon {
@@ -871,16 +816,16 @@ body {
 }
 
 .ps-tab-content::-webkit-scrollbar-track {
-  background: var(--ps-gray-light);
+  background: var(--gray-light);
 }
 
 .ps-tab-content::-webkit-scrollbar-thumb {
-  background: var(--ps-pink-light);
+  background: var(--pink-light);
   border-radius: 3px;
 }
 
 .ps-tab-content::-webkit-scrollbar-thumb:hover {
-  background: var(--ps-pink-main);
+  background: var(--pink-main);
 }
 
 /* ========================================
@@ -889,13 +834,13 @@ body {
 .ps-loading {
   position: fixed;
   inset: 0;
-  background: var(--ps-black-soft);
+  background: var(--black-soft);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  color: var(--ps-white);
+  color: var(--white);
   font-size: 14px;
 }
 
@@ -903,7 +848,7 @@ body {
   width: 48px;
   height: 48px;
   border: 4px solid rgba(255, 255, 255, 0.2);
-  border-top-color: var(--ps-pink-main);
+  border-top-color: var(--pink-main);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -911,4 +856,308 @@ body {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   CUSTOM SELECT (Trigger)
+   ======================================== */
+.ps-custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.ps-custom-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--white);
+  border: 2px solid var(--gray-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 14px;
+  color: var(--black);
+}
+
+.ps-custom-select-trigger:hover {
+  border-color: var(--pink-light);
+}
+
+.ps-custom-select-trigger:focus,
+.ps-custom-select.open .ps-custom-select-trigger {
+  outline: none;
+  border-color: var(--pink-main);
+  box-shadow: 0 0 0 4px var(--pink-glow);
+}
+
+.ps-custom-select-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ps-custom-select-text.placeholder {
+  color: var(--gray);
+}
+
+.ps-custom-select-arrow {
+  font-size: 10px;
+  color: var(--gray);
+  margin-left: 12px;
+  transition: transform var(--transition-fast);
+}
+
+.ps-custom-select.open .ps-custom-select-arrow {
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   BOTTOM SHEET (Modal Select)
+   ======================================== */
+.ps-bottomsheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 900;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-normal);
+}
+
+.ps-bottomsheet-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ps-bottomsheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 75vh;
+  background: var(--white);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.2);
+  z-index: 950;
+  transform: translateY(100%);
+  transition: transform var(--transition-normal) cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.ps-bottomsheet.open {
+  transform: translateY(0);
+}
+
+.ps-bottomsheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--gray-light);
+  flex-shrink: 0;
+}
+
+.ps-bottomsheet-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--black);
+  margin: 0;
+}
+
+.ps-bottomsheet-close {
+  width: 36px;
+  height: 36px;
+  background: var(--gray-light);
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  color: var(--gray);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.ps-bottomsheet-close:hover {
+  background: var(--pink-light);
+  color: var(--pink-dark);
+}
+
+.ps-bottomsheet-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 8px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ========================================
+   BOTTOM SHEET OPTIONS
+   ======================================== */
+.ps-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  margin: 4px 8px;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  width: calc(100% - 16px);
+}
+
+.ps-option:hover {
+  background: var(--gray-light);
+  border-color: var(--gray-light);
+}
+
+.ps-option.selected {
+  background: rgba(255, 105, 180, 0.1);
+  border-color: var(--pink-main);
+}
+
+.ps-option-preview {
+  width: 48px;
+  height: 48px;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.ps-option-preview img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.ps-option-preview-font {
+  font-size: 24px;
+  color: var(--black);
+}
+
+.ps-option-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ps-option-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 2px;
+}
+
+.ps-option-desc {
+  font-size: 12px;
+  color: var(--gray);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ps-option-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--mint-main);
+  background: var(--gradient-dark);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.ps-option-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--gray-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.ps-option.selected .ps-option-check {
+  background: var(--gradient-pink);
+  border-color: var(--pink-main);
+  color: var(--white);
+}
+
+.ps-option.selected .ps-option-check::after {
+  content: '✓';
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ========================================
+   GRID LOADING STATE
+   ======================================== */
+.ps-grid-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--gray);
+  font-size: 14px;
+}
+
+/* ========================================
+   DESKTOP: BOTTOM SHEET → DROPDOWN
+   ======================================== */
+@media (min-width: 768px) {
+  .ps-bottomsheet-overlay {
+    background: transparent;
+    backdrop-filter: none;
+  }
+
+  .ps-bottomsheet {
+    position: absolute;
+    bottom: auto;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 320px;
+    margin-top: 8px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-fast);
+  }
+
+  .ps-bottomsheet.open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .ps-bottomsheet-header {
+    display: none;
+  }
+
+  .ps-bottomsheet-content {
+    padding: 8px;
+  }
+
+  .ps-option {
+    margin: 2px 0;
+    padding: 12px;
+  }
+
+  .ps-custom-select {
+    position: relative;
+  }
 }

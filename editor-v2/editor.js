@@ -26,6 +26,10 @@ const state = {
   techniques: [],
   fonts: [],
 
+  // Assets (designs & éléments depuis admin)
+  designs: [],      // Groupés par catégorie
+  elements: [],     // Groupés par catégorie
+
   // État courant
   currentColorId: null,
   currentView: 'front',
@@ -54,25 +58,10 @@ const state = {
 };
 
 // ============================================
-// DESIGNS & SHAPES (peuvent venir de l'API plus tard)
+// DESIGNS & ELEMENTS (chargés depuis l'API)
 // ============================================
-const DESIGNS = [
-  { id: 'd1', name: 'Coeur', svg: '<svg viewBox="0 0 24 24" fill="#FF69B4"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>' },
-  { id: 'd2', name: 'Etoile', svg: '<svg viewBox="0 0 24 24" fill="#FFD700"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>' },
-  { id: 'd3', name: 'Eclair', svg: '<svg viewBox="0 0 24 24" fill="#3DFFC0"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>' },
-  { id: 'd4', name: 'Flamme', svg: '<svg viewBox="0 0 24 24" fill="#FF6B35"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>' },
-  { id: 'd5', name: 'Papillon', svg: '<svg viewBox="0 0 24 24" fill="#9B59B6"><path d="M12 2C9.5 2 7.5 4 7.5 6.5c0 1.5.7 2.8 1.8 3.6-.8.4-1.5 1-2 1.7-1.5-1.5-3.8-2.3-6.3-2.3 0 4.5 3 8 7 9v1.5c0 1.1.9 2 2 2s2-.9 2-2v-1.5c4-1 7-4.5 7-9-2.5 0-4.8.8-6.3 2.3-.5-.7-1.2-1.3-2-1.7 1.1-.8 1.8-2.1 1.8-3.6C16.5 4 14.5 2 12 2z"/></svg>' },
-  { id: 'd6', name: 'Licorne', svg: '<svg viewBox="0 0 24 24" fill="#FF69B4"><path d="M19 3l-4 5h3l-5 7 2-4h-3l4-8M5 21v-2h14v2H5m2.5-4c-.28 0-.5-.22-.5-.5s.22-.5.5-.5.5.22.5.5-.22.5-.5.5m4 0c-.28 0-.5-.22-.5-.5s.22-.5.5-.5.5.22.5.5-.22.5-.5.5m4 0c-.28 0-.5-.22-.5-.5s.22-.5.5-.5.5.22.5.5-.22.5-.5.5z"/></svg>' }
-];
-
-const SHAPES = [
-  { id: 's1', name: 'Cercle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#FF69B4"/></svg>' },
-  { id: 's2', name: 'Carré', svg: '<svg viewBox="0 0 100 100"><rect x="5" y="5" width="90" height="90" fill="#3DFFC0"/></svg>' },
-  { id: 's3', name: 'Triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,5 95,95 5,95" fill="#FFD700"/></svg>' },
-  { id: 's4', name: 'Losange', svg: '<svg viewBox="0 0 100 100"><polygon points="50,5 95,50 50,95 5,50" fill="#9B59B6"/></svg>' },
-  { id: 's5', name: 'Hexagone', svg: '<svg viewBox="0 0 100 100"><polygon points="50,3 93,25 93,75 50,97 7,75 7,25" fill="#FF6B35"/></svg>' },
-  { id: 's6', name: 'Etoile', svg: '<svg viewBox="0 0 100 100"><polygon points="50,5 61,40 98,40 68,62 79,97 50,75 21,97 32,62 2,40 39,40" fill="#1A1A2E"/></svg>' }
-];
+// Note: Les designs et éléments sont chargés dynamiquement
+// depuis /public/api/editor/assets.php
 
 // ============================================
 // DOM ELEMENTS
@@ -94,14 +83,14 @@ const els = {
 
   // Text controls
   textInput: $('#textInput'),
-  fontFamily: $('#fontFamily'),
+  fontSelector: $('#fontSelector'),
   fontSize: $('#fontSize'),
   textColor: $('#textColor'),
   alignBtns: null,
   btnAddText: $('#btnAddText'),
 
-  // Technique
-  technique: $('#technique'),
+  // Technique (custom select)
+  techniqueSelector: $('#techniqueSelector'),
 
   // Grids
   designsGrid: $('#designsGrid'),
@@ -120,7 +109,14 @@ const els = {
   // Actions
   btnPreview: $('#btnPreview'),
   btnClosePreview: $('#btnClosePreview'),
-  btnAddToCart: $('#btnAddToCart')
+  btnAddToCart: $('#btnAddToCart'),
+
+  // Bottom Sheet
+  bottomsheet: $('#bottomsheet'),
+  bottomsheetOverlay: $('#bottomsheetOverlay'),
+  bottomsheetTitle: $('#bottomsheetTitle'),
+  bottomsheetContent: $('#bottomsheetContent'),
+  bottomsheetClose: $('#bottomsheetClose')
 };
 
 // ============================================
@@ -143,8 +139,109 @@ function hideLoading() {
 }
 
 // ============================================
+// BOTTOM SHEET
+// ============================================
+let currentBottomSheetTarget = null;
+
+function openBottomSheet(title, options, onSelect, selectedValue = null) {
+  if (!els.bottomsheet || !els.bottomsheetOverlay) return;
+
+  els.bottomsheetTitle.textContent = title;
+  els.bottomsheetContent.innerHTML = '';
+
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'ps-option' + (opt.value === selectedValue ? ' selected' : '');
+    btn.type = 'button';
+
+    // Structure selon le type d'option
+    let previewHtml = '';
+    if (opt.preview === 'font') {
+      previewHtml = `<div class="ps-option-preview"><span class="ps-option-preview-font" style="font-family: ${opt.fontFamily || 'inherit'}">Aa</span></div>`;
+    } else if (opt.preview === 'image' && opt.image) {
+      previewHtml = `<div class="ps-option-preview"><img src="${opt.image}" alt="${opt.label}"></div>`;
+    }
+
+    let priceHtml = '';
+    if (opt.price !== undefined && opt.price > 0) {
+      priceHtml = `<span class="ps-option-price">+${formatPrice(opt.price)}</span>`;
+    } else if (opt.price === 0) {
+      priceHtml = `<span class="ps-option-price" style="background: var(--gradient-mint); color: var(--black);">Inclus</span>`;
+    }
+
+    btn.innerHTML = `
+      ${previewHtml}
+      <div class="ps-option-info">
+        <div class="ps-option-label">${opt.label}</div>
+        ${opt.desc ? `<div class="ps-option-desc">${opt.desc}</div>` : ''}
+      </div>
+      ${priceHtml}
+      <div class="ps-option-check"></div>
+    `;
+
+    btn.addEventListener('click', () => {
+      onSelect(opt);
+      closeBottomSheet();
+    });
+
+    els.bottomsheetContent.appendChild(btn);
+  });
+
+  els.bottomsheet.classList.add('open');
+  els.bottomsheetOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeBottomSheet() {
+  if (!els.bottomsheet || !els.bottomsheetOverlay) return;
+
+  els.bottomsheet.classList.remove('open');
+  els.bottomsheetOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+  currentBottomSheetTarget = null;
+}
+
+function initBottomSheet() {
+  if (els.bottomsheetClose) {
+    els.bottomsheetClose.addEventListener('click', closeBottomSheet);
+  }
+  if (els.bottomsheetOverlay) {
+    els.bottomsheetOverlay.addEventListener('click', closeBottomSheet);
+  }
+}
+
+function updateCustomSelectText(selector, text) {
+  const textEl = selector.querySelector('.ps-custom-select-text');
+  if (textEl) {
+    textEl.textContent = text;
+    textEl.classList.remove('placeholder');
+  }
+}
+
+// ============================================
 // API
 // ============================================
+async function loadAssetsData() {
+  try {
+    const response = await fetch(`${CONFIG.apiBase}/editor/assets.php`);
+    const data = await response.json();
+
+    if (!data.success) {
+      console.warn('Erreur chargement assets:', data.error);
+      return false;
+    }
+
+    state.designs = data.designs || [];
+    state.elements = data.elements || [];
+
+    return true;
+
+  } catch (error) {
+    console.error('Erreur chargement assets:', error);
+    return false;
+  }
+}
+
 async function loadProductData() {
   showLoading();
 
@@ -215,42 +312,42 @@ function renderProductInfo() {
 }
 
 function renderTechniques() {
-  if (!els.technique) return;
+  if (!els.techniqueSelector) return;
 
-  els.technique.innerHTML = '';
-
-  state.techniques.forEach(tech => {
-    const option = document.createElement('option');
-    option.value = tech.value;
-    option.dataset.price = tech.price;
-
-    const priceLabel = tech.price > 0 ? ` (+${formatPrice(tech.price)})` : ' (inclus)';
-    option.textContent = tech.label + priceLabel;
-
-    els.technique.appendChild(option);
-  });
-
-  // Sélectionner la technique par défaut
-  if (state.currentTechnique) {
-    els.technique.value = state.currentTechnique;
+  // Afficher la technique par défaut
+  const defaultTech = state.techniques.find(t => t.value === state.currentTechnique) || state.techniques[0];
+  if (defaultTech) {
+    const priceLabel = defaultTech.price > 0 ? ` (+${formatPrice(defaultTech.price)})` : '';
+    updateCustomSelectText(els.techniqueSelector, defaultTech.label + priceLabel);
+    els.techniqueSelector.dataset.value = defaultTech.value;
   }
+
+  // Click handler pour ouvrir le bottom sheet
+  els.techniqueSelector.addEventListener('click', () => {
+    const options = state.techniques.map(t => ({
+      value: t.value,
+      label: t.label,
+      desc: t.description || null,
+      price: t.price,
+      preview: t.images && t.images.length > 0 ? 'image' : null,
+      image: t.images && t.images[0] ? t.images[0].url : null
+    }));
+
+    openBottomSheet('Technique d\'impression', options, (opt) => {
+      state.currentTechnique = opt.value;
+      const priceLabel = opt.price > 0 ? ` (+${formatPrice(opt.price)})` : '';
+      updateCustomSelectText(els.techniqueSelector, opt.label + priceLabel);
+      els.techniqueSelector.dataset.value = opt.value;
+      updatePrice();
+    }, state.currentTechnique);
+  });
 }
 
 function renderFonts() {
-  if (!els.fontFamily) return;
-
-  els.fontFamily.innerHTML = '';
+  if (!els.fontSelector) return;
 
   // Charger les CSS des polices
   state.fonts.forEach(font => {
-    // Ajouter option
-    const option = document.createElement('option');
-    option.value = font.family;
-    option.dataset.fontId = font.id;
-    option.textContent = font.label;
-    els.fontFamily.appendChild(option);
-
-    // Charger la CSS si disponible
     if (font.css_url && !document.querySelector(`link[href="${font.css_url}"]`)) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
@@ -263,7 +360,29 @@ function renderFonts() {
   if (state.fonts.length > 0) {
     state.textSettings.fontFamily = state.fonts[0].family;
     state.textSettings.fontId = state.fonts[0].id;
+    updateCustomSelectText(els.fontSelector, state.fonts[0].label);
+    els.fontSelector.dataset.value = state.fonts[0].family;
   }
+
+  // Click handler pour ouvrir le bottom sheet
+  els.fontSelector.addEventListener('click', () => {
+    const options = state.fonts.map(f => ({
+      value: f.family,
+      label: f.label,
+      desc: f.category,
+      fontFamily: f.family,
+      fontId: f.id,
+      preview: 'font'
+    }));
+
+    openBottomSheet('Choisir une police', options, (opt) => {
+      state.textSettings.fontFamily = opt.value;
+      state.textSettings.fontId = opt.fontId;
+      updateCustomSelectText(els.fontSelector, opt.label);
+      els.fontSelector.dataset.value = opt.value;
+      updateActiveTextLayer();
+    }, state.textSettings.fontFamily);
+  });
 }
 
 function renderPrintZone() {
@@ -319,13 +438,36 @@ function initDesignsGrid() {
   if (!els.designsGrid) return;
   els.designsGrid.innerHTML = '';
 
-  DESIGNS.forEach(design => {
-    const item = document.createElement('div');
-    item.className = 'ps-grid-item';
-    item.innerHTML = design.svg;
-    item.title = design.name;
-    item.addEventListener('click', () => addDesignLayer(design));
-    els.designsGrid.appendChild(item);
+  if (state.designs.length === 0) {
+    els.designsGrid.innerHTML = '<div class="ps-grid-loading">Aucun design disponible</div>';
+    return;
+  }
+
+  // Afficher tous les designs (groupés par catégorie)
+  state.designs.forEach(category => {
+    // Titre de catégorie (optionnel)
+    if (state.designs.length > 1) {
+      const catTitle = document.createElement('div');
+      catTitle.className = 'ps-grid-category-title';
+      catTitle.textContent = category.category_name;
+      catTitle.style.cssText = 'grid-column: 1 / -1; font-size: 12px; font-weight: 600; color: var(--gray); text-transform: uppercase; margin: 8px 0 4px;';
+      els.designsGrid.appendChild(catTitle);
+    }
+
+    category.items.forEach(design => {
+      const item = document.createElement('div');
+      item.className = 'ps-grid-item';
+      item.title = design.name;
+
+      if (design.image) {
+        item.innerHTML = `<img src="${design.image}" alt="${design.name}" loading="lazy">`;
+      } else {
+        item.innerHTML = `<span style="font-size: 10px; color: var(--gray);">${design.name}</span>`;
+      }
+
+      item.addEventListener('click', () => addDesignLayer(design));
+      els.designsGrid.appendChild(item);
+    });
   });
 }
 
@@ -334,7 +476,8 @@ function addDesignLayer(design) {
     id: generateId(),
     type: 'design',
     name: design.name,
-    svg: design.svg,
+    designId: design.id,
+    image: design.image,
     x: 50,
     y: 50
   };
@@ -347,28 +490,61 @@ function addDesignLayer(design) {
 }
 
 // ============================================
-// ELEMENTS/SHAPES GRID
+// ELEMENTS GRID
 // ============================================
 function initElementsGrid() {
   if (!els.elementsGrid) return;
   els.elementsGrid.innerHTML = '';
 
-  SHAPES.forEach(shape => {
-    const item = document.createElement('div');
-    item.className = 'ps-grid-item';
-    item.innerHTML = shape.svg;
-    item.title = shape.name;
-    item.addEventListener('click', () => addShapeLayer(shape));
-    els.elementsGrid.appendChild(item);
+  if (state.elements.length === 0) {
+    els.elementsGrid.innerHTML = '<div class="ps-grid-loading">Aucun élément disponible</div>';
+    return;
+  }
+
+  // Afficher tous les éléments (groupés par catégorie)
+  state.elements.forEach(category => {
+    // Titre de catégorie (optionnel)
+    if (state.elements.length > 1) {
+      const catTitle = document.createElement('div');
+      catTitle.className = 'ps-grid-category-title';
+      catTitle.textContent = category.category_name;
+      catTitle.style.cssText = 'grid-column: 1 / -1; font-size: 12px; font-weight: 600; color: var(--gray); text-transform: uppercase; margin: 8px 0 4px;';
+      els.elementsGrid.appendChild(catTitle);
+    }
+
+    category.items.forEach(element => {
+      const item = document.createElement('div');
+      item.className = 'ps-grid-item';
+      item.title = element.name;
+
+      // Badge premium si applicable
+      let premiumBadge = '';
+      if (element.is_premium) {
+        premiumBadge = '<span style="position: absolute; top: 4px; right: 4px; background: var(--gradient-pink); color: white; font-size: 8px; padding: 2px 4px; border-radius: 4px;">PRO</span>';
+        item.style.position = 'relative';
+      }
+
+      if (element.image) {
+        item.innerHTML = `${premiumBadge}<img src="${element.image}" alt="${element.name}" loading="lazy">`;
+      } else {
+        item.innerHTML = `${premiumBadge}<span style="font-size: 10px; color: var(--gray);">${element.name}</span>`;
+      }
+
+      item.addEventListener('click', () => addElementLayer(element));
+      els.elementsGrid.appendChild(item);
+    });
   });
 }
 
-function addShapeLayer(shape) {
+function addElementLayer(element) {
   const layer = {
     id: generateId(),
-    type: 'shape',
-    name: shape.name,
-    svg: shape.svg,
+    type: 'element',
+    name: element.name,
+    elementId: element.id,
+    image: element.image,
+    isPremium: element.is_premium,
+    price: element.price,
     x: 50,
     y: 50
   };
@@ -393,14 +569,7 @@ function initTextControls() {
     });
   }
 
-  if (els.fontFamily) {
-    els.fontFamily.addEventListener('change', (e) => {
-      state.textSettings.fontFamily = e.target.value;
-      const selectedOption = e.target.options[e.target.selectedIndex];
-      state.textSettings.fontId = parseInt(selectedOption.dataset.fontId) || 0;
-      updateActiveTextLayer();
-    });
-  }
+  // Note: fontSelector est géré dans renderFonts() via bottom sheet
 
   if (els.fontSize) {
     els.fontSize.addEventListener('input', (e) => {
@@ -504,9 +673,13 @@ function renderLayer(layer) {
     div.style.fontSize = layer.fontSize + 'px';
     div.style.color = layer.color;
     div.style.textAlign = layer.align;
-  } else if (layer.type === 'design' || layer.type === 'shape') {
-    div.classList.add('ps-layer-' + layer.type);
-    div.innerHTML = layer.svg;
+  } else if (layer.type === 'design' || layer.type === 'element') {
+    div.classList.add('ps-layer-image');
+    if (layer.image) {
+      div.innerHTML = `<img src="${layer.image}" alt="${layer.name}" draggable="false">`;
+    } else if (layer.svg) {
+      div.innerHTML = layer.svg;
+    }
   }
 
   els.printArea.appendChild(div);
@@ -550,7 +723,16 @@ function setActiveLayer(layerId) {
   const layer = state.layers.find(l => l.id === layerId);
   if (layer && layer.type === 'text') {
     if (els.textInput) els.textInput.value = layer.text;
-    if (els.fontFamily) els.fontFamily.value = layer.fontFamily;
+
+    // Mettre à jour le custom select de police
+    if (els.fontSelector) {
+      const font = state.fonts.find(f => f.family === layer.fontFamily);
+      if (font) {
+        updateCustomSelectText(els.fontSelector, font.label);
+        els.fontSelector.dataset.value = font.family;
+      }
+    }
+
     if (els.fontSize) els.fontSize.value = layer.fontSize;
     if (els.textColor) els.textColor.value = layer.color;
 
@@ -628,8 +810,24 @@ function updateLayersList() {
     item.className = 'ps-layer-item' + (layer.id === state.activeLayerId ? ' active' : '');
     item.dataset.layerId = layer.id;
 
-    const icon = layer.type === 'text' ? 'T' : (layer.type === 'design' ? '★' : '■');
-    const typeLabel = layer.type === 'text' ? 'Texte' : (layer.type === 'design' ? 'Design' : 'Forme');
+    let icon, typeLabel;
+    switch (layer.type) {
+      case 'text':
+        icon = 'T';
+        typeLabel = 'Texte';
+        break;
+      case 'design':
+        icon = '★';
+        typeLabel = 'Design';
+        break;
+      case 'element':
+        icon = '■';
+        typeLabel = layer.isPremium ? 'Élément PRO' : 'Élément';
+        break;
+      default:
+        icon = '?';
+        typeLabel = 'Autre';
+    }
 
     item.innerHTML = `
       <div class="ps-layer-icon">${icon}</div>
@@ -667,12 +865,8 @@ function updateLayersList() {
 // TECHNIQUE & PRICE
 // ============================================
 function initTechnique() {
-  if (!els.technique) return;
-
-  els.technique.addEventListener('change', (e) => {
-    state.currentTechnique = e.target.value;
-    updatePrice();
-  });
+  // La technique est maintenant gérée via le custom select dans renderTechniques()
+  // Cette fonction est conservée pour la cohérence
 }
 
 function updatePrice() {
@@ -727,22 +921,42 @@ function initAddToCart() {
       size: null, // À implémenter si sélecteur de taille ajouté
       technique: state.currentTechnique,
       view: state.currentView,
-      layers: state.layers.map(l => ({
-        type: l.type,
-        name: l.name,
-        x: l.x,
-        y: l.y,
-        ...(l.type === 'text' ? {
-          content: l.text,
-          font_id: l.fontId,
-          font_family: l.fontFamily,
-          font_size: l.fontSize,
-          color: l.color,
-          align: l.align
-        } : {
-          svg: l.svg
-        })
-      }))
+      layers: state.layers.map(l => {
+        const base = {
+          type: l.type,
+          name: l.name,
+          x: l.x,
+          y: l.y
+        };
+
+        if (l.type === 'text') {
+          return {
+            ...base,
+            content: l.text,
+            font_id: l.fontId,
+            font_family: l.fontFamily,
+            font_size: l.fontSize,
+            color: l.color,
+            align: l.align
+          };
+        } else if (l.type === 'design') {
+          return {
+            ...base,
+            design_id: l.designId,
+            image: l.image
+          };
+        } else if (l.type === 'element') {
+          return {
+            ...base,
+            element_id: l.elementId,
+            image: l.image,
+            is_premium: l.isPremium,
+            price: l.price
+          };
+        }
+
+        return base;
+      })
     };
 
     try {
@@ -777,10 +991,16 @@ function initAddToCart() {
 // INIT
 // ============================================
 async function init() {
-  // Charger les données depuis l'API
-  const loaded = await loadProductData();
+  // Initialiser le bottom sheet en premier
+  initBottomSheet();
 
-  if (!loaded) {
+  // Charger les données depuis l'API (produit + assets en parallèle)
+  const [productLoaded, assetsLoaded] = await Promise.all([
+    loadProductData(),
+    loadAssetsData()
+  ]);
+
+  if (!productLoaded) {
     return;
   }
 

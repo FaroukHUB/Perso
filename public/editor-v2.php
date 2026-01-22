@@ -6,6 +6,7 @@
  * ARCHITECTURE :
  * - Cette page charge uniquement le shell HTML/CSS/JS
  * - Les données produit sont chargées via /public/api/editor/product.php
+ * - Les designs/éléments sont chargés via /public/api/editor/assets.php
  * - Aucune donnée métier n'est hardcodée ici
  */
 
@@ -25,7 +26,10 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 
-    <!-- Editor V2 CSS -->
+    <!-- CSS Global Personnaly (variables + base) - DOIT être chargé EN PREMIER -->
+    <link rel="stylesheet" href="/public/assets/css/style.css">
+
+    <!-- Editor V2 CSS (utilise les variables globales) -->
     <link rel="stylesheet" href="/editor-v2/editor.css">
 </head>
 <body>
@@ -76,11 +80,11 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
             </button>
             <button class="ps-tab" data-tab="designs">
                 <span class="ps-tab-icon">★</span>
-                Designs
+                Design
             </button>
             <button class="ps-tab" data-tab="elements">
                 <span class="ps-tab-icon">■</span>
-                Formes
+                Éléments
             </button>
             <button class="ps-tab" data-tab="layers">
                 <span class="ps-tab-icon">☰</span>
@@ -99,11 +103,15 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
                     <input type="text" class="ps-input" id="textInput" placeholder="Entrez votre texte...">
                 </div>
 
+                <!-- Custom Select: Police -->
                 <div class="ps-form-group">
                     <label class="ps-label">Police</label>
-                    <select class="ps-select" id="fontFamily">
-                        <!-- Polices chargées depuis l'API -->
-                    </select>
+                    <div class="ps-custom-select" id="fontSelector" data-value="">
+                        <div class="ps-custom-select-trigger">
+                            <span class="ps-custom-select-text">Choisir une police</span>
+                            <span class="ps-custom-select-arrow">▼</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="ps-inline-group">
@@ -136,12 +144,15 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
                     + Ajouter le texte
                 </button>
 
-                <!-- Technique d'impression -->
+                <!-- Custom Select: Technique d'impression -->
                 <div class="ps-form-group" style="margin-top: 24px;">
                     <label class="ps-label">Technique d'impression</label>
-                    <select class="ps-select" id="technique">
-                        <!-- Techniques chargées depuis l'API -->
-                    </select>
+                    <div class="ps-custom-select" id="techniqueSelector" data-value="">
+                        <div class="ps-custom-select-trigger">
+                            <span class="ps-custom-select-text">Choisir une technique</span>
+                            <span class="ps-custom-select-arrow">▼</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Prix -->
@@ -166,15 +177,15 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
             <div class="ps-panel" id="panel-designs">
                 <p class="ps-label">Choisir un design</p>
                 <div class="ps-grid" id="designsGrid">
-                    <!-- Designs chargés dynamiquement -->
+                    <div class="ps-grid-loading">Chargement...</div>
                 </div>
             </div>
 
-            <!-- TAB: ELEMENTS / FORMES -->
+            <!-- TAB: ELEMENTS -->
             <div class="ps-panel" id="panel-elements">
-                <p class="ps-label">Ajouter une forme</p>
+                <p class="ps-label">Ajouter un élément</p>
                 <div class="ps-grid" id="elementsGrid">
-                    <!-- Formes chargées dynamiquement -->
+                    <div class="ps-grid-loading">Chargement...</div>
                 </div>
             </div>
 
@@ -204,6 +215,18 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
 
     </div>
 
+</div>
+
+<!-- Bottom Sheet pour selects custom -->
+<div class="ps-bottomsheet-overlay" id="bottomsheetOverlay"></div>
+<div class="ps-bottomsheet" id="bottomsheet">
+    <div class="ps-bottomsheet-header">
+        <h3 class="ps-bottomsheet-title" id="bottomsheetTitle">Sélection</h3>
+        <button class="ps-bottomsheet-close" id="bottomsheetClose">×</button>
+    </div>
+    <div class="ps-bottomsheet-content" id="bottomsheetContent">
+        <!-- Options générées dynamiquement -->
+    </div>
 </div>
 
 <!-- Loading Overlay -->
