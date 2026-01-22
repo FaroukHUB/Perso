@@ -1713,6 +1713,17 @@ body {
   color: var(--pink-dark);
 }
 
+/* Font loading state */
+.ps-fonts-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--gray);
+  font-size: 14px;
+  text-align: center;
+}
+
 .ps-selection-item-check {
   width: 24px;
   height: 24px;
