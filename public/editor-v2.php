@@ -1,8 +1,7 @@
 <?php
 /**
- * PERSONNALY - Page Éditeur V2 (POC)
- * Version DÉCOUPLÉE - aucune dépendance backend
- * Mock statique uniquement
+ * PERSONNALY - Page Éditeur V2
+ * Version DÉCOUPLÉE - Mock statique + UI Personnaly
  */
 
 // ============================================
@@ -12,7 +11,7 @@ $productId = 1;
 $productName = 'T-Shirt Classic';
 $basePrice = 29.90;
 
-// Image produit mockée (SVG local)
+// Image produit mockée
 $productImages = [
     'front' => '/editor-v2/tshirt-front.svg',
     'back' => null
@@ -21,10 +20,10 @@ $productImages = [
 // Zone d'impression mockée (en %)
 $printZone = [
     'id' => 1,
-    'x' => 30,
-    'y' => 20,
-    'width' => 40,
-    'height' => 50
+    'x' => 22,
+    'y' => 18,
+    'width' => 56,
+    'height' => 64
 ];
 
 // Helper d'échappement HTML (standalone)
@@ -37,120 +36,197 @@ function h($str) {
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Éditeur V2 - <?= h($productName) ?></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Personnaliser - <?= h($productName) ?> | Personnaly</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Editor V2 CSS -->
     <link rel="stylesheet" href="/editor-v2/editor.css">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-        }
-        .v2-header {
-            background: #1A1A2E;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .v2-header h1 {
-            margin: 0;
-            font-size: 18px;
-        }
-        .v2-badge {
-            background: #3DFFC0;
-            color: #1A1A2E;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 10px;
-        }
-        .v2-back-link {
-            color: #3DFFC0;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .v2-back-link:hover {
-            text-decoration: underline;
-        }
-    </style>
 </head>
 <body>
 
-<div class="v2-header">
-    <div style="display: flex; align-items: center;">
-        <h1>Éditeur V2 - <?= h($productName) ?></h1>
-        <span class="v2-badge">POC</span>
+<!-- HEADER -->
+<header class="ps-header">
+    <div class="ps-header-left">
+        <h1 id="productTitle"><?= h($productName) ?></h1>
+        <span class="ps-badge">V2</span>
     </div>
-    <a href="/" class="v2-back-link">← Retour accueil</a>
-</div>
+    <a href="/" class="ps-back-link">Retour</a>
+</header>
 
-<!-- Inclure l'éditeur V2 -->
-<div class="ps-editor">
+<!-- EDITOR -->
+<div class="ps-editor" id="editor">
 
     <!-- PREVIEW -->
     <div class="ps-preview">
         <div class="ps-product-frame">
-            <img class="ps-product-image" src="<?= h($productImages['front']) ?>" alt="Produit" id="productImage" />
+            <img class="ps-product-image" src="<?= h($productImages['front']) ?>" alt="<?= h($productName) ?>" id="productImage">
             <div class="ps-print-area" id="printArea">
-                <!-- layers texte / design -->
+                <!-- Layers dynamiques -->
             </div>
-            <!-- Debug border -->
             <div class="ps-print-area-debug"></div>
         </div>
+
+        <!-- Preview Actions -->
+        <div class="ps-preview-actions">
+            <button class="ps-btn ps-btn-secondary ps-btn-sm" id="btnPreview">
+                Voir le rendu
+            </button>
+        </div>
     </div>
+
+    <!-- Close Preview (hidden by default) -->
+    <button class="ps-btn ps-btn-ghost ps-preview-close" id="btnClosePreview" style="display:none;">
+        Fermer
+    </button>
 
     <!-- CONTROLS -->
     <div class="ps-controls">
 
-        <!-- View Toggle -->
-        <div class="ps-control-group">
-            <h3>Vue</h3>
-            <div class="ps-view-toggle">
-                <button id="btnFront" class="ps-btn active">Face</button>
-                <button id="btnBack" class="ps-btn" disabled>Dos</button>
-            </div>
-        </div>
+        <!-- TABS -->
+        <nav class="ps-tabs">
+            <button class="ps-tab active" data-tab="text">
+                <span class="ps-tab-icon">T</span>
+                Texte
+            </button>
+            <button class="ps-tab" data-tab="designs">
+                <span class="ps-tab-icon">&#9733;</span>
+                Designs
+            </button>
+            <button class="ps-tab" data-tab="elements">
+                <span class="ps-tab-icon">&#9632;</span>
+                Formes
+            </button>
+            <button class="ps-tab" data-tab="layers">
+                <span class="ps-tab-icon">&#9776;</span>
+                Calques
+            </button>
+        </nav>
 
-        <!-- Texte -->
-        <div class="ps-control-group">
-            <h3>Texte</h3>
-            <button id="btnAddText" class="ps-btn ps-btn-primary">+ Ajouter du texte</button>
+        <!-- TAB CONTENT -->
+        <div class="ps-tab-content">
 
-            <div id="textControls" class="ps-text-controls" style="display: none;">
-                <input type="text" id="textInput" class="ps-input" placeholder="Votre texte...">
-                <div class="ps-text-style">
-                    <select id="fontFamily" class="ps-select">
-                        <option value="Arial">Arial</option>
+            <!-- TAB: TEXTE -->
+            <div class="ps-panel active" id="panel-text">
+
+                <div class="ps-form-group">
+                    <label class="ps-label">Votre texte</label>
+                    <input type="text" class="ps-input" id="textInput" placeholder="Entrez votre texte...">
+                </div>
+
+                <div class="ps-form-group">
+                    <label class="ps-label">Police</label>
+                    <select class="ps-select" id="fontFamily">
+                        <option value="Inter">Inter</option>
+                        <option value="Poppins">Poppins</option>
                         <option value="Georgia">Georgia</option>
+                        <option value="Arial Black">Arial Black</option>
                         <option value="Courier New">Courier New</option>
                         <option value="Comic Sans MS">Comic Sans MS</option>
                     </select>
-                    <input type="color" id="textColor" class="ps-color" value="#000000">
+                </div>
+
+                <div class="ps-inline-group">
+                    <div class="ps-form-group">
+                        <label class="ps-label">Taille</label>
+                        <input type="range" class="ps-range" id="fontSize" min="12" max="72" value="24">
+                    </div>
+                    <div class="ps-form-group">
+                        <label class="ps-label">Couleur</label>
+                        <input type="color" class="ps-color-input" id="textColor" value="#000000">
+                    </div>
+                </div>
+
+                <div class="ps-form-group">
+                    <label class="ps-label">Alignement</label>
+                    <div class="ps-align-group">
+                        <button class="ps-align-btn active" data-align="left" title="Gauche">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3V3zm0 4h12v2H3V7zm0 4h18v2H3v-2zm0 4h12v2H3v-2zm0 4h18v2H3v-2z"/></svg>
+                        </button>
+                        <button class="ps-align-btn" data-align="center" title="Centre">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3V3zm3 4h12v2H6V7zm-3 4h18v2H3v-2zm3 4h12v2H6v-2zm-3 4h18v2H3v-2z"/></svg>
+                        </button>
+                        <button class="ps-align-btn" data-align="right" title="Droite">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3V3zm6 4h12v2H9V7zm-6 4h18v2H3v-2zm6 4h12v2H9v-2zm-6 4h18v2H3v-2z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button class="ps-btn ps-btn-primary ps-btn-block" id="btnAddText">
+                    + Ajouter le texte
+                </button>
+
+                <!-- Technique -->
+                <div class="ps-form-group" style="margin-top: 20px;">
+                    <label class="ps-label">Technique d'impression</label>
+                    <select class="ps-select" id="technique">
+                        <option value="dtg" data-price="0">DTG (inclus)</option>
+                        <option value="broderie" data-price="5">Broderie (+5,00 &euro;)</option>
+                        <option value="flex" data-price="3">Flex (+3,00 &euro;)</option>
+                        <option value="serigraphie" data-price="2">Sérigraphie (+2,00 &euro;)</option>
+                    </select>
+                </div>
+
+                <!-- Price Card -->
+                <div class="ps-price-card">
+                    <div class="ps-price-line">
+                        <span>Prix de base</span>
+                        <span id="priceBase"><?= number_format($basePrice, 2, ',', ' ') ?> &euro;</span>
+                    </div>
+                    <div class="ps-price-line">
+                        <span>Technique</span>
+                        <span id="priceTechnique">0,00 &euro;</span>
+                    </div>
+                    <div class="ps-price-line ps-price-total">
+                        <span>Total</span>
+                        <span id="priceTotal"><?= number_format($basePrice, 2, ',', ' ') ?> &euro;</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TAB: DESIGNS -->
+            <div class="ps-panel" id="panel-designs">
+                <p class="ps-label">Choisir un design</p>
+                <div class="ps-grid" id="designsGrid">
+                    <!-- Design items générés par JS -->
                 </div>
             </div>
+
+            <!-- TAB: ELEMENTS / FORMES -->
+            <div class="ps-panel" id="panel-elements">
+                <p class="ps-label">Ajouter une forme</p>
+                <div class="ps-grid" id="elementsGrid">
+                    <!-- Shape items générés par JS -->
+                </div>
+            </div>
+
+            <!-- TAB: CALQUES -->
+            <div class="ps-panel" id="panel-layers">
+                <div class="ps-layers-list" id="layersList">
+                    <!-- Layer items générés par JS -->
+                </div>
+                <div class="ps-empty" id="layersEmpty">
+                    <div class="ps-empty-icon">&#128193;</div>
+                    <p class="ps-empty-text">Aucun calque.<br>Ajoutez du texte ou un design.</p>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Prix -->
-        <div class="ps-control-group">
-            <h3>Prix</h3>
-            <div class="ps-price">
-                <div class="ps-price-line">
-                    <span>Base</span>
-                    <span id="priceBase"><?= number_format($basePrice, 2, ',', ' ') ?> €</span>
-                </div>
-                <div class="ps-price-line">
-                    <span>Technique</span>
-                    <span id="priceTechnique">0,00 €</span>
-                </div>
-                <div class="ps-price-line ps-price-total">
-                    <span>Total</span>
-                    <span id="priceTotal"><?= number_format($basePrice, 2, ',', ' ') ?> €</span>
-                </div>
+        <!-- CTA STICKY -->
+        <div class="ps-cta-sticky">
+            <div class="ps-cta-price">
+                <div class="ps-cta-price-label">Total</div>
+                <div class="ps-cta-price-value" id="ctaPrice"><?= number_format($basePrice, 2, ',', ' ') ?> &euro;</div>
             </div>
+            <button class="ps-btn ps-btn-primary" id="btnAddToCart">
+                Ajouter au panier
+            </button>
         </div>
 
     </div>
