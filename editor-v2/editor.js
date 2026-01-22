@@ -126,6 +126,10 @@ function hideLoading() {
   if (els.loadingOverlay) els.loadingOverlay.style.display = 'none';
 }
 
+function isDesktop() {
+  return window.innerWidth >= 1024;
+}
+
 // ============================================
 // API
 // ============================================
@@ -273,9 +277,16 @@ function initTabs() {
   els.tabs = $$('.ps-tab');
   els.panels = $$('.ps-panel');
 
-  // Au chargement : aucun panneau affiché, aucun onglet actif
+  // Au chargement : aucun panneau affiché, aucun onglet actif (mobile)
+  // Sur desktop : afficher le premier onglet par défaut
   els.tabs.forEach(t => t.classList.remove('active'));
   els.panels.forEach(p => p.classList.remove('active'));
+
+  if (isDesktop()) {
+    // Desktop : initialiser le contenu des panels et afficher Text par défaut
+    initDesktopPanels();
+    activateTab('text');
+  }
 
   els.tabs.forEach(tab => {
     tab.addEventListener('click', (e) => {
@@ -284,31 +295,121 @@ function initTabs() {
 
       const tabId = tab.dataset.tab;
 
-      // Texte → modal plein écran
+      // DESKTOP : afficher les panels inline
+      if (isDesktop()) {
+        activateTab(tabId);
+        return;
+      }
+
+      // MOBILE : ouvrir les modals
       if (tabId === 'text') {
         openTextModal();
         return;
       }
 
-      // Designs → modal plein écran
       if (tabId === 'designs') {
         openDesignModal();
         return;
       }
 
-      // Éléments → modal plein écran
       if (tabId === 'elements') {
         openElementModal();
         return;
       }
 
-      // Calques → panneau inline (gestion des calques existants)
-      els.tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
+      // Calques → panneau inline (mobile aussi)
+      activateTab(tabId);
+    });
+  });
+}
 
-      els.panels.forEach(p => p.classList.remove('active'));
-      const panel = $(`#panel-${tabId}`);
-      if (panel) panel.classList.add('active');
+function activateTab(tabId) {
+  els.tabs.forEach(t => t.classList.remove('active'));
+  els.panels.forEach(p => p.classList.remove('active'));
+
+  const tab = $(`.ps-tab[data-tab="${tabId}"]`);
+  const panel = $(`#panel-${tabId}`);
+
+  if (tab) tab.classList.add('active');
+  if (panel) panel.classList.add('active');
+}
+
+function initDesktopPanels() {
+  // Remplir les panels designs et éléments pour desktop
+  renderDesktopDesignsPanel();
+  renderDesktopElementsPanel();
+}
+
+function renderDesktopDesignsPanel() {
+  const grid = $('#designsGrid');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+
+  if (state.designs.length === 0) {
+    grid.innerHTML = '<div class="ps-grid-empty">Aucun design disponible</div>';
+    return;
+  }
+
+  state.designs.forEach(category => {
+    const catTitle = document.createElement('div');
+    catTitle.className = 'ps-grid-category-title';
+    catTitle.textContent = category.category_name;
+    grid.appendChild(catTitle);
+
+    category.items.forEach(design => {
+      const item = document.createElement('div');
+      item.className = 'ps-grid-item';
+      item.title = design.name;
+
+      if (design.image) {
+        item.innerHTML = `<img src="${design.image}" alt="${design.name}" loading="lazy">`;
+      } else {
+        item.innerHTML = `<span class="ps-grid-item-name">${design.name}</span>`;
+      }
+
+      item.addEventListener('click', () => addDesignLayer(design));
+      grid.appendChild(item);
+    });
+  });
+}
+
+function renderDesktopElementsPanel() {
+  const grid = $('#elementsGrid');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+
+  if (state.elements.length === 0) {
+    grid.innerHTML = '<div class="ps-grid-empty">Aucun élément disponible</div>';
+    return;
+  }
+
+  state.elements.forEach(category => {
+    const catTitle = document.createElement('div');
+    catTitle.className = 'ps-grid-category-title';
+    catTitle.textContent = category.category_name;
+    grid.appendChild(catTitle);
+
+    category.items.forEach(element => {
+      const item = document.createElement('div');
+      item.className = 'ps-grid-item';
+      item.title = element.name;
+
+      let premiumBadge = '';
+      if (element.is_premium) {
+        premiumBadge = '<span class="ps-grid-badge-pro">PRO</span>';
+        item.style.position = 'relative';
+      }
+
+      if (element.image) {
+        item.innerHTML = `${premiumBadge}<img src="${element.image}" alt="${element.name}" loading="lazy">`;
+      } else {
+        item.innerHTML = `${premiumBadge}<span class="ps-grid-item-name">${element.name}</span>`;
+      }
+
+      item.addEventListener('click', () => addElementLayer(element));
+      grid.appendChild(item);
     });
   });
 }

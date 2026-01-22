@@ -1987,3 +1987,216 @@ body {
     max-height: 50vh;
   }
 }
+
+/* ========================================
+   DESKTOP LAYOUT (≥ 1024px)
+   3 colonnes : Sidebar | Preview | Prix/CTA
+   ======================================== */
+@media (min-width: 1024px) {
+  /* Layout principal */
+  .ps-editor {
+    display: grid;
+    grid-template-columns: 380px 1fr 320px;
+    grid-template-rows: 1fr;
+    min-height: calc(100vh - 52px);
+    gap: 0;
+  }
+
+  /* Colonne gauche : Outils */
+  .ps-controls {
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
+    border-right: 1px solid var(--gray-light);
+    width: 100%;
+    max-width: none;
+    height: calc(100vh - 52px);
+    position: sticky;
+    top: 52px;
+  }
+
+  /* Tabs horizontaux → Barre verticale */
+  .ps-tabs {
+    display: flex;
+    flex-direction: row;
+    justify-content: stretch;
+    background: var(--gradient-dark);
+    border-radius: 0;
+    padding: 0;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .ps-tab {
+    flex: 1;
+    flex-direction: column;
+    padding: 16px 8px;
+    gap: 6px;
+    border-radius: 0;
+    color: rgba(255, 255, 255, 0.7);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  .ps-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+  }
+
+  .ps-tab.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--white);
+    border-bottom-color: var(--pink-main);
+  }
+
+  .ps-tab-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .ps-tab-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Panel content area */
+  .ps-tab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .ps-panel {
+    padding: 24px 20px;
+  }
+
+  /* Preview area - centre */
+  .ps-preview {
+    background: var(--gray-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: auto;
+    padding: 40px;
+    order: 0;
+  }
+
+  .ps-product-frame {
+    max-width: 500px;
+    width: 100%;
+  }
+
+  /* CTA sticky → Colonne droite fixe */
+  .ps-cta-sticky {
+    position: fixed;
+    right: 0;
+    top: 52px;
+    width: 320px;
+    height: calc(100vh - 52px);
+    background: var(--white);
+    border-left: 1px solid var(--gray-light);
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 24px;
+    box-shadow: none;
+  }
+
+  .ps-cta-price {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .ps-cta-price-label {
+    font-size: 14px;
+    color: var(--gray);
+  }
+
+  .ps-cta-price-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--black);
+  }
+
+  /* Grid desktop - plus de colonnes */
+  .ps-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .ps-grid-category-title {
+    grid-column: 1 / -1;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 16px 0 8px;
+    padding: 0;
+  }
+
+  .ps-grid-category-title:first-child {
+    margin-top: 0;
+  }
+
+  .ps-grid-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray);
+    font-size: 14px;
+  }
+
+  .ps-grid-badge-pro {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: var(--gradient-pink);
+    color: var(--white);
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+  }
+
+  /* Prix card dans le panel texte */
+  .ps-price-card {
+    margin-top: 24px;
+    background: var(--gray-light);
+    border-radius: var(--radius-md);
+    padding: 16px;
+  }
+
+  /* Preview actions */
+  .ps-preview-actions {
+    margin-top: 20px;
+  }
+
+  /* Form elements desktop sizing */
+  .ps-form-group {
+    margin-bottom: 20px;
+  }
+
+  .ps-label {
+    margin-bottom: 8px;
+  }
+
+  /* Layers list desktop */
+  .ps-layers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ps-layer-item {
+    padding: 12px 16px;
+  }
+
+  /* Empty state */
+  .ps-empty {
+    padding: 60px 20px;
+  }
+}
