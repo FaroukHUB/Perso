@@ -284,12 +284,25 @@ function initTabs() {
 
       const tabId = tab.dataset.tab;
 
-      // Texte tab → ouvrir modal plein écran (pas de panneau inline)
+      // Texte → modal plein écran
       if (tabId === 'text') {
         openTextModal();
         return;
       }
 
+      // Designs → modal plein écran
+      if (tabId === 'designs') {
+        openDesignModal();
+        return;
+      }
+
+      // Éléments → modal plein écran
+      if (tabId === 'elements') {
+        openElementModal();
+        return;
+      }
+
+      // Calques → panneau inline (gestion des calques existants)
       els.tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
 
@@ -755,40 +768,102 @@ function renderTechniqueModalList() {
 }
 
 // ============================================
-// DESIGNS GRID
+// MODAL: DESIGNS (Plein écran dédié)
 // ============================================
-function initDesignsGrid() {
-  if (!els.designsGrid) return;
-  els.designsGrid.innerHTML = '';
+let designModalInstance = null;
+
+function openDesignModal() {
+  if (!designModalInstance) {
+    designModalInstance = createDesignModal();
+    document.body.appendChild(designModalInstance);
+  }
+
+  renderDesignModalContent();
+  designModalInstance.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDesignModal() {
+  if (designModalInstance && designModalInstance.classList.contains('open')) {
+    designModalInstance.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+function createDesignModal() {
+  const modal = document.createElement('div');
+  modal.id = 'designModal';
+  modal.className = 'ps-fullscreen-modal ps-assets-modal';
+
+  modal.innerHTML = `
+    <div class="ps-fullscreen-modal-header">
+      <h2 class="ps-fullscreen-modal-title">Designs</h2>
+      <button class="ps-fullscreen-modal-close" type="button" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="ps-fullscreen-modal-body" id="designModalContent">
+      <!-- Contenu généré dynamiquement -->
+    </div>
+  `;
+
+  modal.querySelector('.ps-fullscreen-modal-close').addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    closeDesignModal();
+  });
+
+  return modal;
+}
+
+function renderDesignModalContent() {
+  const content = designModalInstance.querySelector('#designModalContent');
+  content.innerHTML = '';
 
   if (state.designs.length === 0) {
-    els.designsGrid.innerHTML = '<div class="ps-grid-loading">Aucun design disponible</div>';
+    content.innerHTML = '<div class="ps-assets-empty">Aucun design disponible</div>';
     return;
   }
 
   state.designs.forEach(category => {
-    if (state.designs.length > 1) {
-      const catTitle = document.createElement('div');
-      catTitle.className = 'ps-grid-category-title';
-      catTitle.textContent = category.category_name;
-      catTitle.style.cssText = 'grid-column: 1 / -1; font-size: 12px; font-weight: 600; color: var(--gray); text-transform: uppercase; margin: 8px 0 4px;';
-      els.designsGrid.appendChild(catTitle);
-    }
+    const section = document.createElement('div');
+    section.className = 'ps-assets-category';
+
+    const title = document.createElement('h3');
+    title.className = 'ps-assets-category-title';
+    title.textContent = category.category_name;
+    section.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'ps-assets-grid';
 
     category.items.forEach(design => {
-      const item = document.createElement('div');
-      item.className = 'ps-grid-item';
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'ps-assets-item';
       item.title = design.name;
 
       if (design.image) {
         item.innerHTML = `<img src="${design.image}" alt="${design.name}" loading="lazy">`;
       } else {
-        item.innerHTML = `<span style="font-size: 10px; color: var(--gray);">${design.name}</span>`;
+        item.innerHTML = `<span class="ps-assets-item-name">${design.name}</span>`;
       }
 
-      item.addEventListener('click', () => addDesignLayer(design));
-      els.designsGrid.appendChild(item);
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addDesignLayer(design);
+        closeDesignModal();
+      });
+
+      grid.appendChild(item);
     });
+
+    section.appendChild(grid);
+    content.appendChild(section);
   });
 }
 
@@ -811,46 +886,107 @@ function addDesignLayer(design) {
 }
 
 // ============================================
-// ELEMENTS GRID
+// MODAL: ÉLÉMENTS (Plein écran dédié)
 // ============================================
-function initElementsGrid() {
-  if (!els.elementsGrid) return;
-  els.elementsGrid.innerHTML = '';
+let elementModalInstance = null;
+
+function openElementModal() {
+  if (!elementModalInstance) {
+    elementModalInstance = createElementModal();
+    document.body.appendChild(elementModalInstance);
+  }
+
+  renderElementModalContent();
+  elementModalInstance.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeElementModal() {
+  if (elementModalInstance && elementModalInstance.classList.contains('open')) {
+    elementModalInstance.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+function createElementModal() {
+  const modal = document.createElement('div');
+  modal.id = 'elementModal';
+  modal.className = 'ps-fullscreen-modal ps-assets-modal';
+
+  modal.innerHTML = `
+    <div class="ps-fullscreen-modal-header">
+      <h2 class="ps-fullscreen-modal-title">Éléments</h2>
+      <button class="ps-fullscreen-modal-close" type="button" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="ps-fullscreen-modal-body" id="elementModalContent">
+      <!-- Contenu généré dynamiquement -->
+    </div>
+  `;
+
+  modal.querySelector('.ps-fullscreen-modal-close').addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    closeElementModal();
+  });
+
+  return modal;
+}
+
+function renderElementModalContent() {
+  const content = elementModalInstance.querySelector('#elementModalContent');
+  content.innerHTML = '';
 
   if (state.elements.length === 0) {
-    els.elementsGrid.innerHTML = '<div class="ps-grid-loading">Aucun élément disponible</div>';
+    content.innerHTML = '<div class="ps-assets-empty">Aucun élément disponible</div>';
     return;
   }
 
   state.elements.forEach(category => {
-    if (state.elements.length > 1) {
-      const catTitle = document.createElement('div');
-      catTitle.className = 'ps-grid-category-title';
-      catTitle.textContent = category.category_name;
-      catTitle.style.cssText = 'grid-column: 1 / -1; font-size: 12px; font-weight: 600; color: var(--gray); text-transform: uppercase; margin: 8px 0 4px;';
-      els.elementsGrid.appendChild(catTitle);
-    }
+    const section = document.createElement('div');
+    section.className = 'ps-assets-category';
+
+    const title = document.createElement('h3');
+    title.className = 'ps-assets-category-title';
+    title.textContent = category.category_name;
+    section.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'ps-assets-grid';
 
     category.items.forEach(element => {
-      const item = document.createElement('div');
-      item.className = 'ps-grid-item';
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'ps-assets-item';
       item.title = element.name;
 
       let premiumBadge = '';
       if (element.is_premium) {
-        premiumBadge = '<span style="position: absolute; top: 4px; right: 4px; background: var(--gradient-pink); color: white; font-size: 8px; padding: 2px 4px; border-radius: 4px;">PRO</span>';
-        item.style.position = 'relative';
+        premiumBadge = '<span class="ps-assets-badge-pro">PRO</span>';
       }
 
       if (element.image) {
         item.innerHTML = `${premiumBadge}<img src="${element.image}" alt="${element.name}" loading="lazy">`;
       } else {
-        item.innerHTML = `${premiumBadge}<span style="font-size: 10px; color: var(--gray);">${element.name}</span>`;
+        item.innerHTML = `${premiumBadge}<span class="ps-assets-item-name">${element.name}</span>`;
       }
 
-      item.addEventListener('click', () => addElementLayer(element));
-      els.elementsGrid.appendChild(item);
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addElementLayer(element);
+        closeElementModal();
+      });
+
+      grid.appendChild(item);
     });
+
+    section.appendChild(grid);
+    content.appendChild(section);
   });
 }
 
@@ -1297,8 +1433,6 @@ async function init() {
 
   // Initialiser les interactions
   initTabs();
-  initDesignsGrid();
-  initElementsGrid();
   initPreview();
   initAddToCart();
 
