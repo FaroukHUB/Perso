@@ -1479,9 +1479,10 @@ body {
 }
 
 /* ========================================
-   TEXT MODAL (Fullscreen Mobile)
+   FULLSCREEN MODAL (Generic)
+   Mobile-first • Isolated • Reusable
    ======================================== */
-.ps-text-modal {
+.ps-fullscreen-modal {
   position: fixed;
   inset: 0;
   z-index: 1100;
@@ -1497,14 +1498,14 @@ body {
               visibility 0.3s ease;
 }
 
-.ps-text-modal.open {
+.ps-fullscreen-modal.open {
   transform: translateY(0);
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
 }
 
-.ps-text-modal-header {
+.ps-fullscreen-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1516,7 +1517,7 @@ body {
   z-index: 10;
 }
 
-.ps-text-modal-title {
+.ps-fullscreen-modal-title {
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
@@ -1527,7 +1528,7 @@ body {
   margin: 0;
 }
 
-.ps-text-modal-close {
+.ps-fullscreen-modal-close {
   width: 44px;
   height: 44px;
   background: var(--pink-glow);
@@ -1538,9 +1539,10 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.25s ease;
+  flex-shrink: 0;
 }
 
-.ps-text-modal-close svg {
+.ps-fullscreen-modal-close svg {
   width: 22px;
   height: 22px;
   stroke: var(--pink-main);
@@ -1548,16 +1550,16 @@ body {
   transition: all 0.2s ease;
 }
 
-.ps-text-modal-close:hover {
+.ps-fullscreen-modal-close:hover {
   background: var(--pink-main);
   transform: rotate(90deg);
 }
 
-.ps-text-modal-close:hover svg {
+.ps-fullscreen-modal-close:hover svg {
   stroke: var(--white);
 }
 
-.ps-text-modal-body {
+.ps-fullscreen-modal-body {
   flex: 1;
   overflow-y: auto;
   padding: 24px 20px;
@@ -1566,13 +1568,185 @@ body {
   gap: 20px;
 }
 
-.ps-text-modal-footer {
+.ps-fullscreen-modal-footer {
   padding: 16px 20px;
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
   background: var(--white);
   border-top: 1px solid var(--gray-light);
   position: sticky;
   bottom: 0;
+}
+
+/* ========================================
+   SELECTOR BUTTON (Opens dedicated modal)
+   ======================================== */
+.ps-selector-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: var(--white);
+  border: 2px solid var(--gray-light);
+  border-radius: var(--radius-md);
+  font-family: var(--font-main);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--black-soft);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ps-selector-btn:hover {
+  border-color: var(--pink-main);
+  background: var(--pink-glow);
+}
+
+.ps-selector-btn:active {
+  transform: scale(0.98);
+}
+
+.ps-selector-text {
+  flex: 1;
+  text-align: left;
+}
+
+.ps-selector-arrow {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--pink-main);
+  transition: transform 0.2s ease;
+}
+
+.ps-selector-btn:hover .ps-selector-arrow {
+  transform: translateX(4px);
+}
+
+/* ========================================
+   SELECTION MODAL (Font / Technique)
+   ======================================== */
+.ps-selection-modal .ps-fullscreen-modal-body {
+  padding: 12px;
+  gap: 0;
+}
+
+.ps-selection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ps-selection-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--white);
+  border: 2px solid var(--gray-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.ps-selection-item:hover {
+  border-color: var(--pink-glow);
+  background: var(--gray-light);
+}
+
+.ps-selection-item.selected {
+  border-color: var(--pink-main);
+  background: var(--pink-glow);
+  box-shadow: 0 0 0 3px var(--pink-glow);
+}
+
+.ps-selection-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.ps-selection-item-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--black-soft);
+  margin-bottom: 4px;
+}
+
+.ps-selection-item-preview {
+  font-size: 22px;
+  color: var(--gray-dark);
+  line-height: 1.2;
+}
+
+.ps-selection-item.selected .ps-selection-item-preview {
+  color: var(--pink-dark);
+}
+
+.ps-selection-item-desc {
+  font-size: 13px;
+  color: var(--gray);
+  margin-top: 2px;
+}
+
+.ps-selection-item-check {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--gray-light);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.ps-selection-item.selected .ps-selection-item-check {
+  background: var(--gradient-pink);
+  border-color: var(--pink-main);
+}
+
+.ps-selection-item.selected .ps-selection-item-check::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: var(--white);
+  border-radius: var(--radius-full);
+}
+
+/* Technique item specific */
+.ps-technique-item {
+  flex-wrap: wrap;
+}
+
+.ps-technique-image {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ps-technique-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ps-technique-price {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pink-dark);
+  padding: 4px 10px;
+  background: var(--pink-glow);
+  border-radius: var(--radius-full);
+}
+
+.ps-technique-price.included {
+  color: var(--mint-main);
+  background: rgba(139, 221, 199, 0.2);
 }
 
 /* Modal form elements - larger touch targets */
@@ -1640,9 +1814,9 @@ body {
   gap: 10px;
 }
 
-/* Desktop: modal as centered overlay */
+/* Desktop: fullscreen modal as centered overlay */
 @media (min-width: 768px) {
-  .ps-text-modal {
+  .ps-fullscreen-modal {
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
     align-items: center;
@@ -1651,33 +1825,38 @@ body {
     opacity: 0;
   }
 
-  .ps-text-modal.open {
+  .ps-fullscreen-modal.open {
     transform: none;
     opacity: 1;
   }
 
-  .ps-text-modal-header,
-  .ps-text-modal-body,
-  .ps-text-modal-footer {
+  .ps-fullscreen-modal-header,
+  .ps-fullscreen-modal-body,
+  .ps-fullscreen-modal-footer {
     background: var(--white);
   }
 
-  .ps-text-modal > *:first-child {
+  .ps-fullscreen-modal > *:first-child {
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
 
-  .ps-text-modal > *:last-child {
+  .ps-fullscreen-modal > *:last-child {
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   }
 
-  .ps-text-modal-header,
-  .ps-text-modal-body,
-  .ps-text-modal-footer {
+  .ps-fullscreen-modal-header,
+  .ps-fullscreen-modal-body,
+  .ps-fullscreen-modal-footer {
     width: 90%;
-    max-width: 480px;
+    max-width: 520px;
   }
 
-  .ps-text-modal-body {
-    max-height: 60vh;
+  .ps-fullscreen-modal-body {
+    max-height: 65vh;
+  }
+
+  /* Selection modal: slightly larger on desktop */
+  .ps-selection-modal .ps-fullscreen-modal-body {
+    max-height: 50vh;
   }
 }
