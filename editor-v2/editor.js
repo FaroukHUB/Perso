@@ -1072,8 +1072,12 @@ function openTextModal() {
     `;
     document.body.appendChild(modal);
 
-    // Event listeners
-    modal.querySelector('.ps-text-modal-close').addEventListener('click', closeTextModal);
+    // Event listener fermeture - ISOLÉ avec stopPropagation
+    modal.querySelector('.ps-text-modal-close').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeTextModal();
+    });
 
     // Sync avec state et init contrôles modal
     initTextModalControls(modal);
@@ -1094,9 +1098,15 @@ function openTextModal() {
 
 function closeTextModal() {
   const modal = document.getElementById('textModal');
-  if (modal) {
+  if (modal && modal.classList.contains('open')) {
     modal.classList.remove('open');
     document.body.style.overflow = '';
+
+    // Bloquer temporairement les clics pour éviter les événements fantômes
+    modal.style.pointerEvents = 'none';
+    setTimeout(() => {
+      modal.style.pointerEvents = '';
+    }, 400);
   }
 }
 
@@ -1135,8 +1145,11 @@ function initTextModalControls(modal) {
     });
   });
 
-  // Font selector → bottom sheet
-  fontSelector.addEventListener('click', () => {
+  // Font selector → bottom sheet (click isolé)
+  fontSelector.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     const options = state.fonts.map(f => ({
       value: f.family,
       label: f.label,
@@ -1153,8 +1166,11 @@ function initTextModalControls(modal) {
     }, state.textSettings.fontFamily);
   });
 
-  // Technique selector → bottom sheet
-  techniqueSelector.addEventListener('click', () => {
+  // Technique selector → bottom sheet (click isolé)
+  techniqueSelector.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     const options = state.techniques.map(t => ({
       value: t.value,
       label: t.label,
@@ -1177,8 +1193,10 @@ function initTextModalControls(modal) {
     }, state.currentTechnique);
   });
 
-  // Ajouter texte
-  btnAdd.addEventListener('click', () => {
+  // Ajouter texte (click isolé)
+  btnAdd.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     addTextLayer();
     closeTextModal();
   });
