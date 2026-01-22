@@ -891,21 +891,66 @@ function updatePrice() {
 }
 
 // ============================================
-// PREVIEW MODE
+// TECHNIQUE RENDER PREVIEW (Images réelles)
 // ============================================
 function initPreview() {
   if (els.btnPreview) {
-    els.btnPreview.addEventListener('click', () => {
-      els.editor.classList.add('preview-mode');
-      if (els.btnClosePreview) els.btnClosePreview.style.display = 'block';
-    });
+    els.btnPreview.addEventListener('click', showTechniqueRender);
+  }
+}
+
+function showTechniqueRender() {
+  // Trouver la technique sélectionnée
+  const technique = state.techniques.find(t => t.value === state.currentTechnique);
+
+  if (!technique || !technique.images || technique.images.length === 0) {
+    alert('Aucune image de rendu disponible pour cette technique.');
+    return;
   }
 
-  if (els.btnClosePreview) {
-    els.btnClosePreview.addEventListener('click', () => {
-      els.editor.classList.remove('preview-mode');
-      els.btnClosePreview.style.display = 'none';
-    });
+  // Créer le lightbox si n'existe pas
+  let lightbox = document.getElementById('techniqueLightbox');
+
+  if (!lightbox) {
+    lightbox = document.createElement('div');
+    lightbox.id = 'techniqueLightbox';
+    lightbox.className = 'ps-lightbox';
+    lightbox.innerHTML = `
+      <div class="ps-lightbox-overlay"></div>
+      <div class="ps-lightbox-content">
+        <div class="ps-lightbox-header">
+          <h3 class="ps-lightbox-title"></h3>
+          <button class="ps-lightbox-close" type="button">×</button>
+        </div>
+        <div class="ps-lightbox-body"></div>
+      </div>
+    `;
+    document.body.appendChild(lightbox);
+
+    // Event listeners
+    lightbox.querySelector('.ps-lightbox-overlay').addEventListener('click', closeTechniqueRender);
+    lightbox.querySelector('.ps-lightbox-close').addEventListener('click', closeTechniqueRender);
+  }
+
+  // Remplir le contenu
+  const title = lightbox.querySelector('.ps-lightbox-title');
+  const body = lightbox.querySelector('.ps-lightbox-body');
+
+  title.textContent = `Rendu réel : ${technique.label}`;
+  body.innerHTML = technique.images.map(url =>
+    `<div class="ps-lightbox-image"><img src="${url}" alt="Rendu ${technique.label}" loading="lazy"></div>`
+  ).join('');
+
+  // Ouvrir
+  lightbox.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTechniqueRender() {
+  const lightbox = document.getElementById('techniqueLightbox');
+  if (lightbox) {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
   }
 }
 
