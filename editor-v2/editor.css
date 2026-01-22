@@ -1651,14 +1651,15 @@ body {
 }
 
 .ps-selection-item:hover {
-  border-color: var(--pink-glow);
-  background: var(--gray-light);
+  border-color: var(--pink-main);
+  background: var(--white);
+  box-shadow: 0 2px 8px rgba(231, 85, 149, 0.1);
 }
 
 .ps-selection-item.selected {
   border-color: var(--pink-main);
-  background: var(--pink-glow);
-  box-shadow: 0 0 0 3px var(--pink-glow);
+  background: var(--white);
+  box-shadow: 0 2px 12px rgba(231, 85, 149, 0.15);
 }
 
 .ps-selection-item-content {
@@ -1687,6 +1688,29 @@ body {
   font-size: 13px;
   color: var(--gray);
   margin-top: 2px;
+}
+
+/* ========================================
+   FONT ITEM (Police selection)
+   Premium design • Cohérent avec Techniques
+   ======================================== */
+.ps-font-item {
+  padding: 20px;
+}
+
+.ps-font-preview {
+  font-size: 24px;
+  line-height: 1.3;
+  color: var(--black-soft);
+  transition: color 0.2s ease;
+}
+
+.ps-font-item:hover .ps-font-preview {
+  color: var(--pink-dark);
+}
+
+.ps-font-item.selected .ps-font-preview {
+  color: var(--pink-dark);
 }
 
 .ps-selection-item-check {
