@@ -273,6 +273,10 @@ function initTabs() {
   els.tabs = $$('.ps-tab');
   els.panels = $$('.ps-panel');
 
+  // Au chargement : aucun panneau affiché, aucun onglet actif
+  els.tabs.forEach(t => t.classList.remove('active'));
+  els.panels.forEach(p => p.classList.remove('active'));
+
   els.tabs.forEach(tab => {
     tab.addEventListener('click', (e) => {
       e.preventDefault();
@@ -280,7 +284,7 @@ function initTabs() {
 
       const tabId = tab.dataset.tab;
 
-      // Texte tab → ouvrir modal plein écran
+      // Texte tab → ouvrir modal plein écran (pas de panneau inline)
       if (tabId === 'text') {
         openTextModal();
         return;
