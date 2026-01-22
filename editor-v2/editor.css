@@ -940,11 +940,11 @@ body {
   right: 0;
   max-height: 75vh;
   background: var(--white);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.25);
   z-index: 950;
   transform: translateY(100%);
-  transition: transform var(--transition-normal) cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
   display: flex;
   flex-direction: column;
 }
@@ -957,15 +957,29 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 20px 20px 16px;
   border-bottom: 1px solid var(--gray-light);
   flex-shrink: 0;
+  position: relative;
+}
+
+/* Handle bar indicator */
+.ps-bottomsheet-header::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--gray-light);
+  border-radius: 2px;
 }
 
 .ps-bottomsheet-title {
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--black);
   margin: 0;
 }
@@ -982,12 +996,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .ps-bottomsheet-close:hover {
   background: var(--pink-light);
   color: var(--pink-dark);
+  transform: rotate(90deg);
 }
 
 .ps-bottomsheet-content {
@@ -1010,7 +1025,7 @@ body {
   border: 2px solid transparent;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
   width: calc(100% - 16px);
 }
@@ -1018,11 +1033,17 @@ body {
 .ps-option:hover {
   background: var(--gray-light);
   border-color: var(--gray-light);
+  transform: translateX(4px);
 }
 
 .ps-option.selected {
-  background: rgba(255, 105, 180, 0.1);
+  background: rgba(255, 105, 180, 0.12);
   border-color: var(--pink-main);
+  box-shadow: 0 0 0 4px var(--pink-glow), inset 0 0 0 1px var(--pink-main);
+}
+
+.ps-option.selected:hover {
+  transform: none;
 }
 
 .ps-option-preview {
@@ -1036,6 +1057,10 @@ body {
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
+}
+
+.ps-option.selected .ps-option-preview {
+  box-shadow: var(--shadow-pink);
 }
 
 .ps-option-preview img {
@@ -1060,6 +1085,10 @@ body {
   margin-bottom: 2px;
 }
 
+.ps-option.selected .ps-option-label {
+  color: var(--pink-dark);
+}
+
 .ps-option-desc {
   font-size: 12px;
   color: var(--gray);
@@ -1069,41 +1098,50 @@ body {
 }
 
 .ps-option-price {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--mint-main);
+  color: var(--white);
   background: var(--gradient-dark);
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: var(--radius-full);
   flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.ps-option-price.included {
+  background: var(--gradient-mint);
+  color: var(--black);
+  box-shadow: var(--shadow-mint);
 }
 
 .ps-option-check {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   border: 2px solid var(--gray-light);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all var(--transition-fast);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ps-option.selected .ps-option-check {
   background: var(--gradient-pink);
   border-color: var(--pink-main);
   color: var(--white);
+  box-shadow: var(--shadow-pink);
+  transform: scale(1.1);
 }
 
 .ps-option.selected .ps-option-check::after {
   content: '✓';
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 /* ========================================
-   GRID LOADING STATE
+   GRID EMPTY/LOADING STATE
    ======================================== */
 .ps-grid-loading {
   grid-column: 1 / -1;
@@ -1111,6 +1149,9 @@ body {
   padding: 40px 20px;
   color: var(--gray);
   font-size: 14px;
+  background: var(--gray-light);
+  border-radius: var(--radius-md);
+  border: 2px dashed rgba(0, 0, 0, 0.1);
 }
 
 /* ========================================

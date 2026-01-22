@@ -166,7 +166,7 @@ function openBottomSheet(title, options, onSelect, selectedValue = null) {
     if (opt.price !== undefined && opt.price > 0) {
       priceHtml = `<span class="ps-option-price">+${formatPrice(opt.price)}</span>`;
     } else if (opt.price === 0) {
-      priceHtml = `<span class="ps-option-price" style="background: var(--gradient-mint); color: var(--black);">Inclus</span>`;
+      priceHtml = `<span class="ps-option-price included">Inclus</span>`;
     }
 
     btn.innerHTML = `
@@ -227,17 +227,24 @@ async function loadAssetsData() {
     const data = await response.json();
 
     if (!data.success) {
-      console.warn('Erreur chargement assets:', data.error);
+      console.warn('[Editor] API assets erreur:', data.error);
       return false;
     }
 
     state.designs = data.designs || [];
     state.elements = data.elements || [];
 
+    // Log dev pour debug
+    if (state.designs.length === 0 && state.elements.length === 0) {
+      console.info('[Editor] Aucun design/élément trouvé dans l\'admin. L\'UI affichera un état vide.');
+    } else {
+      console.info(`[Editor] Assets chargés: ${state.designs.length} catégorie(s) designs, ${state.elements.length} catégorie(s) éléments`);
+    }
+
     return true;
 
   } catch (error) {
-    console.error('Erreur chargement assets:', error);
+    console.error('[Editor] Erreur réseau chargement assets:', error.message);
     return false;
   }
 }
