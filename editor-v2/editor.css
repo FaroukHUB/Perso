@@ -225,9 +225,23 @@ body {
 }
 
 .ps-tab-icon {
-  display: block;
-  font-size: 18px;
-  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin: 0 auto 4px;
+}
+
+.ps-tab-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  transition: transform 0.2s ease;
+}
+
+.ps-tab.active .ps-tab-icon svg {
+  transform: scale(1.1);
 }
 
 /* ========================================
@@ -1206,17 +1220,18 @@ body {
 
 /* ========================================
    LIGHTBOX (Rendu réel technique)
+   Ultra-moderne • Mobile-first • 2026
    ======================================== */
 .ps-lightbox {
   position: fixed;
   inset: 0;
   z-index: 1000;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   opacity: 0;
   visibility: hidden;
-  transition: all var(--transition-normal);
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .ps-lightbox.open {
@@ -1227,84 +1242,156 @@ body {
 .ps-lightbox-overlay {
   position: absolute;
   inset: 0;
-  background: var(--black-soft);
-  backdrop-filter: blur(8px);
+  background: var(--black);
+  opacity: 0.85;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .ps-lightbox-content {
   position: relative;
-  width: 90%;
-  max-width: 600px;
-  max-height: 85vh;
+  width: 100%;
+  max-height: 92vh;
   background: var(--white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border-radius: 24px 24px 0 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transform: translateY(20px);
-  transition: transform var(--transition-normal);
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .ps-lightbox.open .ps-lightbox-content {
   transform: translateY(0);
 }
 
+/* Handle bar */
+.ps-lightbox-content::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--gray-light);
+  border-radius: 2px;
+  z-index: 10;
+}
+
 .ps-lightbox-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--gray-light);
+  padding: 24px 20px 16px;
   flex-shrink: 0;
 }
 
 .ps-lightbox-title {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--black);
   margin: 0;
+  background: var(--gradient-pink);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .ps-lightbox-close {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   background: var(--gray-light);
   border: none;
   border-radius: 50%;
-  font-size: 24px;
+  font-size: 20px;
   color: var(--gray);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ps-lightbox-close:hover {
-  background: var(--pink-light);
+  background: var(--pink-glow);
   color: var(--pink-dark);
+  transform: rotate(90deg);
 }
 
 .ps-lightbox-body {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 0 20px 32px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  -webkit-overflow-scrolling: touch;
 }
 
+/* Disclaimer */
+.ps-lightbox-disclaimer {
+  background: var(--gray-light);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--gray);
+  border-left: 3px solid var(--pink-main);
+}
+
+/* Images */
 .ps-lightbox-image {
   width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.ps-lightbox-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 0 0 1px var(--gray-light);
+  pointer-events: none;
 }
 
 .ps-lightbox-image img {
   width: 100%;
   height: auto;
   display: block;
+  transition: transform 0.3s ease;
+}
+
+.ps-lightbox-image:active img {
+  transform: scale(1.02);
+}
+
+/* Desktop adaptation */
+@media (min-width: 768px) {
+  .ps-lightbox {
+    align-items: center;
+  }
+
+  .ps-lightbox-content {
+    width: 90%;
+    max-width: 520px;
+    max-height: 80vh;
+    border-radius: var(--radius-lg);
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+  }
+
+  .ps-lightbox.open .ps-lightbox-content {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+
+  .ps-lightbox-content::before {
+    display: none;
+  }
+}
 }
