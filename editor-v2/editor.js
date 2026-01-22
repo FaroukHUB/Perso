@@ -937,9 +937,21 @@ function showTechniqueRender() {
   const body = lightbox.querySelector('.ps-lightbox-body');
 
   title.textContent = `Rendu réel : ${technique.label}`;
-  body.innerHTML = technique.images.map(url =>
+
+  // Disclaimer + images
+  const disclaimerHtml = `
+    <div class="ps-lightbox-disclaimer">
+      <strong>Information</strong><br>
+      Les images présentées correspondent à un rendu indicatif de la technique sélectionnée.
+      Le résultat final peut légèrement varier selon le produit et le support.
+    </div>
+  `;
+
+  const imagesHtml = technique.images.map(url =>
     `<div class="ps-lightbox-image"><img src="${url}" alt="Rendu ${technique.label}" loading="lazy"></div>`
   ).join('');
+
+  body.innerHTML = disclaimerHtml + imagesHtml;
 
   // Ouvrir
   lightbox.classList.add('open');
