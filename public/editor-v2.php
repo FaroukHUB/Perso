@@ -1,35 +1,16 @@
 <?php
 /**
- * PERSONNALY - Page Éditeur V2
- * Version DÉCOUPLÉE - Mock statique + UI Personnaly
+ * PERSONNALY - Éditeur V2
+ * Page de chargement - Toutes les données viennent de l'API
+ *
+ * ARCHITECTURE :
+ * - Cette page charge uniquement le shell HTML/CSS/JS
+ * - Les données produit sont chargées via /public/api/editor/product.php
+ * - Aucune donnée métier n'est hardcodée ici
  */
 
-// ============================================
-// MOCK STATIQUE - AUCUN BACKEND
-// ============================================
-$productId = 1;
-$productName = 'T-Shirt Classic';
-$basePrice = 29.90;
-
-// Image produit mockée
-$productImages = [
-    'front' => '/editor-v2/tshirt-front.svg',
-    'back' => null
-];
-
-// Zone d'impression mockée (en %)
-$printZone = [
-    'id' => 1,
-    'x' => 22,
-    'y' => 18,
-    'width' => 56,
-    'height' => 64
-];
-
-// Helper d'échappement HTML (standalone)
-function h($str) {
-    return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
-}
+// Récupérer l'ID produit depuis l'URL
+$productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
 
 ?>
 <!DOCTYPE html>
@@ -37,7 +18,7 @@ function h($str) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Personnaliser - <?= h($productName) ?> | Personnaly</title>
+    <title>Personnaliser | Personnaly</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,7 +33,7 @@ function h($str) {
 <!-- HEADER -->
 <header class="ps-header">
     <div class="ps-header-left">
-        <h1 id="productTitle"><?= h($productName) ?></h1>
+        <h1 id="productTitle">Chargement...</h1>
         <span class="ps-badge">V2</span>
     </div>
     <a href="/" class="ps-back-link">Retour</a>
@@ -64,24 +45,24 @@ function h($str) {
     <!-- PREVIEW -->
     <div class="ps-preview">
         <div class="ps-product-frame">
-            <img class="ps-product-image" src="<?= h($productImages['front']) ?>" alt="<?= h($productName) ?>" id="productImage">
+            <img class="ps-product-image" src="/editor-v2/tshirt-front.svg" alt="Produit" id="productImage">
             <div class="ps-print-area" id="printArea">
                 <!-- Layers dynamiques -->
             </div>
-            <div class="ps-print-area-debug"></div>
+            <div class="ps-print-area-debug" id="printAreaDebug"></div>
         </div>
 
-        <!-- Preview Actions -->
+        <!-- Preview Actions - SOUS le cadre, centré -->
         <div class="ps-preview-actions">
             <button class="ps-btn ps-btn-secondary ps-btn-sm" id="btnPreview">
-                Voir le rendu
+                Voir le rendu réel
             </button>
         </div>
     </div>
 
     <!-- Close Preview (hidden by default) -->
     <button class="ps-btn ps-btn-ghost ps-preview-close" id="btnClosePreview" style="display:none;">
-        Fermer
+        Fermer l'aperçu
     </button>
 
     <!-- CONTROLS -->
@@ -94,15 +75,15 @@ function h($str) {
                 Texte
             </button>
             <button class="ps-tab" data-tab="designs">
-                <span class="ps-tab-icon">&#9733;</span>
+                <span class="ps-tab-icon">★</span>
                 Designs
             </button>
             <button class="ps-tab" data-tab="elements">
-                <span class="ps-tab-icon">&#9632;</span>
+                <span class="ps-tab-icon">■</span>
                 Formes
             </button>
             <button class="ps-tab" data-tab="layers">
-                <span class="ps-tab-icon">&#9776;</span>
+                <span class="ps-tab-icon">☰</span>
                 Calques
             </button>
         </nav>
@@ -121,12 +102,7 @@ function h($str) {
                 <div class="ps-form-group">
                     <label class="ps-label">Police</label>
                     <select class="ps-select" id="fontFamily">
-                        <option value="Inter">Inter</option>
-                        <option value="Poppins">Poppins</option>
-                        <option value="Georgia">Georgia</option>
-                        <option value="Arial Black">Arial Black</option>
-                        <option value="Courier New">Courier New</option>
-                        <option value="Comic Sans MS">Comic Sans MS</option>
+                        <!-- Polices chargées depuis l'API -->
                     </select>
                 </div>
 
@@ -160,30 +136,27 @@ function h($str) {
                     + Ajouter le texte
                 </button>
 
-                <!-- Technique -->
-                <div class="ps-form-group" style="margin-top: 20px;">
+                <!-- Technique d'impression -->
+                <div class="ps-form-group" style="margin-top: 24px;">
                     <label class="ps-label">Technique d'impression</label>
                     <select class="ps-select" id="technique">
-                        <option value="dtg" data-price="0">DTG (inclus)</option>
-                        <option value="broderie" data-price="5">Broderie (+5,00 &euro;)</option>
-                        <option value="flex" data-price="3">Flex (+3,00 &euro;)</option>
-                        <option value="serigraphie" data-price="2">Sérigraphie (+2,00 &euro;)</option>
+                        <!-- Techniques chargées depuis l'API -->
                     </select>
                 </div>
 
-                <!-- Price Card -->
+                <!-- Prix -->
                 <div class="ps-price-card">
                     <div class="ps-price-line">
                         <span>Prix de base</span>
-                        <span id="priceBase"><?= number_format($basePrice, 2, ',', ' ') ?> &euro;</span>
+                        <span id="priceBase">--,-- €</span>
                     </div>
                     <div class="ps-price-line">
                         <span>Technique</span>
-                        <span id="priceTechnique">0,00 &euro;</span>
+                        <span id="priceTechnique">0,00 €</span>
                     </div>
                     <div class="ps-price-line ps-price-total">
                         <span>Total</span>
-                        <span id="priceTotal"><?= number_format($basePrice, 2, ',', ' ') ?> &euro;</span>
+                        <span id="priceTotal">--,-- €</span>
                     </div>
                 </div>
 
@@ -193,7 +166,7 @@ function h($str) {
             <div class="ps-panel" id="panel-designs">
                 <p class="ps-label">Choisir un design</p>
                 <div class="ps-grid" id="designsGrid">
-                    <!-- Design items générés par JS -->
+                    <!-- Designs chargés dynamiquement -->
                 </div>
             </div>
 
@@ -201,17 +174,17 @@ function h($str) {
             <div class="ps-panel" id="panel-elements">
                 <p class="ps-label">Ajouter une forme</p>
                 <div class="ps-grid" id="elementsGrid">
-                    <!-- Shape items générés par JS -->
+                    <!-- Formes chargées dynamiquement -->
                 </div>
             </div>
 
             <!-- TAB: CALQUES -->
             <div class="ps-panel" id="panel-layers">
                 <div class="ps-layers-list" id="layersList">
-                    <!-- Layer items générés par JS -->
+                    <!-- Calques générés dynamiquement -->
                 </div>
                 <div class="ps-empty" id="layersEmpty">
-                    <div class="ps-empty-icon">&#128193;</div>
+                    <div class="ps-empty-icon">📁</div>
                     <p class="ps-empty-text">Aucun calque.<br>Ajoutez du texte ou un design.</p>
                 </div>
             </div>
@@ -222,7 +195,7 @@ function h($str) {
         <div class="ps-cta-sticky">
             <div class="ps-cta-price">
                 <div class="ps-cta-price-label">Total</div>
-                <div class="ps-cta-price-value" id="ctaPrice"><?= number_format($basePrice, 2, ',', ' ') ?> &euro;</div>
+                <div class="ps-cta-price-value" id="ctaPrice">--,-- €</div>
             </div>
             <button class="ps-btn ps-btn-primary" id="btnAddToCart">
                 Ajouter au panier
@@ -233,15 +206,17 @@ function h($str) {
 
 </div>
 
-<!-- Data pour JS -->
+<!-- Loading Overlay -->
+<div class="ps-loading" id="loadingOverlay">
+    <div class="ps-loading-spinner"></div>
+    <p>Chargement de l'éditeur...</p>
+</div>
+
+<!-- Configuration initiale -->
 <script>
-window.__PRODUCT_DATA_V2 = {
+window.__EDITOR_CONFIG = {
     productId: <?= $productId ?>,
-    productName: <?= json_encode($productName) ?>,
-    basePrice: <?= $basePrice ?>,
-    imageFront: <?= json_encode($productImages['front']) ?>,
-    imageBack: <?= json_encode($productImages['back']) ?>,
-    printZone: <?= json_encode($printZone) ?>
+    apiBase: '/public/api'
 };
 </script>
 

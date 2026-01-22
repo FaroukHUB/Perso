@@ -1,26 +1,52 @@
 /**
  * PERSONNALY - Editor V2 JavaScript
- * State-driven, mobile-first, no canvas
+ *
+ * ARCHITECTURE :
+ * - Toutes les données viennent de l'API /public/api/editor/product.php
+ * - Aucun mock, aucune donnée hardcodée
+ * - Le prix est calculé côté backend (frontend = estimation visuelle uniquement)
  */
+
+// ============================================
+// CONFIGURATION
+// ============================================
+const CONFIG = window.__EDITOR_CONFIG || { productId: 1, apiBase: '/public/api' };
 
 // ============================================
 // STATE CENTRAL
 // ============================================
 const state = {
-  productId: 1,
-  productName: 'T-Shirt Classic',
-  view: 'front',
+  loaded: false,
+  productId: CONFIG.productId,
+
+  // Données chargées depuis l'API
+  product: null,
+  colors: [],
+  printZones: [],
+  techniques: [],
+  fonts: [],
+
+  // État courant
+  currentColorId: null,
+  currentView: 'front',
+  currentTechnique: null,
+
+  // Layers
   layers: [],
   activeLayerId: null,
+
+  // Prix (estimation frontend)
   price: {
-    base: 29.90,
+    base: 0,
     technique: 0,
-    total: 29.90
+    total: 0
   },
-  technique: 'dtg',
+
+  // Paramètres texte
   textSettings: {
     text: '',
     fontFamily: 'Inter',
+    fontId: 0,
     fontSize: 24,
     color: '#000000',
     align: 'left'
@@ -28,7 +54,7 @@ const state = {
 };
 
 // ============================================
-// MOCK DATA
+// DESIGNS & SHAPES (peuvent venir de l'API plus tard)
 // ============================================
 const DESIGNS = [
   { id: 'd1', name: 'Coeur', svg: '<svg viewBox="0 0 24 24" fill="#FF69B4"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>' },
@@ -48,13 +74,6 @@ const SHAPES = [
   { id: 's6', name: 'Etoile', svg: '<svg viewBox="0 0 100 100"><polygon points="50,5 61,40 98,40 68,62 79,97 50,75 21,97 32,62 2,40 39,40" fill="#1A1A2E"/></svg>' }
 ];
 
-const TECHNIQUES = {
-  dtg: { name: 'DTG', price: 0 },
-  broderie: { name: 'Broderie', price: 5 },
-  flex: { name: 'Flex', price: 3 },
-  serigraphie: { name: 'Sérigraphie', price: 2 }
-};
-
 // ============================================
 // DOM ELEMENTS
 // ============================================
@@ -63,20 +82,22 @@ const $$ = (sel) => document.querySelectorAll(sel);
 
 const els = {
   editor: $('#editor'),
-  printArea: $('#printArea'),
-  productImage: $('#productImage'),
+  loadingOverlay: $('#loadingOverlay'),
   productTitle: $('#productTitle'),
+  productImage: $('#productImage'),
+  printArea: $('#printArea'),
+  printAreaDebug: $('#printAreaDebug'),
 
   // Tabs
-  tabs: $$('.ps-tab'),
-  panels: $$('.ps-panel'),
+  tabs: null, // Set after DOM ready
+  panels: null,
 
   // Text controls
   textInput: $('#textInput'),
   fontFamily: $('#fontFamily'),
   fontSize: $('#fontSize'),
   textColor: $('#textColor'),
-  alignBtns: $$('.ps-align-btn'),
+  alignBtns: null,
   btnAddText: $('#btnAddText'),
 
   // Technique
@@ -113,29 +134,180 @@ function formatPrice(price) {
   return price.toFixed(2).replace('.', ',') + ' €';
 }
 
-function getProductData() {
-  // Récupère les données injectées par PHP si disponibles
-  if (window.__PRODUCT_DATA_V2) {
-    return window.__PRODUCT_DATA_V2;
+function showLoading() {
+  if (els.loadingOverlay) els.loadingOverlay.style.display = 'flex';
+}
+
+function hideLoading() {
+  if (els.loadingOverlay) els.loadingOverlay.style.display = 'none';
+}
+
+// ============================================
+// API
+// ============================================
+async function loadProductData() {
+  showLoading();
+
+  try {
+    const response = await fetch(`${CONFIG.apiBase}/editor/product.php?id=${state.productId}`);
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || 'Erreur de chargement');
+    }
+
+    // Stocker les données
+    state.product = data.product;
+    state.colors = data.colors || [];
+    state.printZones = data.print_zones || [];
+    state.techniques = data.techniques || [];
+    state.fonts = data.fonts || [];
+    state.loaded = true;
+
+    // Initialiser les valeurs par défaut
+    const defaultColor = state.colors.find(c => c.is_default) || state.colors[0];
+    if (defaultColor) {
+      state.currentColorId = defaultColor.id;
+    }
+
+    const defaultTechnique = state.techniques[0];
+    if (defaultTechnique) {
+      state.currentTechnique = defaultTechnique.value;
+    }
+
+    // Prix de base
+    state.price.base = state.product.base_price;
+
+    return true;
+
+  } catch (error) {
+    console.error('Erreur chargement produit:', error);
+    alert('Impossible de charger le produit. Veuillez réessayer.');
+    return false;
+
+  } finally {
+    hideLoading();
   }
-  return null;
+}
+
+// ============================================
+// RENDER UI FROM API DATA
+// ============================================
+function renderProductInfo() {
+  if (!state.product) return;
+
+  // Titre
+  if (els.productTitle) {
+    els.productTitle.textContent = state.product.name;
+  }
+
+  // Image par défaut
+  const defaultColor = state.colors.find(c => c.id === state.currentColorId) || state.colors[0];
+  if (defaultColor && defaultColor.images) {
+    const imageUrl = state.currentView === 'front'
+      ? defaultColor.images.front
+      : defaultColor.images.back;
+
+    if (imageUrl && els.productImage) {
+      els.productImage.src = imageUrl;
+    }
+  }
+}
+
+function renderTechniques() {
+  if (!els.technique) return;
+
+  els.technique.innerHTML = '';
+
+  state.techniques.forEach(tech => {
+    const option = document.createElement('option');
+    option.value = tech.value;
+    option.dataset.price = tech.price;
+
+    const priceLabel = tech.price > 0 ? ` (+${formatPrice(tech.price)})` : ' (inclus)';
+    option.textContent = tech.label + priceLabel;
+
+    els.technique.appendChild(option);
+  });
+
+  // Sélectionner la technique par défaut
+  if (state.currentTechnique) {
+    els.technique.value = state.currentTechnique;
+  }
+}
+
+function renderFonts() {
+  if (!els.fontFamily) return;
+
+  els.fontFamily.innerHTML = '';
+
+  // Charger les CSS des polices
+  state.fonts.forEach(font => {
+    // Ajouter option
+    const option = document.createElement('option');
+    option.value = font.family;
+    option.dataset.fontId = font.id;
+    option.textContent = font.label;
+    els.fontFamily.appendChild(option);
+
+    // Charger la CSS si disponible
+    if (font.css_url && !document.querySelector(`link[href="${font.css_url}"]`)) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = font.css_url;
+      document.head.appendChild(link);
+    }
+  });
+
+  // Définir la police par défaut
+  if (state.fonts.length > 0) {
+    state.textSettings.fontFamily = state.fonts[0].family;
+    state.textSettings.fontId = state.fonts[0].id;
+  }
+}
+
+function renderPrintZone() {
+  if (!els.printAreaDebug) return;
+
+  const zone = state.printZones.find(z => z.view === state.currentView) || state.printZones[0];
+
+  if (zone) {
+    els.printAreaDebug.style.left = zone.x + '%';
+    els.printAreaDebug.style.top = zone.y + '%';
+    els.printAreaDebug.style.width = zone.width + '%';
+    els.printAreaDebug.style.height = zone.height + '%';
+    els.printAreaDebug.style.right = 'auto';
+    els.printAreaDebug.style.bottom = 'auto';
+
+    // Mettre à jour aussi la zone d'impression réelle
+    if (els.printArea) {
+      els.printArea.style.left = zone.x + '%';
+      els.printArea.style.top = zone.y + '%';
+      els.printArea.style.width = zone.width + '%';
+      els.printArea.style.height = zone.height + '%';
+      els.printArea.style.right = 'auto';
+      els.printArea.style.bottom = 'auto';
+    }
+  }
 }
 
 // ============================================
 // TABS
 // ============================================
 function initTabs() {
+  els.tabs = $$('.ps-tab');
+  els.panels = $$('.ps-panel');
+
   els.tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const tabId = tab.dataset.tab;
 
-      // Update tabs
       els.tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
 
-      // Update panels
       els.panels.forEach(p => p.classList.remove('active'));
-      $(`#panel-${tabId}`).classList.add('active');
+      const panel = $(`#panel-${tabId}`);
+      if (panel) panel.classList.add('active');
     });
   });
 }
@@ -144,6 +316,7 @@ function initTabs() {
 // DESIGNS GRID
 // ============================================
 function initDesignsGrid() {
+  if (!els.designsGrid) return;
   els.designsGrid.innerHTML = '';
 
   DESIGNS.forEach(design => {
@@ -177,6 +350,7 @@ function addDesignLayer(design) {
 // ELEMENTS/SHAPES GRID
 // ============================================
 function initElementsGrid() {
+  if (!els.elementsGrid) return;
   els.elementsGrid.innerHTML = '';
 
   SHAPES.forEach(shape => {
@@ -210,39 +384,52 @@ function addShapeLayer(shape) {
 // TEXT LAYER
 // ============================================
 function initTextControls() {
-  // Update text settings on input
-  els.textInput.addEventListener('input', (e) => {
-    state.textSettings.text = e.target.value;
-    updateActiveTextLayer();
-  });
+  els.alignBtns = $$('.ps-align-btn');
 
-  els.fontFamily.addEventListener('change', (e) => {
-    state.textSettings.fontFamily = e.target.value;
-    updateActiveTextLayer();
-  });
-
-  els.fontSize.addEventListener('input', (e) => {
-    state.textSettings.fontSize = parseInt(e.target.value);
-    updateActiveTextLayer();
-  });
-
-  els.textColor.addEventListener('input', (e) => {
-    state.textSettings.color = e.target.value;
-    updateActiveTextLayer();
-  });
-
-  // Alignment
-  els.alignBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      els.alignBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.textSettings.align = btn.dataset.align;
+  if (els.textInput) {
+    els.textInput.addEventListener('input', (e) => {
+      state.textSettings.text = e.target.value;
       updateActiveTextLayer();
     });
-  });
+  }
 
-  // Add text button
-  els.btnAddText.addEventListener('click', addTextLayer);
+  if (els.fontFamily) {
+    els.fontFamily.addEventListener('change', (e) => {
+      state.textSettings.fontFamily = e.target.value;
+      const selectedOption = e.target.options[e.target.selectedIndex];
+      state.textSettings.fontId = parseInt(selectedOption.dataset.fontId) || 0;
+      updateActiveTextLayer();
+    });
+  }
+
+  if (els.fontSize) {
+    els.fontSize.addEventListener('input', (e) => {
+      state.textSettings.fontSize = parseInt(e.target.value);
+      updateActiveTextLayer();
+    });
+  }
+
+  if (els.textColor) {
+    els.textColor.addEventListener('input', (e) => {
+      state.textSettings.color = e.target.value;
+      updateActiveTextLayer();
+    });
+  }
+
+  if (els.alignBtns) {
+    els.alignBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        els.alignBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.textSettings.align = btn.dataset.align;
+        updateActiveTextLayer();
+      });
+    });
+  }
+
+  if (els.btnAddText) {
+    els.btnAddText.addEventListener('click', addTextLayer);
+  }
 }
 
 function addTextLayer() {
@@ -254,6 +441,7 @@ function addTextLayer() {
     name: text.substring(0, 15) + (text.length > 15 ? '...' : ''),
     text: text,
     fontFamily: state.textSettings.fontFamily,
+    fontId: state.textSettings.fontId,
     fontSize: state.textSettings.fontSize,
     color: state.textSettings.color,
     align: state.textSettings.align,
@@ -268,8 +456,10 @@ function addTextLayer() {
   updatePrice();
 
   // Reset input
-  els.textInput.value = '';
-  state.textSettings.text = '';
+  if (els.textInput) {
+    els.textInput.value = '';
+    state.textSettings.text = '';
+  }
 }
 
 function updateActiveTextLayer() {
@@ -278,12 +468,12 @@ function updateActiveTextLayer() {
 
   layer.text = state.textSettings.text || layer.text;
   layer.fontFamily = state.textSettings.fontFamily;
+  layer.fontId = state.textSettings.fontId;
   layer.fontSize = state.textSettings.fontSize;
   layer.color = state.textSettings.color;
   layer.align = state.textSettings.align;
   layer.name = layer.text.substring(0, 15) + (layer.text.length > 15 ? '...' : '');
 
-  // Update DOM
   const div = $(`[data-layer-id="${layer.id}"]`);
   if (div) {
     div.textContent = layer.text;
@@ -349,31 +539,31 @@ function renderLayer(layer) {
 function setActiveLayer(layerId) {
   state.activeLayerId = layerId;
 
-  // Update layer DOM
   $$('.ps-layer').forEach(el => {
     el.classList.toggle('active', el.dataset.layerId === layerId);
   });
 
-  // Update layer list
   $$('.ps-layer-item').forEach(el => {
     el.classList.toggle('active', el.dataset.layerId === layerId);
   });
 
-  // Load text settings if text layer
   const layer = state.layers.find(l => l.id === layerId);
   if (layer && layer.type === 'text') {
-    els.textInput.value = layer.text;
-    els.fontFamily.value = layer.fontFamily;
-    els.fontSize.value = layer.fontSize;
-    els.textColor.value = layer.color;
+    if (els.textInput) els.textInput.value = layer.text;
+    if (els.fontFamily) els.fontFamily.value = layer.fontFamily;
+    if (els.fontSize) els.fontSize.value = layer.fontSize;
+    if (els.textColor) els.textColor.value = layer.color;
 
-    els.alignBtns.forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.align === layer.align);
-    });
+    if (els.alignBtns) {
+      els.alignBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.align === layer.align);
+      });
+    }
 
     state.textSettings = {
       text: layer.text,
       fontFamily: layer.fontFamily,
+      fontId: layer.fontId,
       fontSize: layer.fontSize,
       color: layer.color,
       align: layer.align
@@ -387,11 +577,9 @@ function removeLayer(layerId) {
 
   state.layers.splice(index, 1);
 
-  // Remove from DOM
   const div = $(`[data-layer-id="${layerId}"]`);
   if (div) div.remove();
 
-  // Clear active if was active
   if (state.activeLayerId === layerId) {
     state.activeLayerId = null;
   }
@@ -419,7 +607,6 @@ function moveLayerDown(layerId) {
 }
 
 function reorderLayersDom() {
-  // Reorder DOM elements based on state
   state.layers.forEach(layer => {
     const el = $(`[data-layer-id="${layer.id}"]`);
     if (el) {
@@ -433,10 +620,9 @@ function reorderLayersDom() {
 // ============================================
 function updateLayersList() {
   const hasLayers = state.layers.length > 0;
-  els.layersEmpty.style.display = hasLayers ? 'none' : 'block';
-  els.layersList.innerHTML = '';
+  if (els.layersEmpty) els.layersEmpty.style.display = hasLayers ? 'none' : 'block';
+  if (els.layersList) els.layersList.innerHTML = '';
 
-  // Reverse order (top layer first in UI)
   [...state.layers].reverse().forEach(layer => {
     const item = document.createElement('div');
     item.className = 'ps-layer-item' + (layer.id === state.activeLayerId ? ' active' : '');
@@ -458,13 +644,11 @@ function updateLayersList() {
       </div>
     `;
 
-    // Click to select
     item.addEventListener('click', (e) => {
       if (e.target.closest('.ps-layer-action')) return;
       setActiveLayer(layer.id);
     });
 
-    // Actions
     item.querySelectorAll('.ps-layer-action').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -475,7 +659,7 @@ function updateLayersList() {
       });
     });
 
-    els.layersList.appendChild(item);
+    if (els.layersList) els.layersList.appendChild(item);
   });
 }
 
@@ -483,76 +667,89 @@ function updateLayersList() {
 // TECHNIQUE & PRICE
 // ============================================
 function initTechnique() {
+  if (!els.technique) return;
+
   els.technique.addEventListener('change', (e) => {
-    state.technique = e.target.value;
+    state.currentTechnique = e.target.value;
     updatePrice();
   });
 }
 
 function updatePrice() {
-  const techniquePrice = TECHNIQUES[state.technique]?.price || 0;
+  // Trouver le prix de la technique sélectionnée
+  const technique = state.techniques.find(t => t.value === state.currentTechnique);
+  const techniquePrice = technique ? technique.price : 0;
+
   state.price.technique = techniquePrice;
   state.price.total = state.price.base + state.price.technique;
 
-  els.priceBase.textContent = formatPrice(state.price.base);
-  els.priceTechnique.textContent = formatPrice(state.price.technique);
-  els.priceTotal.textContent = formatPrice(state.price.total);
-  els.ctaPrice.textContent = formatPrice(state.price.total);
+  if (els.priceBase) els.priceBase.textContent = formatPrice(state.price.base);
+  if (els.priceTechnique) els.priceTechnique.textContent = formatPrice(state.price.technique);
+  if (els.priceTotal) els.priceTotal.textContent = formatPrice(state.price.total);
+  if (els.ctaPrice) els.ctaPrice.textContent = formatPrice(state.price.total);
 }
 
 // ============================================
 // PREVIEW MODE
 // ============================================
 function initPreview() {
-  els.btnPreview.addEventListener('click', () => {
-    els.editor.classList.add('preview-mode');
-    els.btnClosePreview.style.display = 'block';
-  });
+  if (els.btnPreview) {
+    els.btnPreview.addEventListener('click', () => {
+      els.editor.classList.add('preview-mode');
+      if (els.btnClosePreview) els.btnClosePreview.style.display = 'block';
+    });
+  }
 
-  els.btnClosePreview.addEventListener('click', () => {
-    els.editor.classList.remove('preview-mode');
-    els.btnClosePreview.style.display = 'none';
-  });
+  if (els.btnClosePreview) {
+    els.btnClosePreview.addEventListener('click', () => {
+      els.editor.classList.remove('preview-mode');
+      els.btnClosePreview.style.display = 'none';
+    });
+  }
 }
 
 // ============================================
 // ADD TO CART
 // ============================================
 function initAddToCart() {
+  if (!els.btnAddToCart) return;
+
   els.btnAddToCart.addEventListener('click', async () => {
     if (state.layers.length === 0) {
-      alert('Ajoutez au moins un élément avant de continuer.');
+      alert('Ajoutez au moins un élément (texte, design ou forme) avant de continuer.');
       return;
     }
 
+    // Construire le payload selon la spécification
     const payload = {
-      productId: state.productId,
-      productName: state.productName,
-      view: state.view,
-      technique: state.technique,
+      product_id: state.productId,
+      color_id: state.currentColorId || 0,
+      size: null, // À implémenter si sélecteur de taille ajouté
+      technique: state.currentTechnique,
+      view: state.currentView,
       layers: state.layers.map(l => ({
         type: l.type,
         name: l.name,
         x: l.x,
         y: l.y,
         ...(l.type === 'text' ? {
-          text: l.text,
-          fontFamily: l.fontFamily,
-          fontSize: l.fontSize,
+          content: l.text,
+          font_id: l.fontId,
+          font_family: l.fontFamily,
+          font_size: l.fontSize,
           color: l.color,
           align: l.align
         } : {
           svg: l.svg
         })
-      })),
-      price: state.price.total
+      }))
     };
 
     try {
       els.btnAddToCart.disabled = true;
       els.btnAddToCart.textContent = 'Ajout en cours...';
 
-      const response = await fetch('/public/api/cart/add-config.php', {
+      const response = await fetch(`${CONFIG.apiBase}/cart/add-config.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -568,7 +765,7 @@ function initAddToCart() {
         els.btnAddToCart.textContent = 'Ajouter au panier';
       }
     } catch (error) {
-      console.error('Cart error:', error);
+      console.error('Erreur panier:', error);
       alert('Erreur de connexion. Veuillez réessayer.');
       els.btnAddToCart.disabled = false;
       els.btnAddToCart.textContent = 'Ajouter au panier';
@@ -579,23 +776,21 @@ function initAddToCart() {
 // ============================================
 // INIT
 // ============================================
-function init() {
-  // Load product data from PHP if available
-  const productData = getProductData();
-  if (productData) {
-    state.productId = productData.productId;
-    state.productName = productData.productName;
-    state.price.base = productData.basePrice;
+async function init() {
+  // Charger les données depuis l'API
+  const loaded = await loadProductData();
 
-    if (productData.imageFront) {
-      els.productImage.src = productData.imageFront;
-    }
-    if (els.productTitle) {
-      els.productTitle.textContent = productData.productName;
-    }
+  if (!loaded) {
+    return;
   }
 
-  // Initialize all modules
+  // Render UI depuis les données API
+  renderProductInfo();
+  renderTechniques();
+  renderFonts();
+  renderPrintZone();
+
+  // Initialiser les interactions
   initTabs();
   initDesignsGrid();
   initElementsGrid();
@@ -604,7 +799,7 @@ function init() {
   initPreview();
   initAddToCart();
 
-  // Initial price update
+  // Initialiser le prix
   updatePrice();
   updateLayersList();
 }

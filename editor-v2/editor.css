@@ -882,3 +882,33 @@ body {
 .ps-tab-content::-webkit-scrollbar-thumb:hover {
   background: var(--ps-pink-main);
 }
+
+/* ========================================
+   LOADING OVERLAY
+   ======================================== */
+.ps-loading {
+  position: fixed;
+  inset: 0;
+  background: var(--ps-black-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  color: var(--ps-white);
+  font-size: 14px;
+}
+
+.ps-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--ps-pink-main);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
