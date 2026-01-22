@@ -156,10 +156,26 @@ function openBottomSheet(title, options, onSelect, selectedValue = null) {
 
     // Structure selon le type d'option
     let previewHtml = '';
+    let infoHtml = '';
+
     if (opt.preview === 'font') {
-      previewHtml = `<div class="ps-option-preview"><span class="ps-option-preview-font" style="font-family: ${opt.fontFamily || 'inherit'}">Aa</span></div>`;
-    } else if (opt.preview === 'image' && opt.image) {
-      previewHtml = `<div class="ps-option-preview"><img src="${opt.image}" alt="${opt.label}"></div>`;
+      // Font preview: Nom + Sample rendu avec la police
+      infoHtml = `
+        <div class="ps-option-info ps-option-font-info">
+          <div class="ps-option-label">${opt.label}</div>
+          <div class="ps-option-font-sample" style="font-family: '${opt.fontFamily || 'inherit'}'">Aa Bb Cc 123</div>
+        </div>
+      `;
+    } else {
+      if (opt.preview === 'image' && opt.image) {
+        previewHtml = `<div class="ps-option-preview"><img src="${opt.image}" alt="${opt.label}"></div>`;
+      }
+      infoHtml = `
+        <div class="ps-option-info">
+          <div class="ps-option-label">${opt.label}</div>
+          ${opt.desc ? `<div class="ps-option-desc">${opt.desc}</div>` : ''}
+        </div>
+      `;
     }
 
     let priceHtml = '';
@@ -171,10 +187,7 @@ function openBottomSheet(title, options, onSelect, selectedValue = null) {
 
     btn.innerHTML = `
       ${previewHtml}
-      <div class="ps-option-info">
-        <div class="ps-option-label">${opt.label}</div>
-        ${opt.desc ? `<div class="ps-option-desc">${opt.desc}</div>` : ''}
-      </div>
+      ${infoHtml}
       ${priceHtml}
       <div class="ps-option-check"></div>
     `;
@@ -427,6 +440,12 @@ function initTabs() {
   els.tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const tabId = tab.dataset.tab;
+
+      // Texte tab → ouvrir modal plein écran (mobile UX)
+      if (tabId === 'text') {
+        openTextModal();
+        return;
+      }
 
       els.tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
@@ -964,6 +983,241 @@ function closeTechniqueRender() {
     lightbox.classList.remove('open');
     document.body.style.overflow = '';
   }
+}
+
+// ============================================
+// TEXT MODAL (Fullscreen Mobile)
+// ============================================
+function openTextModal() {
+  let modal = document.getElementById('textModal');
+
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'textModal';
+    modal.className = 'ps-text-modal';
+    modal.innerHTML = `
+      <div class="ps-text-modal-header">
+        <h2 class="ps-text-modal-title">Ajouter du texte</h2>
+        <button class="ps-text-modal-close" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="ps-text-modal-body">
+        <div class="ps-form-group">
+          <label class="ps-label">Votre texte</label>
+          <input type="text" class="ps-input ps-input-lg" id="modalTextInput" placeholder="Entrez votre texte...">
+        </div>
+
+        <div class="ps-form-group">
+          <label class="ps-label">Police</label>
+          <div class="ps-custom-select ps-custom-select-lg" id="modalFontSelector" data-value="">
+            <div class="ps-custom-select-trigger">
+              <span class="ps-custom-select-text">Choisir une police</span>
+              <span class="ps-custom-select-arrow">▼</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ps-form-row">
+          <div class="ps-form-group ps-form-group-flex">
+            <label class="ps-label">Taille</label>
+            <div class="ps-range-wrapper">
+              <input type="range" class="ps-range" id="modalFontSize" min="12" max="72" value="24">
+              <span class="ps-range-value" id="modalFontSizeValue">24px</span>
+            </div>
+          </div>
+          <div class="ps-form-group ps-form-group-color">
+            <label class="ps-label">Couleur</label>
+            <input type="color" class="ps-color-input ps-color-input-lg" id="modalTextColor" value="#000000">
+          </div>
+        </div>
+
+        <div class="ps-form-group">
+          <label class="ps-label">Alignement</label>
+          <div class="ps-align-group ps-align-group-lg">
+            <button class="ps-align-btn active" data-align="left" type="button">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3V3zm0 4h12v2H3V7zm0 4h18v2H3v-2zm0 4h12v2H3v-2zm0 4h18v2H3v-2z"/></svg>
+            </button>
+            <button class="ps-align-btn" data-align="center" type="button">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3V3zm3 4h12v2H6V7zm-3 4h18v2H3v-2zm3 4h12v2H6v-2zm-3 4h18v2H3v-2z"/></svg>
+            </button>
+            <button class="ps-align-btn" data-align="right" type="button">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3V3zm6 4h12v2H9V7zm-6 4h18v2H3v-2zm6 4h12v2H9v-2zm-6 4h18v2H3v-2z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="ps-form-group">
+          <label class="ps-label">Technique d'impression</label>
+          <div class="ps-custom-select ps-custom-select-lg" id="modalTechniqueSelector" data-value="">
+            <div class="ps-custom-select-trigger">
+              <span class="ps-custom-select-text">Choisir une technique</span>
+              <span class="ps-custom-select-arrow">▼</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ps-text-modal-footer">
+        <button class="ps-btn ps-btn-primary ps-btn-block ps-btn-lg" id="modalBtnAddText">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Ajouter le texte
+        </button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Event listeners
+    modal.querySelector('.ps-text-modal-close').addEventListener('click', closeTextModal);
+
+    // Sync avec state et init contrôles modal
+    initTextModalControls(modal);
+  }
+
+  // Sync les valeurs actuelles
+  syncTextModalValues(modal);
+
+  // Ouvrir
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Focus sur l'input
+  setTimeout(() => {
+    modal.querySelector('#modalTextInput').focus();
+  }, 300);
+}
+
+function closeTextModal() {
+  const modal = document.getElementById('textModal');
+  if (modal) {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+function initTextModalControls(modal) {
+  const textInput = modal.querySelector('#modalTextInput');
+  const fontSelector = modal.querySelector('#modalFontSelector');
+  const fontSize = modal.querySelector('#modalFontSize');
+  const fontSizeValue = modal.querySelector('#modalFontSizeValue');
+  const textColor = modal.querySelector('#modalTextColor');
+  const alignBtns = modal.querySelectorAll('.ps-align-btn');
+  const techniqueSelector = modal.querySelector('#modalTechniqueSelector');
+  const btnAdd = modal.querySelector('#modalBtnAddText');
+
+  // Text input
+  textInput.addEventListener('input', (e) => {
+    state.textSettings.text = e.target.value;
+  });
+
+  // Font size avec affichage valeur
+  fontSize.addEventListener('input', (e) => {
+    state.textSettings.fontSize = parseInt(e.target.value);
+    fontSizeValue.textContent = e.target.value + 'px';
+  });
+
+  // Color
+  textColor.addEventListener('input', (e) => {
+    state.textSettings.color = e.target.value;
+  });
+
+  // Alignment
+  alignBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      alignBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.textSettings.align = btn.dataset.align;
+    });
+  });
+
+  // Font selector → bottom sheet
+  fontSelector.addEventListener('click', () => {
+    const options = state.fonts.map(f => ({
+      value: f.family,
+      label: f.label,
+      fontFamily: f.family,
+      fontId: f.id,
+      preview: 'font'
+    }));
+
+    openBottomSheet('Choisir une police', options, (opt) => {
+      state.textSettings.fontFamily = opt.value;
+      state.textSettings.fontId = opt.fontId;
+      updateCustomSelectText(fontSelector, opt.label);
+      fontSelector.dataset.value = opt.value;
+    }, state.textSettings.fontFamily);
+  });
+
+  // Technique selector → bottom sheet
+  techniqueSelector.addEventListener('click', () => {
+    const options = state.techniques.map(t => ({
+      value: t.value,
+      label: t.label,
+      desc: t.description || null,
+      price: t.price
+    }));
+
+    openBottomSheet('Technique d\'impression', options, (opt) => {
+      state.currentTechnique = opt.value;
+      const priceLabel = opt.price > 0 ? ` (+${formatPrice(opt.price)})` : '';
+      updateCustomSelectText(techniqueSelector, opt.label + priceLabel);
+      techniqueSelector.dataset.value = opt.value;
+      updatePrice();
+
+      // Sync aussi le sélecteur principal
+      if (els.techniqueSelector) {
+        updateCustomSelectText(els.techniqueSelector, opt.label + priceLabel);
+        els.techniqueSelector.dataset.value = opt.value;
+      }
+    }, state.currentTechnique);
+  });
+
+  // Ajouter texte
+  btnAdd.addEventListener('click', () => {
+    addTextLayer();
+    closeTextModal();
+  });
+}
+
+function syncTextModalValues(modal) {
+  const textInput = modal.querySelector('#modalTextInput');
+  const fontSelector = modal.querySelector('#modalFontSelector');
+  const fontSize = modal.querySelector('#modalFontSize');
+  const fontSizeValue = modal.querySelector('#modalFontSizeValue');
+  const textColor = modal.querySelector('#modalTextColor');
+  const alignBtns = modal.querySelectorAll('.ps-align-btn');
+  const techniqueSelector = modal.querySelector('#modalTechniqueSelector');
+
+  // Sync values
+  textInput.value = state.textSettings.text || '';
+  fontSize.value = state.textSettings.fontSize;
+  fontSizeValue.textContent = state.textSettings.fontSize + 'px';
+  textColor.value = state.textSettings.color;
+
+  // Font
+  const currentFont = state.fonts.find(f => f.family === state.textSettings.fontFamily);
+  if (currentFont) {
+    updateCustomSelectText(fontSelector, currentFont.label);
+    fontSelector.dataset.value = currentFont.family;
+  }
+
+  // Technique
+  const currentTech = state.techniques.find(t => t.value === state.currentTechnique);
+  if (currentTech) {
+    const priceLabel = currentTech.price > 0 ? ` (+${formatPrice(currentTech.price)})` : '';
+    updateCustomSelectText(techniqueSelector, currentTech.label + priceLabel);
+    techniqueSelector.dataset.value = currentTech.value;
+  }
+
+  // Alignment
+  alignBtns.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.align === state.textSettings.align);
+  });
 }
 
 // ============================================
