@@ -94,7 +94,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: var(--gradient-dark);
+  background: var(--gray-light);
   min-height: 50vh;
 }
 
@@ -619,11 +619,12 @@ body {
    PRICE CARD
    ======================================== */
 .ps-price-card {
-  background: var(--gradient-dark);
-  color: var(--white);
+  background: var(--white);
+  color: var(--black);
   border-radius: var(--radius-md);
   padding: 16px;
   margin-top: 16px;
+  box-shadow: var(--shadow-sm);
 }
 
 .ps-price-line {
@@ -634,11 +635,11 @@ body {
 }
 
 .ps-price-line span:first-child {
-  color: var(--gray-light);
+  color: var(--gray);
 }
 
 .ps-price-total {
-  border-top: 1px solid var(--gray);
+  border-top: 1px solid var(--gray-light);
   margin-top: 8px;
   padding-top: 12px;
   font-weight: 700;
@@ -646,11 +647,11 @@ body {
 }
 
 .ps-price-total span:first-child {
-  color: var(--white);
+  color: var(--black);
 }
 
 .ps-price-total span:last-child {
-  color: var(--mint-main);
+  color: var(--pink-dark);
 }
 
 /* ========================================
