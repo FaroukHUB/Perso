@@ -579,12 +579,12 @@ function renderFontModalList() {
   state.fonts.forEach(font => {
     const item = document.createElement('button');
     item.type = 'button';
-    item.className = 'ps-selection-item' + (font.family === fontModalTempSelection ? ' selected' : '');
+    item.className = 'ps-selection-item ps-font-item' + (font.family === fontModalTempSelection ? ' selected' : '');
 
+    // Preview = nom de la police rendu AVEC cette police
     item.innerHTML = `
       <div class="ps-selection-item-content">
-        <div class="ps-selection-item-label">${font.label}</div>
-        <div class="ps-selection-item-preview" style="font-family: '${font.family}'">Aa Bb Cc 123</div>
+        <div class="ps-font-preview" style="font-family: '${font.family}'">${font.label}</div>
       </div>
       <div class="ps-selection-item-check"></div>
     `;
