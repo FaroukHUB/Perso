@@ -227,7 +227,11 @@ function loadFontCSS() {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = font.css_url;
+      link.crossOrigin = 'anonymous';
       document.head.appendChild(link);
+
+      // Log pour debug
+      console.info(`[Editor] Police chargée: ${font.label} (${font.family})`);
     }
   });
 
@@ -501,7 +505,7 @@ function syncTextModalState() {
 let fontModalInstance = null;
 let fontModalTempSelection = null;
 
-function openFontModal() {
+async function openFontModal() {
   if (!fontModalInstance) {
     fontModalInstance = createFontModal();
     document.body.appendChild(fontModalInstance);
@@ -510,8 +514,32 @@ function openFontModal() {
   // Sauvegarder la sélection actuelle
   fontModalTempSelection = state.textSettings.fontFamily;
 
-  renderFontModalList();
+  // Afficher le modal avec un état de chargement
+  const list = fontModalInstance.querySelector('#fontModalList');
+  list.innerHTML = '<div class="ps-fonts-loading">Chargement des polices...</div>';
   fontModalInstance.classList.add('open');
+
+  // Charger explicitement chaque police avant de rendre la liste
+  try {
+    const fontLoadPromises = state.fonts.map(async font => {
+      if (font.css_url) {
+        try {
+          // Forcer le chargement de la police avec document.fonts.load()
+          await document.fonts.load(`400 24px "${font.family}"`);
+        } catch (e) {
+          // Ignorer les erreurs individuelles (police peut ne pas exister)
+        }
+      }
+    });
+
+    await Promise.all(fontLoadPromises);
+    // Attendre aussi document.fonts.ready pour être sûr
+    await document.fonts.ready;
+  } catch (e) {
+    console.warn('[Editor] Erreur chargement polices:', e);
+  }
+
+  renderFontModalList();
 }
 
 function closeFontModal() {
@@ -581,10 +609,10 @@ function renderFontModalList() {
     item.type = 'button';
     item.className = 'ps-selection-item ps-font-item' + (font.family === fontModalTempSelection ? ' selected' : '');
 
-    // Preview = nom de la police rendu AVEC cette police
+    // Preview = nom de la police rendu AVEC cette police + fallback
     item.innerHTML = `
       <div class="ps-selection-item-content">
-        <div class="ps-font-preview" style="font-family: '${font.family}'">${font.label}</div>
+        <div class="ps-font-preview" style="font-family: '${font.family}', sans-serif;">${font.label}</div>
       </div>
       <div class="ps-selection-item-check"></div>
     `;
