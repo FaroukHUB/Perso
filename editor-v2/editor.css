@@ -1989,6 +1989,191 @@ body {
 }
 
 /* ========================================
+   TEXT LAYER CONTROLS
+   ======================================== */
+.ps-text-controls {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--gray-light);
+  border-radius: var(--radius-md);
+  position: relative;
+}
+
+.ps-text-controls.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.ps-text-controls.disabled .ps-text-controls-empty {
+  display: flex;
+}
+
+.ps-text-controls:not(.disabled) .ps-text-controls-empty {
+  display: none;
+}
+
+.ps-text-controls-empty {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-md);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 13px;
+  color: var(--gray);
+  padding: 20px;
+}
+
+.ps-text-controls-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.ps-text-controls-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--black-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ps-btn-delete {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  border: 1px solid #e74c3c;
+  border-radius: var(--radius-sm);
+  color: #e74c3c;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ps-btn-delete:hover {
+  background: #e74c3c;
+  color: var(--white);
+}
+
+.ps-btn-delete svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ps-text-controls-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.ps-text-controls-group {
+  flex: 1;
+  margin-bottom: 12px;
+}
+
+.ps-text-controls-row .ps-text-controls-group {
+  margin-bottom: 0;
+}
+
+.ps-text-controls-group .ps-label {
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.ps-style-btns,
+.ps-size-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.ps-style-btn,
+.ps-size-btn {
+  flex: 1;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  border: 2px solid var(--gray-light);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--black-soft);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ps-style-btn:hover,
+.ps-size-btn:hover {
+  border-color: var(--pink-main);
+  color: var(--pink-dark);
+}
+
+.ps-style-btn.active {
+  background: var(--pink-glow);
+  border-color: var(--pink-main);
+  color: var(--pink-dark);
+}
+
+.ps-style-btn i {
+  font-style: italic;
+}
+
+.ps-move-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 6px;
+  max-width: 140px;
+}
+
+.ps-move-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  border: 2px solid var(--gray-light);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  color: var(--black-soft);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ps-move-btn:hover {
+  border-color: var(--pink-main);
+  color: var(--pink-dark);
+}
+
+.ps-move-btn[data-direction="up"] {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.ps-move-btn[data-direction="left"] {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.ps-move-btn[data-direction="right"] {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.ps-move-btn[data-direction="down"] {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+/* ========================================
    DESKTOP LAYOUT (≥ 1024px)
    4 colonnes : IconBar (72px) | Panel (320px) | Preview (flex) | Prix (280px)
    ======================================== */

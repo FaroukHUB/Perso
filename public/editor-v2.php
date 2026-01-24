@@ -167,6 +167,55 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
                     + Ajouter le texte
                 </button>
 
+                <!-- Contrôles du texte actif (desktop) -->
+                <div class="ps-text-controls disabled" id="textLayerControls">
+                    <div class="ps-text-controls-header">
+                        <span class="ps-text-controls-title">Modifier le texte</span>
+                        <button class="ps-btn-delete" data-action="delete" title="Supprimer">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="ps-text-controls-row">
+                        <div class="ps-text-controls-group">
+                            <label class="ps-label">Style</label>
+                            <div class="ps-style-btns">
+                                <button class="ps-style-btn" data-action="bold" title="Gras">B</button>
+                                <button class="ps-style-btn" data-action="italic" title="Italique"><i>I</i></button>
+                            </div>
+                        </div>
+                        <div class="ps-text-controls-group">
+                            <label class="ps-label">Dimensions</label>
+                            <div class="ps-size-btns">
+                                <button class="ps-size-btn" data-action="decrease" title="Réduire">−</button>
+                                <button class="ps-size-btn" data-action="increase" title="Agrandir">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ps-text-controls-group">
+                        <label class="ps-label">Rotation <span id="rotationValue">0°</span></label>
+                        <input type="range" class="ps-range" id="rotationSlider" min="-180" max="180" value="0">
+                    </div>
+
+                    <div class="ps-text-controls-group">
+                        <label class="ps-label">Déplacer</label>
+                        <div class="ps-move-grid">
+                            <button class="ps-move-btn" data-direction="up" title="Haut">↑</button>
+                            <button class="ps-move-btn" data-direction="left" title="Gauche">←</button>
+                            <button class="ps-move-btn" data-direction="right" title="Droite">→</button>
+                            <button class="ps-move-btn" data-direction="down" title="Bas">↓</button>
+                        </div>
+                    </div>
+
+                    <div class="ps-text-controls-empty">
+                        <span>Sélectionnez un texte pour le modifier</span>
+                    </div>
+                </div>
+
                 <!-- Custom Select: Technique d'impression -->
                 <div class="ps-form-group" style="margin-top: 24px;">
                     <label class="ps-label">Technique d'impression</label>
