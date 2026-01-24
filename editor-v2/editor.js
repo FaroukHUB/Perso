@@ -467,41 +467,41 @@ function initDesktopFontSelector() {
     selector.appendChild(dropdown);
   }
 
-  // Remplir avec les polices de l'API
-  dropdown.innerHTML = '';
+  // Toggle dropdown - charger les polices au premier clic
+  let fontsLoaded = false;
 
-  if (state.fonts.length === 0) {
-    dropdown.innerHTML = '<div class="ps-select-empty">Aucune police disponible</div>';
-  } else {
-    state.fonts.forEach(font => {
-      const option = document.createElement('div');
-      option.className = 'ps-select-option ps-font-option';
-      option.dataset.value = font.family;
-      // Nom de la police rendu avec sa propre typographie (UX premium)
-      option.innerHTML = `<span style="font-family: '${font.family}', sans-serif;">${font.label}</span>`;
-
-      option.addEventListener('click', (e) => {
-        e.stopPropagation();
-        state.textSettings.fontFamily = font.family;
-        state.textSettings.fontId = font.id;
-        textSpan.textContent = font.label;
-        textSpan.style.fontFamily = `'${font.family}', sans-serif`;
-        selector.classList.remove('open');
-        updateFontOptions(font.family);
-
-        // Appliquer au calque texte actif si existant
-        applyFontToActiveLayer(font.family, font.id);
-      });
-
-      dropdown.appendChild(option);
-    });
-  }
-
-  // Toggle dropdown
-  trigger.addEventListener('click', (e) => {
+  trigger.addEventListener('click', async (e) => {
     e.stopPropagation();
     closeAllSelectors();
-    selector.classList.toggle('open');
+
+    // Si pas encore chargé, charger les polices d'abord
+    if (!fontsLoaded && state.fonts.length > 0) {
+      dropdown.innerHTML = '<div class="ps-fonts-loading">Chargement des polices...</div>';
+      selector.classList.add('open');
+
+      // Charger explicitement chaque police
+      try {
+        const fontLoadPromises = state.fonts.map(async font => {
+          if (font.css_url) {
+            try {
+              await document.fonts.load(`400 20px "${font.family}"`);
+            } catch (e) {
+              // Ignorer erreurs individuelles
+            }
+          }
+        });
+        await Promise.all(fontLoadPromises);
+        await document.fonts.ready;
+      } catch (e) {
+        console.warn('[Editor] Erreur chargement polices:', e);
+      }
+
+      // Rendre la liste des polices
+      renderDesktopFontDropdown(dropdown, textSpan, selector);
+      fontsLoaded = true;
+    } else {
+      selector.classList.toggle('open');
+    }
   });
 
   // Initialiser avec la première police
@@ -509,8 +509,45 @@ function initDesktopFontSelector() {
     const defaultFont = state.fonts[0];
     textSpan.textContent = defaultFont.label;
     textSpan.style.fontFamily = `'${defaultFont.family}', sans-serif`;
-    updateFontOptions(defaultFont.family);
   }
+}
+
+function renderDesktopFontDropdown(dropdown, textSpan, selector) {
+  dropdown.innerHTML = '';
+
+  if (state.fonts.length === 0) {
+    dropdown.innerHTML = '<div class="ps-select-empty">Aucune police disponible</div>';
+    return;
+  }
+
+  state.fonts.forEach(font => {
+    const option = document.createElement('div');
+    option.className = 'ps-select-option ps-font-option';
+    option.dataset.value = font.family;
+
+    // État sélectionné
+    if (font.family === state.textSettings.fontFamily) {
+      option.classList.add('selected');
+    }
+
+    // Nom de la police rendu avec sa propre typographie (UX premium)
+    option.innerHTML = `<span style="font-family: '${font.family}', sans-serif;">${font.label}</span>`;
+
+    option.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.textSettings.fontFamily = font.family;
+      state.textSettings.fontId = font.id;
+      textSpan.textContent = font.label;
+      textSpan.style.fontFamily = `'${font.family}', sans-serif`;
+      selector.classList.remove('open');
+      updateFontOptions(font.family);
+
+      // Appliquer au calque texte actif si existant
+      applyFontToActiveLayer(font.family, font.id);
+    });
+
+    dropdown.appendChild(option);
+  });
 }
 
 function updateFontOptions(selectedFamily) {
