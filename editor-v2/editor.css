@@ -1990,32 +1990,31 @@ body {
 
 /* ========================================
    DESKTOP LAYOUT (≥ 1024px)
-   4 zones : IconBar | Panel | Preview | Prix/CTA
+   4 colonnes : IconBar (72px) | Panel (320px) | Preview (flex) | Prix (280px)
    ======================================== */
 @media (min-width: 1024px) {
-  /* Layout principal */
+  /* Layout principal - GRID 4 colonnes */
   .ps-editor {
     display: grid;
-    grid-template-columns: 72px 340px 1fr 300px;
+    grid-template-columns: 72px 320px 1fr 280px;
     grid-template-rows: 1fr;
     min-height: calc(100vh - 52px);
     gap: 0;
   }
 
-  /* Colonne gauche : Outils (contient icon bar + panels) */
+  /* ps-controls explose son contenu dans le grid */
   .ps-controls {
     display: contents;
-    width: auto;
-    max-width: none;
   }
 
-  /* Barre d'icônes verticale - FIXE gauche */
+  /* === COLONNE 1 : Barre d'icônes verticale === */
   .ps-tabs {
+    order: 1;
     display: flex;
     flex-direction: column;
     background: var(--gradient-dark);
     border-radius: 0;
-    padding: 8px 0;
+    padding: 12px 0;
     gap: 4px;
     height: calc(100vh - 52px);
     position: sticky;
@@ -2026,14 +2025,16 @@ body {
   .ps-tab {
     flex: 0 0 auto;
     flex-direction: column;
-    padding: 14px 8px;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
     gap: 4px;
     border-radius: 0;
     color: rgba(255, 255, 255, 0.6);
     border-left: 3px solid transparent;
     border-bottom: none;
     transition: all 0.2s ease;
-    font-size: 10px;
+    font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
   }
@@ -2050,8 +2051,8 @@ body {
   }
 
   .ps-tab-icon {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
   }
 
   .ps-tab-icon svg {
@@ -2059,19 +2060,20 @@ body {
     height: 100%;
   }
 
-  /* Zone des panels - colonne centrale gauche */
+  /* === COLONNE 2 : Panel de contenu === */
   .ps-tab-content {
+    order: 2;
     background: var(--white);
     border-right: 1px solid var(--gray-light);
     height: calc(100vh - 52px);
     position: sticky;
     top: 52px;
     overflow-y: auto;
-    padding: 0;
+    overflow-x: hidden;
   }
 
   .ps-panel {
-    padding: 24px 20px;
+    padding: 20px 16px;
     display: none;
   }
 
@@ -2079,34 +2081,44 @@ body {
     display: block;
   }
 
-  /* Preview area - centre flexible */
+  /* === COLONNE 3 : Preview produit === */
   .ps-preview {
+    order: 3;
     background: var(--gray-light);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: auto;
-    padding: 40px 24px;
+    padding: 32px 20px;
   }
 
   .ps-product-frame {
-    max-width: 480px;
+    max-width: 420px;
     width: 100%;
   }
 
-  /* CTA → Colonne droite fixe */
+  .ps-preview-actions {
+    margin-top: 20px;
+  }
+
+  /* Bouton close preview - caché sur desktop */
+  .ps-preview-close {
+    display: none !important;
+  }
+
+  /* === COLONNE 4 : Prix / Panier === */
   .ps-cta-sticky {
+    order: 4;
     position: sticky;
     top: 52px;
-    right: 0;
     width: 100%;
     height: calc(100vh - 52px);
     background: var(--white);
     border-left: 1px solid var(--gray-light);
     flex-direction: column;
     justify-content: space-between;
-    padding: 24px;
+    padding: 24px 20px;
     box-shadow: none;
   }
 
@@ -2117,28 +2129,35 @@ body {
   }
 
   .ps-cta-price-label {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--gray);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
 
   .ps-cta-price-value {
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 700;
     color: var(--black);
   }
 
   #btnAddToCart {
     width: 100%;
-    padding: 16px 24px;
-    font-size: 15px;
+    padding: 14px 20px;
+    font-size: 14px;
   }
 
-  /* Grid desktop - colonnes adaptées */
+  /* === Panels : styles spécifiques === */
+
+  /* Masquer le bloc prix dans panel texte (déjà dans colonne 4) */
+  .ps-panel .ps-price-card {
+    display: none;
+  }
+
+  /* Grid pour designs/éléments */
   .ps-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 
   .ps-grid-item {
@@ -2147,12 +2166,12 @@ body {
 
   .ps-grid-category-title {
     grid-column: 1 / -1;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--gray);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin: 20px 0 10px;
+    margin: 16px 0 8px;
     padding: 0;
   }
 
@@ -2163,9 +2182,9 @@ body {
   .ps-grid-empty {
     grid-column: 1 / -1;
     text-align: center;
-    padding: 40px 20px;
+    padding: 32px 16px;
     color: var(--gray);
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .ps-grid-badge-pro {
@@ -2176,64 +2195,30 @@ body {
     color: var(--white);
     font-size: 8px;
     font-weight: 700;
-    padding: 2px 5px;
+    padding: 2px 4px;
     border-radius: var(--radius-sm);
     text-transform: uppercase;
   }
 
-  /* Prix card dans le panel texte - masqué sur desktop (déjà dans colonne droite) */
-  .ps-panel .ps-price-card {
-    display: none;
-  }
-
-  /* Preview actions */
-  .ps-preview-actions {
-    margin-top: 24px;
-  }
-
-  /* Form elements desktop sizing */
+  /* Form elements */
   .ps-form-group {
-    margin-bottom: 18px;
+    margin-bottom: 16px;
   }
 
   .ps-label {
     margin-bottom: 6px;
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .ps-input {
-    padding: 12px 14px;
-    font-size: 14px;
-  }
-
-  /* Layers list desktop */
-  .ps-layers-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .ps-layer-item {
-    padding: 12px 14px;
-  }
-
-  /* Empty state */
-  .ps-empty {
-    padding: 48px 20px;
-  }
-
-  .ps-empty-icon {
-    font-size: 36px;
-  }
-
-  .ps-empty-text {
+    padding: 10px 12px;
     font-size: 13px;
   }
 
-  /* Inline group pour texte (taille + couleur) */
+  /* Inline group (taille + couleur) */
   .ps-inline-group {
     display: flex;
-    gap: 16px;
+    gap: 12px;
   }
 
   .ps-inline-group .ps-form-group:first-child {
@@ -2241,18 +2226,48 @@ body {
   }
 
   .ps-inline-group .ps-form-group:last-child {
-    width: 70px;
+    width: 60px;
     flex-shrink: 0;
   }
 
-  /* Align group */
+  /* Align buttons */
   .ps-align-group {
     display: flex;
-    gap: 8px;
+    gap: 6px;
   }
 
   .ps-align-btn {
     flex: 1;
-    padding: 10px;
+    padding: 8px;
+  }
+
+  /* Layers list */
+  .ps-layers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ps-layer-item {
+    padding: 10px 12px;
+  }
+
+  /* Empty state */
+  .ps-empty {
+    padding: 40px 16px;
+  }
+
+  .ps-empty-icon {
+    font-size: 32px;
+  }
+
+  .ps-empty-text {
+    font-size: 12px;
+  }
+
+  /* Bouton ajouter texte */
+  #btnAddText {
+    padding: 12px 16px;
+    font-size: 13px;
   }
 }
