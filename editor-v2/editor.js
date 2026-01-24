@@ -640,10 +640,10 @@ function renderDesktopFontDropdown(dropdown, textSpan, selector) {
       option.classList.add('selected');
     }
 
-    // C. Forcer l'application via CSS variable (isolation typographique)
+    // Forcer l'application directe de la police (font.family de l'API, pas du state)
     const span = document.createElement('span');
     span.textContent = font.label;
-    span.style.setProperty('--font-preview', `"${font.family}", sans-serif`);
+    span.style.setProperty('font-family', `"${font.family}", sans-serif`, 'important');
     option.appendChild(span);
 
     option.addEventListener('click', (e) => {
@@ -1369,11 +1369,11 @@ function renderFontModalList() {
     const content = document.createElement('div');
     content.className = 'ps-selection-item-content';
 
-    // C. Forcer l'application inline - NOM de la police avec SA police
+    // Forcer l'application directe de la police (font.family de l'API, pas du state)
     const preview = document.createElement('div');
     preview.className = 'ps-font-preview';
     preview.textContent = font.label;
-    preview.style.setProperty('--font-preview', `"${font.family}", sans-serif`);
+    preview.style.setProperty('font-family', `"${font.family}", sans-serif`, 'important');
     content.appendChild(preview);
 
     const check = document.createElement('div');
