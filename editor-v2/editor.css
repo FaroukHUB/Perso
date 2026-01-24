@@ -26,6 +26,22 @@ body {
 }
 
 /* ========================================
+   FONT PRELOAD REGISTRY
+   Force le navigateur à télécharger les polices
+   en les utilisant dans le DOM (invisible)
+   ======================================== */
+#ps-font-preload {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+/* ========================================
    HEADER V2
    ======================================== */
 .ps-header {
