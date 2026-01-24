@@ -27,11 +27,25 @@ if (!$product || !$product['active']) {
     redirect('/');
 }
 
+// ============================================
+// SWITCH EDITOR V2 (via ?editor=v2)
+// Redirige vers editor-v2.php si activé
+// L'ancien configurator reste par défaut
+// ============================================
+if (isset($_GET['editor']) && $_GET['editor'] === 'v2') {
+    $editorUrl = '/public/editor-v2.php?id=' . $productId;
+
+    // Préserver pack_id si présent (preset/idée)
+    if (!empty($_GET['pack_id'])) {
+        $editorUrl .= '&pack_id=' . (int)$_GET['pack_id'];
+    }
+
+    header('Location: ' . $editorUrl);
+    exit;
+}
+
 $success = '';
 $error = '';
-
-// Switch éditeur V2 (via ?editor=v2)
-$useEditorV2 = isset($_GET['editor']) && $_GET['editor'] === 'v2';
 
 // === PACK / IDÉE : Chargement du preset (ONE-SHOT) ===
 $packId = (int) get('pack_id', 0);
@@ -327,12 +341,8 @@ $cartCount = Cart::count();
     <!-- Polices personnalisation (chargées dynamiquement depuis admin) -->
     <?= FontLoader::renderHead() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
-    <?php if ($useEditorV2): ?>
-        <link rel="stylesheet" href="/editor-v2/editor.css?v=<?= time() ?>">
-    <?php else: ?>
-        <link rel="stylesheet" href="/public/assets/css/configurator.css?v=<?= time() ?>">
-        <link rel="stylesheet" href="/public/assets/css/techniques.css?v=3">
-    <?php endif; ?>
+    <link rel="stylesheet" href="/public/assets/css/configurator.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="/public/assets/css/techniques.css?v=3">
     <!-- interact.js pour drag & drop HTML -->
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <style>
@@ -535,83 +545,8 @@ $cartCount = Cart::count();
                 <input type="hidden" name="text_color" id="textColorInput" value="<?= h($selectedTextColor['value']) ?>">
                 <input type="hidden" name="technique" id="techniqueInput" value="<?= h($selectedTechnique['value']) ?>">
 
-                <?php if ($useEditorV2): ?>
                 <!-- ========================================
-                     EDITOR V2 - Nouvel éditeur POC
-                     ======================================== -->
-                <div class="ps-editor">
-                    <!-- PREVIEW -->
-                    <div class="ps-preview">
-                        <div class="ps-product-frame">
-                            <img class="ps-product-image" src="<?= !empty($product['image_front_url']) ? '/public' . h($product['image_front_url']) : '' ?>" alt="Produit" id="productImage" />
-                            <div class="ps-print-area" id="printArea">
-                                <!-- layers texte / design -->
-                            </div>
-                            <!-- Debug border -->
-                            <div class="ps-print-area-debug"></div>
-                        </div>
-                    </div>
-
-                    <!-- CONTROLS -->
-                    <div class="ps-controls">
-                        <!-- View Toggle -->
-                        <div class="ps-control-group">
-                            <h3>Vue</h3>
-                            <div class="ps-view-toggle">
-                                <button type="button" id="btnFront" class="ps-btn active">Face</button>
-                                <button type="button" id="btnBack" class="ps-btn" <?= empty($product['image_back_url']) ? 'disabled' : '' ?>>Dos</button>
-                            </div>
-                        </div>
-
-                        <!-- Texte -->
-                        <div class="ps-control-group">
-                            <h3>Texte</h3>
-                            <button type="button" id="btnAddText" class="ps-btn ps-btn-primary">+ Ajouter du texte</button>
-
-                            <div id="textControls" class="ps-text-controls" style="display: none;">
-                                <input type="text" id="textInput" class="ps-input" placeholder="Votre texte...">
-                                <div class="ps-text-style">
-                                    <select id="fontFamily" class="ps-select">
-                                        <option value="Arial">Arial</option>
-                                        <option value="Georgia">Georgia</option>
-                                        <option value="Courier New">Courier New</option>
-                                        <option value="Comic Sans MS">Comic Sans MS</option>
-                                    </select>
-                                    <input type="color" id="textColor" class="ps-color" value="#000000">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Prix -->
-                        <div class="ps-control-group">
-                            <h3>Prix</h3>
-                            <div class="ps-price">
-                                <div class="ps-price-line">
-                                    <span>Base</span>
-                                    <span id="priceBase"><?= formatPrice($product['base_price']) ?></span>
-                                </div>
-                                <div class="ps-price-line">
-                                    <span>Technique</span>
-                                    <span id="priceTechnique">0,00 €</span>
-                                </div>
-                                <div class="ps-price-line ps-price-total">
-                                    <span>Total</span>
-                                    <span id="priceTotal"><?= formatPrice($product['base_price']) ?></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Bouton ajouter au panier -->
-                        <div class="ps-control-group">
-                            <button type="submit" class="ps-btn ps-btn-primary" style="width: 100%; padding: 15px;">
-                                Ajouter au panier
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <?php else: ?>
-                <!-- ========================================
-                     CONFIGURATOR V2 - Canva/YourSurprise style
+                     CONFIGURATOR - Canva/YourSurprise style
                      ======================================== -->
                 <div class="configurator-v2">
                     <!-- Onglets verticaux (gauche) -->
@@ -996,27 +931,12 @@ $cartCount = Cart::count();
                         Ajouter
                     </button>
                 </div>
-                <?php endif; ?>
 
             </form>
         </div>
     </section>
 
-    <?php if ($useEditorV2): ?>
-    <!-- Editor V2 POC -->
-    <script>
-        window.__PRODUCT_DATA_V2 = {
-            productId: <?= $productId ?>,
-            productName: <?= json_encode($product['name']) ?>,
-            basePrice: <?= (float) $product['base_price'] ?>,
-            imageFront: "<?= !empty($product['image_front_url']) ? '/public' . h($product['image_front_url']) : '' ?>",
-            imageBack: "<?= !empty($product['image_back_url']) ? '/public' . h($product['image_back_url']) : '' ?>",
-            printZone: <?= json_encode($zones['front']) ?>
-        };
-    </script>
-    <script src="/editor-v2/editor.js?v=<?= time() ?>"></script>
-    <?php else: ?>
-    <!-- Configurator V2 Modern 2026 -->
+    <!-- Configurator Scripts -->
     <script src="/public/assets/js/real-render-modal.js?v=<?= time() ?>"></script>
     <script src="/public/assets/js/configurator.js?v=<?= time() ?>"></script>
     <script>
@@ -1031,6 +951,5 @@ $cartCount = Cart::count();
         };
         window.__COLOR_IMAGES = <?= json_encode($colorImages) ?>;
     </script>
-    <?php endif; ?>
 </body>
 </html>
