@@ -252,9 +252,9 @@ function renderProductInfo() {
 }
 
 function loadFontCSS() {
-  // Injecter les <link> CSS des polices depuis l'API admin
+  // Injecter les <link> CSS des polices depuis l'API admin (sans attendre)
   state.fonts.forEach(font => {
-    injectFontLink(font);
+    injectFontLinkSync(font);
   });
 
   // Définir la police par défaut
@@ -265,48 +265,106 @@ function loadFontCSS() {
 }
 
 /**
- * Injecte le <link> Google Fonts pour une police (étape A)
+ * Injecte le <link> CSS sans attendre (pour init rapide)
  */
-function injectFontLink(font) {
-  if (!font.css_url) return;
-
-  // Vérifier si déjà injecté via data-font
-  if (document.querySelector(`link[data-font="${font.family}"]`)) {
-    return;
-  }
+function injectFontLinkSync(font) {
+  if (!font.css_url) return false;
+  if (document.querySelector(`link[data-font="${font.family}"]`)) return true;
 
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = font.css_url;
-  link.dataset.font = font.family; // Important pour éviter les doublons
+  link.dataset.font = font.family;
   link.crossOrigin = 'anonymous';
   document.head.appendChild(link);
 
   console.info(`[Editor] CSS Police injectée: ${font.label} (${font.family})`);
+  return true;
 }
 
 /**
- * Assure qu'une police est chargée et prête à être utilisée
- * Suit les 3 étapes obligatoires:
- * A. Injecter le <link> (si pas déjà fait)
- * B. Attendre le chargement réel
- * C. Retourner la famille pour application inline
+ * Injecte le <link> ET attend son chargement complet
+ * Retourne une Promise qui resolve quand le CSS est chargé
  */
-async function ensureFontLoaded(font) {
-  // A. Injecter le <link> si nécessaire
-  injectFontLink(font);
+function injectFontLinkAsync(font) {
+  return new Promise((resolve) => {
+    if (!font.css_url) {
+      resolve(false);
+      return;
+    }
 
-  // B. Attendre le chargement réel
+    // Vérifier si déjà injecté
+    const existing = document.querySelector(`link[data-font="${font.family}"]`);
+    if (existing) {
+      // Déjà injecté, vérifier si chargé
+      if (existing.dataset.loaded === 'true') {
+        resolve(true);
+        return;
+      }
+      // Attendre le chargement
+      existing.addEventListener('load', () => resolve(true), { once: true });
+      existing.addEventListener('error', () => resolve(false), { once: true });
+      return;
+    }
+
+    // Créer et injecter
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = font.css_url;
+    link.dataset.font = font.family;
+    link.crossOrigin = 'anonymous';
+
+    link.addEventListener('load', () => {
+      link.dataset.loaded = 'true';
+      console.info(`[Editor] CSS Police chargée: ${font.label} (${font.family})`);
+      resolve(true);
+    }, { once: true });
+
+    link.addEventListener('error', () => {
+      console.warn(`[Editor] Erreur CSS Police: ${font.label} (${font.family})`);
+      resolve(false);
+    }, { once: true });
+
+    document.head.appendChild(link);
+  });
+}
+
+/**
+ * Charge une police complètement (CSS + Font Face)
+ * 1. Injecte le <link> et attend son chargement
+ * 2. Appelle document.fonts.load() pour forcer le téléchargement de la police
+ * 3. Attend document.fonts.ready
+ */
+async function loadFontCompletely(font) {
+  // 1. Injecter et attendre le CSS
+  const cssLoaded = await injectFontLinkAsync(font);
+  if (!cssLoaded) return false;
+
+  // 2. Forcer le chargement de la font face
   try {
     await document.fonts.load(`400 20px "${font.family}"`);
     await document.fonts.ready;
+    return true;
   } catch (e) {
-    console.warn(`[Editor] Erreur chargement police ${font.family}:`, e);
+    console.warn(`[Editor] Erreur chargement font face ${font.family}:`, e);
+    return false;
   }
-
-  // C. Retourner la famille pour application inline
-  return font.family;
 }
+
+/**
+ * Charge TOUTES les polices de state.fonts
+ * Utilisé avant d'afficher le sélecteur de polices
+ */
+async function loadAllFonts() {
+  if (state.fonts.length === 0) return;
+
+  console.info(`[Editor] Chargement de ${state.fonts.length} police(s)...`);
+
+  await Promise.all(state.fonts.map(font => loadFontCompletely(font)));
+
+  console.info(`[Editor] Toutes les polices sont chargées`);
+}
+
 
 function renderPrintZone() {
   if (!els.printAreaDebug) return;
@@ -514,12 +572,8 @@ function initDesktopFontSelector() {
       dropdown.innerHTML = '<div class="ps-fonts-loading">Chargement des polices...</div>';
       selector.classList.add('open');
 
-      // Charger TOUTES les polices (A + B pour chaque)
-      try {
-        await Promise.all(state.fonts.map(font => ensureFontLoaded(font)));
-      } catch (e) {
-        console.warn('[Editor] Erreur chargement polices:', e);
-      }
+      // Charger TOUTES les polices (CSS + Font Face)
+      await loadAllFonts();
 
       // Rendre la liste des polices
       renderDesktopFontDropdown(dropdown, textSpan, selector);
@@ -1204,12 +1258,8 @@ async function openFontModal() {
   list.innerHTML = '<div class="ps-fonts-loading">Chargement des polices...</div>';
   fontModalInstance.classList.add('open');
 
-  // Charger TOUTES les polices (A + B pour chaque)
-  try {
-    await Promise.all(state.fonts.map(font => ensureFontLoaded(font)));
-  } catch (e) {
-    console.warn('[Editor] Erreur chargement polices:', e);
-  }
+  // Charger TOUTES les polices (CSS + Font Face)
+  await loadAllFonts();
 
   renderFontModalList();
 }
