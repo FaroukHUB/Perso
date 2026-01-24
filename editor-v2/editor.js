@@ -330,29 +330,27 @@ function injectFontLinkAsync(font) {
 }
 
 /**
- * Force le navigateur à utiliser une police dans le DOM (invisible)
- * OBLIGATOIRE pour que le navigateur télécharge réellement la police
+ * Force le navigateur à utiliser une police dans le DOM
+ * OBLIGATOIRE : le navigateur n'applique une police que si elle est
+ * réellement utilisée dans un nœud DOM visible (même si caché par visibility)
  */
 function registerFontUsage(font) {
-  const container = document.getElementById('ps-font-preload');
-  if (!container) {
-    console.warn('[Editor] Container #ps-font-preload non trouvé');
-    return;
-  }
-
   // Vérifier si déjà enregistré
-  if (container.querySelector(`[data-font="${font.family}"]`)) {
+  if (document.querySelector(`[data-font-registered="${font.family}"]`)) {
     return;
   }
 
+  // Créer un span DANS LE BODY (pas dans un container off-screen)
   const span = document.createElement('span');
   span.textContent = font.label;
   span.style.fontFamily = `"${font.family}", sans-serif`;
-  span.style.fontSize = '20px';
-  span.dataset.font = font.family;
-  container.appendChild(span);
+  span.style.position = 'absolute';
+  span.style.visibility = 'hidden';
+  span.style.pointerEvents = 'none';
+  span.dataset.fontRegistered = font.family;
+  document.body.appendChild(span);
 
-  console.info(`[Editor] Police enregistrée dans le DOM: ${font.label} (${font.family})`);
+  console.info(`[Editor] Police forcée dans le DOM: ${font.label} (${font.family})`);
 }
 
 /**
