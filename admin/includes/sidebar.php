@@ -2,6 +2,12 @@
 /**
  * PERSONNALY - Admin Sidebar Navigation
  * Fichier commun pour éviter la duplication du menu
+ *
+ * ARCHITECTURE IMPOSÉE :
+ * - PAS de page "Styles Sections" (homepage-styles.php)
+ * - Les styles de section sont gérés DANS le formulaire Page d'accueil
+ * - Stockage : config.style (JSON) par section
+ * - UNE SEULE SOURCE DE VÉRITÉ
  */
 
 // Déterminer la page active
