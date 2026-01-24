@@ -26,6 +26,7 @@ const state = {
   printZones: [],
   techniques: [],
   fonts: [],
+  textColors: [], // Couleurs de texte depuis admin
 
   // Assets (designs & éléments depuis admin)
   designs: [],
@@ -156,6 +157,32 @@ async function loadAssetsData() {
 
   } catch (error) {
     console.error('[Editor] Erreur réseau chargement assets:', error.message);
+    return false;
+  }
+}
+
+async function loadTextColorsData() {
+  try {
+    const response = await fetch(`${CONFIG.apiBase}/editor/colors.php`);
+    const data = await response.json();
+
+    if (!data.success) {
+      console.warn('[Editor] API colors erreur:', data.error);
+      return false;
+    }
+
+    state.textColors = data.colors || [];
+    console.info(`[Editor] Couleurs texte chargées: ${state.textColors.length}`);
+
+    // Définir la couleur par défaut (première couleur ou noir)
+    if (state.textColors.length > 0) {
+      state.textSettings.color = state.textColors[0].hex;
+    }
+
+    return true;
+
+  } catch (error) {
+    console.error('[Editor] Erreur réseau chargement couleurs:', error.message);
     return false;
   }
 }
@@ -460,6 +487,9 @@ function initDesktopFontSelector() {
         textSpan.style.fontFamily = `'${font.family}', sans-serif`;
         selector.classList.remove('open');
         updateFontOptions(font.family);
+
+        // Appliquer au calque texte actif si existant
+        applyFontToActiveLayer(font.family, font.id);
       });
 
       dropdown.appendChild(option);
@@ -580,12 +610,8 @@ function initDesktopTextControls() {
     });
   }
 
-  // Couleur texte
-  if (els.textColor) {
-    els.textColor.addEventListener('input', (e) => {
-      state.textSettings.color = e.target.value;
-    });
-  }
+  // Couleur texte - Swatches
+  renderColorSwatches();
 
   // Alignement
   els.alignBtns = $$('#panel-text .ps-align-btn');
@@ -658,6 +684,119 @@ function initDesktopTextControls() {
   }
 }
 
+function renderColorSwatches() {
+  const container = $('#colorSwatches');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (state.textColors.length === 0) {
+    container.innerHTML = '<span class="ps-color-swatches-empty">Aucune couleur</span>';
+    return;
+  }
+
+  state.textColors.forEach(color => {
+    const swatch = document.createElement('button');
+    swatch.type = 'button';
+    swatch.className = 'ps-color-swatch' + (color.hex === state.textSettings.color ? ' active' : '');
+    swatch.style.backgroundColor = color.hex;
+    swatch.title = color.label;
+    swatch.dataset.color = color.hex;
+
+    // Border pour les couleurs claires
+    if (isLightColor(color.hex)) {
+      swatch.classList.add('light');
+    }
+
+    swatch.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      selectTextColor(color.hex);
+    });
+
+    container.appendChild(swatch);
+  });
+}
+
+function isLightColor(hex) {
+  // Convertir hex en RGB et calculer luminosité
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.8;
+}
+
+function renderModalColorSwatches(modal) {
+  const container = modal.querySelector('#modalColorSwatches');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (state.textColors.length === 0) {
+    container.innerHTML = '<span class="ps-color-swatches-empty">Aucune couleur</span>';
+    return;
+  }
+
+  state.textColors.forEach(color => {
+    const swatch = document.createElement('button');
+    swatch.type = 'button';
+    swatch.className = 'ps-color-swatch' + (color.hex === state.textSettings.color ? ' active' : '');
+    swatch.style.backgroundColor = color.hex;
+    swatch.title = color.label;
+    swatch.dataset.color = color.hex;
+
+    if (isLightColor(color.hex)) {
+      swatch.classList.add('light');
+    }
+
+    swatch.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      selectTextColor(color.hex);
+    });
+
+    container.appendChild(swatch);
+  });
+}
+
+function applyFontToActiveLayer(fontFamily, fontId) {
+  const layer = getActiveTextLayer();
+  if (!layer) return;
+
+  layer.fontFamily = fontFamily;
+  layer.fontId = fontId;
+
+  const div = $(`.ps-layer[data-layer-id="${layer.id}"]`);
+  if (div) {
+    div.style.fontFamily = fontFamily;
+  }
+}
+
+function selectTextColor(hex) {
+  state.textSettings.color = hex;
+
+  // Mettre à jour les swatches (desktop)
+  $$('#colorSwatches .ps-color-swatch').forEach(sw => {
+    sw.classList.toggle('active', sw.dataset.color === hex);
+  });
+
+  // Mettre à jour les swatches (mobile modal)
+  $$('#modalColorSwatches .ps-color-swatch').forEach(sw => {
+    sw.classList.toggle('active', sw.dataset.color === hex);
+  });
+
+  // Appliquer au calque texte actif si existant
+  const layer = getActiveTextLayer();
+  if (layer) {
+    layer.color = hex;
+    const div = $(`.ps-layer[data-layer-id="${layer.id}"]`);
+    if (div) {
+      div.style.color = hex;
+    }
+  }
+}
+
 function closeAllSelectors() {
   $$('.ps-custom-select.open').forEach(sel => sel.classList.remove('open'));
 }
@@ -724,17 +863,18 @@ function createTextModal() {
         </button>
       </div>
 
-      <div class="ps-form-row">
-        <div class="ps-form-group ps-form-group-flex">
-          <label class="ps-label">Taille</label>
-          <div class="ps-range-wrapper">
-            <input type="range" class="ps-range" id="modalFontSize" min="12" max="72" value="24">
-            <span class="ps-range-value" id="modalFontSizeValue">24px</span>
-          </div>
+      <div class="ps-form-group">
+        <label class="ps-label">Taille</label>
+        <div class="ps-range-wrapper">
+          <input type="range" class="ps-range" id="modalFontSize" min="12" max="72" value="24">
+          <span class="ps-range-value" id="modalFontSizeValue">24px</span>
         </div>
-        <div class="ps-form-group ps-form-group-color">
-          <label class="ps-label">Couleur</label>
-          <input type="color" class="ps-color-input ps-color-input-lg" id="modalTextColor" value="#000000">
+      </div>
+
+      <div class="ps-form-group">
+        <label class="ps-label">Couleur</label>
+        <div class="ps-color-swatches" id="modalColorSwatches">
+          <!-- Couleurs générées dynamiquement -->
         </div>
       </div>
 
@@ -843,10 +983,8 @@ function createTextModal() {
     fontSizeValue.textContent = e.target.value + 'px';
   });
 
-  // Couleur
-  modal.querySelector('#modalTextColor').addEventListener('input', (e) => {
-    state.textSettings.color = e.target.value;
-  });
+  // Couleur - Swatches (rendues dans syncTextModalState)
+  renderModalColorSwatches(modal);
 
   // Alignement
   modal.querySelectorAll('.ps-align-btn').forEach(btn => {
@@ -949,14 +1087,17 @@ function syncTextModalState() {
   const fontBtn = textModalInstance.querySelector('#modalFontBtn .ps-selector-text');
   const fontSize = textModalInstance.querySelector('#modalFontSize');
   const fontSizeValue = textModalInstance.querySelector('#modalFontSizeValue');
-  const textColor = textModalInstance.querySelector('#modalTextColor');
   const alignBtns = textModalInstance.querySelectorAll('.ps-align-btn');
   const techniqueBtn = textModalInstance.querySelector('#modalTechniqueBtn .ps-selector-text');
 
   textInput.value = state.textSettings.text || '';
   fontSize.value = state.textSettings.fontSize;
   fontSizeValue.textContent = state.textSettings.fontSize + 'px';
-  textColor.value = state.textSettings.color;
+
+  // Couleur - Sync swatches
+  textModalInstance.querySelectorAll('#modalColorSwatches .ps-color-swatch').forEach(sw => {
+    sw.classList.toggle('active', sw.dataset.color === state.textSettings.color);
+  });
 
   // Police
   const currentFont = state.fonts.find(f => f.family === state.textSettings.fontFamily);
@@ -1070,6 +1211,9 @@ function createFontModal() {
         state.textSettings.fontFamily = font.family;
         state.textSettings.fontId = font.id;
         syncTextModalState();
+
+        // Appliquer au calque texte actif si existant
+        applyFontToActiveLayer(font.family, font.id);
       }
     }
     closeFontModal();
@@ -2029,10 +2173,11 @@ function initAddToCart() {
 // INIT
 // ============================================
 async function init() {
-  // Charger les données depuis l'API (produit + assets en parallèle)
-  const [productLoaded, assetsLoaded] = await Promise.all([
+  // Charger les données depuis l'API (produit + assets + couleurs en parallèle)
+  const [productLoaded, assetsLoaded, colorsLoaded] = await Promise.all([
     loadProductData(),
-    loadAssetsData()
+    loadAssetsData(),
+    loadTextColorsData()
   ]);
 
   if (!productLoaded) {

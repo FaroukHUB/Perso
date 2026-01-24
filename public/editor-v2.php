@@ -137,14 +137,15 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
                     </div>
                 </div>
 
-                <div class="ps-inline-group">
-                    <div class="ps-form-group">
-                        <label class="ps-label">Taille</label>
-                        <input type="range" class="ps-range" id="fontSize" min="12" max="72" value="24">
-                    </div>
-                    <div class="ps-form-group">
-                        <label class="ps-label">Couleur</label>
-                        <input type="color" class="ps-color-input" id="textColor" value="#000000">
+                <div class="ps-form-group">
+                    <label class="ps-label">Taille</label>
+                    <input type="range" class="ps-range" id="fontSize" min="12" max="72" value="24">
+                </div>
+
+                <div class="ps-form-group">
+                    <label class="ps-label">Couleur</label>
+                    <div class="ps-color-swatches" id="colorSwatches">
+                        <!-- Couleurs générées dynamiquement depuis l'API -->
                     </div>
                 </div>
 
