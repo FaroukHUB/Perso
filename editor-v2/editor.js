@@ -605,6 +605,57 @@ function initDesktopTextControls() {
       addTextLayer();
     });
   }
+
+  // === Contrôles du texte actif (desktop) ===
+  const controls = $('#textLayerControls');
+  if (controls) {
+    // Supprimer
+    controls.querySelector('[data-action="delete"]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      deleteActiveTextLayer();
+    });
+
+    // Gras
+    controls.querySelector('[data-action="bold"]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleBold();
+    });
+
+    // Italique
+    controls.querySelector('[data-action="italic"]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleItalic();
+    });
+
+    // Dimensions
+    controls.querySelector('[data-action="decrease"]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      decreaseSize();
+    });
+
+    controls.querySelector('[data-action="increase"]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      increaseSize();
+    });
+
+    // Rotation
+    const rotationSlider = controls.querySelector('#rotationSlider');
+    const rotationValue = controls.querySelector('#rotationValue');
+    if (rotationSlider) {
+      rotationSlider.addEventListener('input', (e) => {
+        setRotation(e.target.value);
+        if (rotationValue) rotationValue.textContent = e.target.value + '°';
+      });
+    }
+
+    // Déplacer
+    controls.querySelectorAll('.ps-move-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        nudgeLayer(btn.dataset.direction);
+      });
+    });
+  }
 }
 
 function closeAllSelectors() {
@@ -709,6 +760,55 @@ function createTextModal() {
           <span class="ps-selector-arrow">›</span>
         </button>
       </div>
+
+      <!-- Contrôles du texte actif (mobile) -->
+      <div class="ps-text-controls disabled" id="modalTextLayerControls">
+        <div class="ps-text-controls-header">
+          <span class="ps-text-controls-title">Modifier le texte</span>
+          <button class="ps-btn-delete" data-action="delete" title="Supprimer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="ps-text-controls-row">
+          <div class="ps-text-controls-group">
+            <label class="ps-label">Style</label>
+            <div class="ps-style-btns">
+              <button class="ps-style-btn" data-action="bold" title="Gras">B</button>
+              <button class="ps-style-btn" data-action="italic" title="Italique"><i>I</i></button>
+            </div>
+          </div>
+          <div class="ps-text-controls-group">
+            <label class="ps-label">Dimensions</label>
+            <div class="ps-size-btns">
+              <button class="ps-size-btn" data-action="decrease" title="Réduire">−</button>
+              <button class="ps-size-btn" data-action="increase" title="Agrandir">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ps-text-controls-group">
+          <label class="ps-label">Rotation <span id="modalRotationValue">0°</span></label>
+          <input type="range" class="ps-range" id="modalRotationSlider" min="-180" max="180" value="0">
+        </div>
+
+        <div class="ps-text-controls-group">
+          <label class="ps-label">Déplacer</label>
+          <div class="ps-move-grid">
+            <button class="ps-move-btn" data-direction="up" title="Haut">↑</button>
+            <button class="ps-move-btn" data-direction="left" title="Gauche">←</button>
+            <button class="ps-move-btn" data-direction="right" title="Droite">→</button>
+            <button class="ps-move-btn" data-direction="down" title="Bas">↓</button>
+          </div>
+        </div>
+
+        <div class="ps-text-controls-empty">
+          <span>Sélectionnez un texte pour le modifier</span>
+        </div>
+      </div>
     </div>
     <div class="ps-fullscreen-modal-footer">
       <button class="ps-btn ps-btn-primary ps-btn-block ps-btn-lg" id="modalBtnAddText">
@@ -780,6 +880,64 @@ function createTextModal() {
     addTextLayer();
     closeTextModal();
   });
+
+  // === Contrôles du texte actif (mobile modal) ===
+  const controls = modal.querySelector('#modalTextLayerControls');
+  if (controls) {
+    // Supprimer
+    controls.querySelector('[data-action="delete"]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      deleteActiveTextLayer();
+    });
+
+    // Gras
+    controls.querySelector('[data-action="bold"]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleBold();
+    });
+
+    // Italique
+    controls.querySelector('[data-action="italic"]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleItalic();
+    });
+
+    // Dimensions
+    controls.querySelector('[data-action="decrease"]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      decreaseSize();
+    });
+
+    controls.querySelector('[data-action="increase"]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      increaseSize();
+    });
+
+    // Rotation
+    const rotationSlider = controls.querySelector('#modalRotationSlider');
+    const rotationValue = controls.querySelector('#modalRotationValue');
+    if (rotationSlider) {
+      rotationSlider.addEventListener('input', (e) => {
+        e.stopPropagation();
+        setRotation(e.target.value);
+        if (rotationValue) rotationValue.textContent = e.target.value + '°';
+      });
+    }
+
+    // Déplacer
+    controls.querySelectorAll('.ps-move-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        nudgeLayer(btn.dataset.direction);
+      });
+    });
+  }
 
   return modal;
 }
@@ -1329,6 +1487,10 @@ function addTextLayer() {
     fontSize: state.textSettings.fontSize,
     color: state.textSettings.color,
     align: state.textSettings.align,
+    fontWeight: '400',
+    fontStyle: 'normal',
+    rotation: 0,
+    scale: 1,
     x: 50,
     y: 50
   };
@@ -1338,6 +1500,7 @@ function addTextLayer() {
   setActiveLayer(layer.id);
   updateLayersList();
   updatePrice();
+  updateTextControlsState();
 
   // Reset
   state.textSettings.text = '';
@@ -1352,16 +1515,25 @@ function renderLayer(layer) {
   div.dataset.layerId = layer.id;
   div.style.left = layer.x + '%';
   div.style.top = layer.y + '%';
-  div.style.transform = 'translate(-50%, -50%)';
 
   if (layer.type === 'text') {
     div.classList.add('ps-layer-text');
     div.textContent = layer.text;
     div.style.fontFamily = layer.fontFamily;
-    div.style.fontSize = layer.fontSize + 'px';
+    div.style.fontSize = (layer.fontSize * (layer.scale || 1)) + 'px';
     div.style.color = layer.color;
     div.style.textAlign = layer.align;
+    div.style.fontWeight = layer.fontWeight || '400';
+    div.style.fontStyle = layer.fontStyle || 'normal';
+    const rotation = layer.rotation || 0;
+    div.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
   } else if (layer.type === 'design' || layer.type === 'element') {
+    div.style.transform = 'translate(-50%, -50%)';
+  } else {
+    div.style.transform = 'translate(-50%, -50%)';
+  }
+
+  if (layer.type === 'design' || layer.type === 'element') {
     div.classList.add('ps-layer-image');
     if (layer.image) {
       div.innerHTML = `<img src="${layer.image}" alt="${layer.name}" draggable="false">`;
@@ -1418,6 +1590,146 @@ function setActiveLayer(layerId) {
       align: layer.align
     };
   }
+
+  updateTextControlsState();
+}
+
+// ============================================
+// TEXT LAYER CONTROLS
+// ============================================
+function getActiveTextLayer() {
+  if (!state.activeLayerId) return null;
+  const layer = state.layers.find(l => l.id === state.activeLayerId);
+  return (layer && layer.type === 'text') ? layer : null;
+}
+
+function updateActiveTextLayerDOM(layer) {
+  const div = $(`.ps-layer[data-layer-id="${layer.id}"]`);
+  if (!div) return;
+
+  div.style.fontSize = (layer.fontSize * (layer.scale || 1)) + 'px';
+  div.style.fontWeight = layer.fontWeight || '400';
+  div.style.fontStyle = layer.fontStyle || 'normal';
+  const rotation = layer.rotation || 0;
+  div.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+  div.style.left = layer.x + '%';
+  div.style.top = layer.y + '%';
+}
+
+function updateTextControlsState() {
+  const layer = getActiveTextLayer();
+  const hasTextLayer = !!layer;
+
+  // Update desktop controls
+  const desktopControls = $('#textLayerControls');
+  if (desktopControls) {
+    desktopControls.classList.toggle('disabled', !hasTextLayer);
+
+    if (hasTextLayer) {
+      const boldBtn = desktopControls.querySelector('[data-action="bold"]');
+      const italicBtn = desktopControls.querySelector('[data-action="italic"]');
+      const rotationSlider = desktopControls.querySelector('#rotationSlider');
+      const rotationValue = desktopControls.querySelector('#rotationValue');
+
+      if (boldBtn) boldBtn.classList.toggle('active', layer.fontWeight === '700');
+      if (italicBtn) italicBtn.classList.toggle('active', layer.fontStyle === 'italic');
+      if (rotationSlider) rotationSlider.value = layer.rotation || 0;
+      if (rotationValue) rotationValue.textContent = (layer.rotation || 0) + '°';
+    }
+  }
+
+  // Update mobile modal controls
+  const modalControls = $('#modalTextLayerControls');
+  if (modalControls) {
+    modalControls.classList.toggle('disabled', !hasTextLayer);
+
+    if (hasTextLayer) {
+      const boldBtn = modalControls.querySelector('[data-action="bold"]');
+      const italicBtn = modalControls.querySelector('[data-action="italic"]');
+      const rotationSlider = modalControls.querySelector('#modalRotationSlider');
+      const rotationValue = modalControls.querySelector('#modalRotationValue');
+
+      if (boldBtn) boldBtn.classList.toggle('active', layer.fontWeight === '700');
+      if (italicBtn) italicBtn.classList.toggle('active', layer.fontStyle === 'italic');
+      if (rotationSlider) rotationSlider.value = layer.rotation || 0;
+      if (rotationValue) rotationValue.textContent = (layer.rotation || 0) + '°';
+    }
+  }
+}
+
+function toggleBold() {
+  const layer = getActiveTextLayer();
+  if (!layer) return;
+
+  layer.fontWeight = layer.fontWeight === '700' ? '400' : '700';
+  updateActiveTextLayerDOM(layer);
+  updateTextControlsState();
+}
+
+function toggleItalic() {
+  const layer = getActiveTextLayer();
+  if (!layer) return;
+
+  layer.fontStyle = layer.fontStyle === 'italic' ? 'normal' : 'italic';
+  updateActiveTextLayerDOM(layer);
+  updateTextControlsState();
+}
+
+function increaseSize() {
+  const layer = getActiveTextLayer();
+  if (!layer) return;
+
+  layer.scale = Math.min(3, (layer.scale || 1) + 0.1);
+  updateActiveTextLayerDOM(layer);
+}
+
+function decreaseSize() {
+  const layer = getActiveTextLayer();
+  if (!layer) return;
+
+  layer.scale = Math.max(0.3, (layer.scale || 1) - 0.1);
+  updateActiveTextLayerDOM(layer);
+}
+
+function setRotation(angle) {
+  const layer = getActiveTextLayer();
+  if (!layer) return;
+
+  layer.rotation = Math.max(-180, Math.min(180, parseInt(angle) || 0));
+  updateActiveTextLayerDOM(layer);
+  updateTextControlsState();
+}
+
+function nudgeLayer(direction) {
+  const layer = getActiveTextLayer();
+  if (!layer) return;
+
+  const step = 2; // 2% de la print-area
+
+  switch (direction) {
+    case 'left':
+      layer.x = Math.max(0, layer.x - step);
+      break;
+    case 'right':
+      layer.x = Math.min(100, layer.x + step);
+      break;
+    case 'up':
+      layer.y = Math.max(0, layer.y - step);
+      break;
+    case 'down':
+      layer.y = Math.min(100, layer.y + step);
+      break;
+  }
+
+  updateActiveTextLayerDOM(layer);
+}
+
+function deleteActiveTextLayer() {
+  const layer = getActiveTextLayer();
+  if (!layer) return;
+
+  removeLayer(layer.id);
+  updateTextControlsState();
 }
 
 function removeLayer(layerId) {
