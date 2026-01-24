@@ -475,8 +475,9 @@ function initDesktopFontSelector() {
   } else {
     state.fonts.forEach(font => {
       const option = document.createElement('div');
-      option.className = 'ps-select-option';
+      option.className = 'ps-select-option ps-font-option';
       option.dataset.value = font.family;
+      // Nom de la police rendu avec sa propre typographie (UX premium)
       option.innerHTML = `<span style="font-family: '${font.family}', sans-serif;">${font.label}</span>`;
 
       option.addEventListener('click', (e) => {
