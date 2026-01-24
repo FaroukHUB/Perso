@@ -252,18 +252,9 @@ function renderProductInfo() {
 }
 
 function loadFontCSS() {
-  // Charger les CSS des polices depuis l'API
+  // Injecter les <link> CSS des polices depuis l'API admin
   state.fonts.forEach(font => {
-    if (font.css_url && !document.querySelector(`link[href="${font.css_url}"]`)) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = font.css_url;
-      link.crossOrigin = 'anonymous';
-      document.head.appendChild(link);
-
-      // Log pour debug
-      console.info(`[Editor] Police chargée: ${font.label} (${font.family})`);
-    }
+    injectFontLink(font);
   });
 
   // Définir la police par défaut
@@ -271,6 +262,50 @@ function loadFontCSS() {
     state.textSettings.fontFamily = state.fonts[0].family;
     state.textSettings.fontId = state.fonts[0].id;
   }
+}
+
+/**
+ * Injecte le <link> Google Fonts pour une police (étape A)
+ */
+function injectFontLink(font) {
+  if (!font.css_url) return;
+
+  // Vérifier si déjà injecté via data-font
+  if (document.querySelector(`link[data-font="${font.family}"]`)) {
+    return;
+  }
+
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = font.css_url;
+  link.dataset.font = font.family; // Important pour éviter les doublons
+  link.crossOrigin = 'anonymous';
+  document.head.appendChild(link);
+
+  console.info(`[Editor] CSS Police injectée: ${font.label} (${font.family})`);
+}
+
+/**
+ * Assure qu'une police est chargée et prête à être utilisée
+ * Suit les 3 étapes obligatoires:
+ * A. Injecter le <link> (si pas déjà fait)
+ * B. Attendre le chargement réel
+ * C. Retourner la famille pour application inline
+ */
+async function ensureFontLoaded(font) {
+  // A. Injecter le <link> si nécessaire
+  injectFontLink(font);
+
+  // B. Attendre le chargement réel
+  try {
+    await document.fonts.load(`400 20px "${font.family}"`);
+    await document.fonts.ready;
+  } catch (e) {
+    console.warn(`[Editor] Erreur chargement police ${font.family}:`, e);
+  }
+
+  // C. Retourner la famille pour application inline
+  return font.family;
 }
 
 function renderPrintZone() {
@@ -479,19 +514,9 @@ function initDesktopFontSelector() {
       dropdown.innerHTML = '<div class="ps-fonts-loading">Chargement des polices...</div>';
       selector.classList.add('open');
 
-      // Charger explicitement chaque police
+      // Charger TOUTES les polices (A + B pour chaque)
       try {
-        const fontLoadPromises = state.fonts.map(async font => {
-          if (font.css_url) {
-            try {
-              await document.fonts.load(`400 20px "${font.family}"`);
-            } catch (e) {
-              // Ignorer erreurs individuelles
-            }
-          }
-        });
-        await Promise.all(fontLoadPromises);
-        await document.fonts.ready;
+        await Promise.all(state.fonts.map(font => ensureFontLoaded(font)));
       } catch (e) {
         console.warn('[Editor] Erreur chargement polices:', e);
       }
@@ -530,15 +555,18 @@ function renderDesktopFontDropdown(dropdown, textSpan, selector) {
       option.classList.add('selected');
     }
 
-    // Nom de la police rendu avec sa propre typographie (UX premium)
-    option.innerHTML = `<span style="font-family: '${font.family}', sans-serif;">${font.label}</span>`;
+    // C. Forcer l'application inline - NOM de la police avec SA police
+    const span = document.createElement('span');
+    span.textContent = font.label;
+    span.style.fontFamily = `"${font.family}", sans-serif`;
+    option.appendChild(span);
 
     option.addEventListener('click', (e) => {
       e.stopPropagation();
       state.textSettings.fontFamily = font.family;
       state.textSettings.fontId = font.id;
       textSpan.textContent = font.label;
-      textSpan.style.fontFamily = `'${font.family}', sans-serif`;
+      textSpan.style.fontFamily = `"${font.family}", sans-serif`;
       selector.classList.remove('open');
       updateFontOptions(font.family);
 
@@ -1176,22 +1204,9 @@ async function openFontModal() {
   list.innerHTML = '<div class="ps-fonts-loading">Chargement des polices...</div>';
   fontModalInstance.classList.add('open');
 
-  // Charger explicitement chaque police avant de rendre la liste
+  // Charger TOUTES les polices (A + B pour chaque)
   try {
-    const fontLoadPromises = state.fonts.map(async font => {
-      if (font.css_url) {
-        try {
-          // Forcer le chargement de la police avec document.fonts.load()
-          await document.fonts.load(`400 24px "${font.family}"`);
-        } catch (e) {
-          // Ignorer les erreurs individuelles (police peut ne pas exister)
-        }
-      }
-    });
-
-    await Promise.all(fontLoadPromises);
-    // Attendre aussi document.fonts.ready pour être sûr
-    await document.fonts.ready;
+    await Promise.all(state.fonts.map(font => ensureFontLoaded(font)));
   } catch (e) {
     console.warn('[Editor] Erreur chargement polices:', e);
   }
@@ -1269,13 +1284,22 @@ function renderFontModalList() {
     item.type = 'button';
     item.className = 'ps-selection-item ps-font-item' + (font.family === fontModalTempSelection ? ' selected' : '');
 
-    // Preview = nom de la police rendu AVEC cette police + fallback
-    item.innerHTML = `
-      <div class="ps-selection-item-content">
-        <div class="ps-font-preview" style="font-family: '${font.family}', sans-serif;">${font.label}</div>
-      </div>
-      <div class="ps-selection-item-check"></div>
-    `;
+    // Structure DOM
+    const content = document.createElement('div');
+    content.className = 'ps-selection-item-content';
+
+    // C. Forcer l'application inline - NOM de la police avec SA police
+    const preview = document.createElement('div');
+    preview.className = 'ps-font-preview';
+    preview.textContent = font.label;
+    preview.style.fontFamily = `"${font.family}", sans-serif`;
+    content.appendChild(preview);
+
+    const check = document.createElement('div');
+    check.className = 'ps-selection-item-check';
+
+    item.appendChild(content);
+    item.appendChild(check);
 
     item.addEventListener('click', (e) => {
       e.preventDefault();
