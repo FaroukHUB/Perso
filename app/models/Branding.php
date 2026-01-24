@@ -46,15 +46,35 @@ class Branding
     // =========================================
 
     /**
+     * Verifie si la table branding_settings existe
+     */
+    public function tableExists(): bool
+    {
+        try {
+            $stmt = $this->db->query("SHOW TABLES LIKE 'branding_settings'");
+            return $stmt->rowCount() > 0;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
      * Recupere la config globale (client_id = NULL)
      */
     public function findGlobal(): ?array
     {
-        $stmt = $this->db->query(
-            'SELECT * FROM branding_settings WHERE client_id IS NULL LIMIT 1'
-        );
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ?: null;
+        if (!$this->tableExists()) {
+            return null;
+        }
+        try {
+            $stmt = $this->db->query(
+                'SELECT * FROM branding_settings WHERE client_id IS NULL LIMIT 1'
+            );
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ?: null;
+        } catch (Exception $e) {
+            return null;
+        }
     }
 
     /**

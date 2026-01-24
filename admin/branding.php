@@ -18,16 +18,19 @@ $brandingModel = new Branding();
 
 $success = '';
 $error = '';
+$tableExists = $brandingModel->tableExists();
 
 // Client ID (null = global config)
 $clientId = isset($_GET['client_id']) ? (int)$_GET['client_id'] : null;
 
-// Charger la config actuelle
+// Charger la config actuelle (utilise defaults si table n'existe pas)
 $config = $brandingModel->resolveBranding($clientId);
 
 // Traitement du formulaire
 if (isPost() && isset($_POST['save_branding'])) {
-    if (verifyCsrf($_POST['csrf_token'] ?? '')) {
+    if (!$tableExists) {
+        $error = 'La table branding_settings n\'existe pas. Exécutez la migration SQL d\'abord.';
+    } elseif (verifyCsrf($_POST['csrf_token'] ?? '')) {
         $data = [
             'font_primary' => post('font_primary', ''),
             'font_primary_url' => post('font_primary_url', ''),
@@ -123,6 +126,15 @@ $shadowOptions = [
 
             <?php if ($error): ?>
                 <div class="alert alert-error"><?= h($error) ?></div>
+            <?php endif; ?>
+
+            <?php if (!$tableExists): ?>
+                <div class="alert alert-warning">
+                    <strong>Migration requise</strong><br>
+                    La table <code>branding_settings</code> n'existe pas encore.
+                    Exécutez le fichier <code>sql/migrate_branding.sql</code> dans phpMyAdmin pour activer cette fonctionnalité.
+                    <br><small>En attendant, les valeurs par défaut sont affichées.</small>
+                </div>
             <?php endif; ?>
 
             <form method="post" class="branding-form">
@@ -436,6 +448,8 @@ $shadowOptions = [
         .alert { padding: 16px 20px; border-radius: var(--radius-md); margin-bottom: var(--spacing-lg); font-weight: 500; }
         .alert-success { background: rgba(61, 255, 192, 0.15); color: var(--mint-dark); border-left: 4px solid var(--mint-main); }
         .alert-error { background: rgba(255, 105, 180, 0.15); color: var(--pink-dark); border-left: 4px solid var(--pink-main); }
+        .alert-warning { background: rgba(245, 158, 11, 0.15); color: #92400e; border-left: 4px solid #F59E0B; }
+        .alert-warning code { background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
 
         .branding-form { display: flex; flex-direction: column; gap: var(--spacing-lg); }
         .card-body { padding: var(--spacing-lg); }

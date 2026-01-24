@@ -175,6 +175,13 @@ if (isPost()) {
         }
         $data['items'] = $items;
 
+        // Style visuel de la section
+        $data['config']['style'] = [
+            'background_color' => !empty($_POST['style_bg_color']) ? $_POST['style_bg_color'] : null,
+            'text_color' => !empty($_POST['style_text_color']) ? $_POST['style_text_color'] : null,
+            'padding_y' => $_POST['style_padding_y'] ?? 'medium',
+        ];
+
         try {
             if ($isEdit) {
                 $sectionModel->update($sectionId, $data);
@@ -399,6 +406,60 @@ if ($section && !empty($section['config']['products_limit'])) {
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Style visuel de la section -->
+                    <?php
+                    $sectionStyle = $section['config']['style'] ?? [];
+                    $styleBgColor = $sectionStyle['background_color'] ?? '#FFFFFF';
+                    $styleTextColor = $sectionStyle['text_color'] ?? '';
+                    $stylePaddingY = $sectionStyle['padding_y'] ?? 'medium';
+                    ?>
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Style visuel</h3>
+                        </div>
+                        <div class="data-card-body">
+                            <div class="style-fields-row">
+                                <div class="form-group">
+                                    <label for="style_bg_color">Couleur de fond</label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="style_bg_color" id="style_bg_color"
+                                               value="<?= h($styleBgColor) ?>">
+                                        <input type="text" class="color-hex" id="style_bg_color_hex"
+                                               value="<?= h($styleBgColor) ?>" placeholder="#FFFFFF">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="style_text_color">Couleur du texte (optionnel)</label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="style_text_color" id="style_text_color"
+                                               value="<?= h($styleTextColor ?: '#1F2937') ?>">
+                                        <input type="text" class="color-hex" id="style_text_color_hex"
+                                               value="<?= h($styleTextColor) ?>" placeholder="Auto">
+                                        <button type="button" class="btn-clear-color" onclick="clearTextColor()" title="Réinitialiser">×</button>
+                                    </div>
+                                    <small class="form-hint">Laissez vide pour utiliser la couleur par défaut</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="style_padding_y">Espacement vertical</label>
+                                    <select name="style_padding_y" id="style_padding_y">
+                                        <option value="none" <?= $stylePaddingY === 'none' ? 'selected' : '' ?>>Aucun</option>
+                                        <option value="small" <?= $stylePaddingY === 'small' ? 'selected' : '' ?>>Petit (2rem)</option>
+                                        <option value="medium" <?= $stylePaddingY === 'medium' ? 'selected' : '' ?>>Moyen (4rem)</option>
+                                        <option value="large" <?= $stylePaddingY === 'large' ? 'selected' : '' ?>>Grand (6rem)</option>
+                                        <option value="xlarge" <?= $stylePaddingY === 'xlarge' ? 'selected' : '' ?>>Très grand (8rem)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- Mini preview -->
+                            <div class="section-style-preview" id="sectionStylePreview"
+                                 style="background-color: <?= h($styleBgColor) ?>;">
+                                <span style="<?= $styleTextColor ? 'color:' . h($styleTextColor) : '' ?>">
+                                    Aperçu du style de la section
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -916,6 +977,56 @@ if ($section && !empty($section['config']['products_limit'])) {
             font-size: 12px;
             line-height: 1;
         }
+        /* Style visuel section */
+        .style-fields-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .style-fields-row { grid-template-columns: 1fr; }
+        }
+        .color-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .color-input-row input[type="color"] {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+        }
+        .color-input-row .color-hex {
+            flex: 1;
+            width: auto;
+            font-family: monospace;
+            text-transform: uppercase;
+        }
+        .btn-clear-color {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--radius-md);
+            background: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--gray);
+        }
+        .btn-clear-color:hover {
+            background: var(--gray-light);
+            color: var(--pink-main);
+        }
+        .section-style-preview {
+            margin-top: 20px;
+            padding: 30px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            font-weight: 500;
+            border: 1px solid var(--gray-light);
+        }
     </style>
 
     <script>
@@ -1220,6 +1331,48 @@ if ($section && !empty($section['config']['products_limit'])) {
                 // L'ordre des inputs détermine l'ordre final
             }
         });
+    }
+
+    // === Style visuel section ===
+    // Sync color pickers avec hex inputs
+    document.getElementById('style_bg_color').addEventListener('input', function() {
+        document.getElementById('style_bg_color_hex').value = this.value.toUpperCase();
+        updateStylePreview();
+    });
+    document.getElementById('style_bg_color_hex').addEventListener('input', function() {
+        let val = this.value.trim();
+        if (!val.startsWith('#')) val = '#' + val;
+        if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+            document.getElementById('style_bg_color').value = val;
+            updateStylePreview();
+        }
+    });
+    document.getElementById('style_text_color').addEventListener('input', function() {
+        document.getElementById('style_text_color_hex').value = this.value.toUpperCase();
+        updateStylePreview();
+    });
+    document.getElementById('style_text_color_hex').addEventListener('input', function() {
+        let val = this.value.trim();
+        if (!val.startsWith('#')) val = '#' + val;
+        if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+            document.getElementById('style_text_color').value = val;
+            updateStylePreview();
+        }
+    });
+
+    function clearTextColor() {
+        document.getElementById('style_text_color_hex').value = '';
+        updateStylePreview();
+    }
+
+    function updateStylePreview() {
+        const preview = document.getElementById('sectionStylePreview');
+        const bgColor = document.getElementById('style_bg_color').value;
+        const textColorHex = document.getElementById('style_text_color_hex').value;
+
+        preview.style.backgroundColor = bgColor;
+        const textSpan = preview.querySelector('span');
+        textSpan.style.color = textColorHex || '';
     }
     </script>
 </body>
