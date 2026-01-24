@@ -338,6 +338,8 @@ function initDesktopPanels() {
   // Remplir les panels designs et éléments pour desktop
   renderDesktopDesignsPanel();
   renderDesktopElementsPanel();
+  // Initialiser les sélecteurs inline (polices, techniques, contrôles texte)
+  initDesktopSelectors();
 }
 
 function renderDesktopDesignsPanel() {
@@ -413,6 +415,206 @@ function renderDesktopElementsPanel() {
     });
   });
 }
+
+// ============================================
+// DESKTOP: Sélecteurs inline (Police / Technique)
+// ============================================
+function initDesktopSelectors() {
+  initDesktopFontSelector();
+  initDesktopTechniqueSelector();
+  initDesktopTextControls();
+}
+
+function initDesktopFontSelector() {
+  const selector = els.fontSelector;
+  if (!selector) return;
+
+  const trigger = selector.querySelector('.ps-custom-select-trigger');
+  const textSpan = selector.querySelector('.ps-custom-select-text');
+
+  // Créer le dropdown
+  let dropdown = selector.querySelector('.ps-custom-select-dropdown');
+  if (!dropdown) {
+    dropdown = document.createElement('div');
+    dropdown.className = 'ps-custom-select-dropdown';
+    selector.appendChild(dropdown);
+  }
+
+  // Remplir avec les polices de l'API
+  dropdown.innerHTML = '';
+
+  if (state.fonts.length === 0) {
+    dropdown.innerHTML = '<div class="ps-select-empty">Aucune police disponible</div>';
+  } else {
+    state.fonts.forEach(font => {
+      const option = document.createElement('div');
+      option.className = 'ps-select-option';
+      option.dataset.value = font.family;
+      option.innerHTML = `<span style="font-family: '${font.family}', sans-serif;">${font.label}</span>`;
+
+      option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state.textSettings.fontFamily = font.family;
+        state.textSettings.fontId = font.id;
+        textSpan.textContent = font.label;
+        textSpan.style.fontFamily = `'${font.family}', sans-serif`;
+        selector.classList.remove('open');
+        updateFontOptions(font.family);
+      });
+
+      dropdown.appendChild(option);
+    });
+  }
+
+  // Toggle dropdown
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeAllSelectors();
+    selector.classList.toggle('open');
+  });
+
+  // Initialiser avec la première police
+  if (state.fonts.length > 0) {
+    const defaultFont = state.fonts[0];
+    textSpan.textContent = defaultFont.label;
+    textSpan.style.fontFamily = `'${defaultFont.family}', sans-serif`;
+    updateFontOptions(defaultFont.family);
+  }
+}
+
+function updateFontOptions(selectedFamily) {
+  const dropdown = els.fontSelector?.querySelector('.ps-custom-select-dropdown');
+  if (!dropdown) return;
+
+  dropdown.querySelectorAll('.ps-select-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.value === selectedFamily);
+  });
+}
+
+function initDesktopTechniqueSelector() {
+  const selector = els.techniqueSelector;
+  if (!selector) return;
+
+  const trigger = selector.querySelector('.ps-custom-select-trigger');
+  const textSpan = selector.querySelector('.ps-custom-select-text');
+
+  // Créer le dropdown
+  let dropdown = selector.querySelector('.ps-custom-select-dropdown');
+  if (!dropdown) {
+    dropdown = document.createElement('div');
+    dropdown.className = 'ps-custom-select-dropdown';
+    selector.appendChild(dropdown);
+  }
+
+  // Remplir avec les techniques de l'API
+  dropdown.innerHTML = '';
+
+  if (state.techniques.length === 0) {
+    dropdown.innerHTML = '<div class="ps-select-empty">Aucune technique disponible</div>';
+  } else {
+    state.techniques.forEach(tech => {
+      const option = document.createElement('div');
+      option.className = 'ps-select-option';
+      option.dataset.value = tech.value;
+
+      const priceLabel = tech.price > 0 ? `<span class="ps-select-price">+${formatPrice(tech.price)}</span>` : '<span class="ps-select-price included">Inclus</span>';
+      option.innerHTML = `
+        <div class="ps-select-option-content">
+          <span class="ps-select-option-label">${tech.label}</span>
+          ${tech.description ? `<span class="ps-select-option-desc">${tech.description}</span>` : ''}
+        </div>
+        ${priceLabel}
+      `;
+
+      option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state.currentTechnique = tech.value;
+        const displayPrice = tech.price > 0 ? ` (+${formatPrice(tech.price)})` : '';
+        textSpan.textContent = tech.label + displayPrice;
+        selector.classList.remove('open');
+        updateTechniqueOptions(tech.value);
+        updatePrice();
+      });
+
+      dropdown.appendChild(option);
+    });
+  }
+
+  // Toggle dropdown
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeAllSelectors();
+    selector.classList.toggle('open');
+  });
+
+  // Initialiser avec la première technique
+  if (state.techniques.length > 0) {
+    const defaultTech = state.techniques[0];
+    const displayPrice = defaultTech.price > 0 ? ` (+${formatPrice(defaultTech.price)})` : '';
+    textSpan.textContent = defaultTech.label + displayPrice;
+    updateTechniqueOptions(defaultTech.value);
+  }
+}
+
+function updateTechniqueOptions(selectedValue) {
+  const dropdown = els.techniqueSelector?.querySelector('.ps-custom-select-dropdown');
+  if (!dropdown) return;
+
+  dropdown.querySelectorAll('.ps-select-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.value === selectedValue);
+  });
+}
+
+function initDesktopTextControls() {
+  // Input texte
+  if (els.textInput) {
+    els.textInput.addEventListener('input', (e) => {
+      state.textSettings.text = e.target.value;
+    });
+  }
+
+  // Taille police
+  if (els.fontSize) {
+    els.fontSize.addEventListener('input', (e) => {
+      state.textSettings.fontSize = parseInt(e.target.value);
+    });
+  }
+
+  // Couleur texte
+  if (els.textColor) {
+    els.textColor.addEventListener('input', (e) => {
+      state.textSettings.color = e.target.value;
+    });
+  }
+
+  // Alignement
+  els.alignBtns = $$('#panel-text .ps-align-btn');
+  els.alignBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      els.alignBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.textSettings.align = btn.dataset.align;
+    });
+  });
+
+  // Bouton ajouter texte
+  if (els.btnAddText) {
+    els.btnAddText.addEventListener('click', (e) => {
+      e.preventDefault();
+      addTextLayer();
+    });
+  }
+}
+
+function closeAllSelectors() {
+  $$('.ps-custom-select.open').forEach(sel => sel.classList.remove('open'));
+}
+
+// Fermer les selectors au clic extérieur
+document.addEventListener('click', () => {
+  closeAllSelectors();
+});
 
 // ============================================
 // MODAL: TEXTE (Plein écran)
