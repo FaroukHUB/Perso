@@ -28,21 +28,18 @@ if (!$product || !$product['active']) {
 }
 
 // ============================================
-// SWITCH EDITOR V2 (via ?editor=v2)
-// Redirige vers editor-v2.php si activé
-// L'ancien configurator reste par défaut
+// EDITOR V2 = CONFIGURATEUR PAR DÉFAUT
+// Redirection automatique vers editor-v2.php
 // ============================================
-if (isset($_GET['editor']) && $_GET['editor'] === 'v2') {
-    $editorUrl = '/public/editor-v2.php?id=' . $productId;
+$editorUrl = '/public/editor-v2.php?id=' . $productId;
 
-    // Préserver pack_id si présent (preset/idée)
-    if (!empty($_GET['pack_id'])) {
-        $editorUrl .= '&pack_id=' . (int)$_GET['pack_id'];
-    }
-
-    header('Location: ' . $editorUrl);
-    exit;
+// Préserver pack_id si présent (preset/idée)
+if (!empty($_GET['pack_id'])) {
+    $editorUrl .= '&pack_id=' . (int)$_GET['pack_id'];
 }
+
+header('Location: ' . $editorUrl);
+exit;
 
 $success = '';
 $error = '';
