@@ -1758,6 +1758,8 @@ body {
   line-height: 1.3;
   color: var(--black-soft);
   transition: color 0.2s ease;
+  /* Isolation typographique via CSS variable */
+  font-family: var(--font-preview, inherit) !important;
 }
 
 .ps-font-item:hover .ps-font-preview {
@@ -2563,7 +2565,7 @@ body {
     box-shadow: inset 0 0 0 2px var(--pink-main);
   }
 
-  /* Font option - Premium UX */
+  /* Font option - Premium UX avec isolation typographique */
   .ps-font-option {
     padding: 16px 14px;
   }
@@ -2573,6 +2575,8 @@ body {
     line-height: 1.3;
     color: var(--black-soft);
     transition: color 0.15s ease;
+    /* Isolation typographique via CSS variable */
+    font-family: var(--font-preview, inherit) !important;
   }
 
   .ps-font-option:hover span,
