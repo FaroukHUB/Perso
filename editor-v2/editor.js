@@ -330,17 +330,48 @@ function injectFontLinkAsync(font) {
 }
 
 /**
- * Charge une police complètement (CSS + Font Face)
+ * Force le navigateur à utiliser une police dans le DOM (invisible)
+ * OBLIGATOIRE pour que le navigateur télécharge réellement la police
+ */
+function registerFontUsage(font) {
+  const container = document.getElementById('ps-font-preload');
+  if (!container) {
+    console.warn('[Editor] Container #ps-font-preload non trouvé');
+    return;
+  }
+
+  // Vérifier si déjà enregistré
+  if (container.querySelector(`[data-font="${font.family}"]`)) {
+    return;
+  }
+
+  const span = document.createElement('span');
+  span.textContent = font.label;
+  span.style.fontFamily = `"${font.family}", sans-serif`;
+  span.style.fontSize = '20px';
+  span.dataset.font = font.family;
+  container.appendChild(span);
+
+  console.info(`[Editor] Police enregistrée dans le DOM: ${font.label} (${font.family})`);
+}
+
+/**
+ * Charge une police complètement (CSS + DOM Usage + Font Face)
+ * Flow COMPLET obligatoire:
  * 1. Injecte le <link> et attend son chargement
- * 2. Appelle document.fonts.load() pour forcer le téléchargement de la police
- * 3. Attend document.fonts.ready
+ * 2. Force l'usage dans le DOM (span invisible)
+ * 3. Appelle document.fonts.load() pour forcer le téléchargement
+ * 4. Attend document.fonts.ready
  */
 async function loadFontCompletely(font) {
   // 1. Injecter et attendre le CSS
   const cssLoaded = await injectFontLinkAsync(font);
   if (!cssLoaded) return false;
 
-  // 2. Forcer le chargement de la font face
+  // 2. Forcer l'usage dans le DOM (OBLIGATOIRE)
+  registerFontUsage(font);
+
+  // 3. Forcer le chargement de la font face
   try {
     await document.fonts.load(`400 20px "${font.family}"`);
     await document.fonts.ready;

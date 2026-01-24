@@ -34,6 +34,9 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
 </head>
 <body>
 
+<!-- FONT PRELOAD REGISTRY (invisible, force le navigateur à télécharger les polices) -->
+<div id="ps-font-preload" aria-hidden="true"></div>
+
 <!-- HEADER -->
 <header class="ps-header">
     <div class="ps-header-left">
