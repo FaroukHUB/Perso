@@ -2,59 +2,42 @@
 /**
  * PERSONNALY - Page Éditeur V2 (POC)
  * Route standalone pour tester le nouvel éditeur
+ *
+ * ⚠️ V2 = ZÉRO dépendance backend
+ * Toutes les données sont mockées statiquement
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
-require_once __DIR__ . '/../app/core/Database.php';
-require_once __DIR__ . '/../app/models/Product.php';
-require_once __DIR__ . '/../app/models/ProductPrintZone.php';
-require_once __DIR__ . '/../app/models/ProductColorImage.php';
 
-// Récupération du produit (si fourni, sinon produit par défaut)
-$productId = (int) get('id', 1); // Par défaut produit ID 1
-$productModel = new Product();
-$product = $productModel->findById($productId);
+// ========================================
+// MOCKS STATIQUES - AUCUN APPEL DB
+// ========================================
 
-// Produit introuvable ou inactif → redirection
-if (!$product || !$product['active']) {
-    redirect('/');
-}
+// Produit ID (ignoré en mode mock)
+$productId = (int) ($_GET['id'] ?? 1);
 
-// Zones d'impression
-$printZoneModel = new ProductPrintZone();
-$allZones = $printZoneModel->findByProduct($productId);
-
-// Images couleur pour face/dos
-$colorImageModel = new ProductColorImage();
-$allColorImages = $colorImageModel->getByProduct($productId);
-
-// Organiser les images par vue
-$productImages = [
-    'front' => '/public/assets/images/products/default-front.png',
-    'back' => null
+// Produit mocké
+$product = [
+    'id' => $productId,
+    'name' => 'T-Shirt Personnalisé V2',
+    'base_price' => 19.99,
+    'active' => true
 ];
 
-foreach ($allColorImages as $img) {
-    $view = strtolower($img['view'] ?? 'front');
-    if ($view === 'front' || $view === 'back') {
-        $productImages[$view] = $img['image_path'];
-    }
-}
+// Images mockées (SVG statiques)
+$productImages = [
+    'front' => '/editor-v2/tshirt-front.svg',
+    'back' => '/editor-v2/tshirt-back.svg'
+];
 
-// Zone d'impression principale (front par défaut)
-$printZone = null;
-foreach ($allZones as $z) {
-    if (strtolower($z['zone_name']) === 'front') {
-        $printZone = [
-            'id' => (int) $z['id'],
-            'x' => (float) $z['pos_x'],
-            'y' => (float) $z['pos_y'],
-            'width' => (float) $z['width'],
-            'height' => (float) $z['height']
-        ];
-        break;
-    }
-}
+// Zone d'impression mockée (front par défaut)
+$printZone = [
+    'id' => 1,
+    'x' => 25.0,
+    'y' => 20.0,
+    'width' => 50.0,
+    'height' => 40.0
+];
 
 // Prix de base
 $basePrice = (float) $product['base_price'];
