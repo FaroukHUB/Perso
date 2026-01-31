@@ -1,7 +1,7 @@
 <?php
 /**
- * PERSONNALY Admin - Page Builder Homepage
- * Interface visuelle pour construire la page d'accueil
+ * PERSONNALY Admin - Visual Page Builder
+ * Interface visuelle intuitive pour construire la page d'accueil
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
@@ -111,19 +111,6 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 }
             }
 
-            // Médias additionnels (content_block)
-            if ($data['type'] === 'content_block') {
-                $additionalMedia = [];
-                if (!empty($_POST['existing_media_urls'])) {
-                    foreach ($_POST['existing_media_urls'] as $url) {
-                        if (!empty($url)) {
-                            $additionalMedia[] = ['type' => 'image', 'url' => $url];
-                        }
-                    }
-                }
-                $data['config']['additional_media'] = array_slice($additionalMedia, 0, 10);
-            }
-
             // Items (produits/packs/articles)
             $items = [];
             if ($data['type'] === 'featured_products' && !empty($_POST['product_ids'])) {
@@ -150,9 +137,6 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 $data['config']['highlight'] = trim($_POST['hero_highlight'] ?? '');
                 $data['config']['cta2_text'] = trim($_POST['hero_cta2_text'] ?? '');
                 $data['config']['cta2_url'] = trim($_POST['hero_cta2_url'] ?? '');
-                if (!empty($_POST['hero_elements_order']) && is_array($_POST['hero_elements_order'])) {
-                    $data['config']['elements_order'] = array_values($_POST['hero_elements_order']);
-                }
             }
 
             // Style
@@ -165,10 +149,10 @@ if (isPost() && !empty($_POST['ajax_action'])) {
             try {
                 if ($isEdit) {
                     $sectionModel->update($sectionId, $data);
-                    echo json_encode(['success' => true, 'id' => $sectionId, 'message' => 'Section mise à jour']);
+                    echo json_encode(['success' => true, 'id' => $sectionId]);
                 } else {
                     $newId = $sectionModel->create($data);
-                    echo json_encode(['success' => true, 'id' => $newId, 'message' => 'Section créée']);
+                    echo json_encode(['success' => true, 'id' => $newId, 'isNew' => true]);
                 }
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -194,13 +178,22 @@ if (isPost() && !empty($_POST['ajax_action'])) {
 $sections = $sectionModel->findAll();
 $csrf = csrfToken();
 $types = $sectionModel->getTypes();
-$statuses = $sectionModel->getStatuses();
 
 // Données pour les sélecteurs
 $products = $productModel->findActive();
 $packs = $packModel->findActive();
 $categories = $categoryModel->findAllActive();
 $blogPosts = $blogModel->findAll();
+
+$typeIcons = [
+    'hero' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>',
+    'featured_products' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+    'featured_packs' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>',
+    'featured_category' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+    'content_block' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>',
+    'blog_slider' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+    'newsletter' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
+];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -214,1312 +207,1098 @@ $blogPosts = $blogModel->findAll();
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/admin.css">
 </head>
-<body>
-    <div class="admin-wrapper">
-        <?php include __DIR__ . '/includes/sidebar.php'; ?>
-
-        <main class="main-content builder-main">
-            <div class="page-header">
-                <h1 class="page-title">Page <span>Builder</span></h1>
-                <div class="page-header-actions">
-                    <button type="button" class="btn btn-secondary" id="previewSiteBtn" onclick="window.open('/', '_blank')">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                            <polyline points="15 3 21 3 21 9"/>
-                            <line x1="10" y1="14" x2="21" y2="3"/>
-                        </svg>
-                        Voir le site
-                    </button>
-                    <button type="button" class="btn btn-primary" id="addSectionBtn">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        Ajouter une section
-                    </button>
-                </div>
+<body class="builder-body">
+    <!-- Layout 3 colonnes -->
+    <div class="builder-layout">
+        <!-- Sidebar gauche : Arborescence -->
+        <aside class="builder-sidebar">
+            <div class="sidebar-header">
+                <a href="/admin/dashboard.php" class="sidebar-back" title="Retour au dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="19" y1="12" x2="5" y2="12"/>
+                        <polyline points="12 19 5 12 12 5"/>
+                    </svg>
+                </a>
+                <h1>Page Builder</h1>
             </div>
 
-            <div class="builder-info">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="16" x2="12" y2="12"/>
-                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                </svg>
-                <span>Glissez les sections pour les réordonner. Cliquez sur une section pour la modifier.</span>
-            </div>
-
-            <!-- Liste des sections avec preview -->
-            <div class="builder-sections" id="builderSections">
-                <?php if (empty($sections)): ?>
-                    <div class="builder-empty" id="builderEmpty">
-                        <div class="builder-empty-icon">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                <line x1="3" y1="9" x2="21" y2="9"/>
-                                <line x1="9" y1="21" x2="9" y2="9"/>
-                            </svg>
-                        </div>
-                        <h3>Aucune section</h3>
-                        <p>Commencez à construire votre page d'accueil en ajoutant une première section.</p>
-                        <button type="button" class="btn btn-primary" onclick="document.getElementById('addSectionBtn').click()">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="5" x2="12" y2="19"/>
-                                <line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                            Ajouter une section
-                        </button>
+            <div class="sidebar-sections" id="sectionsList">
+                <?php foreach ($sections as $index => $section): ?>
+                <div class="section-item <?= $section['status'] === 'draft' ? 'is-draft' : '' ?>"
+                     data-id="<?= $section['id'] ?>"
+                     data-type="<?= h($section['type']) ?>"
+                     draggable="true">
+                    <div class="section-drag">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="9" cy="6" r="2"/><circle cx="15" cy="6" r="2"/>
+                            <circle cx="9" cy="12" r="2"/><circle cx="15" cy="12" r="2"/>
+                            <circle cx="9" cy="18" r="2"/><circle cx="15" cy="18" r="2"/>
+                        </svg>
                     </div>
-                <?php else: ?>
-                    <?php foreach ($sections as $section): ?>
-                        <div class="builder-section-card" data-id="<?= $section['id'] ?>" data-status="<?= h($section['status']) ?>">
-                            <div class="builder-section-drag" title="Glisser pour réordonner">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/>
-                                    <circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/>
-                                    <circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>
-                                </svg>
-                            </div>
-
-                            <div class="builder-section-order"><?= $section['sort_order'] + 1 ?></div>
-
-                            <div class="builder-section-preview" onclick="editSection(<?= $section['id'] ?>)">
-                                <div class="builder-section-type">
-                                    <span class="type-badge type-<?= h($section['type']) ?>">
-                                        <?= h($types[$section['type']] ?? $section['type']) ?>
-                                    </span>
-                                    <?php if ($section['status'] === 'draft'): ?>
-                                        <span class="status-badge status-draft">Brouillon</span>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="builder-section-title">
-                                    <?= h($section['title'] ?: '(Sans titre)') ?>
-                                </div>
-                                <?php if ($section['subtitle']): ?>
-                                    <div class="builder-section-subtitle"><?= h(substr($section['subtitle'], 0, 80)) ?><?= strlen($section['subtitle']) > 80 ? '...' : '' ?></div>
-                                <?php endif; ?>
-                                <?php if ($section['media_url'] && $section['media_type'] === 'image'): ?>
-                                    <div class="builder-section-thumbnail">
-                                        <img src="/public<?= h($section['media_url']) ?>" alt="">
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="builder-section-actions">
-                                <button type="button" class="builder-action-btn" onclick="editSection(<?= $section['id'] ?>)" title="Modifier">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                    </svg>
-                                </button>
-                                <button type="button" class="builder-action-btn <?= $section['status'] === 'active' ? 'active' : '' ?>" onclick="toggleSection(<?= $section['id'] ?>)" title="<?= $section['status'] === 'active' ? 'Désactiver' : 'Activer' ?>">
-                                    <?php if ($section['status'] === 'active'): ?>
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                    <?php else: ?>
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                                            <line x1="1" y1="1" x2="23" y2="23"/>
-                                        </svg>
-                                    <?php endif; ?>
-                                </button>
-                                <button type="button" class="builder-action-btn danger" onclick="deleteSection(<?= $section['id'] ?>)" title="Supprimer">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="3 6 5 6 21 6"/>
-                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
-
-            <!-- Bouton ajouter section (flottant en bas) -->
-            <div class="builder-add-section" id="builderAddSection">
-                <button type="button" class="builder-add-btn" onclick="document.getElementById('addSectionBtn').click()">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    <span>Ajouter une section ici</span>
-                </button>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modal choix type de section -->
-    <div class="builder-modal" id="typeModal">
-        <div class="builder-modal-backdrop" onclick="closeTypeModal()"></div>
-        <div class="builder-modal-content">
-            <div class="builder-modal-header">
-                <h3>Choisir un type de section</h3>
-                <button type="button" class="builder-modal-close" onclick="closeTypeModal()">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="builder-modal-body">
-                <div class="section-type-grid">
-                    <?php
-                    $typeIcons = [
-                        'hero' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>',
-                        'featured_products' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
-                        'featured_packs' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
-                        'featured_category' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
-                        'content_block' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>',
-                        'blog_slider' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-                        'newsletter' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
-                    ];
-                    $typeDescriptions = [
-                        'hero' => 'Grande bannière avec image de fond, titre et boutons',
-                        'featured_products' => 'Grille de produits sélectionnés',
-                        'featured_packs' => 'Sélection de packs / idées inspiration',
-                        'featured_category' => 'Affiche automatiquement les produits d\'une catégorie',
-                        'content_block' => 'Bloc texte + média (image/vidéo)',
-                        'blog_slider' => 'Carrousel d\'articles du blog',
-                        'newsletter' => 'Formulaire d\'inscription newsletter'
-                    ];
-                    foreach ($types as $value => $label):
-                    ?>
-                        <div class="section-type-option" onclick="createSection('<?= h($value) ?>')">
-                            <div class="section-type-icon type-<?= h($value) ?>">
-                                <?= $typeIcons[$value] ?? '' ?>
-                            </div>
-                            <div class="section-type-label"><?= h($label) ?></div>
-                            <div class="section-type-desc"><?= h($typeDescriptions[$value] ?? '') ?></div>
-                        </div>
-                    <?php endforeach; ?>
+                    <div class="section-icon type-<?= h($section['type']) ?>">
+                        <?= $typeIcons[$section['type']] ?? '' ?>
+                    </div>
+                    <div class="section-info">
+                        <span class="section-name"><?= h($section['title'] ?: $types[$section['type']]) ?></span>
+                        <span class="section-type-label"><?= h($types[$section['type']]) ?></span>
+                    </div>
+                    <div class="section-status <?= $section['status'] ?>"></div>
                 </div>
+                <?php endforeach; ?>
             </div>
-        </div>
-    </div>
 
-    <!-- Panneau d'édition latéral -->
-    <div class="builder-panel" id="editPanel">
-        <div class="builder-panel-header">
-            <h3 id="panelTitle">Modifier la section</h3>
-            <div class="builder-panel-tabs">
-                <button type="button" class="panel-tab active" data-tab="form" onclick="switchPanelTab('form')">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                    Formulaire
-                </button>
-                <button type="button" class="panel-tab" data-tab="preview" onclick="switchPanelTab('preview')">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                    Aperçu
-                </button>
-            </div>
-            <button type="button" class="builder-panel-close" onclick="closeEditPanel()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <button type="button" class="add-section-btn" id="addSectionBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
+                Ajouter une section
             </button>
-        </div>
 
-        <form id="sectionForm" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-            <input type="hidden" name="ajax_action" value="save">
-            <input type="hidden" name="section_id" id="sectionId" value="0">
-
-            <div class="builder-panel-body">
-                <!-- Type (non modifiable en édition) -->
-                <div class="panel-form-group" id="typeGroup">
-                    <label>Type de section</label>
-                    <input type="hidden" name="type" id="sectionType" value="hero">
-                    <div class="panel-type-display" id="typeDisplay">
-                        <span class="type-badge type-hero">Hero Banner</span>
-                    </div>
-                </div>
-
-                <!-- Statut -->
-                <div class="panel-form-group">
-                    <label for="status">Statut</label>
-                    <select name="status" id="status">
-                        <option value="draft">Brouillon</option>
-                        <option value="active">Actif (visible)</option>
-                    </select>
-                </div>
-
-                <!-- Titre -->
-                <div class="panel-form-group">
-                    <label for="title">Titre</label>
-                    <input type="text" name="title" id="title" placeholder="Titre de la section">
-                </div>
-
-                <!-- Sous-titre -->
-                <div class="panel-form-group">
-                    <label for="subtitle">Sous-titre / Description</label>
-                    <textarea name="subtitle" id="subtitle" rows="2" placeholder="Description courte"></textarea>
-                </div>
-
-                <!-- Contenu (content_block) -->
-                <div class="panel-form-group content-field" style="display: none;">
-                    <label for="content">Contenu texte</label>
-                    <textarea name="content" id="content" rows="4" placeholder="Contenu principal"></textarea>
-                </div>
-
-                <!-- CTA -->
-                <div class="panel-form-group cta-fields">
-                    <label>Bouton CTA</label>
-                    <div class="panel-form-row">
-                        <input type="text" name="cta_text" id="cta_text" placeholder="Texte du bouton">
-                        <input type="text" name="cta_url" id="cta_url" placeholder="URL">
-                    </div>
-                </div>
-
-                <!-- Champs Hero -->
-                <div class="hero-fields" style="display: none;">
-                    <div class="panel-form-group">
-                        <label for="hero_badge">Badge (optionnel)</label>
-                        <input type="text" name="hero_badge" id="hero_badge" placeholder="Ex: Nouveau">
-                    </div>
-                    <div class="panel-form-group">
-                        <label for="hero_highlight">Texte mis en avant</label>
-                        <input type="text" name="hero_highlight" id="hero_highlight" placeholder="Texte coloré à la fin du titre">
-                    </div>
-                    <div class="panel-form-group">
-                        <label>Bouton secondaire (optionnel)</label>
-                        <div class="panel-form-row">
-                            <input type="text" name="hero_cta2_text" id="hero_cta2_text" placeholder="Texte">
-                            <input type="text" name="hero_cta2_url" id="hero_cta2_url" placeholder="URL">
-                        </div>
-                    </div>
-                    <div class="panel-form-group">
-                        <label>Ordre des éléments</label>
-                        <div class="hero-elements-order" id="heroElementsOrder">
-                            <div class="hero-order-item" data-element="badge">
-                                <span class="hero-order-label">Badge</span>
-                                <input type="hidden" name="hero_elements_order[]" value="badge">
-                                <div class="hero-order-arrows">
-                                    <button type="button" onclick="moveHeroElement(this, -1)">▲</button>
-                                    <button type="button" onclick="moveHeroElement(this, 1)">▼</button>
-                                </div>
-                            </div>
-                            <div class="hero-order-item" data-element="title">
-                                <span class="hero-order-label">Titre + Highlight</span>
-                                <input type="hidden" name="hero_elements_order[]" value="title">
-                                <div class="hero-order-arrows">
-                                    <button type="button" onclick="moveHeroElement(this, -1)">▲</button>
-                                    <button type="button" onclick="moveHeroElement(this, 1)">▼</button>
-                                </div>
-                            </div>
-                            <div class="hero-order-item" data-element="subtitle">
-                                <span class="hero-order-label">Sous-titre</span>
-                                <input type="hidden" name="hero_elements_order[]" value="subtitle">
-                                <div class="hero-order-arrows">
-                                    <button type="button" onclick="moveHeroElement(this, -1)">▲</button>
-                                    <button type="button" onclick="moveHeroElement(this, 1)">▼</button>
-                                </div>
-                            </div>
-                            <div class="hero-order-item" data-element="buttons">
-                                <span class="hero-order-label">Boutons CTA</span>
-                                <input type="hidden" name="hero_elements_order[]" value="buttons">
-                                <div class="hero-order-arrows">
-                                    <button type="button" onclick="moveHeroElement(this, -1)">▲</button>
-                                    <button type="button" onclick="moveHeroElement(this, 1)">▼</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Média -->
-                <div class="panel-form-group media-field">
-                    <label>Image / Vidéo</label>
-                    <div class="current-media-preview" id="currentMediaPreview" style="display: none;">
-                        <img src="" alt="" id="mediaPreviewImg">
-                    </div>
-                    <input type="file" name="media_file" id="media_file" accept="image/*,video/mp4,video/webm">
-                    <small>Formats : JPG, PNG, GIF, WebP, MP4, WebM</small>
-                </div>
-
-                <!-- Sélection produits -->
-                <div class="panel-form-group products-field" style="display: none;">
-                    <label>Sélectionner les produits</label>
-                    <div class="items-grid" id="productsGrid">
-                        <?php foreach ($products as $product): ?>
-                            <label class="item-checkbox">
-                                <input type="checkbox" name="product_ids[]" value="<?= $product['id'] ?>">
-                                <div class="item-checkbox-content">
-                                    <?php if ($product['image_url']): ?>
-                                        <img src="/public<?= h($product['image_url']) ?>" alt="">
-                                    <?php else: ?>
-                                        <div class="item-no-image">?</div>
-                                    <?php endif; ?>
-                                    <span><?= h($product['name']) ?></span>
-                                </div>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <!-- Sélection packs -->
-                <div class="panel-form-group packs-field" style="display: none;">
-                    <label>Sélectionner les packs</label>
-                    <div class="items-grid" id="packsGrid">
-                        <?php foreach ($packs as $pack): ?>
-                            <label class="item-checkbox">
-                                <input type="checkbox" name="pack_ids[]" value="<?= $pack['id'] ?>">
-                                <div class="item-checkbox-content">
-                                    <?php if ($pack['cover_url']): ?>
-                                        <img src="/public<?= h($pack['cover_url']) ?>" alt="">
-                                    <?php else: ?>
-                                        <div class="item-no-image">?</div>
-                                    <?php endif; ?>
-                                    <span><?= h($pack['name']) ?></span>
-                                </div>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <!-- Sélection articles -->
-                <div class="panel-form-group blog-field" style="display: none;">
-                    <label>Sélectionner les articles</label>
-                    <div class="items-grid" id="blogGrid">
-                        <?php foreach ($blogPosts as $post): ?>
-                            <label class="item-checkbox">
-                                <input type="checkbox" name="blog_ids[]" value="<?= $post['id'] ?>">
-                                <div class="item-checkbox-content">
-                                    <?php if ($post['cover_image']): ?>
-                                        <img src="/public<?= h($post['cover_image']) ?>" alt="">
-                                    <?php else: ?>
-                                        <div class="item-no-image">B</div>
-                                    <?php endif; ?>
-                                    <span><?= h($post['title']) ?></span>
-                                </div>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <!-- Sélection catégorie -->
-                <div class="panel-form-group category-field" style="display: none;">
-                    <label for="category_id">Catégorie</label>
-                    <select name="category_id" id="category_id">
-                        <option value="">-- Sélectionner --</option>
-                        <?php foreach ($categories as $cat): ?>
-                            <option value="<?= $cat['id'] ?>"><?= h($cat['name']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <div style="margin-top: 10px;">
-                        <label for="products_limit">Nombre de produits max</label>
-                        <input type="number" name="products_limit" id="products_limit" value="8" min="1" max="20">
-                    </div>
-                </div>
-
-                <!-- Style -->
-                <div class="panel-form-group">
-                    <label>Style visuel</label>
-                    <div class="style-options">
-                        <div class="style-option">
-                            <label for="style_bg_color">Couleur de fond</label>
-                            <input type="color" name="style_bg_color" id="style_bg_color" value="#ffffff">
-                        </div>
-                        <div class="style-option">
-                            <label for="style_text_color">Couleur du texte</label>
-                            <input type="color" name="style_text_color" id="style_text_color" value="#1a1a1a">
-                        </div>
-                        <div class="style-option">
-                            <label for="style_padding_y">Espacement vertical</label>
-                            <select name="style_padding_y" id="style_padding_y">
-                                <option value="none">Aucun</option>
-                                <option value="small">Petit</option>
-                                <option value="medium" selected>Moyen</option>
-                                <option value="large">Grand</option>
-                                <option value="xlarge">Très grand</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="builder-panel-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeEditPanel()">Annuler</button>
-                <button type="submit" class="btn btn-primary" id="saveBtn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                        <polyline points="17 21 17 13 7 13 7 21"/>
-                        <polyline points="7 3 7 8 15 8"/>
+            <div class="sidebar-footer">
+                <a href="/" target="_blank" class="preview-site-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/>
+                        <line x1="10" y1="14" x2="21" y2="3"/>
                     </svg>
-                    Enregistrer
-                </button>
+                    Voir le site
+                </a>
             </div>
-        </form>
+        </aside>
 
-        <!-- Panneau Preview -->
-        <div class="builder-preview-panel" id="previewPanel" style="display: none;">
+        <!-- Centre : Preview Live -->
+        <main class="builder-preview">
             <div class="preview-toolbar">
-                <div class="preview-device-toggle">
-                    <button type="button" class="device-btn active" data-device="desktop" onclick="setPreviewDevice('desktop')" title="Desktop">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <div class="device-toggle">
+                    <button type="button" class="device-btn active" data-device="desktop" title="Desktop">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2"/>
                             <line x1="8" y1="21" x2="16" y2="21"/>
                             <line x1="12" y1="17" x2="12" y2="21"/>
                         </svg>
                     </button>
-                    <button type="button" class="device-btn" data-device="mobile" onclick="setPreviewDevice('mobile')" title="Mobile">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                    <button type="button" class="device-btn" data-device="tablet" title="Tablette">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="4" y="2" width="16" height="20" rx="2"/>
+                            <line x1="12" y1="18" x2="12.01" y2="18"/>
+                        </svg>
+                    </button>
+                    <button type="button" class="device-btn" data-device="mobile" title="Mobile">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="5" y="2" width="14" height="20" rx="2"/>
                             <line x1="12" y1="18" x2="12.01" y2="18"/>
                         </svg>
                     </button>
                 </div>
-                <button type="button" class="btn btn-sm btn-secondary" onclick="refreshPreview()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button type="button" class="refresh-btn" onclick="refreshPreview()" title="Actualiser">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="23 4 23 10 17 10"/>
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                     </svg>
-                    Actualiser
                 </button>
             </div>
-            <div class="preview-container" id="previewContainer">
-                <div class="preview-loading" id="previewLoading">
-                    <div class="preview-spinner"></div>
-                    <span>Chargement de l'aperçu...</span>
+            <div class="preview-container">
+                <div class="preview-frame-wrapper" id="previewWrapper">
+                    <iframe id="previewFrame" src="/?preview=builder&t=<?= time() ?>"></iframe>
+                    <div class="preview-overlay" id="previewOverlay"></div>
                 </div>
-                <iframe id="previewFrame" class="preview-frame"></iframe>
             </div>
+        </main>
+
+        <!-- Panneau droit : Propriétés -->
+        <aside class="builder-properties" id="propertiesPanel">
+            <div class="properties-empty" id="propertiesEmpty">
+                <div class="empty-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </div>
+                <p>Sélectionnez une section<br>pour la modifier</p>
+            </div>
+
+            <div class="properties-content" id="propertiesContent" style="display: none;">
+                <div class="properties-header">
+                    <h2 id="propertiesTitle">Modifier</h2>
+                    <div class="properties-actions">
+                        <button type="button" class="prop-action-btn" id="toggleStatusBtn" title="Activer/Désactiver">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                        <button type="button" class="prop-action-btn danger" id="deleteBtn" title="Supprimer">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <form id="sectionForm" class="properties-form">
+                    <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+                    <input type="hidden" name="ajax_action" value="save">
+                    <input type="hidden" name="section_id" id="sectionId" value="0">
+                    <input type="hidden" name="type" id="sectionType" value="">
+                    <input type="hidden" name="status" id="sectionStatus" value="draft">
+
+                    <!-- Type badge -->
+                    <div class="prop-type-badge" id="typeBadge"></div>
+
+                    <!-- Champs généraux -->
+                    <div class="prop-group">
+                        <label>Titre</label>
+                        <input type="text" name="title" id="propTitle" placeholder="Titre de la section">
+                    </div>
+
+                    <div class="prop-group">
+                        <label>Sous-titre</label>
+                        <textarea name="subtitle" id="propSubtitle" rows="2" placeholder="Description"></textarea>
+                    </div>
+
+                    <!-- Champs Hero -->
+                    <div class="prop-section hero-fields" style="display: none;">
+                        <div class="prop-group">
+                            <label>Badge</label>
+                            <input type="text" name="hero_badge" id="propHeroBadge" placeholder="Ex: Nouveau">
+                        </div>
+                        <div class="prop-group">
+                            <label>Texte surligné</label>
+                            <input type="text" name="hero_highlight" id="propHeroHighlight" placeholder="Texte coloré">
+                        </div>
+                    </div>
+
+                    <!-- Champs CTA -->
+                    <div class="prop-section cta-fields">
+                        <div class="prop-group-row">
+                            <div class="prop-group">
+                                <label>Bouton</label>
+                                <input type="text" name="cta_text" id="propCtaText" placeholder="Texte">
+                            </div>
+                            <div class="prop-group">
+                                <label>Lien</label>
+                                <input type="text" name="cta_url" id="propCtaUrl" placeholder="URL">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hero CTA2 -->
+                    <div class="prop-section hero-cta2-fields" style="display: none;">
+                        <div class="prop-group-row">
+                            <div class="prop-group">
+                                <label>Bouton 2</label>
+                                <input type="text" name="hero_cta2_text" id="propHeroCta2Text" placeholder="Texte">
+                            </div>
+                            <div class="prop-group">
+                                <label>Lien 2</label>
+                                <input type="text" name="hero_cta2_url" id="propHeroCta2Url" placeholder="URL">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contenu (content_block) -->
+                    <div class="prop-section content-fields" style="display: none;">
+                        <div class="prop-group">
+                            <label>Contenu</label>
+                            <textarea name="content" id="propContent" rows="4" placeholder="Texte principal"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Média -->
+                    <div class="prop-section media-fields">
+                        <div class="prop-group">
+                            <label>Image / Vidéo</label>
+                            <div class="media-upload-zone" id="mediaUploadZone">
+                                <div class="media-preview" id="mediaPreview" style="display: none;">
+                                    <img src="" alt="" id="mediaPreviewImg">
+                                    <button type="button" class="media-remove" onclick="removeMedia()">×</button>
+                                </div>
+                                <div class="media-placeholder" id="mediaPlaceholder">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                                        <polyline points="21 15 16 10 5 21"/>
+                                    </svg>
+                                    <span>Cliquez pour ajouter</span>
+                                </div>
+                                <input type="file" name="media_file" id="mediaFile" accept="image/*,video/*" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sélection items -->
+                    <div class="prop-section products-fields" style="display: none;">
+                        <div class="prop-group">
+                            <label>Produits</label>
+                            <div class="items-select-grid">
+                                <?php foreach ($products as $p): ?>
+                                <label class="item-select-option">
+                                    <input type="checkbox" name="product_ids[]" value="<?= $p['id'] ?>">
+                                    <span class="item-select-thumb">
+                                        <?php if ($p['image_url']): ?>
+                                        <img src="/public<?= h($p['image_url']) ?>" alt="">
+                                        <?php endif; ?>
+                                    </span>
+                                    <span class="item-select-name"><?= h($p['name']) ?></span>
+                                </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="prop-section packs-fields" style="display: none;">
+                        <div class="prop-group">
+                            <label>Packs</label>
+                            <div class="items-select-grid">
+                                <?php foreach ($packs as $p): ?>
+                                <label class="item-select-option">
+                                    <input type="checkbox" name="pack_ids[]" value="<?= $p['id'] ?>">
+                                    <span class="item-select-thumb">
+                                        <?php if ($p['cover_url']): ?>
+                                        <img src="/public<?= h($p['cover_url']) ?>" alt="">
+                                        <?php endif; ?>
+                                    </span>
+                                    <span class="item-select-name"><?= h($p['name']) ?></span>
+                                </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="prop-section blog-fields" style="display: none;">
+                        <div class="prop-group">
+                            <label>Articles</label>
+                            <div class="items-select-grid">
+                                <?php foreach ($blogPosts as $p): ?>
+                                <label class="item-select-option">
+                                    <input type="checkbox" name="blog_ids[]" value="<?= $p['id'] ?>">
+                                    <span class="item-select-thumb">
+                                        <?php if ($p['cover_image']): ?>
+                                        <img src="/public<?= h($p['cover_image']) ?>" alt="">
+                                        <?php endif; ?>
+                                    </span>
+                                    <span class="item-select-name"><?= h($p['title']) ?></span>
+                                </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="prop-section category-fields" style="display: none;">
+                        <div class="prop-group">
+                            <label>Catégorie</label>
+                            <select name="category_id" id="propCategoryId">
+                                <option value="">-- Sélectionner --</option>
+                                <?php foreach ($categories as $c): ?>
+                                <option value="<?= $c['id'] ?>"><?= h($c['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>Nb produits max</label>
+                            <input type="number" name="products_limit" id="propProductsLimit" value="8" min="1" max="20">
+                        </div>
+                    </div>
+
+                    <!-- Style -->
+                    <div class="prop-section style-fields">
+                        <div class="prop-group-row">
+                            <div class="prop-group">
+                                <label>Fond</label>
+                                <input type="color" name="style_bg_color" id="propBgColor" value="#ffffff">
+                            </div>
+                            <div class="prop-group">
+                                <label>Texte</label>
+                                <input type="color" name="style_text_color" id="propTextColor" value="#1a1a1a">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="properties-footer">
+                        <button type="submit" class="save-btn" id="saveBtn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modal ajout section -->
+    <div class="add-modal" id="addModal">
+        <div class="add-modal-backdrop" onclick="closeAddModal()"></div>
+        <div class="add-modal-content">
+            <h3>Ajouter une section</h3>
+            <div class="add-section-grid">
+                <?php foreach ($types as $typeKey => $typeLabel): ?>
+                <button type="button" class="add-section-option" onclick="createSection('<?= h($typeKey) ?>')">
+                    <div class="add-option-icon type-<?= h($typeKey) ?>">
+                        <?= $typeIcons[$typeKey] ?? '' ?>
+                    </div>
+                    <span><?= h($typeLabel) ?></span>
+                </button>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="add-modal-close" onclick="closeAddModal()">Annuler</button>
         </div>
     </div>
-    <div class="builder-panel-overlay" id="panelOverlay" onclick="closeEditPanel()"></div>
 
     <style>
-    /* Builder Main Layout */
-    .builder-main {
-        max-width: 1000px;
-        padding-bottom: 100px;
+    :root {
+        --builder-sidebar-width: 260px;
+        --builder-properties-width: 320px;
     }
 
-    .builder-info {
+    .builder-body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #1a1a2e;
+    }
+
+    /* Layout principal */
+    .builder-layout {
         display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 14px 18px;
-        background: linear-gradient(135deg, rgba(255,105,180,0.08) 0%, rgba(61,255,192,0.08) 100%);
-        border-radius: var(--radius-md);
-        border-left: 4px solid var(--pink-main);
-        margin-bottom: 24px;
-        font-size: 14px;
-        color: var(--gray-dark);
+        height: 100vh;
+        width: 100vw;
     }
 
-    /* Section Cards */
-    .builder-sections {
+    /* Sidebar gauche */
+    .builder-sidebar {
+        width: var(--builder-sidebar-width);
+        background: #252542;
         display: flex;
         flex-direction: column;
+        border-right: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-header {
+        display: flex;
+        align-items: center;
         gap: 12px;
-    }
-
-    .builder-section-card {
-        display: flex;
-        align-items: center;
-        gap: 16px;
         padding: 16px;
-        background: white;
-        border-radius: var(--radius-lg);
-        border: 2px solid var(--gray-light);
-        transition: all 0.2s ease;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
-    .builder-section-card:hover {
-        border-color: var(--pink-main);
-        box-shadow: 0 4px 12px rgba(255,105,180,0.15);
-    }
-
-    .builder-section-card[data-status="draft"] {
-        opacity: 0.7;
-        background: repeating-linear-gradient(
-            45deg,
-            white,
-            white 10px,
-            #fafafa 10px,
-            #fafafa 20px
-        );
-    }
-
-    .builder-section-card.dragging {
-        opacity: 0.5;
-        transform: scale(0.98);
-    }
-
-    .builder-section-drag {
-        cursor: grab;
-        padding: 8px;
-        color: var(--gray);
-        border-radius: var(--radius-sm);
-        transition: all 0.2s;
-    }
-
-    .builder-section-drag:hover {
-        background: var(--gray-light);
-        color: var(--pink-main);
-    }
-
-    .builder-section-drag:active {
-        cursor: grabbing;
-    }
-
-    .builder-section-order {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        background: var(--gradient-pink);
-        color: white;
-        border-radius: 50%;
-        font-weight: 700;
-        font-size: 14px;
-        flex-shrink: 0;
-    }
-
-    .builder-section-preview {
-        flex: 1;
-        cursor: pointer;
-        padding: 8px;
-        border-radius: var(--radius-sm);
-        transition: background 0.2s;
-    }
-
-    .builder-section-preview:hover {
-        background: var(--gray-light);
-    }
-
-    .builder-section-type {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 6px;
-    }
-
-    .builder-section-title {
-        font-weight: 600;
-        font-size: 16px;
-        color: var(--black);
-        margin-bottom: 2px;
-    }
-
-    .builder-section-subtitle {
-        font-size: 13px;
-        color: var(--gray);
-    }
-
-    .builder-section-thumbnail {
-        margin-top: 10px;
-    }
-
-    .builder-section-thumbnail img {
-        max-width: 120px;
-        max-height: 60px;
-        border-radius: var(--radius-sm);
-        object-fit: cover;
-    }
-
-    .builder-section-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .builder-action-btn {
+    .sidebar-back {
         display: flex;
         align-items: center;
         justify-content: center;
         width: 36px;
         height: 36px;
-        border: none;
-        background: var(--gray-light);
-        color: var(--gray);
-        border-radius: var(--radius-sm);
-        cursor: pointer;
+        background: rgba(255,255,255,0.1);
+        border-radius: 8px;
+        color: #fff;
+        text-decoration: none;
         transition: all 0.2s;
     }
 
-    .builder-action-btn:hover {
+    .sidebar-back:hover {
         background: var(--pink-main);
-        color: white;
     }
 
-    .builder-action-btn.active {
-        background: var(--mint-main);
-        color: var(--black);
-    }
-
-    .builder-action-btn.danger:hover {
-        background: #dc3545;
-    }
-
-    /* Type badges */
-    .type-badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-size: 11px;
+    .sidebar-header h1 {
+        font-size: 16px;
         font-weight: 600;
-        text-transform: uppercase;
+        color: #fff;
+        margin: 0;
     }
 
-    .type-hero { background: var(--gradient-pink); color: white; }
-    .type-featured_products { background: var(--mint-main); color: var(--black); }
-    .type-featured_packs { background: #9b59b6; color: white; }
-    .type-featured_category { background: #e74c3c; color: white; }
-    .type-content_block { background: #3498db; color: white; }
-    .type-blog_slider { background: #e67e22; color: white; }
-    .type-newsletter { background: #1abc9c; color: white; }
-
-    .status-badge {
-        display: inline-block;
-        padding: 3px 8px;
-        border-radius: 4px;
-        font-size: 10px;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
-    .status-draft {
-        background: rgba(0,0,0,0.1);
-        color: var(--gray);
-    }
-
-    /* Empty State */
-    .builder-empty {
-        text-align: center;
-        padding: 60px 20px;
-        background: white;
-        border-radius: var(--radius-lg);
-        border: 2px dashed var(--gray-light);
-    }
-
-    .builder-empty-icon {
-        color: var(--gray-light);
-        margin-bottom: 20px;
-    }
-
-    .builder-empty h3 {
-        margin-bottom: 8px;
-        color: var(--gray);
-    }
-
-    .builder-empty p {
-        color: var(--gray);
-        margin-bottom: 20px;
-    }
-
-    /* Add Section Button */
-    .builder-add-section {
-        margin-top: 20px;
-    }
-
-    .builder-add-btn {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        padding: 20px;
-        background: transparent;
-        border: 2px dashed var(--gray-light);
-        border-radius: var(--radius-lg);
-        color: var(--gray);
-        font-size: 15px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .builder-add-btn:hover {
-        border-color: var(--pink-main);
-        color: var(--pink-main);
-        background: rgba(255,105,180,0.05);
-    }
-
-    /* Type Selection Modal */
-    .builder-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 1000;
-        display: none;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .builder-modal.active {
-        display: flex;
-    }
-
-    .builder-modal-backdrop {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-    }
-
-    .builder-modal-content {
-        position: relative;
-        width: 90%;
-        max-width: 700px;
-        max-height: 90vh;
-        background: white;
-        border-radius: var(--radius-xl);
-        overflow: hidden;
-        animation: modalIn 0.3s ease;
-    }
-
-    @keyframes modalIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-    }
-
-    .builder-modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px 24px;
-        border-bottom: 1px solid var(--gray-light);
-    }
-
-    .builder-modal-header h3 {
-        font-size: 18px;
-        font-weight: 600;
-    }
-
-    .builder-modal-close {
-        background: none;
-        border: none;
-        padding: 4px;
-        cursor: pointer;
-        color: var(--gray);
-        transition: color 0.2s;
-    }
-
-    .builder-modal-close:hover {
-        color: var(--pink-main);
-    }
-
-    .builder-modal-body {
-        padding: 24px;
+    .sidebar-sections {
+        flex: 1;
         overflow-y: auto;
-        max-height: calc(90vh - 80px);
+        padding: 12px;
     }
 
-    .section-type-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 16px;
-    }
-
-    .section-type-option {
-        padding: 20px;
-        background: var(--gray-light);
-        border-radius: var(--radius-lg);
+    .section-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+        margin-bottom: 6px;
         cursor: pointer;
         transition: all 0.2s;
         border: 2px solid transparent;
     }
 
-    .section-type-option:hover {
-        background: white;
-        border-color: var(--pink-main);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255,105,180,0.2);
+    .section-item:hover {
+        background: rgba(255,255,255,0.1);
     }
 
-    .section-type-icon {
-        width: 48px;
-        height: 48px;
+    .section-item.active {
+        background: rgba(255,105,180,0.2);
+        border-color: var(--pink-main);
+    }
+
+    .section-item.is-draft {
+        opacity: 0.6;
+    }
+
+    .section-item.dragging {
+        opacity: 0.4;
+        transform: scale(0.98);
+    }
+
+    .section-drag {
+        color: rgba(255,255,255,0.3);
+        cursor: grab;
+    }
+
+    .section-drag:active {
+        cursor: grabbing;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: var(--radius-md);
-        margin-bottom: 12px;
+        border-radius: 6px;
+        flex-shrink: 0;
     }
 
-    .section-type-icon svg {
-        width: 28px;
-        height: 28px;
+    .section-icon svg {
+        width: 18px;
+        height: 18px;
     }
 
-    .section-type-icon.type-hero { background: var(--gradient-pink); color: white; }
-    .section-type-icon.type-featured_products { background: var(--mint-main); color: var(--black); }
-    .section-type-icon.type-featured_packs { background: #9b59b6; color: white; }
-    .section-type-icon.type-featured_category { background: #e74c3c; color: white; }
-    .section-type-icon.type-content_block { background: #3498db; color: white; }
-    .section-type-icon.type-blog_slider { background: #e67e22; color: white; }
-    .section-type-icon.type-newsletter { background: #1abc9c; color: white; }
+    .section-icon.type-hero { background: linear-gradient(135deg, #ff69b4, #ff1493); color: white; }
+    .section-icon.type-featured_products { background: #3dffc0; color: #1a1a2e; }
+    .section-icon.type-featured_packs { background: #9b59b6; color: white; }
+    .section-icon.type-featured_category { background: #e74c3c; color: white; }
+    .section-icon.type-content_block { background: #3498db; color: white; }
+    .section-icon.type-blog_slider { background: #e67e22; color: white; }
+    .section-icon.type-newsletter { background: #1abc9c; color: white; }
 
-    .section-type-label {
-        font-weight: 600;
-        font-size: 14px;
-        margin-bottom: 4px;
+    .section-info {
+        flex: 1;
+        min-width: 0;
     }
 
-    .section-type-desc {
-        font-size: 12px;
-        color: var(--gray);
-        line-height: 1.4;
-    }
-
-    /* Edit Panel */
-    .builder-panel {
-        position: fixed;
-        top: 0;
-        right: -750px;
-        width: 700px;
-        max-width: 100%;
-        height: 100vh;
-        background: white;
-        box-shadow: -4px 0 20px rgba(0,0,0,0.15);
-        z-index: 1001;
-        display: flex;
-        flex-direction: column;
-        transition: right 0.3s ease;
-    }
-
-    .builder-panel.active {
-        right: 0;
-    }
-
-    .builder-panel-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.3);
-        z-index: 1000;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s;
-    }
-
-    .builder-panel-overlay.active {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .builder-panel-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px 24px;
-        border-bottom: 1px solid var(--gray-light);
-        background: var(--gray-light);
-    }
-
-    .builder-panel-header h3 {
-        font-size: 18px;
-        font-weight: 600;
-    }
-
-    .builder-panel-tabs {
-        display: flex;
-        gap: 4px;
-        background: rgba(0,0,0,0.05);
-        padding: 4px;
-        border-radius: var(--radius-md);
-        margin: 0 auto 0 20px;
-    }
-
-    .panel-tab {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 14px;
-        border: none;
-        background: transparent;
-        border-radius: var(--radius-sm);
+    .section-name {
+        display: block;
         font-size: 13px;
         font-weight: 500;
-        color: var(--gray);
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .section-type-label {
+        font-size: 11px;
+        color: rgba(255,255,255,0.5);
+    }
+
+    .section-status {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .section-status.active {
+        background: #2ecc71;
+    }
+
+    .section-status.draft {
+        background: #95a5a6;
+    }
+
+    .add-section-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin: 12px;
+        padding: 14px;
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
     }
 
-    .panel-tab:hover {
-        color: var(--black);
+    .add-section-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255,105,180,0.4);
     }
 
-    .panel-tab.active {
-        background: white;
-        color: var(--pink-main);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    .sidebar-footer {
+        padding: 12px;
+        border-top: 1px solid rgba(255,255,255,0.1);
     }
 
-    .builder-panel-close {
-        background: none;
-        border: none;
-        padding: 4px;
-        cursor: pointer;
-        color: var(--gray);
-    }
-
-    .builder-panel-close:hover {
-        color: var(--pink-main);
-    }
-
-    .builder-panel-body {
-        flex: 1;
-        overflow-y: auto;
-        padding: 24px;
-    }
-
-    #sectionForm {
+    .preview-site-btn {
         display: flex;
-        flex-direction: column;
-        flex: 1;
-        overflow: hidden;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 8px;
+        color: rgba(255,255,255,0.7);
+        text-decoration: none;
+        font-size: 13px;
+        transition: all 0.2s;
     }
 
-    /* Preview Panel */
-    .builder-preview-panel {
+    .preview-site-btn:hover {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+    }
+
+    /* Preview central */
+    .builder-preview {
         flex: 1;
         display: flex;
         flex-direction: column;
-        background: #f0f0f0;
-        overflow: hidden;
+        background: #1a1a2e;
     }
 
     .preview-toolbar {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 12px 16px;
-        background: white;
-        border-bottom: 1px solid var(--gray-light);
+        justify-content: center;
+        gap: 20px;
+        padding: 12px;
+        background: #252542;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
-    .preview-device-toggle {
+    .device-toggle {
         display: flex;
         gap: 4px;
-        background: var(--gray-light);
+        background: rgba(0,0,0,0.3);
         padding: 4px;
-        border-radius: var(--radius-sm);
+        border-radius: 8px;
     }
 
     .device-btn {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 36px;
-        height: 32px;
-        border: none;
+        width: 40px;
+        height: 36px;
         background: transparent;
-        border-radius: var(--radius-sm);
-        color: var(--gray);
+        border: none;
+        border-radius: 6px;
+        color: rgba(255,255,255,0.5);
         cursor: pointer;
         transition: all 0.2s;
     }
 
     .device-btn:hover {
-        color: var(--black);
+        color: rgba(255,255,255,0.8);
     }
 
     .device-btn.active {
-        background: white;
-        color: var(--pink-main);
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+    }
+
+    .refresh-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 36px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        border-radius: 8px;
+        color: rgba(255,255,255,0.7);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .refresh-btn:hover {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
     }
 
     .preview-container {
         flex: 1;
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: center;
         padding: 20px;
         overflow: auto;
-        position: relative;
     }
 
-    .preview-frame {
+    .preview-frame-wrapper {
+        position: relative;
         width: 100%;
         height: 100%;
-        border: none;
+        max-width: 1400px;
         background: white;
-        border-radius: var(--radius-md);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        transition: width 0.3s ease;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
     }
 
-    .preview-frame.mobile {
+    .preview-frame-wrapper.tablet {
+        width: 768px;
+        max-width: 100%;
+    }
+
+    .preview-frame-wrapper.mobile {
         width: 375px;
         max-width: 100%;
     }
 
-    .preview-loading {
+    #previewFrame {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    .preview-overlay {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+    }
+
+    /* Panneau propriétés */
+    .builder-properties {
+        width: var(--builder-properties-width);
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        border-left: 1px solid #e0e0e0;
+    }
+
+    .properties-empty {
+        flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 12px;
-        color: var(--gray);
+        justify-content: center;
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        color: #ccc;
+        margin-bottom: 16px;
+    }
+
+    .properties-empty p {
+        color: #999;
         font-size: 14px;
+        line-height: 1.5;
+        margin: 0;
     }
 
-    .preview-spinner {
-        width: 32px;
-        height: 32px;
-        border: 3px solid var(--gray-light);
-        border-top-color: var(--pink-main);
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-
-    .builder-panel-footer {
-        padding: 16px 24px;
-        border-top: 1px solid var(--gray-light);
+    .properties-content {
+        flex: 1;
         display: flex;
-        gap: 12px;
-        justify-content: flex-end;
+        flex-direction: column;
+        overflow: hidden;
     }
 
-    /* Panel Form */
-    .panel-form-group {
-        margin-bottom: 20px;
+    .properties-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        border-bottom: 1px solid #eee;
     }
 
-    .panel-form-group > label {
-        display: block;
+    .properties-header h2 {
+        font-size: 16px;
         font-weight: 600;
-        font-size: 13px;
-        margin-bottom: 6px;
-        color: var(--black);
+        margin: 0;
     }
 
-    .panel-form-group input[type="text"],
-    .panel-form-group input[type="number"],
-    .panel-form-group textarea,
-    .panel-form-group select {
+    .properties-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .prop-action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        background: #f5f5f5;
+        border: none;
+        border-radius: 8px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .prop-action-btn:hover {
+        background: #eee;
+        color: #333;
+    }
+
+    .prop-action-btn.danger:hover {
+        background: #fee;
+        color: #e74c3c;
+    }
+
+    .properties-form {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+    }
+
+    .prop-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .prop-group {
+        margin-bottom: 16px;
+    }
+
+    .prop-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 6px;
+    }
+
+    .prop-group input[type="text"],
+    .prop-group input[type="number"],
+    .prop-group textarea,
+    .prop-group select {
         width: 100%;
-        padding: 10px 14px;
-        border: 1px solid var(--gray-light);
-        border-radius: var(--radius-md);
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
         font-size: 14px;
         transition: border-color 0.2s;
     }
 
-    .panel-form-group input:focus,
-    .panel-form-group textarea:focus,
-    .panel-form-group select:focus {
+    .prop-group input:focus,
+    .prop-group textarea:focus,
+    .prop-group select:focus {
         outline: none;
         border-color: var(--pink-main);
     }
 
-    .panel-form-group small {
-        display: block;
-        margin-top: 4px;
-        font-size: 12px;
-        color: var(--gray);
+    .prop-group input[type="color"] {
+        width: 100%;
+        height: 40px;
+        padding: 4px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
     }
 
-    .panel-form-row {
+    .prop-group-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        gap: 12px;
     }
 
-    .panel-type-display {
-        padding: 10px;
-        background: var(--gray-light);
-        border-radius: var(--radius-md);
+    .prop-section {
+        padding-top: 16px;
+        border-top: 1px solid #eee;
+        margin-top: 16px;
     }
 
-    /* Items Grid */
-    .items-grid {
+    /* Media upload */
+    .media-upload-zone {
+        border: 2px dashed #ddd;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .media-upload-zone:hover {
+        border-color: var(--pink-main);
+        background: rgba(255,105,180,0.05);
+    }
+
+    .media-placeholder {
+        color: #999;
+    }
+
+    .media-placeholder svg {
+        margin-bottom: 8px;
+    }
+
+    .media-placeholder span {
+        font-size: 13px;
+    }
+
+    .media-preview {
+        position: relative;
+    }
+
+    .media-preview img {
+        max-width: 100%;
+        max-height: 150px;
+        border-radius: 8px;
+    }
+
+    .media-remove {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 24px;
+        height: 24px;
+        background: #e74c3c;
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    /* Items selection */
+    .items-select-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 8px;
         max-height: 200px;
         overflow-y: auto;
         padding: 8px;
-        background: var(--gray-light);
-        border-radius: var(--radius-md);
+        background: #f9f9f9;
+        border-radius: 8px;
     }
 
-    .item-checkbox {
+    .item-select-option {
         cursor: pointer;
     }
 
-    .item-checkbox input {
+    .item-select-option input {
         display: none;
     }
 
-    .item-checkbox-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 8px;
-        background: white;
-        border-radius: var(--radius-sm);
+    .item-select-option .item-select-thumb {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1;
+        background: #eee;
+        border-radius: 6px;
+        overflow: hidden;
         border: 2px solid transparent;
         transition: all 0.2s;
     }
 
-    .item-checkbox input:checked + .item-checkbox-content {
-        border-color: var(--pink-main);
-        background: rgba(255,105,180,0.1);
-    }
-
-    .item-checkbox-content img {
-        width: 50px;
-        height: 50px;
+    .item-select-option .item-select-thumb img {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        border-radius: var(--radius-sm);
-        margin-bottom: 4px;
     }
 
-    .item-checkbox-content span {
+    .item-select-option input:checked + .item-select-thumb {
+        border-color: var(--pink-main);
+    }
+
+    .item-select-name {
+        display: block;
         font-size: 10px;
         text-align: center;
-        line-height: 1.2;
-        max-height: 24px;
+        margin-top: 4px;
+        white-space: nowrap;
         overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .item-no-image {
-        width: 50px;
-        height: 50px;
+    /* Footer */
+    .properties-footer {
+        padding: 16px;
+        border-top: 1px solid #eee;
+    }
+
+    .save-btn {
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--gray-light);
-        border-radius: var(--radius-sm);
-        margin-bottom: 4px;
-        color: var(--gray);
+        gap: 8px;
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 15px;
         font-weight: 600;
-    }
-
-    /* Style Options */
-    .style-options {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-    }
-
-    .style-option {
-        padding: 12px;
-        background: var(--gray-light);
-        border-radius: var(--radius-md);
-    }
-
-    .style-option label {
-        display: block;
-        font-size: 12px;
-        margin-bottom: 6px;
-        color: var(--gray);
-    }
-
-    .style-option input[type="color"] {
-        width: 100%;
-        height: 36px;
-        border: none;
-        border-radius: var(--radius-sm);
         cursor: pointer;
-    }
-
-    .style-option select {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: var(--radius-sm);
-    }
-
-    /* Hero Elements Order */
-    .hero-elements-order {
-        background: var(--gray-light);
-        border-radius: var(--radius-md);
-        padding: 8px;
-    }
-
-    .hero-order-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 12px;
-        background: white;
-        border-radius: var(--radius-sm);
-        margin-bottom: 6px;
-    }
-
-    .hero-order-item:last-child {
-        margin-bottom: 0;
-    }
-
-    .hero-order-label {
-        font-size: 13px;
-        font-weight: 500;
-    }
-
-    .hero-order-arrows {
-        display: flex;
-        gap: 4px;
-    }
-
-    .hero-order-arrows button {
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: none;
-        background: var(--gray-light);
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        font-size: 10px;
         transition: all 0.2s;
     }
 
-    .hero-order-arrows button:hover {
-        background: var(--pink-main);
-        color: white;
+    .save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255,105,180,0.4);
     }
 
-    /* Current Media Preview */
-    .current-media-preview {
-        margin-bottom: 10px;
+    .save-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
     }
 
-    .current-media-preview img {
-        max-width: 100%;
-        max-height: 150px;
-        border-radius: var(--radius-md);
-        object-fit: cover;
+    /* Modal ajout */
+    .add-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .add-modal.active {
+        display: flex;
+    }
+
+    .add-modal-backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.6);
+    }
+
+    .add-modal-content {
+        position: relative;
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 500px;
+        width: 90%;
+        animation: modalIn 0.3s ease;
+    }
+
+    @keyframes modalIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .add-modal-content h3 {
+        margin: 0 0 20px;
+        font-size: 18px;
+        text-align: center;
+    }
+
+    .add-section-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .add-section-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 16px 12px;
+        background: #f5f5f5;
+        border: 2px solid transparent;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .add-section-option:hover {
+        background: #fff;
+        border-color: var(--pink-main);
+        transform: translateY(-2px);
+    }
+
+    .add-option-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+    }
+
+    .add-option-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    .add-section-option span {
+        font-size: 12px;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    .add-modal-close {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background: #f0f0f0;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .add-modal-close:hover {
+        background: #e0e0e0;
     }
 
     /* Responsive */
+    @media (max-width: 1200px) {
+        .builder-properties {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            height: 100vh;
+            z-index: 100;
+            transition: right 0.3s ease;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+        }
+
+        .builder-properties.active {
+            right: 0;
+        }
+    }
+
     @media (max-width: 768px) {
-        .builder-panel {
-            width: 100%;
-            right: -100%;
+        .builder-sidebar {
+            width: 60px;
         }
 
-        .section-type-grid {
-            grid-template-columns: repeat(2, 1fr);
+        .sidebar-header h1,
+        .section-info,
+        .add-section-btn span,
+        .preview-site-btn span {
+            display: none;
         }
 
-        .items-grid {
-            grid-template-columns: repeat(2, 1fr);
+        .add-section-btn {
+            padding: 12px;
         }
     }
     </style>
@@ -1527,53 +1306,225 @@ $blogPosts = $blogModel->findAll();
     <script>
     const csrf = '<?= $csrf ?>';
     const types = <?= json_encode($types) ?>;
-    let currentEditId = 0;
+    let selectedSectionId = null;
 
-    // Drag & Drop
     document.addEventListener('DOMContentLoaded', function() {
+        initSectionsList();
         initDragAndDrop();
+        initDeviceToggle();
+        initMediaUpload();
+        initForm();
     });
 
-    function initDragAndDrop() {
-        const container = document.getElementById('builderSections');
-        if (!container) return;
+    // Liste des sections
+    function initSectionsList() {
+        document.querySelectorAll('.section-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.closest('.section-drag')) return;
+                selectSection(this.dataset.id);
+            });
+        });
+    }
 
+    function selectSection(id) {
+        // Highlight dans la sidebar
+        document.querySelectorAll('.section-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.id == id);
+        });
+
+        selectedSectionId = id;
+
+        // Charger les propriétés
+        fetch('/admin/homepage-builder.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `ajax_action=get_section&section_id=${id}&csrf_token=${csrf}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showProperties(data.section);
+            }
+        });
+
+        // Highlight dans le preview (scroll to section)
+        highlightInPreview(id);
+    }
+
+    function highlightInPreview(id) {
+        try {
+            const frame = document.getElementById('previewFrame');
+            const doc = frame.contentDocument || frame.contentWindow.document;
+            const section = doc.querySelector(`[data-section-id="${id}"]`);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                section.style.outline = '3px solid #ff69b4';
+                setTimeout(() => {
+                    section.style.outline = '';
+                }, 2000);
+            }
+        } catch(e) {}
+    }
+
+    function showProperties(section) {
+        document.getElementById('propertiesEmpty').style.display = 'none';
+        document.getElementById('propertiesContent').style.display = 'flex';
+        document.getElementById('propertiesTitle').textContent = section.title || types[section.type];
+
+        // Remplir le formulaire
+        document.getElementById('sectionId').value = section.id;
+        document.getElementById('sectionType').value = section.type;
+        document.getElementById('sectionStatus').value = section.status;
+
+        // Type badge
+        const badge = document.getElementById('typeBadge');
+        badge.className = 'prop-type-badge type-' + section.type;
+        badge.innerHTML = `<span>${types[section.type]}</span>`;
+        badge.style.background = getTypeColor(section.type);
+        badge.style.color = 'white';
+
+        // Champs généraux
+        document.getElementById('propTitle').value = section.title || '';
+        document.getElementById('propSubtitle').value = section.subtitle || '';
+        document.getElementById('propCtaText').value = section.cta_text || '';
+        document.getElementById('propCtaUrl').value = section.cta_url || '';
+
+        // Media
+        if (section.media_url) {
+            document.getElementById('mediaPreview').style.display = 'block';
+            document.getElementById('mediaPlaceholder').style.display = 'none';
+            document.getElementById('mediaPreviewImg').src = '/public' + section.media_url;
+        } else {
+            document.getElementById('mediaPreview').style.display = 'none';
+            document.getElementById('mediaPlaceholder').style.display = 'block';
+        }
+
+        // Afficher/masquer les champs selon le type
+        showFieldsForType(section.type);
+
+        // Champs spécifiques
+        if (section.type === 'hero' && section.config) {
+            document.getElementById('propHeroBadge').value = section.config.badge || '';
+            document.getElementById('propHeroHighlight').value = section.config.highlight || '';
+            document.getElementById('propHeroCta2Text').value = section.config.cta2_text || '';
+            document.getElementById('propHeroCta2Url').value = section.config.cta2_url || '';
+        }
+
+        if (section.type === 'content_block') {
+            document.getElementById('propContent').value = section.content || '';
+        }
+
+        if (section.type === 'featured_category' && section.config) {
+            document.getElementById('propCategoryId').value = section.config.category_id || '';
+            document.getElementById('propProductsLimit').value = section.config.products_limit || 8;
+        }
+
+        // Style
+        if (section.config && section.config.style) {
+            document.getElementById('propBgColor').value = section.config.style.background_color || '#ffffff';
+            document.getElementById('propTextColor').value = section.config.style.text_color || '#1a1a1a';
+        }
+
+        // Items sélectionnés
+        document.querySelectorAll('.items-select-grid input').forEach(cb => cb.checked = false);
+        if (section.items) {
+            section.items.forEach(item => {
+                let cb;
+                if (item.item_type === 'product') {
+                    cb = document.querySelector(`input[name="product_ids[]"][value="${item.item_id}"]`);
+                } else if (item.item_type === 'pack') {
+                    cb = document.querySelector(`input[name="pack_ids[]"][value="${item.item_id}"]`);
+                } else if (item.item_type === 'blog') {
+                    cb = document.querySelector(`input[name="blog_ids[]"][value="${item.item_id}"]`);
+                }
+                if (cb) cb.checked = true;
+            });
+        }
+
+        // Activer panneau sur mobile
+        document.getElementById('propertiesPanel').classList.add('active');
+    }
+
+    function showFieldsForType(type) {
+        // Cacher tous les champs conditionnels
+        document.querySelectorAll('.hero-fields, .hero-cta2-fields, .content-fields, .products-fields, .packs-fields, .blog-fields, .category-fields').forEach(el => {
+            el.style.display = 'none';
+        });
+
+        // Afficher selon le type
+        switch(type) {
+            case 'hero':
+                document.querySelector('.hero-fields').style.display = 'block';
+                document.querySelector('.hero-cta2-fields').style.display = 'block';
+                break;
+            case 'content_block':
+                document.querySelector('.content-fields').style.display = 'block';
+                break;
+            case 'featured_products':
+                document.querySelector('.products-fields').style.display = 'block';
+                break;
+            case 'featured_packs':
+                document.querySelector('.packs-fields').style.display = 'block';
+                break;
+            case 'blog_slider':
+                document.querySelector('.blog-fields').style.display = 'block';
+                break;
+            case 'featured_category':
+                document.querySelector('.category-fields').style.display = 'block';
+                break;
+        }
+    }
+
+    function getTypeColor(type) {
+        const colors = {
+            hero: 'linear-gradient(135deg, #ff69b4, #ff1493)',
+            featured_products: '#3dffc0',
+            featured_packs: '#9b59b6',
+            featured_category: '#e74c3c',
+            content_block: '#3498db',
+            blog_slider: '#e67e22',
+            newsletter: '#1abc9c'
+        };
+        return colors[type] || '#666';
+    }
+
+    // Drag & Drop
+    function initDragAndDrop() {
+        const container = document.getElementById('sectionsList');
         let draggedItem = null;
 
-        container.querySelectorAll('.builder-section-card').forEach(card => {
-            card.draggable = true;
-
-            card.addEventListener('dragstart', function(e) {
-                draggedItem = card;
-                card.classList.add('dragging');
+        container.querySelectorAll('.section-item').forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                draggedItem = this;
+                this.classList.add('dragging');
                 e.dataTransfer.effectAllowed = 'move';
             });
 
-            card.addEventListener('dragend', function() {
-                card.classList.remove('dragging');
+            item.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
                 draggedItem = null;
                 saveOrder();
             });
 
-            card.addEventListener('dragover', function(e) {
+            item.addEventListener('dragover', function(e) {
                 e.preventDefault();
-                if (!draggedItem || draggedItem === card) return;
+                if (!draggedItem || draggedItem === this) return;
 
-                const rect = card.getBoundingClientRect();
+                const rect = this.getBoundingClientRect();
                 const midpoint = rect.top + rect.height / 2;
 
                 if (e.clientY < midpoint) {
-                    container.insertBefore(draggedItem, card);
+                    container.insertBefore(draggedItem, this);
                 } else {
-                    container.insertBefore(draggedItem, card.nextSibling);
+                    container.insertBefore(draggedItem, this.nextSibling);
                 }
             });
         });
     }
 
     function saveOrder() {
-        const cards = document.querySelectorAll('.builder-section-card');
-        const ids = [...cards].map(c => c.dataset.id);
+        const items = document.querySelectorAll('.section-item');
+        const ids = [...items].map(item => item.dataset.id);
 
         fetch('/admin/homepage-builder.php', {
             method: 'POST',
@@ -1583,398 +1534,184 @@ $blogPosts = $blogModel->findAll();
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                cards.forEach((card, i) => {
-                    const badge = card.querySelector('.builder-section-order');
-                    if (badge) badge.textContent = i + 1;
-                });
+                refreshPreview();
             }
         });
     }
 
-    // Type Modal
-    document.getElementById('addSectionBtn').addEventListener('click', function() {
-        document.getElementById('typeModal').classList.add('active');
-    });
-
-    function closeTypeModal() {
-        document.getElementById('typeModal').classList.remove('active');
-    }
-
-    function createSection(type) {
-        closeTypeModal();
-        openEditPanel(0, type);
-    }
-
-    // Edit Panel
-    function editSection(id) {
-        fetch('/admin/homepage-builder.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `ajax_action=get_section&section_id=${id}&csrf_token=${csrf}`
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                openEditPanel(id, data.section.type, data.section);
-            }
-        });
-    }
-
-    function openEditPanel(id, type, sectionData = null) {
-        currentEditId = id;
-
-        // Reset to form tab
-        switchPanelTab('form');
-
-        document.getElementById('sectionId').value = id;
-        document.getElementById('sectionType').value = type;
-        document.getElementById('panelTitle').textContent = id ? 'Modifier la section' : 'Nouvelle section';
-
-        // Type display
-        document.getElementById('typeDisplay').innerHTML = `<span class="type-badge type-${type}">${types[type] || type}</span>`;
-
-        // Reset form
-        const form = document.getElementById('sectionForm');
-        form.reset();
-
-        // Show/hide fields based on type
-        updateFormFields(type);
-
-        // Fill data if editing
-        if (sectionData) {
-            document.getElementById('status').value = sectionData.status || 'draft';
-            document.getElementById('title').value = sectionData.title || '';
-            document.getElementById('subtitle').value = sectionData.subtitle || '';
-            document.getElementById('content').value = sectionData.content || '';
-            document.getElementById('cta_text').value = sectionData.cta_text || '';
-            document.getElementById('cta_url').value = sectionData.cta_url || '';
-
-            // Hero fields
-            if (type === 'hero' && sectionData.config) {
-                document.getElementById('hero_badge').value = sectionData.config.badge || '';
-                document.getElementById('hero_highlight').value = sectionData.config.highlight || '';
-                document.getElementById('hero_cta2_text').value = sectionData.config.cta2_text || '';
-                document.getElementById('hero_cta2_url').value = sectionData.config.cta2_url || '';
-
-                if (sectionData.config.elements_order) {
-                    reorderHeroElements(sectionData.config.elements_order);
-                }
-            }
-
-            // Category
-            if (type === 'featured_category' && sectionData.config) {
-                document.getElementById('category_id').value = sectionData.config.category_id || '';
-                document.getElementById('products_limit').value = sectionData.config.products_limit || 8;
-            }
-
-            // Style
-            if (sectionData.config && sectionData.config.style) {
-                if (sectionData.config.style.background_color) {
-                    document.getElementById('style_bg_color').value = sectionData.config.style.background_color;
-                }
-                if (sectionData.config.style.text_color) {
-                    document.getElementById('style_text_color').value = sectionData.config.style.text_color;
-                }
-                document.getElementById('style_padding_y').value = sectionData.config.style.padding_y || 'medium';
-            }
-
-            // Media preview
-            if (sectionData.media_url && sectionData.media_type === 'image') {
-                document.getElementById('currentMediaPreview').style.display = 'block';
-                document.getElementById('mediaPreviewImg').src = '/public' + sectionData.media_url;
-            } else {
-                document.getElementById('currentMediaPreview').style.display = 'none';
-            }
-
-            // Selected items
-            if (sectionData.items) {
-                sectionData.items.forEach(item => {
-                    let checkbox;
-                    if (item.item_type === 'product') {
-                        checkbox = document.querySelector(`input[name="product_ids[]"][value="${item.item_id}"]`);
-                    } else if (item.item_type === 'pack') {
-                        checkbox = document.querySelector(`input[name="pack_ids[]"][value="${item.item_id}"]`);
-                    } else if (item.item_type === 'blog') {
-                        checkbox = document.querySelector(`input[name="blog_ids[]"][value="${item.item_id}"]`);
-                    }
-                    if (checkbox) checkbox.checked = true;
-                });
-            }
-        } else {
-            document.getElementById('currentMediaPreview').style.display = 'none';
-        }
-
-        document.getElementById('editPanel').classList.add('active');
-        document.getElementById('panelOverlay').classList.add('active');
-    }
-
-    function closeEditPanel() {
-        document.getElementById('editPanel').classList.remove('active');
-        document.getElementById('panelOverlay').classList.remove('active');
-        currentEditId = 0;
-    }
-
-    function updateFormFields(type) {
-        // Hide all conditional fields
-        document.querySelectorAll('.hero-fields, .content-field, .products-field, .packs-field, .blog-field, .category-field').forEach(el => {
-            el.style.display = 'none';
-        });
-
-        // Show relevant fields
-        switch(type) {
-            case 'hero':
-                document.querySelector('.hero-fields').style.display = 'block';
-                break;
-            case 'content_block':
-                document.querySelector('.content-field').style.display = 'block';
-                break;
-            case 'featured_products':
-                document.querySelector('.products-field').style.display = 'block';
-                break;
-            case 'featured_packs':
-                document.querySelector('.packs-field').style.display = 'block';
-                break;
-            case 'blog_slider':
-                document.querySelector('.blog-field').style.display = 'block';
-                break;
-            case 'featured_category':
-                document.querySelector('.category-field').style.display = 'block';
-                break;
-        }
-    }
-
-    function reorderHeroElements(order) {
-        const container = document.getElementById('heroElementsOrder');
-        const items = {};
-
-        container.querySelectorAll('.hero-order-item').forEach(item => {
-            items[item.dataset.element] = item;
-        });
-
-        container.innerHTML = '';
-        order.forEach(element => {
-            if (items[element]) {
-                container.appendChild(items[element]);
-            }
-        });
-    }
-
-    function moveHeroElement(btn, direction) {
-        const item = btn.closest('.hero-order-item');
-        const container = item.parentElement;
-        const items = [...container.querySelectorAll('.hero-order-item')];
-        const index = items.indexOf(item);
-        const newIndex = index + direction;
-
-        if (newIndex >= 0 && newIndex < items.length) {
-            if (direction === -1) {
-                container.insertBefore(item, items[newIndex]);
-            } else {
-                container.insertBefore(item, items[newIndex].nextSibling);
-            }
-        }
-    }
-
-    // Save Form
-    document.getElementById('sectionForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-        formData.set('section_id', currentEditId);
-
-        const saveBtn = document.getElementById('saveBtn');
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg> Enregistrement...';
-
-        fetch('/admin/homepage-builder.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                closeEditPanel();
-                location.reload();
-            } else {
-                alert(data.error || 'Erreur');
-            }
-        })
-        .finally(() => {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Enregistrer';
-        });
-    });
-
-    // Toggle Section
-    function toggleSection(id) {
-        fetch('/admin/homepage-builder.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `ajax_action=toggle&section_id=${id}&csrf_token=${csrf}`
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            }
-        });
-    }
-
-    // Delete Section
-    function deleteSection(id) {
-        if (!confirm('Supprimer cette section ?')) return;
-
-        fetch('/admin/homepage-builder.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `ajax_action=delete&section_id=${id}&csrf_token=${csrf}`
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                const card = document.querySelector(`.builder-section-card[data-id="${id}"]`);
-                if (card) {
-                    card.remove();
-                    // Update order badges
-                    document.querySelectorAll('.builder-section-card').forEach((c, i) => {
-                        const badge = c.querySelector('.builder-section-order');
-                        if (badge) badge.textContent = i + 1;
-                    });
-                }
-                // Show empty state if no sections left
-                if (document.querySelectorAll('.builder-section-card').length === 0) {
-                    location.reload();
-                }
-            }
-        });
-    }
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeTypeModal();
-            closeEditPanel();
-        }
-    });
-
-    // Panel Tabs
-    let currentTab = 'form';
-    let previewDebounceTimer = null;
-    let currentPreviewDevice = 'desktop';
-
-    function switchPanelTab(tab) {
-        currentTab = tab;
-
-        // Update tab buttons
-        document.querySelectorAll('.panel-tab').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tab);
-        });
-
-        // Show/hide panels
-        const form = document.getElementById('sectionForm');
-        const preview = document.getElementById('previewPanel');
-
-        if (tab === 'form') {
-            form.style.display = 'flex';
-            preview.style.display = 'none';
-        } else {
-            form.style.display = 'none';
-            preview.style.display = 'flex';
-            loadPreview();
-        }
-    }
-
-    function setPreviewDevice(device) {
-        currentPreviewDevice = device;
-
+    // Device toggle
+    function initDeviceToggle() {
         document.querySelectorAll('.device-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.device === device);
-        });
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
 
-        const frame = document.getElementById('previewFrame');
-        frame.classList.toggle('mobile', device === 'mobile');
-    }
-
-    function loadPreview() {
-        const loading = document.getElementById('previewLoading');
-        const frame = document.getElementById('previewFrame');
-
-        loading.style.display = 'flex';
-        frame.style.opacity = '0.5';
-
-        // Collect form data
-        const formData = new FormData(document.getElementById('sectionForm'));
-        formData.set('csrf_token', csrf);
-
-        // Add media URL if exists
-        const mediaPreview = document.getElementById('mediaPreviewImg');
-        if (mediaPreview && mediaPreview.src && !mediaPreview.src.includes('undefined')) {
-            formData.set('media_url', mediaPreview.src.replace(window.location.origin + '/public', ''));
-        }
-
-        fetch('/admin/api/homepage-section/preview.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success && data.html) {
-                const doc = frame.contentDocument || frame.contentWindow.document;
-                doc.open();
-                doc.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <link rel="stylesheet" href="/public/assets/css/style.css">
-                        <style>
-                            body { margin: 0; padding: 0; }
-                            * { box-sizing: border-box; }
-                        </style>
-                    </head>
-                    <body>
-                        ${data.html}
-                    </body>
-                    </html>
-                `);
-                doc.close();
-            } else {
-                const doc = frame.contentDocument || frame.contentWindow.document;
-                doc.open();
-                doc.write(`
-                    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#999;font-family:sans-serif;">
-                        <p>Remplissez le formulaire pour voir l'aperçu</p>
-                    </div>
-                `);
-                doc.close();
-            }
-        })
-        .catch(err => {
-            console.error('Preview error:', err);
-        })
-        .finally(() => {
-            loading.style.display = 'none';
-            frame.style.opacity = '1';
+                const device = this.dataset.device;
+                const wrapper = document.getElementById('previewWrapper');
+                wrapper.classList.remove('tablet', 'mobile');
+                if (device !== 'desktop') {
+                    wrapper.classList.add(device);
+                }
+            });
         });
     }
 
     function refreshPreview() {
-        loadPreview();
+        const frame = document.getElementById('previewFrame');
+        frame.src = frame.src.split('?')[0] + '?preview=builder&t=' + Date.now();
     }
 
-    // Auto-refresh preview on form changes (debounced)
-    document.getElementById('sectionForm').addEventListener('input', function(e) {
-        if (currentTab === 'preview') {
-            clearTimeout(previewDebounceTimer);
-            previewDebounceTimer = setTimeout(loadPreview, 500);
-        }
+    // Media upload
+    function initMediaUpload() {
+        const zone = document.getElementById('mediaUploadZone');
+        const input = document.getElementById('mediaFile');
+
+        zone.addEventListener('click', () => input.click());
+
+        input.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('mediaPreview').style.display = 'block';
+                    document.getElementById('mediaPlaceholder').style.display = 'none';
+                    document.getElementById('mediaPreviewImg').src = e.target.result;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    function removeMedia() {
+        document.getElementById('mediaPreview').style.display = 'none';
+        document.getElementById('mediaPlaceholder').style.display = 'block';
+        document.getElementById('mediaFile').value = '';
+    }
+
+    // Form
+    function initForm() {
+        document.getElementById('sectionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const saveBtn = document.getElementById('saveBtn');
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<svg class="spin" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/></svg> Enregistrement...';
+
+            fetch('/admin/homepage-builder.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    refreshPreview();
+                    if (data.isNew) {
+                        location.reload();
+                    } else {
+                        // Mettre à jour le nom dans la sidebar
+                        const item = document.querySelector(`.section-item[data-id="${selectedSectionId}"]`);
+                        if (item) {
+                            const name = document.getElementById('propTitle').value || types[document.getElementById('sectionType').value];
+                            item.querySelector('.section-name').textContent = name;
+                        }
+                    }
+                } else {
+                    alert(data.error || 'Erreur');
+                }
+            })
+            .finally(() => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Enregistrer';
+            });
+        });
+
+        // Toggle status
+        document.getElementById('toggleStatusBtn').addEventListener('click', function() {
+            if (!selectedSectionId) return;
+
+            fetch('/admin/homepage-builder.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `ajax_action=toggle&section_id=${selectedSectionId}&csrf_token=${csrf}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const item = document.querySelector(`.section-item[data-id="${selectedSectionId}"]`);
+                    if (item) {
+                        const statusDot = item.querySelector('.section-status');
+                        statusDot.className = 'section-status ' + data.status;
+                        item.classList.toggle('is-draft', data.status === 'draft');
+                    }
+                    refreshPreview();
+                }
+            });
+        });
+
+        // Delete
+        document.getElementById('deleteBtn').addEventListener('click', function() {
+            if (!selectedSectionId) return;
+            if (!confirm('Supprimer cette section ?')) return;
+
+            fetch('/admin/homepage-builder.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `ajax_action=delete&section_id=${selectedSectionId}&csrf_token=${csrf}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const item = document.querySelector(`.section-item[data-id="${selectedSectionId}"]`);
+                    if (item) item.remove();
+
+                    selectedSectionId = null;
+                    document.getElementById('propertiesEmpty').style.display = 'flex';
+                    document.getElementById('propertiesContent').style.display = 'none';
+
+                    refreshPreview();
+                }
+            });
+        });
+    }
+
+    // Modal ajout
+    document.getElementById('addSectionBtn').addEventListener('click', () => {
+        document.getElementById('addModal').classList.add('active');
     });
 
-    document.getElementById('sectionForm').addEventListener('change', function(e) {
-        if (currentTab === 'preview') {
-            clearTimeout(previewDebounceTimer);
-            previewDebounceTimer = setTimeout(loadPreview, 300);
+    function closeAddModal() {
+        document.getElementById('addModal').classList.remove('active');
+    }
+
+    function createSection(type) {
+        closeAddModal();
+
+        // Créer une section vide
+        const formData = new FormData();
+        formData.append('ajax_action', 'save');
+        formData.append('csrf_token', csrf);
+        formData.append('section_id', '0');
+        formData.append('type', type);
+        formData.append('title', '');
+        formData.append('status', 'draft');
+
+        fetch('/admin/homepage-builder.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+
+    // Keyboard
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAddModal();
         }
     });
     </script>
