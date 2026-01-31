@@ -1,23 +1,28 @@
 <?php
 /**
- * PERSONNALY Admin - Codes Promo
- * Gestion des codes promotionnels avec saisie client
+ * PERSONNALY Admin - Promotions
+ * Page unifiée : Codes Promo + Règles Auto
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/PromoCode.php';
+require_once __DIR__ . '/../app/models/PromoRule.php';
 require_once __DIR__ . '/../app/models/Order.php';
 
 Auth::requireAdmin();
 
 $promoModel = new PromoCode();
+$ruleModel = new PromoRule();
 $orderModel = new Order();
 $pendingOrders = $orderModel->countNew();
 
-// Actions
-if (isset($_GET['action'])) {
+// Onglet actif (codes ou rules)
+$activeTab = $_GET['tab'] ?? 'codes';
+
+// Actions pour les codes
+if (isset($_GET['action']) && $activeTab === 'codes') {
     $id = (int) ($_GET['id'] ?? 0);
 
     switch ($_GET['action']) {
@@ -25,14 +30,14 @@ if (isset($_GET['action'])) {
             if ($id && verifyCsrf($_GET['csrf'] ?? '')) {
                 $promoModel->toggleActive($id);
             }
-            redirect('/admin/promo-codes.php');
+            redirect('/admin/promo-codes.php?tab=codes');
             break;
 
         case 'delete':
             if ($id && verifyCsrf($_GET['csrf'] ?? '')) {
                 $promoModel->delete($id);
             }
-            redirect('/admin/promo-codes.php?deleted=1');
+            redirect('/admin/promo-codes.php?tab=codes&deleted=1');
             break;
 
         case 'duplicate':
@@ -42,12 +47,46 @@ if (isset($_GET['action'])) {
                     redirect('/admin/promo-code-form.php?id=' . $newId);
                 }
             }
-            redirect('/admin/promo-codes.php');
+            redirect('/admin/promo-codes.php?tab=codes');
+            break;
+    }
+}
+
+// Actions pour les règles
+if (isset($_GET['action']) && $activeTab === 'rules') {
+    $id = (int) ($_GET['id'] ?? 0);
+
+    switch ($_GET['action']) {
+        case 'toggle':
+            if ($id && verifyCsrf($_GET['csrf'] ?? '')) {
+                $ruleModel->toggleActive($id);
+            }
+            redirect('/admin/promo-codes.php?tab=rules');
+            break;
+
+        case 'delete':
+            if ($id && verifyCsrf($_GET['csrf'] ?? '')) {
+                $ruleModel->delete($id);
+            }
+            redirect('/admin/promo-codes.php?tab=rules&deleted=1');
+            break;
+
+        case 'duplicate':
+            if ($id && verifyCsrf($_GET['csrf'] ?? '')) {
+                $newId = $ruleModel->duplicate($id);
+                if ($newId) {
+                    redirect('/admin/promo-rule-form.php?id=' . $newId);
+                }
+            }
+            redirect('/admin/promo-codes.php?tab=rules');
             break;
     }
 }
 
 $promoCodes = $promoModel->findAll();
+$promoRules = $ruleModel->findAll();
+$conditionLabels = PromoRule::CONDITION_TYPES;
+$offerLabels = PromoRule::OFFER_TYPES;
 $csrf = csrfToken();
 ?>
 <!DOCTYPE html>
@@ -55,7 +94,7 @@ $csrf = csrfToken();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Codes Promo - PERSONNALY Admin</title>
+    <title>Promotions - PERSONNALY Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
@@ -69,24 +108,54 @@ $csrf = csrfToken();
         <main class="main-content">
             <div class="page-header">
                 <div>
-                    <h1 class="page-title">Codes <span>Promo</span></h1>
-                    <p class="page-subtitle">Les clients saisissent ces codes sur la page panier</p>
+                    <h1 class="page-title">Promo<span>tions</span></h1>
+                    <p class="page-subtitle">Codes promo et règles automatiques</p>
                 </div>
-                <a href="/admin/promo-code-form.php" class="btn btn-primary">
+                <?php if ($activeTab === 'codes'): ?>
+                    <a href="/admin/promo-code-form.php" class="btn btn-primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Nouveau code
+                    </a>
+                <?php else: ?>
+                    <a href="/admin/promo-rule-form.php" class="btn btn-primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Nouvelle règle
+                    </a>
+                <?php endif; ?>
+            </div>
+
+            <!-- Onglets -->
+            <div class="promo-tabs">
+                <a href="?tab=codes" class="promo-tab <?= $activeTab === 'codes' ? 'active' : '' ?>">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                        <line x1="7" y1="7" x2="7.01" y2="7"/>
                     </svg>
-                    Nouveau code
+                    Codes Promo
+                    <span class="tab-count"><?= count($promoCodes) ?></span>
+                </a>
+                <a href="?tab=rules" class="promo-tab <?= $activeTab === 'rules' ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    Règles Auto
+                    <span class="tab-count"><?= count($promoRules) ?></span>
                 </a>
             </div>
 
             <?php if (isset($_GET['deleted'])): ?>
-                <div class="alert alert-success">Code promo supprimé.</div>
+                <div class="alert alert-success"><?= $activeTab === 'codes' ? 'Code promo' : 'Règle' ?> supprimé(e).</div>
             <?php endif; ?>
             <?php if (isset($_GET['saved'])): ?>
-                <div class="alert alert-success">Code promo enregistré.</div>
+                <div class="alert alert-success"><?= $activeTab === 'codes' ? 'Code promo' : 'Règle' ?> enregistré(e).</div>
             <?php endif; ?>
 
+            <?php if ($activeTab === 'codes'): ?>
+            <!-- ===== ONGLET CODES PROMO ===== -->
             <?php if (empty($promoCodes)): ?>
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -201,14 +270,14 @@ $csrf = csrfToken();
                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                                     </svg>
                                 </a>
-                                <a href="/admin/promo-codes.php?action=duplicate&id=<?= $promo['id'] ?>&csrf=<?= $csrf ?>"
+                                <a href="/admin/promo-codes.php?tab=codes&action=duplicate&id=<?= $promo['id'] ?>&csrf=<?= $csrf ?>"
                                    class="btn-action" title="Dupliquer">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                                     </svg>
                                 </a>
-                                <a href="/admin/promo-codes.php?action=toggle&id=<?= $promo['id'] ?>&csrf=<?= $csrf ?>"
+                                <a href="/admin/promo-codes.php?tab=codes&action=toggle&id=<?= $promo['id'] ?>&csrf=<?= $csrf ?>"
                                    class="btn-action" title="<?= $promo['active'] ? 'Désactiver' : 'Activer' ?>">
                                     <?php if ($promo['active']): ?>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -221,7 +290,7 @@ $csrf = csrfToken();
                                         </svg>
                                     <?php endif; ?>
                                 </a>
-                                <a href="/admin/promo-codes.php?action=delete&id=<?= $promo['id'] ?>&csrf=<?= $csrf ?>"
+                                <a href="/admin/promo-codes.php?tab=codes&action=delete&id=<?= $promo['id'] ?>&csrf=<?= $csrf ?>"
                                    class="btn-action btn-danger" title="Supprimer"
                                    onclick="return confirm('Supprimer ce code promo ?')">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -235,7 +304,7 @@ $csrf = csrfToken();
                 </div>
             <?php endif; ?>
 
-            <!-- Info box -->
+            <!-- Info box codes -->
             <div class="info-box">
                 <div class="info-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -246,9 +315,133 @@ $csrf = csrfToken();
                 </div>
                 <div class="info-content">
                     <h4>Comment ça marche ?</h4>
-                    <p>Les clients saisissent le code promo sur la page panier. Si le code est valide, la réduction s'applique automatiquement. Vous pouvez partager ces codes par email, WhatsApp ou sur vos réseaux sociaux.</p>
+                    <p>Les clients saisissent le code promo sur la page panier. Si le code est valide, la réduction s'applique automatiquement.</p>
                 </div>
             </div>
+            <?php else: ?>
+            <!-- ===== ONGLET RÈGLES AUTO ===== -->
+            <?php if (empty($promoRules)): ?>
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
+                    <h3>Aucune règle automatique</h3>
+                    <p>Créez des règles pour offrir automatiquement des réductions selon des conditions.</p>
+                    <a href="/admin/promo-rule-form.php" class="btn btn-primary" style="margin-top: 20px;">
+                        Créer une règle
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="rules-grid">
+                    <?php foreach ($promoRules as $rule): ?>
+                        <?php
+                        $isExpired = !empty($rule['end_date']) && $rule['end_date'] < date('Y-m-d');
+                        $isNotStarted = !empty($rule['start_date']) && $rule['start_date'] > date('Y-m-d');
+                        $isLimitReached = !empty($rule['max_uses']) && $rule['current_uses'] >= $rule['max_uses'];
+                        ?>
+                        <div class="rule-card <?= $rule['active'] ? '' : 'inactive' ?> <?= $isExpired ? 'expired' : '' ?>">
+                            <div class="rule-header">
+                                <div class="rule-name">
+                                    <strong><?= h($rule['name']) ?></strong>
+                                    <?php if (!empty($rule['display_title'])): ?>
+                                        <small><?= h($rule['display_title']) ?></small>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="rule-status">
+                                    <?php if (!$rule['active']): ?>
+                                        <span class="status-tag status-inactive">Inactif</span>
+                                    <?php elseif ($isExpired): ?>
+                                        <span class="status-tag status-expired">Expiré</span>
+                                    <?php elseif ($isLimitReached): ?>
+                                        <span class="status-tag status-expired">Épuisé</span>
+                                    <?php elseif ($isNotStarted): ?>
+                                        <span class="status-tag status-pending">Programmé</span>
+                                    <?php else: ?>
+                                        <span class="status-tag status-active">Actif</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="rule-body">
+                                <div class="rule-condition">
+                                    <span class="label">SI</span>
+                                    <span class="value">
+                                        <?= h($conditionLabels[$rule['condition_type']] ?? $rule['condition_type']) ?>
+                                        <?php
+                                        $val = $rule['condition_value'];
+                                        if ($rule['condition_type'] === 'panier_min') {
+                                            echo ': ' . h($val) . '€';
+                                        } elseif ($rule['condition_type'] === 'quantite_min') {
+                                            echo ': ' . h($val) . ' articles';
+                                        } elseif ($val) {
+                                            echo ': ' . h($val);
+                                        }
+                                        ?>
+                                    </span>
+                                </div>
+                                <div class="rule-offer">
+                                    <span class="label">ALORS</span>
+                                    <span class="value">
+                                        <?= h($offerLabels[$rule['offer_type']] ?? $rule['offer_type']) ?>
+                                        <?php if ($rule['discount_type'] !== 'aucun' && $rule['discount_value'] > 0): ?>
+                                            <strong class="discount">-<?= h($rule['discount_value']) ?><?= $rule['discount_type'] === 'pourcentage' ? '%' : '€' ?></strong>
+                                        <?php endif; ?>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="rule-footer">
+                                <span class="rule-uses"><?= (int) $rule['current_uses'] ?> utilisation<?= $rule['current_uses'] > 1 ? 's' : '' ?></span>
+                                <div class="rule-actions">
+                                    <a href="/admin/promo-rule-form.php?id=<?= $rule['id'] ?>" class="btn-action" title="Modifier">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                        </svg>
+                                    </a>
+                                    <a href="/admin/promo-codes.php?tab=rules&action=toggle&id=<?= $rule['id'] ?>&csrf=<?= $csrf ?>"
+                                       class="btn-action" title="<?= $rule['active'] ? 'Désactiver' : 'Activer' ?>">
+                                        <?php if ($rule['active']): ?>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        <?php else: ?>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                                <line x1="1" y1="1" x2="23" y2="23"/>
+                                            </svg>
+                                        <?php endif; ?>
+                                    </a>
+                                    <a href="/admin/promo-codes.php?tab=rules&action=delete&id=<?= $rule['id'] ?>&csrf=<?= $csrf ?>"
+                                       class="btn-action btn-danger" title="Supprimer"
+                                       onclick="return confirm('Supprimer cette règle ?')">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3 6 5 6 21 6"/>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- Info box règles -->
+            <div class="info-box">
+                <div class="info-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </div>
+                <div class="info-content">
+                    <h4>Règles automatiques</h4>
+                    <p><strong>SI</strong> le client remplit une condition (panier min, produit...), <strong>ALORS</strong> une offre s'affiche automatiquement.</p>
+                </div>
+            </div>
+            <?php endif; ?>
         </main>
     </div>
 
@@ -269,6 +462,143 @@ $csrf = csrfToken();
             color: var(--gray);
             font-size: 14px;
             margin-top: 4px;
+        }
+
+        /* Onglets */
+        .promo-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: white;
+            padding: 8px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .promo-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .promo-tab:hover {
+            background: var(--gray-light);
+            color: var(--black-soft);
+        }
+        .promo-tab.active {
+            background: linear-gradient(135deg, var(--pink-main) 0%, var(--pink-dark) 100%);
+            color: white;
+        }
+        .promo-tab .tab-count {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        .promo-tab:not(.active) .tab-count {
+            background: var(--gray-light);
+        }
+
+        /* Grille des règles */
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .rule-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .rule-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+            border-color: rgba(255, 105, 180, 0.2);
+        }
+        .rule-card.inactive { opacity: 0.7; }
+        .rule-card.expired { background: #fafafa; }
+
+        .rule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(255, 105, 180, 0.08) 100%);
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .rule-name strong {
+            display: block;
+            font-size: 15px;
+            color: var(--black-soft);
+        }
+        .rule-name small {
+            display: block;
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        .rule-body {
+            padding: 20px;
+        }
+        .rule-condition, .rule-offer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+        }
+        .rule-condition { border-bottom: 1px dashed var(--gray-light); }
+        .rule-condition .label, .rule-offer .label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+        .rule-condition .label {
+            background: rgba(139, 92, 246, 0.15);
+            color: #7C3AED;
+        }
+        .rule-offer .label {
+            background: rgba(61, 255, 192, 0.15);
+            color: var(--mint-dark);
+        }
+        .rule-condition .value, .rule-offer .value {
+            font-size: 14px;
+            color: var(--black-soft);
+        }
+        .rule-offer .discount {
+            background: linear-gradient(135deg, var(--pink-main) 0%, var(--pink-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 16px;
+            margin-left: 6px;
+        }
+
+        .rule-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--gray-light);
+            border-top: 1px solid rgba(0,0,0,0.04);
+        }
+        .rule-uses {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        .rule-actions {
+            display: flex;
+            gap: 8px;
         }
 
         .alert {
