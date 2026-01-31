@@ -147,6 +147,82 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
 
     return !empty($styles) ? implode('; ', $styles) : '';
 }
+
+/**
+ * Génère les styles inline pour un titre
+ * @param array $section
+ * @return string CSS inline
+ */
+function getTitleStyles(array $section): string {
+    $styles = [];
+    $typo = $section['config']['typography'] ?? [];
+
+    // Font family
+    if (!empty($typo['font_family'])) {
+        $styles[] = 'font-family: "' . htmlspecialchars($typo['font_family']) . '", sans-serif';
+    }
+
+    // Title size
+    $sizeMap = [
+        'small' => '1.5rem',
+        'medium' => '2rem',
+        'large' => '2.5rem',
+        'xlarge' => '3.5rem'
+    ];
+    if (!empty($typo['title_size']) && isset($sizeMap[$typo['title_size']])) {
+        $styles[] = 'font-size: ' . $sizeMap[$typo['title_size']];
+    }
+
+    // Title color
+    if (!empty($typo['title_color'])) {
+        $styles[] = 'color: ' . htmlspecialchars($typo['title_color']);
+    }
+
+    // Bold
+    if (!empty($typo['bold']) && $typo['bold'] === '1') {
+        $styles[] = 'font-weight: 800';
+    }
+
+    // Italic
+    if (!empty($typo['italic']) && $typo['italic'] === '1') {
+        $styles[] = 'font-style: italic';
+    }
+
+    // Underline
+    if (!empty($typo['underline']) && $typo['underline'] === '1') {
+        $styles[] = 'text-decoration: underline';
+    }
+
+    // Uppercase
+    if (!empty($typo['uppercase']) && $typo['uppercase'] === '1') {
+        $styles[] = 'text-transform: uppercase';
+        $styles[] = 'letter-spacing: 2px';
+    }
+
+    return !empty($styles) ? implode('; ', $styles) : '';
+}
+
+/**
+ * Génère les styles inline pour un sous-titre
+ * @param array $section
+ * @return string CSS inline
+ */
+function getSubtitleStyles(array $section): string {
+    $styles = [];
+    $typo = $section['config']['typography'] ?? [];
+
+    // Font family (hérite du titre)
+    if (!empty($typo['font_family'])) {
+        $styles[] = 'font-family: "' . htmlspecialchars($typo['font_family']) . '", sans-serif';
+    }
+
+    // Subtitle color
+    if (!empty($typo['subtitle_color'])) {
+        $styles[] = 'color: ' . htmlspecialchars($typo['subtitle_color']);
+    }
+
+    return !empty($styles) ? implode('; ', $styles) : '';
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -162,6 +238,10 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
     <link rel="icon" type="image/x-icon" href="<?= h($favicon) ?>">
     <?php endif; ?>
     <?= $brandingService->getFontLinks() ?>
+    <!-- Polices additionnelles pour la personnalisation des sections -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600;700&family=Oswald:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Raleway:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <?= $brandingService->getStyleBlock() ?>
     <style>
@@ -963,7 +1043,7 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
                 $heroCta2Text = $section['config']['cta2_text'] ?? '';
                 $heroCta2Url = $section['config']['cta2_url'] ?? '';
     ?>
-    <section class="hero <?= $hasHeroImage ? 'hero-with-bg' : '' ?>" <?= $heroStyle ?>>
+    <section class="hero <?= $hasHeroImage ? 'hero-with-bg' : '' ?>" data-section-id="<?= $section['id'] ?>" <?= $heroStyle ?>>
         <div class="container">
             <div class="hero-content">
                 <?php
@@ -981,14 +1061,18 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
                             break;
 
                         case 'title':
-                            if ($section['title']): ?>
-                <h1><?= h($section['title']) ?><?php if ($heroHighlight): ?> <span><?= h($heroHighlight) ?></span><?php endif; ?></h1>
+                            if ($section['title']):
+                                $titleStyle = getTitleStyles($section);
+                            ?>
+                <h1<?= $titleStyle ? ' style="' . $titleStyle . '"' : '' ?>><?= h($section['title']) ?><?php if ($heroHighlight): ?> <span><?= h($heroHighlight) ?></span><?php endif; ?></h1>
                 <?php       endif;
                             break;
 
                         case 'subtitle':
-                            if ($section['subtitle']): ?>
-                <p><?= h($section['subtitle']) ?></p>
+                            if ($section['subtitle']):
+                                $subtitleStyle = getSubtitleStyles($section);
+                            ?>
+                <p<?= $subtitleStyle ? ' style="' . $subtitleStyle . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                 <?php       endif;
                             break;
 
@@ -1022,12 +1106,13 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
             case 'featured_products':
                 $sectionStyles = getSectionInlineStyles($section);
     ?>
-    <section class="products-section" id="produits" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+    <section class="products-section" id="produits" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
         <div class="container">
             <div class="section-header">
-                <h2><?= h($section['title'] ?: 'Nos Produits') ?></h2>
+                <?php $titleStyle = getTitleStyles($section); $subtitleStyle = getSubtitleStyles($section); ?>
+                <h2<?= $titleStyle ? ' style="' . $titleStyle . '"' : '' ?>><?= h($section['title'] ?: 'Nos Produits') ?></h2>
                 <?php if ($section['subtitle']): ?>
-                    <p><?= h($section['subtitle']) ?></p>
+                    <p<?= $subtitleStyle ? ' style="' . $subtitleStyle . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                 <?php endif; ?>
             </div>
 
@@ -1074,14 +1159,15 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
                 $cat = $section['category'];
                 $sectionStyles = getSectionInlineStyles($section);
     ?>
-    <section class="category-section" id="categorie-<?= h($cat['slug']) ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+    <section class="category-section" id="categorie-<?= h($cat['slug']) ?>" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
         <div class="container">
             <div class="section-header">
-                <h2><?= h($section['title'] ?: $cat['name']) ?></h2>
+                <?php $titleStyle = getTitleStyles($section); $subtitleStyle = getSubtitleStyles($section); ?>
+                <h2<?= $titleStyle ? ' style="' . $titleStyle . '"' : '' ?>><?= h($section['title'] ?: $cat['name']) ?></h2>
                 <?php if ($section['subtitle']): ?>
-                    <p><?= h($section['subtitle']) ?></p>
+                    <p<?= $subtitleStyle ? ' style="' . $subtitleStyle . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                 <?php elseif (!empty($cat['description'])): ?>
-                    <p><?= h($cat['description']) ?></p>
+                    <p<?= $subtitleStyle ? ' style="' . $subtitleStyle . '"' : '' ?>><?= h($cat['description']) ?></p>
                 <?php endif; ?>
             </div>
 
@@ -1131,12 +1217,13 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
                 ];
                 $sectionStyles = getSectionInlineStyles($section);
     ?>
-    <section class="inspirations-section" id="inspirations" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+    <section class="inspirations-section" id="inspirations" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
         <div class="container">
             <div class="section-header">
-                <h2><?= h($section['title'] ?: 'Nos Idées Tendance') ?></h2>
+                <?php $titleStyle = getTitleStyles($section); $subtitleStyle = getSubtitleStyles($section); ?>
+                <h2<?= $titleStyle ? ' style="' . $titleStyle . '"' : '' ?>><?= h($section['title'] ?: 'Nos Idées Tendance') ?></h2>
                 <?php if ($section['subtitle']): ?>
-                    <p><?= h($section['subtitle']) ?></p>
+                    <p<?= $subtitleStyle ? ' style="' . $subtitleStyle . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                 <?php endif; ?>
             </div>
 
@@ -1185,17 +1272,18 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
                 $isGalleryMode = $hasMultipleMedia && !$hasMainMedia;
                 $sectionStyles = getSectionInlineStyles($section);
     ?>
-    <section class="content-block-section <?= $altBg ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+    <section class="content-block-section <?= $altBg ?>" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
         <div class="container">
             <?php if ($isGalleryMode): ?>
                 <!-- Mode Galerie : texte au-dessus, images en grille -->
                 <div class="content-block-inner gallery-mode">
                     <div class="content-block-text" style="text-align: center; max-width: 800px; margin: 0 auto;">
+                        <?php $titleStyle = getTitleStyles($section); $subtitleStyle = getSubtitleStyles($section); ?>
                         <?php if ($section['title']): ?>
-                            <h2><?= h($section['title']) ?></h2>
+                            <h2<?= $titleStyle ? ' style="' . $titleStyle . '"' : '' ?>><?= h($section['title']) ?></h2>
                         <?php endif; ?>
                         <?php if ($section['content']): ?>
-                            <p><?= nl2br(h($section['content'])) ?></p>
+                            <p<?= $subtitleStyle ? ' style="' . $subtitleStyle . '"' : '' ?>><?= nl2br(h($section['content'])) ?></p>
                         <?php endif; ?>
                         <?php if ($section['cta_url'] && $section['cta_text']): ?>
                             <a href="<?= h($section['cta_url']) ?>" class="btn btn-primary"><?= h($section['cta_text']) ?></a>
@@ -1213,11 +1301,12 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
                 <!-- Mode classique : texte + média côte à côte -->
                 <div class="content-block-inner <?= $mediaLeft ? 'media-left' : '' ?>">
                     <div class="content-block-text">
+                        <?php $titleStyle = getTitleStyles($section); $subtitleStyle = getSubtitleStyles($section); ?>
                         <?php if ($section['title']): ?>
-                            <h2><?= h($section['title']) ?></h2>
+                            <h2<?= $titleStyle ? ' style="' . $titleStyle . '"' : '' ?>><?= h($section['title']) ?></h2>
                         <?php endif; ?>
                         <?php if ($section['content']): ?>
-                            <p><?= nl2br(h($section['content'])) ?></p>
+                            <p<?= $subtitleStyle ? ' style="' . $subtitleStyle . '"' : '' ?>><?= nl2br(h($section['content'])) ?></p>
                         <?php endif; ?>
                         <?php if ($section['cta_url'] && $section['cta_text']): ?>
                             <a href="<?= h($section['cta_url']) ?>" class="btn btn-primary"><?= h($section['cta_text']) ?></a>
@@ -1244,12 +1333,13 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
                 if (empty($section['posts'])) break;
                 $sectionStyles = getSectionInlineStyles($section);
     ?>
-    <section class="blog-section" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+    <section class="blog-section" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
         <div class="container">
             <div class="section-header">
-                <h2><?= h($section['title'] ?: 'Notre Blog') ?></h2>
+                <?php $titleStyle = getTitleStyles($section); $subtitleStyle = getSubtitleStyles($section); ?>
+                <h2<?= $titleStyle ? ' style="' . $titleStyle . '"' : '' ?>><?= h($section['title'] ?: 'Notre Blog') ?></h2>
                 <?php if ($section['subtitle']): ?>
-                    <p><?= h($section['subtitle']) ?></p>
+                    <p<?= $subtitleStyle ? ' style="' . $subtitleStyle . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                 <?php endif; ?>
             </div>
 
@@ -1286,15 +1376,16 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
                     $newsletterStyle .= ($newsletterStyle ? '; ' : '') . 'background-image: url(\'/public' . h($section['media_url']) . '\')';
                 }
     ?>
-    <section class="newsletter-section" style="<?= $newsletterStyle ?>">
+    <section class="newsletter-section" data-section-id="<?= $section['id'] ?>" style="<?= $newsletterStyle ?>">
         <div class="newsletter-overlay"></div>
         <div class="container">
             <div class="newsletter-content">
+                <?php $titleStyle = getTitleStyles($section); $subtitleStyle = getSubtitleStyles($section); ?>
                 <?php if ($section['title']): ?>
-                    <h2><?= h($section['title']) ?></h2>
+                    <h2<?= $titleStyle ? ' style="' . $titleStyle . '"' : '' ?>><?= h($section['title']) ?></h2>
                 <?php endif; ?>
                 <?php if ($section['subtitle']): ?>
-                    <p class="newsletter-subtitle"><?= h($section['subtitle']) ?></p>
+                    <p class="newsletter-subtitle"<?= $subtitleStyle ? ' style="' . $subtitleStyle . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                 <?php endif; ?>
 
                 <form class="newsletter-form" id="newsletterForm" data-section-id="<?= $section['id'] ?>">

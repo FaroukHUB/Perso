@@ -146,6 +146,20 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 'padding_y' => $_POST['style_padding_y'] ?? 'medium',
             ];
 
+            // Typography
+            $data['config']['typography'] = [
+                'font_family' => !empty($_POST['typo_font_family']) ? $_POST['typo_font_family'] : null,
+                'title_size' => !empty($_POST['typo_title_size']) ? $_POST['typo_title_size'] : null,
+                'title_color' => !empty($_POST['typo_title_color']) && $_POST['typo_title_color'] !== '#1a1a1a' ? $_POST['typo_title_color'] : null,
+                'subtitle_color' => !empty($_POST['typo_subtitle_color']) && $_POST['typo_subtitle_color'] !== '#666666' ? $_POST['typo_subtitle_color'] : null,
+                'bold' => ($_POST['typo_bold'] ?? '0') === '1' ? '1' : null,
+                'italic' => ($_POST['typo_italic'] ?? '0') === '1' ? '1' : null,
+                'underline' => ($_POST['typo_underline'] ?? '0') === '1' ? '1' : null,
+                'uppercase' => ($_POST['typo_uppercase'] ?? '0') === '1' ? '1' : null,
+            ];
+            // Nettoyer les valeurs null
+            $data['config']['typography'] = array_filter($data['config']['typography'], fn($v) => $v !== null);
+
             try {
                 if ($isEdit) {
                     $sectionModel->update($sectionId, $data);
@@ -203,7 +217,7 @@ $typeIcons = [
     <title>Page Builder - PERSONNALY Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600;700&family=Oswald:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;600;700;800&family=Raleway:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/admin.css">
 </head>
@@ -502,8 +516,101 @@ $typeIcons = [
                         </div>
                     </div>
 
+                    <!-- Typographie -->
+                    <div class="prop-section typography-fields">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="4 7 4 4 20 4 20 7"/>
+                                <line x1="9" y1="20" x2="15" y2="20"/>
+                                <line x1="12" y1="4" x2="12" y2="20"/>
+                            </svg>
+                            Typographie
+                        </div>
+
+                        <div class="prop-group">
+                            <label>Police</label>
+                            <select name="typo_font_family" id="propFontFamily">
+                                <option value="">Par défaut</option>
+                                <option value="Inter">Inter</option>
+                                <option value="Poppins">Poppins</option>
+                                <option value="Montserrat">Montserrat</option>
+                                <option value="Playfair Display">Playfair Display</option>
+                                <option value="Roboto">Roboto</option>
+                                <option value="Open Sans">Open Sans</option>
+                                <option value="Lato">Lato</option>
+                                <option value="Oswald">Oswald</option>
+                                <option value="Raleway">Raleway</option>
+                                <option value="Dancing Script">Dancing Script</option>
+                            </select>
+                        </div>
+
+                        <div class="prop-group-row">
+                            <div class="prop-group">
+                                <label>Taille titre</label>
+                                <select name="typo_title_size" id="propTitleSize">
+                                    <option value="">Par défaut</option>
+                                    <option value="small">Petit</option>
+                                    <option value="medium">Moyen</option>
+                                    <option value="large">Grand</option>
+                                    <option value="xlarge">Très grand</option>
+                                </select>
+                            </div>
+                            <div class="prop-group">
+                                <label>Couleur titre</label>
+                                <input type="color" name="typo_title_color" id="propTitleColor" value="#1a1a1a">
+                            </div>
+                        </div>
+
+                        <div class="prop-group">
+                            <label>Style du titre</label>
+                            <div class="typo-toggles">
+                                <button type="button" class="typo-toggle" data-field="typo_bold" title="Gras">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                        <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="typo-toggle" data-field="typo_italic" title="Italique">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="19" y1="4" x2="10" y2="4"/>
+                                        <line x1="14" y1="20" x2="5" y2="20"/>
+                                        <line x1="15" y1="4" x2="9" y2="20"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="typo-toggle" data-field="typo_underline" title="Souligné">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/>
+                                        <line x1="4" y1="21" x2="20" y2="21"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="typo-toggle" data-field="typo_uppercase" title="Majuscules">
+                                    <span style="font-weight: 600; font-size: 12px;">AA</span>
+                                </button>
+                            </div>
+                            <input type="hidden" name="typo_bold" id="propTypoBold" value="0">
+                            <input type="hidden" name="typo_italic" id="propTypoItalic" value="0">
+                            <input type="hidden" name="typo_underline" id="propTypoUnderline" value="0">
+                            <input type="hidden" name="typo_uppercase" id="propTypoUppercase" value="0">
+                        </div>
+
+                        <div class="prop-group">
+                            <label>Couleur sous-titre</label>
+                            <input type="color" name="typo_subtitle_color" id="propSubtitleColor" value="#666666">
+                        </div>
+                    </div>
+
                     <!-- Style -->
                     <div class="prop-section style-fields">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="13.5" cy="6.5" r="2.5"/>
+                                <circle cx="17.5" cy="10.5" r="2.5"/>
+                                <circle cx="8.5" cy="7.5" r="2.5"/>
+                                <circle cx="6.5" cy="12.5" r="2.5"/>
+                                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12"/>
+                            </svg>
+                            Apparence
+                        </div>
                         <div class="prop-group-row">
                             <div class="prop-group">
                                 <label>Fond</label>
@@ -1023,6 +1130,53 @@ $typeIcons = [
         margin-top: 16px;
     }
 
+    .prop-section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+    }
+
+    .prop-section-title svg {
+        color: var(--pink-main, #ff69b4);
+    }
+
+    /* Typography toggles */
+    .typo-toggles {
+        display: flex;
+        gap: 6px;
+    }
+
+    .typo-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: #f5f5f5;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .typo-toggle:hover {
+        background: #eee;
+        color: #333;
+    }
+
+    .typo-toggle.active {
+        background: linear-gradient(135deg, rgba(255,105,180,0.15), rgba(255,20,147,0.1));
+        border-color: var(--pink-main, #ff69b4);
+        color: var(--pink-main, #ff69b4);
+    }
+
     /* Media upload */
     .media-upload-zone {
         border: 2px dashed #ddd;
@@ -1314,6 +1468,7 @@ $typeIcons = [
         initDeviceToggle();
         initMediaUpload();
         initForm();
+        initTypographyToggles();
     });
 
     // Liste des sections
@@ -1356,14 +1511,46 @@ $typeIcons = [
             const frame = document.getElementById('previewFrame');
             const doc = frame.contentDocument || frame.contentWindow.document;
             const section = doc.querySelector(`[data-section-id="${id}"]`);
+
             if (section) {
-                section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Retirer le highlight précédent
+                doc.querySelectorAll('[data-section-id]').forEach(el => {
+                    el.style.outline = '';
+                    el.style.outlineOffset = '';
+                    el.classList.remove('builder-highlight');
+                });
+
+                // Scroll vers la section avec un offset pour la navbar
+                const rect = section.getBoundingClientRect();
+                const scrollTop = frame.contentWindow.scrollY || doc.documentElement.scrollTop;
+                const targetY = rect.top + scrollTop - 100; // 100px offset pour la navbar
+
+                frame.contentWindow.scrollTo({
+                    top: targetY,
+                    behavior: 'smooth'
+                });
+
+                // Ajouter un effet de highlight animé
                 section.style.outline = '3px solid #ff69b4';
-                setTimeout(() => {
-                    section.style.outline = '';
-                }, 2000);
+                section.style.outlineOffset = '4px';
+                section.style.transition = 'outline-color 0.3s, outline-offset 0.3s';
+
+                // Animation pulse
+                let pulseCount = 0;
+                const pulseInterval = setInterval(() => {
+                    pulseCount++;
+                    if (pulseCount >= 4) {
+                        clearInterval(pulseInterval);
+                        section.style.outline = '2px dashed rgba(255, 105, 180, 0.5)';
+                        section.style.outlineOffset = '2px';
+                    } else {
+                        section.style.outlineOffset = pulseCount % 2 === 0 ? '4px' : '8px';
+                    }
+                }, 300);
             }
-        } catch(e) {}
+        } catch(e) {
+            console.log('Preview highlight error:', e);
+        }
     }
 
     function showProperties(section) {
@@ -1424,6 +1611,9 @@ $typeIcons = [
             document.getElementById('propBgColor').value = section.config.style.background_color || '#ffffff';
             document.getElementById('propTextColor').value = section.config.style.text_color || '#1a1a1a';
         }
+
+        // Typography
+        setTypographyValues(section.config);
 
         // Items sélectionnés
         document.querySelectorAll('.items-select-grid input').forEach(cb => cb.checked = false);
@@ -1705,6 +1895,46 @@ $typeIcons = [
             if (data.success) {
                 location.reload();
             }
+        });
+    }
+
+    // Typography toggles
+    function initTypographyToggles() {
+        document.querySelectorAll('.typo-toggle').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const field = this.dataset.field;
+                const input = document.getElementById('prop' + field.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
+
+                this.classList.toggle('active');
+                input.value = this.classList.contains('active') ? '1' : '0';
+            });
+        });
+    }
+
+    function setTypographyValues(config) {
+        const typo = config?.typography || {};
+
+        // Font family
+        document.getElementById('propFontFamily').value = typo.font_family || '';
+
+        // Title size
+        document.getElementById('propTitleSize').value = typo.title_size || '';
+
+        // Title color
+        document.getElementById('propTitleColor').value = typo.title_color || '#1a1a1a';
+
+        // Subtitle color
+        document.getElementById('propSubtitleColor').value = typo.subtitle_color || '#666666';
+
+        // Bold, Italic, Underline, Uppercase toggles
+        const toggleFields = ['bold', 'italic', 'underline', 'uppercase'];
+        toggleFields.forEach(field => {
+            const btn = document.querySelector(`.typo-toggle[data-field="typo_${field}"]`);
+            const input = document.getElementById('propTypo' + field.charAt(0).toUpperCase() + field.slice(1));
+            const value = typo[field] === '1' || typo[field] === 1 || typo[field] === true;
+
+            if (btn) btn.classList.toggle('active', value);
+            if (input) input.value = value ? '1' : '0';
         });
     }
 
