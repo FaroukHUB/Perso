@@ -90,6 +90,13 @@ function isActive($page, $current) {
             <span>Codes Promo</span>
         </a>
 
+        <a href="/admin/promo-rules.php" class="nav-item <?= isActive('promo-rules.php', $currentPage) ?><?= isActive('promo-rule-form.php', $currentPage) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+            <span>Règles Promo</span>
+        </a>
+
         <a href="/admin/homepage.php" class="nav-item <?= isActive('homepage.php', $currentPage) ?><?= isActive('homepage-section.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
