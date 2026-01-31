@@ -273,7 +273,7 @@ if ($section && !empty($section['config']['products_limit'])) {
     <div class="admin-wrapper">
         <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
-        <main class="main-content">
+        <main class="main-content main-content-with-preview">
             <div class="page-header">
                 <h1 class="page-title">
                     <?php if ($isEdit): ?>
@@ -282,13 +282,22 @@ if ($section && !empty($section['config']['products_limit'])) {
                         Nouvelle <span>section</span>
                     <?php endif; ?>
                 </h1>
-                <a href="/admin/homepage.php" class="btn btn-secondary">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="19" y1="12" x2="5" y2="12"/>
-                        <polyline points="12 19 5 12 12 5"/>
-                    </svg>
-                    Retour à la liste
-                </a>
+                <div class="page-header-actions">
+                    <button type="button" class="btn btn-secondary btn-toggle-preview" id="togglePreviewBtn" title="Afficher/Masquer l'aperçu">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Aperçu
+                    </button>
+                    <a href="/admin/homepage.php" class="btn btn-secondary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12"/>
+                            <polyline points="12 19 5 12 12 5"/>
+                        </svg>
+                        Retour
+                    </a>
+                </div>
             </div>
 
             <?php if ($success): ?>
@@ -299,8 +308,13 @@ if ($section && !empty($section['config']['products_limit'])) {
                 <div class="alert alert-error"><?= h($error) ?></div>
             <?php endif; ?>
 
+            <!-- Split-screen wrapper -->
+            <div class="split-screen-wrapper" id="splitScreenWrapper">
+                <!-- Panneau Formulaire -->
+                <div class="split-form-panel" id="formPanel">
             <form method="post" enctype="multipart/form-data" id="sectionForm">
                 <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+                <input type="hidden" name="media_url" id="currentMediaUrl" value="<?= h($section['media_url'] ?? '') ?>">
 
                 <div class="form-grid">
                     <!-- Colonne gauche : Infos générales -->
@@ -722,10 +736,288 @@ if ($section && !empty($section['config']['products_limit'])) {
                     </button>
                 </div>
             </form>
+                </div><!-- /split-form-panel -->
+
+                <!-- Panneau Prévisualisation -->
+                <div class="split-preview-panel" id="previewPanel">
+                    <div class="preview-header">
+                        <div class="preview-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            Aperçu en direct
+                        </div>
+                        <div class="preview-controls">
+                            <button type="button" class="preview-device-btn active" data-device="desktop" title="Desktop">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                    <line x1="8" y1="21" x2="16" y2="21"/>
+                                    <line x1="12" y1="17" x2="12" y2="21"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="preview-device-btn" data-device="mobile" title="Mobile">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                                    <line x1="12" y1="18" x2="12.01" y2="18"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="preview-refresh-btn" id="refreshPreviewBtn" title="Rafraîchir">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 4 23 10 17 10"/>
+                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="preview-status" id="previewStatus">
+                        <span class="preview-status-text">Prêt</span>
+                    </div>
+                    <div class="preview-container" id="previewContainer">
+                        <div class="preview-frame" id="previewFrame">
+                            <div class="preview-loading" id="previewLoading">
+                                <div class="preview-spinner"></div>
+                                <span>Chargement de l'aperçu...</span>
+                            </div>
+                            <div class="preview-content" id="previewContent">
+                                <!-- Le contenu de la preview sera injecté ici -->
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- /split-preview-panel -->
+            </div><!-- /split-screen-wrapper -->
         </main>
     </div>
 
     <style>
+        /* ===== SPLIT-SCREEN LAYOUT ===== */
+        .main-content-with-preview {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .main-content-with-preview .page-header {
+            flex-shrink: 0;
+        }
+        .main-content-with-preview .alert {
+            flex-shrink: 0;
+        }
+        .page-header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-toggle-preview {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-toggle-preview.active {
+            background: var(--pink-main);
+            color: white;
+            border-color: var(--pink-main);
+        }
+        .split-screen-wrapper {
+            display: flex;
+            flex: 1;
+            gap: 0;
+            overflow: hidden;
+            min-height: 0;
+        }
+        .split-form-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 20px;
+            padding-bottom: 40px;
+        }
+        .split-preview-panel {
+            width: 50%;
+            max-width: 700px;
+            min-width: 400px;
+            background: #1a1a2e;
+            border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .split-preview-panel.hidden {
+            transform: translateX(100%);
+            opacity: 0;
+            width: 0;
+            min-width: 0;
+            pointer-events: none;
+        }
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .preview-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .preview-title svg {
+            color: var(--mint-main);
+        }
+        .preview-controls {
+            display: flex;
+            gap: 6px;
+        }
+        .preview-device-btn,
+        .preview-refresh-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-sm);
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .preview-device-btn:hover,
+        .preview-refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .preview-device-btn.active {
+            background: var(--pink-main);
+            border-color: var(--pink-main);
+            color: white;
+        }
+        .preview-refresh-btn:active svg {
+            animation: spin 0.5s linear;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .preview-status {
+            padding: 8px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .preview-status.loading {
+            color: var(--mint-main);
+        }
+        .preview-status.loading::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--mint-main);
+            animation: pulse-dot 1s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        .preview-container {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 100%);
+        }
+        .preview-frame {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            border-radius: var(--radius-md);
+            position: relative;
+            transition: max-width 0.3s ease;
+        }
+        .preview-frame.mobile {
+            max-width: 375px;
+            border: 8px solid #333;
+            border-radius: 24px;
+            background: white;
+        }
+        .preview-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            display: none;
+        }
+        .preview-loading.show {
+            display: flex;
+        }
+        .preview-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--pink-main);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .preview-content {
+            min-height: 100%;
+            background: white;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        .preview-content:empty::after {
+            content: 'Modifiez le formulaire pour voir l\\'aperçu';
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: #999;
+            font-size: 14px;
+            text-align: center;
+            padding: 20px;
+        }
+        /* Responsive: cacher le preview sur petit écran */
+        @media (max-width: 1200px) {
+            .split-preview-panel {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 50%;
+                max-width: none;
+                min-width: 0;
+                border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+                z-index: 1000;
+            }
+            .split-preview-panel.hidden {
+                transform: translateX(100%);
+            }
+            .split-form-panel {
+                width: 100%;
+                padding-right: 0;
+            }
+        }
+        @media (max-width: 768px) {
+            .split-preview-panel {
+                width: 100%;
+            }
+        }
+
+        /* ===== FORM STYLES ===== */
         .data-card-body { padding: 20px; }
         .form-group { margin-bottom: 20px; }
         .form-group:last-child { margin-bottom: 0; }
@@ -1571,6 +1863,687 @@ if ($section && !empty($section['config']['products_limit'])) {
             if (posSpan) posSpan.textContent = idx + 1;
         });
     }
+
+    // ========== PRÉVISUALISATION EN DIRECT ==========
+
+    const LivePreview = {
+        debounceTimer: null,
+        debounceDelay: 500,
+        isLoading: false,
+        previewEnabled: true,
+        tempMediaUrl: null,
+
+        init() {
+            this.bindEvents();
+            this.loadInitialPreview();
+            this.setupToggleButton();
+        },
+
+        bindEvents() {
+            const form = document.getElementById('sectionForm');
+            if (!form) return;
+
+            // Écouter tous les changements de champs
+            const watchedInputs = form.querySelectorAll('input, select, textarea');
+            watchedInputs.forEach(input => {
+                const eventType = input.type === 'checkbox' || input.type === 'radio' ? 'change' : 'input';
+                input.addEventListener(eventType, () => this.scheduleUpdate());
+            });
+
+            // Écouter les changements de type de section
+            document.getElementById('type').addEventListener('change', () => {
+                this.scheduleUpdate(100); // Mise à jour rapide pour le changement de type
+            });
+
+            // Écouter le réordonnancement des éléments hero
+            const heroContainer = document.getElementById('heroElementsOrder');
+            if (heroContainer) {
+                const observer = new MutationObserver(() => this.scheduleUpdate(100));
+                observer.observe(heroContainer, { childList: true, subtree: true });
+            }
+
+            // Bouton refresh manuel
+            document.getElementById('refreshPreviewBtn').addEventListener('click', () => {
+                this.updatePreview();
+            });
+
+            // Device toggle
+            document.querySelectorAll('.preview-device-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.preview-device-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const device = btn.dataset.device;
+                    const frame = document.getElementById('previewFrame');
+                    frame.classList.toggle('mobile', device === 'mobile');
+                });
+            });
+
+            // Upload de fichier média - aperçu local immédiat
+            document.getElementById('media_file').addEventListener('change', (e) => {
+                this.handleMediaUpload(e);
+            });
+        },
+
+        setupToggleButton() {
+            const btn = document.getElementById('togglePreviewBtn');
+            const panel = document.getElementById('previewPanel');
+
+            // Charger la préférence sauvegardée
+            const savedState = localStorage.getItem('previewPanelVisible');
+            if (savedState === 'false') {
+                panel.classList.add('hidden');
+            } else {
+                btn.classList.add('active');
+            }
+
+            btn.addEventListener('click', () => {
+                panel.classList.toggle('hidden');
+                btn.classList.toggle('active');
+                localStorage.setItem('previewPanelVisible', !panel.classList.contains('hidden'));
+            });
+        },
+
+        scheduleUpdate(delay = this.debounceDelay) {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => this.updatePreview(), delay);
+        },
+
+        async handleMediaUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Créer un aperçu local avec FileReader
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    // On ne peut pas utiliser directement le data URL dans le backend
+                    // Donc on affiche juste un message et on garde l'ancienne image pour le preview
+                    this.setStatus('Nouvelle image sélectionnée - Enregistrez pour voir le changement', 'loading');
+                };
+                reader.readAsDataURL(file);
+            }
+        },
+
+        async updatePreview() {
+            if (this.isLoading || !this.previewEnabled) return;
+
+            const panel = document.getElementById('previewPanel');
+            if (panel.classList.contains('hidden')) return;
+
+            this.isLoading = true;
+            this.showLoading(true);
+            this.setStatus('Mise à jour...', 'loading');
+
+            try {
+                const formData = this.collectFormData();
+                const response = await fetch('/admin/api/homepage-section/preview.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('Erreur réseau');
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.renderPreview(data.html);
+                    this.setStatus('Aperçu mis à jour');
+                } else {
+                    throw new Error(data.error || 'Erreur inconnue');
+                }
+            } catch (error) {
+                console.error('Preview error:', error);
+                this.setStatus('Erreur de chargement', 'error');
+            } finally {
+                this.isLoading = false;
+                this.showLoading(false);
+            }
+        },
+
+        collectFormData() {
+            const form = document.getElementById('sectionForm');
+            const formData = new FormData();
+
+            // Champs texte simples
+            const textFields = ['type', 'title', 'subtitle', 'content', 'cta_text', 'cta_url',
+                               'hero_badge', 'hero_highlight', 'hero_cta2_text', 'hero_cta2_url',
+                               'style_bg_color', 'style_text_color', 'style_padding_y',
+                               'category_id', 'products_limit'];
+
+            textFields.forEach(name => {
+                const input = form.querySelector(`[name="${name}"]`);
+                if (input) {
+                    formData.append(name, input.value);
+                }
+            });
+
+            // Media URL existant
+            const currentMediaUrl = document.getElementById('currentMediaUrl');
+            if (currentMediaUrl && currentMediaUrl.value) {
+                formData.append('media_url', currentMediaUrl.value);
+                formData.append('media_type', 'image'); // On assume image pour le preview
+            }
+
+            // Ordre des éléments hero
+            const heroOrder = form.querySelectorAll('[name="hero_elements_order[]"]');
+            heroOrder.forEach(input => {
+                formData.append('hero_elements_order[]', input.value);
+            });
+
+            // IDs des produits sélectionnés
+            const productIds = form.querySelectorAll('#productsSelection input:checked');
+            productIds.forEach(input => {
+                formData.append('product_ids[]', input.value);
+            });
+
+            // IDs des packs sélectionnés
+            const packIds = form.querySelectorAll('#packsSelection input:checked');
+            packIds.forEach(input => {
+                formData.append('pack_ids[]', input.value);
+            });
+
+            // IDs des articles blog sélectionnés
+            const blogIds = form.querySelectorAll('#blogSelection input:checked');
+            blogIds.forEach(input => {
+                formData.append('blog_ids[]', input.value);
+            });
+
+            // Médias additionnels (content_block)
+            const existingMediaUrls = form.querySelectorAll('[name="existing_media_urls[]"]');
+            existingMediaUrls.forEach(input => {
+                formData.append('existing_media_urls[]', input.value);
+            });
+
+            return formData;
+        },
+
+        renderPreview(html) {
+            const container = document.getElementById('previewContent');
+            container.innerHTML = html;
+
+            // Injecter les styles nécessaires
+            this.injectPreviewStyles();
+        },
+
+        injectPreviewStyles() {
+            const container = document.getElementById('previewContent');
+            const existingStyle = container.querySelector('#previewInlineStyles');
+            if (existingStyle) existingStyle.remove();
+
+            const style = document.createElement('style');
+            style.id = 'previewInlineStyles';
+            style.textContent = `
+                /* Reset pour le preview */
+                .preview-content * { box-sizing: border-box; }
+                .preview-content { font-family: 'Inter', sans-serif; }
+
+                /* Variables CSS */
+                .preview-content {
+                    --pink-main: #FF69B4;
+                    --pink-dark: #DB2777;
+                    --mint-main: #3DFFC0;
+                    --mint-dark: #059669;
+                    --black: #0D0D0D;
+                    --black-soft: #1E1E1E;
+                    --white: #FFFFFF;
+                    --gray: #6B7280;
+                    --gray-light: #F3F4F6;
+                    --gradient-hero: linear-gradient(135deg, #FF69B4 0%, #3DFFC0 100%);
+                    --gradient-pink: linear-gradient(135deg, #FF69B4 0%, #DB2777 100%);
+                    --gradient-mint: linear-gradient(135deg, #3DFFC0 0%, #10B981 100%);
+                    --gradient-dark: linear-gradient(135deg, #0D0D0D 0%, #1E1E1E 100%);
+                    --radius-sm: 6px;
+                    --radius-md: 12px;
+                    --radius-lg: 20px;
+                    --radius-full: 9999px;
+                }
+
+                /* Hero */
+                .preview-content .hero {
+                    min-height: 400px;
+                    display: flex;
+                    align-items: center;
+                    background: var(--gradient-dark);
+                    position: relative;
+                    padding: 60px 20px;
+                }
+                .preview-content .hero-with-bg {
+                    background-size: cover;
+                    background-position: center;
+                }
+                .preview-content .hero-with-bg::after {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(135deg, rgba(13,13,13,0.85), rgba(13,13,13,0.7));
+                }
+                .preview-content .hero .container {
+                    position: relative;
+                    z-index: 1;
+                    width: 100%;
+                    max-width: 800px;
+                    margin: 0 auto;
+                }
+                .preview-content .hero-content { text-align: center; }
+                .preview-content .hero-badge {
+                    display: inline-flex;
+                    background: rgba(255,255,255,0.1);
+                    padding: 8px 20px;
+                    border-radius: 9999px;
+                    margin-bottom: 20px;
+                    color: var(--mint-main);
+                    font-size: 14px;
+                    font-weight: 600;
+                }
+                .preview-content .hero h1 {
+                    font-size: 2.5rem;
+                    font-weight: 800;
+                    color: white;
+                    margin: 0 0 20px;
+                    line-height: 1.1;
+                }
+                .preview-content .hero h1 span {
+                    background: var(--gradient-hero);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+                .preview-content .hero[style*="color"] h1,
+                .preview-content .hero[style*="color"] p,
+                .preview-content .hero[style*="color"] .hero-badge {
+                    color: inherit !important;
+                }
+                .preview-content .hero[style*="color"] h1 span {
+                    background: none !important;
+                    -webkit-text-fill-color: inherit !important;
+                }
+                .preview-content .hero p {
+                    font-size: 1.1rem;
+                    color: rgba(255,255,255,0.7);
+                    margin: 0 0 30px;
+                }
+                .preview-content .hero-buttons {
+                    display: flex;
+                    gap: 15px;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+                .preview-content .btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 14px 28px;
+                    font-weight: 600;
+                    border-radius: 9999px;
+                    text-decoration: none;
+                    font-size: 15px;
+                }
+                .preview-content .btn-primary {
+                    background: var(--gradient-pink);
+                    color: white;
+                }
+                .preview-content .btn-dark {
+                    background: rgba(255,255,255,0.1);
+                    color: white;
+                    border: 1px solid rgba(255,255,255,0.2);
+                }
+
+                /* Products section */
+                .preview-content .products-section {
+                    padding: 60px 20px;
+                    background: var(--gray-light);
+                }
+                .preview-content .section-header {
+                    text-align: center;
+                    margin-bottom: 40px;
+                }
+                .preview-content .section-header h2 {
+                    font-size: 2rem;
+                    margin: 0 0 15px;
+                }
+                .preview-content .section-header p {
+                    color: var(--gray);
+                    font-size: 1rem;
+                    margin: 0;
+                }
+                .preview-content .products-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 20px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+                .preview-content .product-card {
+                    background: white;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                }
+                .preview-content .product-image {
+                    aspect-ratio: 4/3;
+                    background: linear-gradient(145deg, #fafafa, #f0f0f0);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    position: relative;
+                }
+                .preview-content .product-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    padding: 15px;
+                }
+                .preview-content .product-category {
+                    position: absolute;
+                    top: 10px;
+                    left: 10px;
+                }
+                .preview-content .badge {
+                    display: inline-block;
+                    padding: 4px 10px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    border-radius: 9999px;
+                }
+                .preview-content .badge-mint {
+                    background: var(--gradient-mint);
+                    color: var(--black);
+                }
+                .preview-content .product-info {
+                    padding: 15px;
+                }
+                .preview-content .product-info h3 {
+                    font-size: 1rem;
+                    margin: 0 0 8px;
+                }
+                .preview-content .product-info p {
+                    font-size: 13px;
+                    color: var(--gray);
+                    margin: 0 0 12px;
+                }
+                .preview-content .product-footer {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .preview-content .product-price {
+                    font-weight: 700;
+                    font-size: 1.2rem;
+                    color: var(--pink-dark);
+                }
+                .preview-content .product-btn {
+                    background: var(--gradient-mint);
+                    color: var(--black);
+                    padding: 8px 16px;
+                    border-radius: 9999px;
+                    font-size: 13px;
+                    font-weight: 600;
+                }
+
+                /* Packs/Inspirations */
+                .preview-content .inspirations-section {
+                    padding: 60px 20px;
+                    background: var(--black-soft);
+                }
+                .preview-content .inspirations-section .section-header h2,
+                .preview-content .inspirations-section .section-header p {
+                    color: white;
+                }
+                .preview-content .inspirations-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 20px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+                .preview-content .inspiration-card {
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 16px;
+                    overflow: hidden;
+                }
+                .preview-content .inspiration-image {
+                    aspect-ratio: 16/10;
+                    background: linear-gradient(135deg, rgba(255,105,180,0.2), rgba(61,255,192,0.1));
+                    position: relative;
+                }
+                .preview-content .inspiration-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .preview-content .inspiration-type {
+                    position: absolute;
+                    top: 10px;
+                    left: 10px;
+                    font-size: 10px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    padding: 5px 10px;
+                    border-radius: 9999px;
+                    background: rgba(0,0,0,0.6);
+                    color: white;
+                }
+                .preview-content .inspiration-type.type-technique { background: var(--pink-main); }
+                .preview-content .inspiration-type.type-contextuel { background: var(--mint-dark); color: var(--black); }
+                .preview-content .inspiration-info {
+                    padding: 15px;
+                }
+                .preview-content .inspiration-info h3 {
+                    color: white;
+                    font-size: 1rem;
+                    margin: 0 0 8px;
+                }
+                .preview-content .inspiration-info p {
+                    color: rgba(255,255,255,0.6);
+                    font-size: 13px;
+                    margin: 0 0 12px;
+                }
+                .preview-content .inspiration-cta {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    background: var(--gradient-pink);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 9999px;
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+
+                /* Content block */
+                .preview-content .content-block-section {
+                    padding: 60px 20px;
+                }
+                .preview-content .content-block-inner {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 40px;
+                    align-items: center;
+                    max-width: 1000px;
+                    margin: 0 auto;
+                }
+                .preview-content .content-block-inner.gallery-mode {
+                    grid-template-columns: 1fr;
+                }
+                .preview-content .content-block-text h2 {
+                    font-size: 1.8rem;
+                    margin: 0 0 15px;
+                }
+                .preview-content .content-block-text p {
+                    color: var(--gray);
+                    margin: 0 0 20px;
+                    line-height: 1.7;
+                }
+                .preview-content .content-block-media img,
+                .preview-content .content-block-media video {
+                    width: 100%;
+                    border-radius: 16px;
+                }
+                .preview-content .content-block-gallery {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                    gap: 15px;
+                }
+                .preview-content .gallery-card {
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                }
+                .preview-content .gallery-card img {
+                    width: 100%;
+                    aspect-ratio: 4/3;
+                    object-fit: cover;
+                }
+
+                /* Blog */
+                .preview-content .blog-section {
+                    padding: 60px 20px;
+                    background: var(--gray-light);
+                }
+                .preview-content .blog-slider {
+                    display: flex;
+                    gap: 20px;
+                    overflow-x: auto;
+                    padding-bottom: 10px;
+                }
+                .preview-content .blog-card {
+                    min-width: 220px;
+                    max-width: 220px;
+                    background: white;
+                    border-radius: 16px;
+                    overflow: hidden;
+                }
+                .preview-content .blog-card-image {
+                    aspect-ratio: 16/10;
+                    background: linear-gradient(135deg, rgba(255,105,180,0.15), rgba(61,255,192,0.15));
+                }
+                .preview-content .blog-card-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .preview-content .blog-card-content {
+                    padding: 15px;
+                }
+                .preview-content .blog-card-date {
+                    font-size: 11px;
+                    color: var(--pink-main);
+                    font-weight: 600;
+                    margin-bottom: 6px;
+                }
+                .preview-content .blog-card-content h3 {
+                    font-size: 0.9rem;
+                    margin: 0 0 6px;
+                }
+                .preview-content .blog-card-content p {
+                    font-size: 12px;
+                    color: var(--gray);
+                    margin: 0;
+                }
+
+                /* Newsletter */
+                .preview-content .newsletter-section {
+                    position: relative;
+                    padding: 60px 20px;
+                    background-size: cover;
+                    background-position: center;
+                    background-color: var(--black-soft);
+                }
+                .preview-content .newsletter-overlay {
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(135deg, rgba(13,13,13,0.9), rgba(30,30,30,0.85));
+                }
+                .preview-content .newsletter-section .container {
+                    position: relative;
+                    z-index: 1;
+                }
+                .preview-content .newsletter-content {
+                    max-width: 500px;
+                    margin: 0 auto;
+                    text-align: center;
+                }
+                .preview-content .newsletter-content h2 {
+                    font-size: 2rem;
+                    color: white;
+                    margin: 0 0 15px;
+                }
+                .preview-content .newsletter-subtitle {
+                    color: rgba(255,255,255,0.7);
+                    margin: 0 0 30px;
+                }
+                .preview-content .newsletter-input-group {
+                    display: flex;
+                    gap: 10px;
+                }
+                .preview-content .newsletter-input {
+                    flex: 1;
+                    padding: 14px 20px;
+                    border: 2px solid rgba(255,255,255,0.15);
+                    border-radius: 9999px;
+                    background: rgba(255,255,255,0.08);
+                    color: white;
+                    font-size: 14px;
+                }
+                .preview-content .newsletter-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 14px 24px;
+                    background: var(--gradient-pink);
+                    color: white;
+                    border: none;
+                    border-radius: 9999px;
+                    font-weight: 600;
+                    font-size: 14px;
+                }
+                .preview-content .newsletter-privacy {
+                    margin-top: 20px;
+                    font-size: 12px;
+                    color: rgba(255,255,255,0.4);
+                }
+
+                /* Empty states */
+                .preview-content .empty-products {
+                    text-align: center;
+                    padding: 40px 20px;
+                }
+                .preview-content .empty-products-icon {
+                    font-size: 3rem;
+                    margin-bottom: 15px;
+                }
+                .preview-content .empty-products h3 {
+                    margin: 0 0 8px;
+                }
+                .preview-content .empty-products p {
+                    color: var(--gray);
+                    margin: 0;
+                }
+            `;
+            container.prepend(style);
+        },
+
+        showLoading(show) {
+            const loader = document.getElementById('previewLoading');
+            loader.classList.toggle('show', show);
+        },
+
+        setStatus(text, type = '') {
+            const status = document.getElementById('previewStatus');
+            status.className = 'preview-status' + (type ? ' ' + type : '');
+            status.querySelector('.preview-status-text').textContent = text;
+        },
+
+        loadInitialPreview() {
+            // Charger l'aperçu initial après un court délai
+            setTimeout(() => this.updatePreview(), 300);
+        }
+    };
+
+    // Initialiser le preview au chargement
+    document.addEventListener('DOMContentLoaded', function() {
+        LivePreview.init();
+    });
     </script>
 </body>
 </html>
