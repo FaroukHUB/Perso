@@ -181,6 +181,14 @@ if (isPost()) {
             $data['config']['highlight'] = trim($_POST['hero_highlight'] ?? '');
             $data['config']['cta2_text'] = trim($_POST['hero_cta2_text'] ?? '');
             $data['config']['cta2_url'] = trim($_POST['hero_cta2_url'] ?? '');
+            // Ordre des éléments
+            if (!empty($_POST['hero_elements_order']) && is_array($_POST['hero_elements_order'])) {
+                $validElements = ['badge', 'title', 'subtitle', 'buttons'];
+                $order = array_filter($_POST['hero_elements_order'], function($el) use ($validElements) {
+                    return in_array($el, $validElements);
+                });
+                $data['config']['elements_order'] = array_values($order);
+            }
         }
 
         // Style visuel de la section
@@ -367,6 +375,49 @@ if ($section && !empty($section['config']['products_limit'])) {
                                         <label for="hero_cta2_url">URL bouton secondaire</label>
                                         <input type="text" name="hero_cta2_url" id="hero_cta2_url"
                                                value="<?= h($section['config']['cta2_url'] ?? '') ?>" placeholder="#categories">
+                                    </div>
+                                </div>
+
+                                <!-- Ordre des éléments du Hero -->
+                                <div class="form-group">
+                                    <label>Ordre des éléments</label>
+                                    <small class="form-hint" style="margin-bottom: 10px; display: block;">Utilisez les flèches pour réorganiser l'affichage des éléments</small>
+                                    <?php
+                                    $defaultOrder = ['badge', 'title', 'subtitle', 'buttons'];
+                                    $heroOrder = $section['config']['elements_order'] ?? $defaultOrder;
+                                    // S'assurer que tous les éléments sont présents
+                                    foreach ($defaultOrder as $el) {
+                                        if (!in_array($el, $heroOrder)) {
+                                            $heroOrder[] = $el;
+                                        }
+                                    }
+                                    $elementLabels = [
+                                        'badge' => 'Badge',
+                                        'title' => 'Titre + Highlight',
+                                        'subtitle' => 'Sous-titre',
+                                        'buttons' => 'Boutons CTA'
+                                    ];
+                                    ?>
+                                    <div class="hero-elements-order" id="heroElementsOrder">
+                                        <?php foreach ($heroOrder as $idx => $element): ?>
+                                            <div class="hero-order-item" data-element="<?= h($element) ?>">
+                                                <span class="hero-order-position"><?= $idx + 1 ?></span>
+                                                <span class="hero-order-label"><?= h($elementLabels[$element] ?? $element) ?></span>
+                                                <input type="hidden" name="hero_elements_order[]" value="<?= h($element) ?>">
+                                                <div class="hero-order-arrows">
+                                                    <button type="button" class="hero-arrow-btn" onclick="moveHeroElement(this, -1)" title="Monter">
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <polyline points="18 15 12 9 6 15"/>
+                                                        </svg>
+                                                    </button>
+                                                    <button type="button" class="hero-arrow-btn" onclick="moveHeroElement(this, 1)" title="Descendre">
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <polyline points="6 9 12 15 18 9"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </div>
                                 </div>
                             </div>
@@ -1063,6 +1114,70 @@ if ($section && !empty($section['config']['products_limit'])) {
             font-weight: 500;
             border: 1px solid var(--gray-light);
         }
+        /* Hero elements order */
+        .hero-elements-order {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .hero-order-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--gray-light);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+        .hero-order-item:hover {
+            background: rgba(255, 105, 180, 0.08);
+        }
+        .hero-order-position {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--pink-main);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 50%;
+        }
+        .hero-order-label {
+            flex: 1;
+            font-weight: 500;
+            color: var(--black-soft);
+        }
+        .hero-order-arrows {
+            display: flex;
+            gap: 4px;
+        }
+        .hero-arrow-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.15s ease;
+        }
+        .hero-arrow-btn:hover {
+            border-color: var(--pink-main);
+            color: var(--pink-main);
+            background: rgba(255, 105, 180, 0.05);
+        }
+        .hero-arrow-btn:active {
+            transform: scale(0.95);
+        }
+        .hero-order-item.moving {
+            background: rgba(255, 105, 180, 0.15);
+            transform: scale(1.02);
+        }
     </style>
 
     <script>
@@ -1412,6 +1527,49 @@ if ($section && !empty($section['config']['products_limit'])) {
         preview.style.backgroundColor = bgColor;
         const textSpan = preview.querySelector('span');
         textSpan.style.color = textColorHex || '';
+    }
+
+    // Hero elements order
+    function moveHeroElement(btn, direction) {
+        const item = btn.closest('.hero-order-item');
+        const container = document.getElementById('heroElementsOrder');
+        const items = Array.from(container.querySelectorAll('.hero-order-item'));
+        const currentIndex = items.indexOf(item);
+        const newIndex = currentIndex + direction;
+
+        // Check bounds
+        if (newIndex < 0 || newIndex >= items.length) return;
+
+        // Add animation
+        item.classList.add('moving');
+        setTimeout(() => item.classList.remove('moving'), 200);
+
+        // Move the element
+        if (direction === -1) {
+            // Move up
+            container.insertBefore(item, items[newIndex]);
+        } else {
+            // Move down
+            const nextItem = items[newIndex + 1];
+            if (nextItem) {
+                container.insertBefore(item, nextItem.nextSibling);
+            } else {
+                container.appendChild(item);
+            }
+        }
+
+        // Update position numbers
+        updateHeroOrderPositions();
+    }
+
+    function updateHeroOrderPositions() {
+        const container = document.getElementById('heroElementsOrder');
+        if (!container) return;
+        const items = container.querySelectorAll('.hero-order-item');
+        items.forEach((item, idx) => {
+            const posSpan = item.querySelector('.hero-order-position');
+            if (posSpan) posSpan.textContent = idx + 1;
+        });
     }
     </script>
 </body>

@@ -966,18 +966,34 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
     <section class="hero <?= $hasHeroImage ? 'hero-with-bg' : '' ?>" <?= $heroStyle ?>>
         <div class="container">
             <div class="hero-content">
-                <?php if ($heroBadge): ?>
+                <?php
+                // Ordre des éléments (par défaut: badge, title, subtitle, buttons)
+                $elementsOrder = $section['config']['elements_order'] ?? ['badge', 'title', 'subtitle', 'buttons'];
+
+                foreach ($elementsOrder as $element):
+                    switch ($element):
+                        case 'badge':
+                            if ($heroBadge): ?>
                 <div class="hero-badge">
                     <?= h($heroBadge) ?>
                 </div>
-                <?php endif; ?>
-                <?php if ($section['title']): ?>
+                <?php       endif;
+                            break;
+
+                        case 'title':
+                            if ($section['title']): ?>
                 <h1><?= h($section['title']) ?><?php if ($heroHighlight): ?> <span><?= h($heroHighlight) ?></span><?php endif; ?></h1>
-                <?php endif; ?>
-                <?php if ($section['subtitle']): ?>
+                <?php       endif;
+                            break;
+
+                        case 'subtitle':
+                            if ($section['subtitle']): ?>
                 <p><?= h($section['subtitle']) ?></p>
-                <?php endif; ?>
-                <?php if ($section['cta_text'] || $heroCta2Text): ?>
+                <?php       endif;
+                            break;
+
+                        case 'buttons':
+                            if ($section['cta_text'] || $heroCta2Text): ?>
                 <div class="hero-buttons">
                     <?php if ($section['cta_url'] && $section['cta_text']): ?>
                         <a href="<?= h($section['cta_url']) ?>" class="btn btn-primary">
@@ -991,7 +1007,11 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
                         <a href="<?= h($heroCta2Url) ?>" class="btn btn-dark"><?= h($heroCta2Text) ?></a>
                     <?php endif; ?>
                 </div>
-                <?php endif; ?>
+                <?php       endif;
+                            break;
+                    endswitch;
+                endforeach;
+                ?>
             </div>
         </div>
     </section>
