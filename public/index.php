@@ -12,8 +12,12 @@ require_once __DIR__ . '/../app/models/Pack.php';
 require_once __DIR__ . '/../app/models/HomepageSection.php';
 require_once __DIR__ . '/../app/models/BlogPost.php';
 require_once __DIR__ . '/../app/models/Category.php';
+require_once __DIR__ . '/../app/services/BrandingService.php';
 
 $cartCount = Cart::count();
+
+// Branding dynamique
+$brandingService = new BrandingService();
 
 // Chargement des sections actives
 $sectionModel = new HomepageSection();
@@ -106,6 +110,42 @@ foreach ($sections as $s) {
         break;
     }
 }
+
+/**
+ * Génère les styles inline pour une section
+ * @param array $section
+ * @return string CSS inline
+ */
+function getSectionInlineStyles(array $section): string {
+    $styles = [];
+    $style = $section['config']['style'] ?? [];
+
+    // Background color
+    if (!empty($style['background_color'])) {
+        $styles[] = 'background-color: ' . htmlspecialchars($style['background_color']);
+    }
+
+    // Text color
+    if (!empty($style['text_color'])) {
+        $styles[] = 'color: ' . htmlspecialchars($style['text_color']);
+    }
+
+    // Padding Y
+    $paddingMap = [
+        'none' => '0',
+        'small' => '2rem',
+        'medium' => '4rem',
+        'large' => '6rem',
+        'xlarge' => '8rem'
+    ];
+    $paddingY = $style['padding_y'] ?? 'medium';
+    if (isset($paddingMap[$paddingY])) {
+        $styles[] = 'padding-top: ' . $paddingMap[$paddingY];
+        $styles[] = 'padding-bottom: ' . $paddingMap[$paddingY];
+    }
+
+    return !empty($styles) ? implode('; ', $styles) : '';
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -114,10 +154,15 @@ foreach ($sections as $s) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PERSONNALY - Personnalisation Textile pour Toute la Famille</title>
     <meta name="description" content="Créez des vêtements uniques pour hommes, femmes et enfants. Personnalisation textile de qualité.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <?php
+    // Favicon dynamique depuis branding
+    $favicon = $brandingService->getFavicon();
+    if ($favicon): ?>
+    <link rel="icon" type="image/x-icon" href="<?= h($favicon) ?>">
+    <?php endif; ?>
+    <?= $brandingService->getFontLinks() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
+    <?= $brandingService->getStyleBlock() ?>
     <style>
         /* ===== NAVBAR ===== */
         .navbar {
@@ -882,10 +927,15 @@ foreach ($sections as $s) {
 
             // ===== HERO =====
             case 'hero':
-                $heroStyle = '';
+                $sectionStyles = getSectionInlineStyles($section);
+                $heroStyleParts = [];
                 if ($section['media_type'] === 'image' && !empty($section['media_url'])) {
-                    $heroStyle = 'style="background-image: url(\'/public' . h($section['media_url']) . '\');"';
+                    $heroStyleParts[] = 'background-image: url(\'/public' . h($section['media_url']) . '\')';
                 }
+                if ($sectionStyles) {
+                    $heroStyleParts[] = $sectionStyles;
+                }
+                $heroStyle = !empty($heroStyleParts) ? 'style="' . implode('; ', $heroStyleParts) . '"' : '';
     ?>
     <section class="hero <?= !empty($section['media_url']) ? 'hero-with-bg' : '' ?>" <?= $heroStyle ?>>
         <div class="container">
@@ -927,8 +977,9 @@ foreach ($sections as $s) {
 
             // ===== FEATURED PRODUCTS =====
             case 'featured_products':
+                $sectionStyles = getSectionInlineStyles($section);
     ?>
-    <section class="products-section" id="produits">
+    <section class="products-section" id="produits" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
         <div class="container">
             <div class="section-header">
                 <h2><?= h($section['title'] ?: 'Nos Produits') ?></h2>
@@ -978,8 +1029,9 @@ foreach ($sections as $s) {
             case 'featured_category':
                 if (empty($section['category']) || empty($section['category_products'])) break;
                 $cat = $section['category'];
+                $sectionStyles = getSectionInlineStyles($section);
     ?>
-    <section class="category-section" id="categorie-<?= h($cat['slug']) ?>">
+    <section class="category-section" id="categorie-<?= h($cat['slug']) ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
         <div class="container">
             <div class="section-header">
                 <h2><?= h($section['title'] ?: $cat['name']) ?></h2>
@@ -1034,8 +1086,9 @@ foreach ($sections as $s) {
                     'thematique' => 'Thématique',
                     'inspiration' => 'Inspiration'
                 ];
+                $sectionStyles = getSectionInlineStyles($section);
     ?>
-    <section class="inspirations-section" id="inspirations">
+    <section class="inspirations-section" id="inspirations" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
         <div class="container">
             <div class="section-header">
                 <h2><?= h($section['title'] ?: 'Nos Idées Tendance') ?></h2>
@@ -1087,8 +1140,9 @@ foreach ($sections as $s) {
                 $hasMainMedia = $section['media_type'] !== 'none' && !empty($section['media_url']);
                 // Mode galerie si plusieurs images additionnelles (sans image principale)
                 $isGalleryMode = $hasMultipleMedia && !$hasMainMedia;
+                $sectionStyles = getSectionInlineStyles($section);
     ?>
-    <section class="content-block-section <?= $altBg ?>">
+    <section class="content-block-section <?= $altBg ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
         <div class="container">
             <?php if ($isGalleryMode): ?>
                 <!-- Mode Galerie : texte au-dessus, images en grille -->
@@ -1145,8 +1199,9 @@ foreach ($sections as $s) {
             // ===== BLOG SLIDER =====
             case 'blog_slider':
                 if (empty($section['posts'])) break;
+                $sectionStyles = getSectionInlineStyles($section);
     ?>
-    <section class="blog-section">
+    <section class="blog-section" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
         <div class="container">
             <div class="section-header">
                 <h2><?= h($section['title'] ?: 'Notre Blog') ?></h2>
@@ -1182,9 +1237,10 @@ foreach ($sections as $s) {
 
             // ===== NEWSLETTER =====
             case 'newsletter':
-                $newsletterStyle = '';
+                $sectionStyles = getSectionInlineStyles($section);
+                $newsletterStyle = $sectionStyles;
                 if ($section['media_type'] === 'image' && !empty($section['media_url'])) {
-                    $newsletterStyle = 'background-image: url(\'/public' . h($section['media_url']) . '\');';
+                    $newsletterStyle .= ($newsletterStyle ? '; ' : '') . 'background-image: url(\'/public' . h($section['media_url']) . '\')';
                 }
     ?>
     <section class="newsletter-section" style="<?= $newsletterStyle ?>">
