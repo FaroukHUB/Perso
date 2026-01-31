@@ -175,6 +175,14 @@ if (isPost()) {
         }
         $data['items'] = $items;
 
+        // Config spécifique Hero
+        if ($data['type'] === 'hero') {
+            $data['config']['badge'] = trim($_POST['hero_badge'] ?? '');
+            $data['config']['highlight'] = trim($_POST['hero_highlight'] ?? '');
+            $data['config']['cta2_text'] = trim($_POST['hero_cta2_text'] ?? '');
+            $data['config']['cta2_url'] = trim($_POST['hero_cta2_url'] ?? '');
+        }
+
         // Style visuel de la section
         $data['config']['style'] = [
             'background_color' => !empty($_POST['style_bg_color']) ? $_POST['style_bg_color'] : null,
@@ -332,6 +340,34 @@ if ($section && !empty($section['config']['products_limit'])) {
                                     <label for="cta_url">URL du CTA</label>
                                     <input type="text" name="cta_url" id="cta_url"
                                            value="<?= h($section['cta_url'] ?? '') ?>" placeholder="#produits ou /page">
+                                </div>
+                            </div>
+
+                            <!-- Champs spécifiques Hero -->
+                            <div class="hero-fields" style="display: none;">
+                                <div class="form-group">
+                                    <label for="hero_badge">Badge (optionnel)</label>
+                                    <input type="text" name="hero_badge" id="hero_badge"
+                                           value="<?= h($section['config']['badge'] ?? '') ?>" placeholder="✨ Nouveau — Personnalisation en ligne">
+                                    <small class="form-hint">Petit texte au-dessus du titre</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="hero_highlight">Texte mis en avant (optionnel)</label>
+                                    <input type="text" name="hero_highlight" id="hero_highlight"
+                                           value="<?= h($section['config']['highlight'] ?? '') ?>" placeholder="pour toute la famille">
+                                    <small class="form-hint">Texte coloré à la fin du titre</small>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="hero_cta2_text">Bouton secondaire (optionnel)</label>
+                                        <input type="text" name="hero_cta2_text" id="hero_cta2_text"
+                                               value="<?= h($section['config']['cta2_text'] ?? '') ?>" placeholder="Voir les catégories">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="hero_cta2_url">URL bouton secondaire</label>
+                                        <input type="text" name="hero_cta2_url" id="hero_cta2_url"
+                                               value="<?= h($section['config']['cta2_url'] ?? '') ?>" placeholder="#categories">
+                                    </div>
                                 </div>
                             </div>
 
@@ -1040,6 +1076,7 @@ if ($section && !empty($section['config']['products_limit'])) {
         const ctaFields = document.querySelector('.cta-fields');
         const mediaField = document.querySelector('.media-field');
         const multiMediaField = document.querySelector('.multi-media-field');
+        const heroFields = document.querySelector('.hero-fields');
         const itemsCardTitle = document.getElementById('itemsCardTitle');
 
         // Reset
@@ -1049,6 +1086,7 @@ if ($section && !empty($section['config']['products_limit'])) {
         blogSelection.style.display = 'none';
         contentField.style.display = 'none';
         multiMediaField.style.display = 'none';
+        heroFields.style.display = 'none';
         document.getElementById('newsletterInfo').style.display = 'none';
         document.getElementById('categorySelection').style.display = 'none';
 
@@ -1056,6 +1094,7 @@ if ($section && !empty($section['config']['products_limit'])) {
             case 'hero':
                 ctaFields.style.display = 'grid';
                 mediaField.style.display = 'block';
+                heroFields.style.display = 'block';
                 break;
 
             case 'featured_products':

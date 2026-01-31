@@ -114,14 +114,15 @@ foreach ($sections as $s) {
 /**
  * Génère les styles inline pour une section
  * @param array $section
+ * @param bool $hasBackgroundImage Si true, ne pas ajouter background-color (sera géré autrement)
  * @return string CSS inline
  */
-function getSectionInlineStyles(array $section): string {
+function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false): string {
     $styles = [];
     $style = $section['config']['style'] ?? [];
 
-    // Background color (avec !important pour écraser les gradients CSS)
-    if (!empty($style['background_color'])) {
+    // Background color (seulement si pas d'image de fond)
+    if (!empty($style['background_color']) && !$hasBackgroundImage) {
         $styles[] = 'background: ' . htmlspecialchars($style['background_color']) . ' !important';
     }
 
@@ -937,24 +938,46 @@ function getSectionInlineStyles(array $section): string {
 
             // ===== HERO =====
             case 'hero':
-                $sectionStyles = getSectionInlineStyles($section);
+                $hasHeroImage = $section['media_type'] === 'image' && !empty($section['media_url']);
+                $sectionStyles = getSectionInlineStyles($section, $hasHeroImage);
                 $heroStyleParts = [];
-                if ($section['media_type'] === 'image' && !empty($section['media_url'])) {
-                    $heroStyleParts[] = 'background-image: url(\'/public' . h($section['media_url']) . '\')';
+
+                // Image de fond
+                if ($hasHeroImage) {
+                    $imgUrl = $section['media_url'];
+                    // Ne pas ajouter /public si déjà présent
+                    if (strpos($imgUrl, '/public') !== 0 && strpos($imgUrl, 'http') !== 0) {
+                        $imgUrl = '/public' . $imgUrl;
+                    }
+                    $heroStyleParts[] = 'background-image: url(\'' . h($imgUrl) . '\')';
                 }
+
                 if ($sectionStyles) {
                     $heroStyleParts[] = $sectionStyles;
                 }
                 $heroStyle = !empty($heroStyleParts) ? 'style="' . implode('; ', $heroStyleParts) . '"' : '';
+
+                // Config du hero
+                $heroBadge = $section['config']['badge'] ?? '';
+                $heroHighlight = $section['config']['highlight'] ?? '';
+                $heroCta2Text = $section['config']['cta2_text'] ?? '';
+                $heroCta2Url = $section['config']['cta2_url'] ?? '';
     ?>
-    <section class="hero <?= !empty($section['media_url']) ? 'hero-with-bg' : '' ?>" <?= $heroStyle ?>>
+    <section class="hero <?= $hasHeroImage ? 'hero-with-bg' : '' ?>" <?= $heroStyle ?>>
         <div class="container">
             <div class="hero-content">
+                <?php if ($heroBadge): ?>
                 <div class="hero-badge">
-                    ✨ Nouveau — Personnalisation en ligne
+                    <?= h($heroBadge) ?>
                 </div>
-                <h1><?= h($section['title'] ?: 'Créez des vêtements uniques') ?> <span><?= h($section['config']['highlight'] ?? 'pour toute la famille') ?></span></h1>
-                <p><?= h($section['subtitle'] ?: 'Personnalisez vos t-shirts, sweats et polos avec vos propres designs. Qualité premium, livraison rapide, satisfaction garantie.') ?></p>
+                <?php endif; ?>
+                <?php if ($section['title']): ?>
+                <h1><?= h($section['title']) ?><?php if ($heroHighlight): ?> <span><?= h($heroHighlight) ?></span><?php endif; ?></h1>
+                <?php endif; ?>
+                <?php if ($section['subtitle']): ?>
+                <p><?= h($section['subtitle']) ?></p>
+                <?php endif; ?>
+                <?php if ($section['cta_text'] || $heroCta2Text): ?>
                 <div class="hero-buttons">
                     <?php if ($section['cta_url'] && $section['cta_text']): ?>
                         <a href="<?= h($section['cta_url']) ?>" class="btn btn-primary">
@@ -963,22 +986,12 @@ function getSectionInlineStyles(array $section): string {
                                 <path d="M5 12h14M12 5l7 7-7 7"/>
                             </svg>
                         </a>
-                    <?php else: ?>
-                        <a href="#produits" class="btn btn-primary">
-                            Découvrir nos produits
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M5 12h14M12 5l7 7-7 7"/>
-                            </svg>
-                        </a>
                     <?php endif; ?>
-                    <a href="#categories" class="btn btn-dark">Voir les catégories</a>
+                    <?php if ($heroCta2Text && $heroCta2Url): ?>
+                        <a href="<?= h($heroCta2Url) ?>" class="btn btn-dark"><?= h($heroCta2Text) ?></a>
+                    <?php endif; ?>
                 </div>
-                <div class="hero-categories" id="categories">
-                    <div class="category-pill">👨 Homme</div>
-                    <div class="category-pill">👩 Femme</div>
-                    <div class="category-pill">👶 Enfant</div>
-                    <div class="category-pill">👨‍👩‍👧‍👦 Famille</div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>
