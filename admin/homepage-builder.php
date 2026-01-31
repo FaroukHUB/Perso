@@ -93,6 +93,9 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 mkdir($uploadDir, 0755, true);
             }
 
+            // Debug: log des infos d'upload
+            $uploadError = null;
+
             if (!empty($_FILES['media_file']['tmp_name']) && $_FILES['media_file']['error'] === UPLOAD_ERR_OK) {
                 $ext = strtolower(pathinfo($_FILES['media_file']['name'], PATHINFO_EXTENSION));
                 $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm'];
@@ -107,8 +110,21 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                         if ($data['media_type'] === 'image') {
                             ImageHelper::convertToWebP($fullPath);
                         }
+                    } else {
+                        $uploadError = 'Échec du déplacement du fichier uploadé';
                     }
+                } else {
+                    $uploadError = 'Extension non autorisée: ' . $ext;
                 }
+            } elseif (!empty($_FILES['media_file']['error']) && $_FILES['media_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $errorMessages = [
+                    UPLOAD_ERR_INI_SIZE => 'Le fichier dépasse la limite upload_max_filesize',
+                    UPLOAD_ERR_FORM_SIZE => 'Le fichier dépasse la limite MAX_FILE_SIZE',
+                    UPLOAD_ERR_PARTIAL => 'Le fichier n\'a été que partiellement uploadé',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Dossier temporaire manquant',
+                    UPLOAD_ERR_CANT_WRITE => 'Échec d\'écriture sur le disque',
+                ];
+                $uploadError = $errorMessages[$_FILES['media_file']['error']] ?? 'Erreur upload: ' . $_FILES['media_file']['error'];
             }
 
             // Items (produits/packs/articles)
@@ -163,11 +179,16 @@ if (isPost() && !empty($_POST['ajax_action'])) {
             try {
                 if ($isEdit) {
                     $sectionModel->update($sectionId, $data);
-                    echo json_encode(['success' => true, 'id' => $sectionId]);
+                    $response = ['success' => true, 'id' => $sectionId];
                 } else {
                     $newId = $sectionModel->create($data);
-                    echo json_encode(['success' => true, 'id' => $newId, 'isNew' => true]);
+                    $response = ['success' => true, 'id' => $newId, 'isNew' => true];
                 }
+                // Ajouter l'erreur d'upload si présente (pour debug)
+                if ($uploadError) {
+                    $response['uploadWarning'] = $uploadError;
+                }
+                echo json_encode($response);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'error' => $e->getMessage()]);
             }
@@ -351,7 +372,7 @@ $typeIcons = [
                     </div>
                 </div>
 
-                <form id="sectionForm" class="properties-form">
+                <form id="sectionForm" class="properties-form" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
                     <input type="hidden" name="ajax_action" value="save">
                     <input type="hidden" name="section_id" id="sectionId" value="0">
@@ -1795,6 +1816,11 @@ $typeIcons = [
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
+                    // Afficher un avertissement upload si présent
+                    if (data.uploadWarning) {
+                        console.warn('Upload warning:', data.uploadWarning);
+                        alert('Attention: ' + data.uploadWarning);
+                    }
                     refreshPreview();
                     if (data.isNew) {
                         location.reload();
@@ -1805,6 +1831,8 @@ $typeIcons = [
                             const name = document.getElementById('propTitle').value || types[document.getElementById('sectionType').value];
                             item.querySelector('.section-name').textContent = name;
                         }
+                        // Recharger la section pour voir le nouveau média
+                        selectSection(selectedSectionId);
                     }
                 } else {
                     alert(data.error || 'Erreur');
