@@ -172,6 +172,9 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 'italic' => ($_POST['typo_italic'] ?? '0') === '1' ? '1' : null,
                 'underline' => ($_POST['typo_underline'] ?? '0') === '1' ? '1' : null,
                 'uppercase' => ($_POST['typo_uppercase'] ?? '0') === '1' ? '1' : null,
+                'align' => !empty($_POST['typo_align']) && $_POST['typo_align'] !== 'center' ? $_POST['typo_align'] : null,
+                'offset_x' => !empty($_POST['typo_offset_x']) && $_POST['typo_offset_x'] !== '0' ? (int)$_POST['typo_offset_x'] : null,
+                'offset_y' => !empty($_POST['typo_offset_y']) && $_POST['typo_offset_y'] !== '0' ? (int)$_POST['typo_offset_y'] : null,
             ];
             // Nettoyer les valeurs null
             $data['config']['typography'] = array_filter($data['config']['typography'], fn($v) => $v !== null);
@@ -393,6 +396,136 @@ $typeIcons = [
                         <textarea name="subtitle" id="propSubtitle" rows="2" placeholder="Description"></textarea>
                     </div>
 
+                    <!-- Typographie & Style du texte (juste après titre/sous-titre) -->
+                    <div class="prop-section typography-fields">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="4 7 4 4 20 4 20 7"/>
+                                <line x1="9" y1="20" x2="15" y2="20"/>
+                                <line x1="12" y1="4" x2="12" y2="20"/>
+                            </svg>
+                            Style du texte
+                        </div>
+
+                        <div class="prop-group-row">
+                            <div class="prop-group">
+                                <label>Police</label>
+                                <select name="typo_font_family" id="propFontFamily">
+                                    <option value="">Par défaut</option>
+                                    <option value="Inter">Inter</option>
+                                    <option value="Poppins">Poppins</option>
+                                    <option value="Montserrat">Montserrat</option>
+                                    <option value="Playfair Display">Playfair Display</option>
+                                    <option value="Roboto">Roboto</option>
+                                    <option value="Open Sans">Open Sans</option>
+                                    <option value="Lato">Lato</option>
+                                    <option value="Oswald">Oswald</option>
+                                    <option value="Raleway">Raleway</option>
+                                    <option value="Dancing Script">Dancing Script</option>
+                                </select>
+                            </div>
+                            <div class="prop-group">
+                                <label>Taille</label>
+                                <select name="typo_title_size" id="propTitleSize">
+                                    <option value="">Par défaut</option>
+                                    <option value="small">Petit</option>
+                                    <option value="medium">Moyen</option>
+                                    <option value="large">Grand</option>
+                                    <option value="xlarge">Très grand</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="prop-group-row">
+                            <div class="prop-group">
+                                <label>Couleur titre</label>
+                                <input type="color" name="typo_title_color" id="propTitleColor" value="#1a1a1a">
+                            </div>
+                            <div class="prop-group">
+                                <label>Couleur sous-titre</label>
+                                <input type="color" name="typo_subtitle_color" id="propSubtitleColor" value="#666666">
+                            </div>
+                        </div>
+
+                        <div class="prop-group">
+                            <label>Style du titre</label>
+                            <div class="typo-toggles">
+                                <button type="button" class="typo-toggle" data-field="typo_bold" title="Gras">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                        <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="typo-toggle" data-field="typo_italic" title="Italique">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="19" y1="4" x2="10" y2="4"/>
+                                        <line x1="14" y1="20" x2="5" y2="20"/>
+                                        <line x1="15" y1="4" x2="9" y2="20"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="typo-toggle" data-field="typo_underline" title="Souligné">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/>
+                                        <line x1="4" y1="21" x2="20" y2="21"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="typo-toggle" data-field="typo_uppercase" title="Majuscules">
+                                    <span style="font-weight: 600; font-size: 12px;">AA</span>
+                                </button>
+                            </div>
+                            <input type="hidden" name="typo_bold" id="propTypoBold" value="0">
+                            <input type="hidden" name="typo_italic" id="propTypoItalic" value="0">
+                            <input type="hidden" name="typo_underline" id="propTypoUnderline" value="0">
+                            <input type="hidden" name="typo_uppercase" id="propTypoUppercase" value="0">
+                        </div>
+
+                        <!-- Positionnement du titre -->
+                        <div class="prop-group">
+                            <label>Alignement</label>
+                            <div class="align-toggles">
+                                <button type="button" class="align-toggle" data-value="left" title="Gauche">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="3" y1="6" x2="21" y2="6"/>
+                                        <line x1="3" y1="12" x2="15" y2="12"/>
+                                        <line x1="3" y1="18" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="align-toggle active" data-value="center" title="Centre">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="3" y1="6" x2="21" y2="6"/>
+                                        <line x1="6" y1="12" x2="18" y2="12"/>
+                                        <line x1="4" y1="18" x2="20" y2="18"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="align-toggle" data-value="right" title="Droite">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="3" y1="6" x2="21" y2="6"/>
+                                        <line x1="9" y1="12" x2="21" y2="12"/>
+                                        <line x1="6" y1="18" x2="21" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <input type="hidden" name="typo_align" id="propTypoAlign" value="center">
+                        </div>
+
+                        <div class="prop-group-row">
+                            <div class="prop-group">
+                                <label>Décalage vertical</label>
+                                <div class="offset-control">
+                                    <input type="range" name="typo_offset_y" id="propOffsetY" min="-100" max="100" value="0">
+                                    <span class="offset-value" id="offsetYValue">0px</span>
+                                </div>
+                            </div>
+                            <div class="prop-group">
+                                <label>Décalage horizontal</label>
+                                <div class="offset-control">
+                                    <input type="range" name="typo_offset_x" id="propOffsetX" min="-100" max="100" value="0">
+                                    <span class="offset-value" id="offsetXValue">0px</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Champs Hero -->
                     <div class="prop-section hero-fields" style="display: none;">
                         <div class="prop-group">
@@ -534,89 +667,6 @@ $typeIcons = [
                         <div class="prop-group">
                             <label>Nb produits max</label>
                             <input type="number" name="products_limit" id="propProductsLimit" value="8" min="1" max="20">
-                        </div>
-                    </div>
-
-                    <!-- Typographie -->
-                    <div class="prop-section typography-fields">
-                        <div class="prop-section-title">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="4 7 4 4 20 4 20 7"/>
-                                <line x1="9" y1="20" x2="15" y2="20"/>
-                                <line x1="12" y1="4" x2="12" y2="20"/>
-                            </svg>
-                            Typographie
-                        </div>
-
-                        <div class="prop-group">
-                            <label>Police</label>
-                            <select name="typo_font_family" id="propFontFamily">
-                                <option value="">Par défaut</option>
-                                <option value="Inter">Inter</option>
-                                <option value="Poppins">Poppins</option>
-                                <option value="Montserrat">Montserrat</option>
-                                <option value="Playfair Display">Playfair Display</option>
-                                <option value="Roboto">Roboto</option>
-                                <option value="Open Sans">Open Sans</option>
-                                <option value="Lato">Lato</option>
-                                <option value="Oswald">Oswald</option>
-                                <option value="Raleway">Raleway</option>
-                                <option value="Dancing Script">Dancing Script</option>
-                            </select>
-                        </div>
-
-                        <div class="prop-group-row">
-                            <div class="prop-group">
-                                <label>Taille titre</label>
-                                <select name="typo_title_size" id="propTitleSize">
-                                    <option value="">Par défaut</option>
-                                    <option value="small">Petit</option>
-                                    <option value="medium">Moyen</option>
-                                    <option value="large">Grand</option>
-                                    <option value="xlarge">Très grand</option>
-                                </select>
-                            </div>
-                            <div class="prop-group">
-                                <label>Couleur titre</label>
-                                <input type="color" name="typo_title_color" id="propTitleColor" value="#1a1a1a">
-                            </div>
-                        </div>
-
-                        <div class="prop-group">
-                            <label>Style du titre</label>
-                            <div class="typo-toggles">
-                                <button type="button" class="typo-toggle" data-field="typo_bold" title="Gras">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                        <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
-                                        <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
-                                    </svg>
-                                </button>
-                                <button type="button" class="typo-toggle" data-field="typo_italic" title="Italique">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <line x1="19" y1="4" x2="10" y2="4"/>
-                                        <line x1="14" y1="20" x2="5" y2="20"/>
-                                        <line x1="15" y1="4" x2="9" y2="20"/>
-                                    </svg>
-                                </button>
-                                <button type="button" class="typo-toggle" data-field="typo_underline" title="Souligné">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/>
-                                        <line x1="4" y1="21" x2="20" y2="21"/>
-                                    </svg>
-                                </button>
-                                <button type="button" class="typo-toggle" data-field="typo_uppercase" title="Majuscules">
-                                    <span style="font-weight: 600; font-size: 12px;">AA</span>
-                                </button>
-                            </div>
-                            <input type="hidden" name="typo_bold" id="propTypoBold" value="0">
-                            <input type="hidden" name="typo_italic" id="propTypoItalic" value="0">
-                            <input type="hidden" name="typo_underline" id="propTypoUnderline" value="0">
-                            <input type="hidden" name="typo_uppercase" id="propTypoUppercase" value="0">
-                        </div>
-
-                        <div class="prop-group">
-                            <label>Couleur sous-titre</label>
-                            <input type="color" name="typo_subtitle_color" id="propSubtitleColor" value="#666666">
                         </div>
                     </div>
 
@@ -1198,6 +1248,71 @@ $typeIcons = [
         color: var(--pink-main, #ff69b4);
     }
 
+    /* Alignment toggles */
+    .align-toggles {
+        display: flex;
+        gap: 6px;
+    }
+
+    .align-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        height: 40px;
+        background: #f5f5f5;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .align-toggle:hover {
+        background: #eee;
+        color: #333;
+    }
+
+    .align-toggle.active {
+        background: linear-gradient(135deg, rgba(255,105,180,0.15), rgba(255,20,147,0.1));
+        border-color: var(--pink-main, #ff69b4);
+        color: var(--pink-main, #ff69b4);
+    }
+
+    /* Offset controls */
+    .offset-control {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .offset-control input[type="range"] {
+        flex: 1;
+        height: 6px;
+        -webkit-appearance: none;
+        background: #e0e0e0;
+        border-radius: 3px;
+        outline: none;
+    }
+
+    .offset-control input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        background: var(--pink-main, #ff69b4);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(255,105,180,0.3);
+    }
+
+    .offset-value {
+        font-size: 12px;
+        font-weight: 600;
+        color: #666;
+        min-width: 45px;
+        text-align: right;
+    }
+
     /* Media upload */
     .media-upload-zone {
         border: 2px dashed #ddd;
@@ -1490,6 +1605,9 @@ $typeIcons = [
         initMediaUpload();
         initForm();
         initTypographyToggles();
+        initAlignmentToggles();
+        initOffsetControls();
+        initAutoSave();
     });
 
     // Liste des sections
@@ -1935,6 +2053,9 @@ $typeIcons = [
 
                 this.classList.toggle('active');
                 input.value = this.classList.contains('active') ? '1' : '0';
+
+                // Auto-save après changement de style
+                if (selectedSectionId) autoSaveSection();
             });
         });
     }
@@ -1963,6 +2084,123 @@ $typeIcons = [
 
             if (btn) btn.classList.toggle('active', value);
             if (input) input.value = value ? '1' : '0';
+        });
+
+        // Alignment
+        const align = typo.align || 'center';
+        document.querySelectorAll('.align-toggle').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === align);
+        });
+        document.getElementById('propTypoAlign').value = align;
+
+        // Offsets
+        const offsetY = parseInt(typo.offset_y) || 0;
+        const offsetX = parseInt(typo.offset_x) || 0;
+        document.getElementById('propOffsetY').value = offsetY;
+        document.getElementById('propOffsetX').value = offsetX;
+        document.getElementById('offsetYValue').textContent = offsetY + 'px';
+        document.getElementById('offsetXValue').textContent = offsetX + 'px';
+    }
+
+    // Alignment toggles
+    function initAlignmentToggles() {
+        document.querySelectorAll('.align-toggle').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.align-toggle').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('propTypoAlign').value = this.dataset.value;
+
+                // Auto-save après changement d'alignement
+                if (selectedSectionId) autoSaveSection();
+            });
+        });
+    }
+
+    // Offset controls
+    function initOffsetControls() {
+        const offsetY = document.getElementById('propOffsetY');
+        const offsetX = document.getElementById('propOffsetX');
+
+        if (offsetY) {
+            offsetY.addEventListener('input', function() {
+                document.getElementById('offsetYValue').textContent = this.value + 'px';
+                debouncedAutoSave();
+            });
+        }
+
+        if (offsetX) {
+            offsetX.addEventListener('input', function() {
+                document.getElementById('offsetXValue').textContent = this.value + 'px';
+                debouncedAutoSave();
+            });
+        }
+    }
+
+    // Auto-save avec debounce pour rafraîchir la preview automatiquement
+    let autoSaveTimeout = null;
+    function debouncedAutoSave() {
+        if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+            if (selectedSectionId) {
+                autoSaveSection();
+            }
+        }, 800); // 800ms de délai
+    }
+
+    function autoSaveSection() {
+        const form = document.getElementById('sectionForm');
+        const formData = new FormData(form);
+
+        // Indicateur visuel de sauvegarde
+        const saveBtn = document.getElementById('saveBtn');
+        const originalHtml = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>';
+
+        fetch('/admin/homepage-builder.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                refreshPreview();
+            }
+        })
+        .finally(() => {
+            saveBtn.innerHTML = originalHtml;
+        });
+    }
+
+    // Initialiser l'auto-save sur les champs de saisie
+    function initAutoSave() {
+        // Champs texte avec debounce
+        const textFields = ['propTitle', 'propSubtitle', 'propContent', 'propCtaText', 'propCtaUrl',
+                           'propHeroBadge', 'propHeroHighlight', 'propHeroCta2Text', 'propHeroCta2Url'];
+        textFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', debouncedAutoSave);
+            }
+        });
+
+        // Sélecteurs avec sauvegarde immédiate
+        const selectFields = ['propFontFamily', 'propTitleSize', 'propCategoryId', 'propProductsLimit'];
+        selectFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('change', () => {
+                    if (selectedSectionId) autoSaveSection();
+                });
+            }
+        });
+
+        // Couleurs avec debounce
+        const colorFields = ['propTitleColor', 'propSubtitleColor', 'propBgColor', 'propTextColor'];
+        colorFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', debouncedAutoSave);
+            }
         });
     }
 

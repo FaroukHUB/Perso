@@ -199,6 +199,21 @@ function getTitleStyles(array $section): string {
         $styles[] = 'letter-spacing: 2px';
     }
 
+    // Alignment
+    if (!empty($typo['align'])) {
+        $styles[] = 'text-align: ' . htmlspecialchars($typo['align']);
+    }
+
+    // Offset Y (margin-top)
+    if (!empty($typo['offset_y']) && $typo['offset_y'] != 0) {
+        $styles[] = 'margin-top: ' . (int)$typo['offset_y'] . 'px';
+    }
+
+    // Offset X (transform translateX)
+    if (!empty($typo['offset_x']) && $typo['offset_x'] != 0) {
+        $styles[] = 'transform: translateX(' . (int)$typo['offset_x'] . 'px)';
+    }
+
     return !empty($styles) ? implode('; ', $styles) : '';
 }
 
