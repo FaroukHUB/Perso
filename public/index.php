@@ -120,14 +120,14 @@ function getSectionInlineStyles(array $section): string {
     $styles = [];
     $style = $section['config']['style'] ?? [];
 
-    // Background color
+    // Background color (avec !important pour écraser les gradients CSS)
     if (!empty($style['background_color'])) {
-        $styles[] = 'background-color: ' . htmlspecialchars($style['background_color']);
+        $styles[] = 'background: ' . htmlspecialchars($style['background_color']) . ' !important';
     }
 
-    // Text color
+    // Text color (avec !important pour écraser le CSS)
     if (!empty($style['text_color'])) {
-        $styles[] = 'color: ' . htmlspecialchars($style['text_color']);
+        $styles[] = 'color: ' . htmlspecialchars($style['text_color']) . ' !important';
     }
 
     // Padding Y
@@ -140,8 +140,8 @@ function getSectionInlineStyles(array $section): string {
     ];
     $paddingY = $style['padding_y'] ?? 'medium';
     if (isset($paddingMap[$paddingY])) {
-        $styles[] = 'padding-top: ' . $paddingMap[$paddingY];
-        $styles[] = 'padding-bottom: ' . $paddingMap[$paddingY];
+        $styles[] = 'padding-top: ' . $paddingMap[$paddingY] . ' !important';
+        $styles[] = 'padding-bottom: ' . $paddingMap[$paddingY] . ' !important';
     }
 
     return !empty($styles) ? implode('; ', $styles) : '';
@@ -305,6 +305,16 @@ function getSectionInlineStyles(array $section): string {
             color: var(--white);
             margin-bottom: var(--spacing-lg);
             line-height: 1.1;
+        }
+        /* Override: hérite la couleur du parent si définie inline */
+        .hero[style*="color"] h1,
+        .hero[style*="color"] p,
+        .hero[style*="color"] .hero-badge {
+            color: inherit !important;
+        }
+        .hero[style*="color"] h1 span {
+            background: none !important;
+            -webkit-text-fill-color: inherit !important;
         }
         .hero h1 span {
             background: var(--gradient-hero);
