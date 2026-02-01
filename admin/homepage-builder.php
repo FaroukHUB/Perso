@@ -167,6 +167,7 @@ if (isPost() && !empty($_POST['ajax_action'])) {
             // Typography
             $data['config']['typography'] = [
                 'font_family' => !empty($_POST['typo_font_family']) ? $_POST['typo_font_family'] : null,
+                'subtitle_font_family' => !empty($_POST['typo_subtitle_font_family']) ? $_POST['typo_subtitle_font_family'] : null,
                 'title_size' => !empty($_POST['typo_title_size']) ? $_POST['typo_title_size'] : null,
                 'title_color' => !empty($_POST['typo_title_color']) && $_POST['typo_title_color'] !== '#1a1a1a' ? $_POST['typo_title_color'] : null,
                 'subtitle_color' => !empty($_POST['typo_subtitle_color']) && $_POST['typo_subtitle_color'] !== '#666666' ? $_POST['typo_subtitle_color'] : null,
@@ -413,7 +414,7 @@ $typeIcons = [
 
                         <div class="prop-group-row">
                             <div class="prop-group">
-                                <label>Police</label>
+                                <label>Police titre</label>
                                 <select name="typo_font_family" id="propFontFamily">
                                     <option value="">Par défaut</option>
                                     <?php foreach ($fonts as $font): ?>
@@ -424,7 +425,7 @@ $typeIcons = [
                                 </select>
                             </div>
                             <div class="prop-group">
-                                <label>Taille</label>
+                                <label>Taille titre</label>
                                 <select name="typo_title_size" id="propTitleSize">
                                     <option value="">Par défaut</option>
                                     <option value="small">Petit</option>
@@ -433,6 +434,18 @@ $typeIcons = [
                                     <option value="xlarge">Très grand</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div class="prop-group">
+                            <label>Police sous-titre</label>
+                            <select name="typo_subtitle_font_family" id="propSubtitleFontFamily">
+                                <option value="">Hériter du titre</option>
+                                <?php foreach ($fonts as $font): ?>
+                                <option value="<?= h($font['family']) ?>" style="font-family: '<?= h($font['family']) ?>'">
+                                    <?= h($font['name']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
 
                         <div class="prop-group">
@@ -2429,8 +2442,11 @@ $typeIcons = [
     function setTypographyValues(config) {
         const typo = config?.typography || {};
 
-        // Font family
+        // Font family titre
         document.getElementById('propFontFamily').value = typo.font_family || '';
+
+        // Font family sous-titre
+        document.getElementById('propSubtitleFontFamily').value = typo.subtitle_font_family || '';
 
         // Title size
         document.getElementById('propTitleSize').value = typo.title_size || '';
@@ -2756,8 +2772,11 @@ $typeIcons = [
         const typo = config?.typography || {};
         const style = config?.style || {};
 
-        // Font family
+        // Font family titre
         document.getElementById('propFontFamily').value = typo.font_family || '';
+
+        // Font family sous-titre
+        document.getElementById('propSubtitleFontFamily').value = typo.subtitle_font_family || '';
 
         // Title size
         document.getElementById('propTitleSize').value = typo.title_size || '';

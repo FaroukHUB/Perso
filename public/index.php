@@ -237,9 +237,10 @@ function getSubtitleStyles(array $section): string {
     $styles = [];
     $typo = $section['config']['typography'] ?? [];
 
-    // Font family (hérite du titre)
-    if (!empty($typo['font_family'])) {
-        $styles[] = "font-family: '" . htmlspecialchars($typo['font_family']) . "', sans-serif";
+    // Font family (séparé du titre, fallback sur font_family si non défini)
+    $subtitleFont = $typo['subtitle_font_family'] ?? $typo['font_family'] ?? null;
+    if (!empty($subtitleFont)) {
+        $styles[] = "font-family: '" . htmlspecialchars($subtitleFont) . "', sans-serif";
     }
 
     // Subtitle color (supporte les dégradés)
