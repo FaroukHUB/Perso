@@ -2655,6 +2655,13 @@ $typeIcons = [
                 el.addEventListener('input', debouncedAutoSave);
             }
         });
+
+        // Checkboxes items (produits, packs, blog) - auto-save quand sélection change
+        document.querySelectorAll('.items-select-grid input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (selectedSectionId) autoSaveSection();
+            });
+        });
     }
 
     // Keyboard
