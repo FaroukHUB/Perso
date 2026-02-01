@@ -393,11 +393,17 @@ $typeIcons = [
                     <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
                     <input type="hidden" name="ajax_action" value="save">
                     <input type="hidden" name="section_id" id="sectionId" value="0">
-                    <input type="hidden" name="type" id="sectionType" value="">
                     <input type="hidden" name="status" id="sectionStatus" value="draft">
 
-                    <!-- Type badge -->
-                    <div class="prop-type-badge" id="typeBadge"></div>
+                    <!-- Type de section -->
+                    <div class="prop-group">
+                        <label>Type de contenu</label>
+                        <select name="type" id="sectionType" class="section-type-select">
+                            <?php foreach ($types as $typeKey => $typeLabel): ?>
+                            <option value="<?= h($typeKey) ?>"><?= h($typeLabel) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
                     <!-- Champs généraux -->
                     <div class="prop-group">
@@ -1338,15 +1344,27 @@ $typeIcons = [
         padding: 16px;
     }
 
-    .prop-type-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 600;
-        margin-bottom: 16px;
+    .section-type-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #eee;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        background: linear-gradient(135deg, rgba(255,105,180,0.05), rgba(255,20,147,0.02));
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .section-type-select:hover {
+        border-color: var(--pink-main, #ff69b4);
+    }
+
+    .section-type-select:focus {
+        outline: none;
+        border-color: var(--pink-main, #ff69b4);
+        box-shadow: 0 0 0 3px rgba(255,105,180,0.1);
     }
 
     .prop-group {
@@ -2112,13 +2130,6 @@ $typeIcons = [
         document.getElementById('sectionType').value = section.type;
         document.getElementById('sectionStatus').value = section.status;
 
-        // Type badge
-        const badge = document.getElementById('typeBadge');
-        badge.className = 'prop-type-badge type-' + section.type;
-        badge.innerHTML = `<span>${types[section.type]}</span>`;
-        badge.style.background = getTypeColor(section.type);
-        badge.style.color = 'white';
-
         // Champs généraux
         document.getElementById('propTitle').value = section.title || '';
         document.getElementById('propSubtitle').value = section.subtitle || '';
@@ -2626,6 +2637,15 @@ $typeIcons = [
                 });
             }
         });
+
+        // Type de section - change les champs affichés + auto-save
+        const typeSelect = document.getElementById('sectionType');
+        if (typeSelect) {
+            typeSelect.addEventListener('change', function() {
+                showFieldsForType(this.value);
+                if (selectedSectionId) autoSaveSection();
+            });
+        }
 
         // Couleurs avec debounce
         const colorFields = ['propTitleColor', 'propSubtitleColor', 'propBgColor', 'propTextColor'];
