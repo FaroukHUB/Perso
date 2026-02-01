@@ -285,6 +285,12 @@ function getSubtitleStyles(array $section): string {
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        .navbar-logo {
+            height: 40px;
+            width: auto;
+            max-width: 200px;
+            object-fit: contain;
+        }
         .navbar-nav {
             display: flex;
             align-items: center;
@@ -1006,7 +1012,13 @@ function getSubtitleStyles(array $section): string {
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
-            <a href="/" class="navbar-brand">PERSONNALY</a>
+<?php
+            $logoUrl = $brandingService->getLogo(null, false); // false = fond sombre
+            if ($logoUrl): ?>
+                <a href="/" class="navbar-brand"><img src="<?= h($logoUrl) ?>" alt="Logo" class="navbar-logo"></a>
+            <?php else: ?>
+                <a href="/" class="navbar-brand">PERSONNALY</a>
+            <?php endif; ?>
             <div class="navbar-nav">
                 <a href="#produits">Produits</a>
                 <?php if ($hasPacks): ?><a href="#inspirations">Idées</a><?php endif; ?>
