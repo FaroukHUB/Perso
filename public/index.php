@@ -23,7 +23,18 @@ $brandingService = new BrandingService();
 // Chargement des sections (toutes en mode preview builder, sinon actives uniquement)
 $sectionModel = new HomepageSection();
 $isBuilderPreview = isset($_GET['preview']) && $_GET['preview'] === 'builder';
-$sections = $isBuilderPreview ? $sectionModel->findAll() : $sectionModel->findActive();
+
+if ($isBuilderPreview) {
+    // Mode preview : charger toutes les sections avec leurs items
+    $sections = $sectionModel->findAll();
+    foreach ($sections as &$section) {
+        $section['items'] = $sectionModel->getItems($section['id']);
+    }
+    unset($section);
+} else {
+    // Mode normal : seulement les sections actives
+    $sections = $sectionModel->findActive();
+}
 
 // Modèles pour les données
 $productModel = new Product();
