@@ -56,6 +56,17 @@ const state = {
     fontSize: 24,
     color: '#000000',
     align: 'left'
+  },
+
+  // Paramètres bouton
+  buttonSettings: {
+    text: 'Bouton',
+    fontFamily: 'Inter',
+    fontId: 0,
+    fontSize: 16,
+    textColor: '#FFFFFF',
+    bgColor: '#000000',
+    borderRadius: 4
   }
 };
 
@@ -572,6 +583,7 @@ function initDesktopSelectors() {
   initDesktopFontSelector();
   initDesktopTechniqueSelector();
   initDesktopTextControls();
+  initDesktopButtonControls();
 }
 
 function initDesktopFontSelector() {
@@ -830,6 +842,56 @@ function initDesktopTextControls() {
         nudgeLayer(btn.dataset.direction);
       });
     });
+  }
+}
+
+function initDesktopButtonControls() {
+  // Bouton ajouter un bouton
+  const btnAddButton = $('#btnAddButton');
+  if (btnAddButton) {
+    btnAddButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      addButtonLayer();
+    });
+  }
+
+  // Contrôles du bouton actif
+  const controls = $('#buttonLayerControls');
+  if (controls) {
+    // Couleur de fond
+    const bgColorInput = controls.querySelector('#buttonBgColor');
+    if (bgColorInput) {
+      bgColorInput.addEventListener('input', (e) => {
+        setButtonBgColor(e.target.value);
+      });
+    }
+
+    // Couleur du texte
+    const textColorInput = controls.querySelector('#buttonTextColor');
+    if (textColorInput) {
+      textColorInput.addEventListener('input', (e) => {
+        setButtonTextColor(e.target.value);
+      });
+    }
+
+    // Rayon de bordure
+    const radiusSlider = controls.querySelector('#buttonRadius');
+    const radiusValue = controls.querySelector('#buttonRadiusValue');
+    if (radiusSlider) {
+      radiusSlider.addEventListener('input', (e) => {
+        setButtonRadius(e.target.value);
+        if (radiusValue) radiusValue.textContent = e.target.value + 'px';
+      });
+    }
+
+    // Supprimer
+    const btnDelete = controls.querySelector('#btnDeleteButton');
+    if (btnDelete) {
+      btnDelete.addEventListener('click', (e) => {
+        e.preventDefault();
+        deleteActiveButtonLayer();
+      });
+    }
   }
 }
 
@@ -1687,8 +1749,81 @@ function renderElementModalContent() {
   const content = elementModalInstance.querySelector('#elementModalContent');
   content.innerHTML = '';
 
+  // Section Boutons
+  const buttonSection = document.createElement('div');
+  buttonSection.className = 'ps-assets-category';
+  buttonSection.innerHTML = `
+    <h3 class="ps-assets-category-title">Boutons</h3>
+    <div class="ps-form-group">
+      <button type="button" class="ps-btn ps-btn-secondary ps-btn-block" id="modalBtnAddButton">
+        + Ajouter un bouton
+      </button>
+    </div>
+    <div class="ps-button-controls disabled" id="modalButtonLayerControls" style="margin-top: 16px;">
+      <div class="ps-form-group">
+        <label class="ps-label">Modifier le bouton sélectionné</label>
+      </div>
+      <div style="display: flex; gap: 16px; margin-bottom: 12px;">
+        <div class="ps-form-group" style="flex: 1;">
+          <label class="ps-label">Fond</label>
+          <input type="color" class="ps-color-input" id="modalButtonBgColor" value="#000000" style="width: 100%;">
+        </div>
+        <div class="ps-form-group" style="flex: 1;">
+          <label class="ps-label">Texte</label>
+          <input type="color" class="ps-color-input" id="modalButtonTextColor" value="#FFFFFF" style="width: 100%;">
+        </div>
+      </div>
+      <div class="ps-form-group">
+        <label class="ps-label">Arrondi <span id="modalButtonRadiusValue">4px</span></label>
+        <input type="range" class="ps-range" id="modalButtonRadius" min="0" max="30" value="4">
+      </div>
+      <button type="button" class="ps-btn ps-btn-ghost ps-btn-sm" id="modalBtnDeleteButton" style="margin-top: 10px;">
+        Supprimer le bouton
+      </button>
+    </div>
+  `;
+  content.appendChild(buttonSection);
+
+  // Événements pour les boutons
+  const btnAdd = buttonSection.querySelector('#modalBtnAddButton');
+  btnAdd.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addButtonLayer();
+    closeElementModal();
+  });
+
+  const controls = buttonSection.querySelector('#modalButtonLayerControls');
+
+  controls.querySelector('#modalButtonBgColor')?.addEventListener('input', (e) => {
+    setButtonBgColor(e.target.value);
+  });
+
+  controls.querySelector('#modalButtonTextColor')?.addEventListener('input', (e) => {
+    setButtonTextColor(e.target.value);
+  });
+
+  const radiusSlider = controls.querySelector('#modalButtonRadius');
+  const radiusValue = controls.querySelector('#modalButtonRadiusValue');
+  if (radiusSlider) {
+    radiusSlider.addEventListener('input', (e) => {
+      setButtonRadius(e.target.value);
+      if (radiusValue) radiusValue.textContent = e.target.value + 'px';
+    });
+  }
+
+  controls.querySelector('#modalBtnDeleteButton')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    deleteActiveButtonLayer();
+  });
+
+  // Section Éléments
   if (state.elements.length === 0) {
-    content.innerHTML = '<div class="ps-assets-empty">Aucun élément disponible</div>';
+    const emptySection = document.createElement('div');
+    emptySection.className = 'ps-assets-category';
+    emptySection.innerHTML = '<div class="ps-assets-empty">Aucun élément disponible</div>';
+    content.appendChild(emptySection);
     return;
   }
 
@@ -1792,6 +1927,143 @@ function addTextLayer() {
 }
 
 // ============================================
+// BUTTON LAYER
+// ============================================
+function addButtonLayer() {
+  const text = state.buttonSettings.text || 'Bouton';
+
+  const layer = {
+    id: generateId(),
+    type: 'button',
+    name: text.substring(0, 15) + (text.length > 15 ? '...' : ''),
+    text: text,
+    fontFamily: state.buttonSettings.fontFamily,
+    fontId: state.buttonSettings.fontId,
+    fontSize: state.buttonSettings.fontSize,
+    textColor: state.buttonSettings.textColor,
+    bgColor: state.buttonSettings.bgColor,
+    borderRadius: state.buttonSettings.borderRadius,
+    rotation: 0,
+    scale: 1,
+    x: 50,
+    y: 50
+  };
+
+  state.layers.push(layer);
+  renderLayer(layer);
+  setActiveLayer(layer.id);
+  updateLayersList();
+  updatePrice();
+  updateButtonControlsState();
+
+  // Reset
+  state.buttonSettings.text = 'Bouton';
+}
+
+function getActiveButtonLayer() {
+  if (!state.activeLayerId) return null;
+  const layer = state.layers.find(l => l.id === state.activeLayerId);
+  return (layer && layer.type === 'button') ? layer : null;
+}
+
+function updateActiveButtonLayerDOM(layer) {
+  const div = $(`.ps-layer[data-layer-id="${layer.id}"]`);
+  if (!div) return;
+
+  div.style.backgroundColor = layer.bgColor || '#000000';
+  div.style.color = layer.textColor || '#FFFFFF';
+  div.style.fontFamily = layer.fontFamily || 'Inter';
+  div.style.fontSize = (layer.fontSize || 16) + 'px';
+  div.style.borderRadius = (layer.borderRadius || 4) + 'px';
+  const rotation = layer.rotation || 0;
+  div.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+  div.style.left = layer.x + '%';
+  div.style.top = layer.y + '%';
+}
+
+function updateButtonControlsState() {
+  const layer = getActiveButtonLayer();
+  const hasButtonLayer = !!layer;
+
+  // Update desktop controls
+  const desktopControls = $('#buttonLayerControls');
+  if (desktopControls) {
+    desktopControls.classList.toggle('disabled', !hasButtonLayer);
+
+    if (hasButtonLayer) {
+      const bgColorInput = desktopControls.querySelector('#buttonBgColor');
+      const textColorInput = desktopControls.querySelector('#buttonTextColor');
+      const radiusSlider = desktopControls.querySelector('#buttonRadius');
+      const radiusValue = desktopControls.querySelector('#buttonRadiusValue');
+
+      if (bgColorInput) bgColorInput.value = layer.bgColor || '#000000';
+      if (textColorInput) textColorInput.value = layer.textColor || '#FFFFFF';
+      if (radiusSlider) radiusSlider.value = layer.borderRadius || 4;
+      if (radiusValue) radiusValue.textContent = (layer.borderRadius || 4) + 'px';
+    }
+  }
+
+  // Update mobile modal controls
+  const modalControls = $('#modalButtonLayerControls');
+  if (modalControls) {
+    modalControls.classList.toggle('disabled', !hasButtonLayer);
+
+    if (hasButtonLayer) {
+      const bgColorInput = modalControls.querySelector('#modalButtonBgColor');
+      const textColorInput = modalControls.querySelector('#modalButtonTextColor');
+      const radiusSlider = modalControls.querySelector('#modalButtonRadius');
+      const radiusValue = modalControls.querySelector('#modalButtonRadiusValue');
+
+      if (bgColorInput) bgColorInput.value = layer.bgColor || '#000000';
+      if (textColorInput) textColorInput.value = layer.textColor || '#FFFFFF';
+      if (radiusSlider) radiusSlider.value = layer.borderRadius || 4;
+      if (radiusValue) radiusValue.textContent = (layer.borderRadius || 4) + 'px';
+    }
+  }
+}
+
+function setButtonBgColor(color) {
+  const layer = getActiveButtonLayer();
+  if (!layer) return;
+
+  layer.bgColor = color;
+  updateActiveButtonLayerDOM(layer);
+}
+
+function setButtonTextColor(color) {
+  const layer = getActiveButtonLayer();
+  if (!layer) return;
+
+  layer.textColor = color;
+  updateActiveButtonLayerDOM(layer);
+}
+
+function setButtonRadius(radius) {
+  const layer = getActiveButtonLayer();
+  if (!layer) return;
+
+  layer.borderRadius = parseInt(radius) || 4;
+  updateActiveButtonLayerDOM(layer);
+}
+
+function setButtonFont(fontFamily, fontId) {
+  const layer = getActiveButtonLayer();
+  if (!layer) return;
+
+  layer.fontFamily = fontFamily;
+  layer.fontId = fontId;
+  updateActiveButtonLayerDOM(layer);
+}
+
+function deleteActiveButtonLayer() {
+  const layer = getActiveButtonLayer();
+  if (!layer) return;
+
+  removeLayer(layer.id);
+  updateButtonControlsState();
+}
+
+// ============================================
 // LAYER RENDERING
 // ============================================
 function renderLayer(layer) {
@@ -1812,6 +2084,90 @@ function renderLayer(layer) {
     div.style.fontStyle = layer.fontStyle || 'normal';
     const rotation = layer.rotation || 0;
     div.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+
+    // Rendre le texte éditable directement
+    div.setAttribute('contenteditable', 'true');
+    div.setAttribute('spellcheck', 'false');
+    div.style.cursor = 'text';
+    div.style.outline = 'none';
+    div.style.minWidth = '20px';
+
+    // Événement pour sauvegarder le texte modifié
+    div.addEventListener('input', (e) => {
+      e.stopPropagation();
+      const l = state.layers.find(l => l.id === layer.id);
+      if (l) {
+        l.text = div.textContent || div.innerText;
+        l.name = l.text.substring(0, 15) + (l.text.length > 15 ? '...' : '');
+        updateLayersList();
+      }
+    });
+
+    // Empêcher le drag quand on édite
+    div.addEventListener('focus', (e) => {
+      div.dataset.editing = 'true';
+    });
+
+    div.addEventListener('blur', (e) => {
+      div.dataset.editing = 'false';
+    });
+
+    // Empêcher le retour à la ligne
+    div.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        div.blur();
+      }
+    });
+
+  } else if (layer.type === 'button') {
+    // Nouveau type: Bouton
+    div.classList.add('ps-layer-button');
+    div.style.backgroundColor = layer.bgColor || '#000000';
+    div.style.color = layer.textColor || '#FFFFFF';
+    div.style.fontFamily = layer.fontFamily || 'Inter';
+    div.style.fontSize = (layer.fontSize || 16) + 'px';
+    div.style.padding = '8px 20px';
+    div.style.borderRadius = (layer.borderRadius || 4) + 'px';
+    div.style.border = 'none';
+    div.style.cursor = 'pointer';
+    div.style.whiteSpace = 'nowrap';
+    div.textContent = layer.text || 'Bouton';
+    const rotation = layer.rotation || 0;
+    div.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+
+    // Rendre le bouton éditable
+    div.setAttribute('contenteditable', 'true');
+    div.setAttribute('spellcheck', 'false');
+    div.style.outline = 'none';
+    div.style.minWidth = '60px';
+
+    // Événement pour sauvegarder le texte modifié
+    div.addEventListener('input', (e) => {
+      e.stopPropagation();
+      const l = state.layers.find(l => l.id === layer.id);
+      if (l) {
+        l.text = div.textContent || div.innerText;
+        l.name = l.text.substring(0, 15) + (l.text.length > 15 ? '...' : '');
+        updateLayersList();
+      }
+    });
+
+    div.addEventListener('focus', (e) => {
+      div.dataset.editing = 'true';
+    });
+
+    div.addEventListener('blur', (e) => {
+      div.dataset.editing = 'false';
+    });
+
+    div.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        div.blur();
+      }
+    });
+
   } else if (layer.type === 'design' || layer.type === 'element') {
     div.style.transform = 'translate(-50%, -50%)';
   } else {
@@ -1831,8 +2187,18 @@ function renderLayer(layer) {
 
   interact(div)
     .draggable({
+      enabled: true,
       listeners: {
+        start(event) {
+          // Désactiver le drag si on est en mode édition
+          if (event.target.dataset.editing === 'true') {
+            return false;
+          }
+        },
         move(event) {
+          // Ne pas bouger si on édite
+          if (event.target.dataset.editing === 'true') return;
+
           const l = state.layers.find(l => l.id === event.target.dataset.layerId);
           if (!l) return;
 
@@ -1876,7 +2242,20 @@ function setActiveLayer(layerId) {
     };
   }
 
+  if (layer && layer.type === 'button') {
+    state.buttonSettings = {
+      text: layer.text,
+      fontFamily: layer.fontFamily,
+      fontId: layer.fontId,
+      fontSize: layer.fontSize,
+      textColor: layer.textColor,
+      bgColor: layer.bgColor,
+      borderRadius: layer.borderRadius
+    };
+  }
+
   updateTextControlsState();
+  updateButtonControlsState();
 }
 
 // ============================================
@@ -2088,6 +2467,10 @@ function updateLayersList() {
         icon = '■';
         typeLabel = layer.isPremium ? 'Élément PRO' : 'Élément';
         break;
+      case 'button':
+        icon = '▢';
+        typeLabel = 'Bouton';
+        break;
       default:
         icon = '?';
         typeLabel = 'Autre';
@@ -2275,6 +2658,17 @@ function initAddToCart() {
             image: l.image,
             is_premium: l.isPremium,
             price: l.price
+          };
+        } else if (l.type === 'button') {
+          return {
+            ...base,
+            content: l.text,
+            font_id: l.fontId,
+            font_family: l.fontFamily,
+            font_size: l.fontSize,
+            text_color: l.textColor,
+            bg_color: l.bgColor,
+            border_radius: l.borderRadius
           };
         }
 

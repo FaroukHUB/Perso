@@ -165,6 +165,38 @@
         <div class="ps-grid" id="elementsGrid">
           <!-- Shape items générés par JS -->
         </div>
+
+        <!-- Section Boutons -->
+        <div class="ps-form-group" style="margin-top: 20px;">
+          <p class="ps-label">Ajouter un bouton</p>
+          <button class="ps-btn ps-btn-secondary ps-btn-block" id="btnAddButton">
+            + Ajouter un bouton
+          </button>
+        </div>
+
+        <!-- Contrôles du bouton actif -->
+        <div class="ps-button-controls disabled" id="buttonLayerControls" style="margin-top: 20px;">
+          <div class="ps-form-group">
+            <label class="ps-label">Modifier le bouton sélectionné</label>
+          </div>
+          <div class="ps-inline-group">
+            <div class="ps-form-group">
+              <label class="ps-label">Fond</label>
+              <input type="color" class="ps-color-input" id="buttonBgColor" value="#000000">
+            </div>
+            <div class="ps-form-group">
+              <label class="ps-label">Texte</label>
+              <input type="color" class="ps-color-input" id="buttonTextColor" value="#FFFFFF">
+            </div>
+          </div>
+          <div class="ps-form-group">
+            <label class="ps-label">Arrondi <span id="buttonRadiusValue">4px</span></label>
+            <input type="range" class="ps-range" id="buttonRadius" min="0" max="30" value="4">
+          </div>
+          <button class="ps-btn ps-btn-ghost ps-btn-sm" id="btnDeleteButton" style="margin-top: 10px;">
+            Supprimer le bouton
+          </button>
+        </div>
       </div>
 
       <!-- TAB: CALQUES -->
