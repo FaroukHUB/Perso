@@ -20,9 +20,10 @@ $cartCount = Cart::count();
 // Branding dynamique
 $brandingService = new BrandingService();
 
-// Chargement des sections actives
+// Chargement des sections (toutes en mode preview builder, sinon actives uniquement)
 $sectionModel = new HomepageSection();
-$sections = $sectionModel->findActive();
+$isBuilderPreview = isset($_GET['preview']) && $_GET['preview'] === 'builder';
+$sections = $isBuilderPreview ? $sectionModel->findAll() : $sectionModel->findActive();
 
 // Modèles pour les données
 $productModel = new Product();
