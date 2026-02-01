@@ -80,12 +80,18 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 'config' => []
             ];
 
-            // Conserver media existant
+            // Conserver media existant (sauf si demande de suppression)
             if ($isEdit) {
                 $existing = $sectionModel->findById($sectionId);
                 if ($existing) {
-                    $data['media_url'] = $existing['media_url'];
-                    $data['media_type'] = $existing['media_type'];
+                    // Vérifier si l'utilisateur veut supprimer l'image
+                    if (!empty($_POST['clear_media']) && $_POST['clear_media'] === '1') {
+                        $data['media_url'] = null;
+                        $data['media_type'] = 'none';
+                    } else {
+                        $data['media_url'] = $existing['media_url'];
+                        $data['media_type'] = $existing['media_type'];
+                    }
                 }
             }
 
@@ -718,6 +724,7 @@ $typeIcons = [
                                     <span>Cliquez pour ajouter</span>
                                 </div>
                                 <input type="file" name="media_file" id="mediaFile" accept="image/*,video/*" style="display: none;">
+                                <input type="hidden" name="clear_media" id="clearMedia" value="0">
                             </div>
                         </div>
                     </div>
@@ -2119,6 +2126,9 @@ $typeIcons = [
         document.getElementById('propCtaUrl').value = section.cta_url || '';
 
         // Media
+        // Reset clear_media flag
+        document.getElementById('clearMedia').value = '0';
+
         if (section.media_url) {
             document.getElementById('mediaPreview').style.display = 'block';
             document.getElementById('mediaPlaceholder').style.display = 'none';
@@ -2317,6 +2327,11 @@ $typeIcons = [
         document.getElementById('mediaPreview').style.display = 'none';
         document.getElementById('mediaPlaceholder').style.display = 'block';
         document.getElementById('mediaFile').value = '';
+        document.getElementById('clearMedia').value = '1';
+        // Auto-save pour appliquer la suppression
+        if (selectedSectionId) {
+            debouncedAutoSave();
+        }
     }
 
     // Form
@@ -2602,7 +2617,7 @@ $typeIcons = [
         });
 
         // Sélecteurs avec sauvegarde immédiate
-        const selectFields = ['propFontFamily', 'propTitleSize', 'propCategoryId', 'propProductsLimit'];
+        const selectFields = ['propFontFamily', 'propSubtitleFontFamily', 'propTitleSize', 'propCategoryId', 'propProductsLimit'];
         selectFields.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
