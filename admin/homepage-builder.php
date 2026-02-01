@@ -744,8 +744,8 @@ $typeIcons = [
                                 <label class="item-select-option">
                                     <input type="checkbox" name="product_ids[]" value="<?= $p['id'] ?>">
                                     <span class="item-select-thumb">
-                                        <?php if ($p['image_url']): ?>
-                                        <img src="/public<?= h($p['image_url']) ?>" alt="">
+                                        <?php if (!empty($p['image_front_url'])): ?>
+                                        <img src="/public<?= h($p['image_front_url']) ?>" alt="">
                                         <?php endif; ?>
                                     </span>
                                     <span class="item-select-name"><?= h($p['name']) ?></span>
@@ -763,8 +763,8 @@ $typeIcons = [
                                 <label class="item-select-option">
                                     <input type="checkbox" name="pack_ids[]" value="<?= $p['id'] ?>">
                                     <span class="item-select-thumb">
-                                        <?php if ($p['cover_url']): ?>
-                                        <img src="/public<?= h($p['cover_url']) ?>" alt="">
+                                        <?php if (!empty($p['cover_image_url'])): ?>
+                                        <img src="/public<?= h($p['cover_image_url']) ?>" alt="">
                                         <?php endif; ?>
                                     </span>
                                     <span class="item-select-name"><?= h($p['name']) ?></span>
@@ -782,8 +782,8 @@ $typeIcons = [
                                 <label class="item-select-option">
                                     <input type="checkbox" name="blog_ids[]" value="<?= $p['id'] ?>">
                                     <span class="item-select-thumb">
-                                        <?php if ($p['cover_image']): ?>
-                                        <img src="/public<?= h($p['cover_image']) ?>" alt="">
+                                        <?php if (!empty($p['cover_image_url'])): ?>
+                                        <img src="/public<?= h($p['cover_image_url']) ?>" alt="">
                                         <?php endif; ?>
                                     </span>
                                     <span class="item-select-name"><?= h($p['title']) ?></span>
