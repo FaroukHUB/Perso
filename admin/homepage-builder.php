@@ -175,6 +175,9 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 'italic' => ($_POST['typo_italic'] ?? '0') === '1' ? '1' : null,
                 'underline' => ($_POST['typo_underline'] ?? '0') === '1' ? '1' : null,
                 'uppercase' => ($_POST['typo_uppercase'] ?? '0') === '1' ? '1' : null,
+                'subtitle_bold' => ($_POST['typo_subtitle_bold'] ?? '0') === '1' ? '1' : null,
+                'subtitle_italic' => ($_POST['typo_subtitle_italic'] ?? '0') === '1' ? '1' : null,
+                'subtitle_underline' => ($_POST['typo_subtitle_underline'] ?? '0') === '1' ? '1' : null,
                 'align' => !empty($_POST['typo_align']) && $_POST['typo_align'] !== 'center' ? $_POST['typo_align'] : null,
                 'offset_x' => !empty($_POST['typo_offset_x']) && $_POST['typo_offset_x'] !== '0' ? (int)$_POST['typo_offset_x'] : null,
                 'offset_y' => !empty($_POST['typo_offset_y']) && $_POST['typo_offset_y'] !== '0' ? (int)$_POST['typo_offset_y'] : null,
@@ -412,11 +415,115 @@ $typeIcons = [
                             Style du texte
                         </div>
 
-                        <div class="prop-group-row">
+                        <!-- BLOC TITRE -->
+                        <div class="prop-subsection">
+                            <div class="prop-subsection-title">Titre</div>
+
+                            <div class="prop-group-row">
+                                <div class="prop-group">
+                                    <label>Police</label>
+                                    <select name="typo_font_family" id="propFontFamily">
+                                        <option value="">Par défaut</option>
+                                        <?php foreach ($fonts as $font): ?>
+                                        <option value="<?= h($font['family']) ?>" style="font-family: '<?= h($font['family']) ?>'">
+                                            <?= h($font['name']) ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="prop-group">
+                                    <label>Taille</label>
+                                    <select name="typo_title_size" id="propTitleSize">
+                                        <option value="">Par défaut</option>
+                                        <option value="small">Petit</option>
+                                        <option value="medium">Moyen</option>
+                                        <option value="large">Grand</option>
+                                        <option value="xlarge">Très grand</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div class="prop-group">
-                                <label>Police titre</label>
-                                <select name="typo_font_family" id="propFontFamily">
-                                    <option value="">Par défaut</option>
+                                <label>Couleur</label>
+                                <div class="gradient-picker" id="titleColorPicker" data-field="typo_title_color">
+                                    <div class="gradient-tabs">
+                                        <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
+                                        <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
+                                    </div>
+                                    <div class="gradient-content">
+                                        <div class="gradient-solid active">
+                                            <input type="color" class="color-solid" value="#1a1a1a">
+                                        </div>
+                                        <div class="gradient-options">
+                                            <div class="gradient-colors">
+                                                <div class="gradient-color-item">
+                                                    <label>Début</label>
+                                                    <input type="color" class="color-start" value="#ff69b4">
+                                                </div>
+                                                <div class="gradient-color-item">
+                                                    <label>Fin</label>
+                                                    <input type="color" class="color-end" value="#ff1493">
+                                                </div>
+                                            </div>
+                                            <div class="gradient-angle">
+                                                <label>Angle</label>
+                                                <input type="range" class="angle-slider" min="0" max="360" value="135">
+                                                <span class="angle-value">135°</span>
+                                            </div>
+                                            <div class="gradient-type">
+                                                <select class="gradient-type-select">
+                                                    <option value="linear">Linéaire</option>
+                                                    <option value="radial">Radial</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="gradient-preview"></div>
+                                    <input type="hidden" name="typo_title_color" id="propTitleColor" value="#1a1a1a">
+                                </div>
+                            </div>
+
+                            <div class="prop-group">
+                                <label>Style</label>
+                                <div class="typo-toggles">
+                                    <button type="button" class="typo-toggle" data-field="typo_bold" title="Gras">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="typo-toggle" data-field="typo_italic" title="Italique">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="19" y1="4" x2="10" y2="4"/>
+                                            <line x1="14" y1="20" x2="5" y2="20"/>
+                                            <line x1="15" y1="4" x2="9" y2="20"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="typo-toggle" data-field="typo_underline" title="Souligné">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/>
+                                            <line x1="4" y1="21" x2="20" y2="21"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="typo-toggle" data-field="typo_uppercase" title="Majuscules">
+                                        <span style="font-weight: 600; font-size: 12px;">AA</span>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="typo_bold" id="propTypoBold" value="0">
+                                <input type="hidden" name="typo_italic" id="propTypoItalic" value="0">
+                                <input type="hidden" name="typo_underline" id="propTypoUnderline" value="0">
+                                <input type="hidden" name="typo_uppercase" id="propTypoUppercase" value="0">
+                            </div>
+                        </div>
+
+                        <!-- BLOC SOUS-TITRE -->
+                        <div class="prop-subsection">
+                            <div class="prop-subsection-title">Sous-titre</div>
+
+                            <div class="prop-group">
+                                <label>Police</label>
+                                <select name="typo_subtitle_font_family" id="propSubtitleFontFamily">
+                                    <option value="">Hériter du titre</option>
                                     <?php foreach ($fonts as $font): ?>
                                     <option value="<?= h($font['family']) ?>" style="font-family: '<?= h($font['family']) ?>'">
                                         <?= h($font['name']) ?>
@@ -424,184 +531,122 @@ $typeIcons = [
                                     <?php endforeach; ?>
                                 </select>
                             </div>
+
                             <div class="prop-group">
-                                <label>Taille titre</label>
-                                <select name="typo_title_size" id="propTitleSize">
-                                    <option value="">Par défaut</option>
-                                    <option value="small">Petit</option>
-                                    <option value="medium">Moyen</option>
-                                    <option value="large">Grand</option>
-                                    <option value="xlarge">Très grand</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="prop-group">
-                            <label>Police sous-titre</label>
-                            <select name="typo_subtitle_font_family" id="propSubtitleFontFamily">
-                                <option value="">Hériter du titre</option>
-                                <?php foreach ($fonts as $font): ?>
-                                <option value="<?= h($font['family']) ?>" style="font-family: '<?= h($font['family']) ?>'">
-                                    <?= h($font['name']) ?>
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <div class="prop-group">
-                            <label>Couleur titre</label>
-                            <div class="gradient-picker" id="titleColorPicker" data-field="typo_title_color">
-                                <div class="gradient-tabs">
-                                    <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
-                                    <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
-                                </div>
-                                <div class="gradient-content">
-                                    <div class="gradient-solid active">
-                                        <input type="color" class="color-solid" value="#1a1a1a">
+                                <label>Couleur</label>
+                                <div class="gradient-picker" id="subtitleColorPicker" data-field="typo_subtitle_color">
+                                    <div class="gradient-tabs">
+                                        <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
+                                        <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
                                     </div>
-                                    <div class="gradient-options">
-                                        <div class="gradient-colors">
-                                            <div class="gradient-color-item">
-                                                <label>Début</label>
-                                                <input type="color" class="color-start" value="#ff69b4">
+                                    <div class="gradient-content">
+                                        <div class="gradient-solid active">
+                                            <input type="color" class="color-solid" value="#666666">
+                                        </div>
+                                        <div class="gradient-options">
+                                            <div class="gradient-colors">
+                                                <div class="gradient-color-item">
+                                                    <label>Début</label>
+                                                    <input type="color" class="color-start" value="#3dffc0">
+                                                </div>
+                                                <div class="gradient-color-item">
+                                                    <label>Fin</label>
+                                                    <input type="color" class="color-end" value="#00d9a0">
+                                                </div>
                                             </div>
-                                            <div class="gradient-color-item">
-                                                <label>Fin</label>
-                                                <input type="color" class="color-end" value="#ff1493">
+                                            <div class="gradient-angle">
+                                                <label>Angle</label>
+                                                <input type="range" class="angle-slider" min="0" max="360" value="135">
+                                                <span class="angle-value">135°</span>
+                                            </div>
+                                            <div class="gradient-type">
+                                                <select class="gradient-type-select">
+                                                    <option value="linear">Linéaire</option>
+                                                    <option value="radial">Radial</option>
+                                                </select>
                                             </div>
                                         </div>
-                                        <div class="gradient-angle">
-                                            <label>Angle</label>
-                                            <input type="range" class="angle-slider" min="0" max="360" value="135">
-                                            <span class="angle-value">135°</span>
-                                        </div>
-                                        <div class="gradient-type">
-                                            <select class="gradient-type-select">
-                                                <option value="linear">Linéaire</option>
-                                                <option value="radial">Radial</option>
-                                            </select>
-                                        </div>
                                     </div>
+                                    <div class="gradient-preview"></div>
+                                    <input type="hidden" name="typo_subtitle_color" id="propSubtitleColor" value="#666666">
                                 </div>
-                                <div class="gradient-preview"></div>
-                                <input type="hidden" name="typo_title_color" id="propTitleColor" value="#1a1a1a">
                             </div>
-                        </div>
 
-                        <div class="prop-group">
-                            <label>Couleur sous-titre</label>
-                            <div class="gradient-picker" id="subtitleColorPicker" data-field="typo_subtitle_color">
-                                <div class="gradient-tabs">
-                                    <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
-                                    <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
-                                </div>
-                                <div class="gradient-content">
-                                    <div class="gradient-solid active">
-                                        <input type="color" class="color-solid" value="#666666">
-                                    </div>
-                                    <div class="gradient-options">
-                                        <div class="gradient-colors">
-                                            <div class="gradient-color-item">
-                                                <label>Début</label>
-                                                <input type="color" class="color-start" value="#3dffc0">
-                                            </div>
-                                            <div class="gradient-color-item">
-                                                <label>Fin</label>
-                                                <input type="color" class="color-end" value="#00d9a0">
-                                            </div>
-                                        </div>
-                                        <div class="gradient-angle">
-                                            <label>Angle</label>
-                                            <input type="range" class="angle-slider" min="0" max="360" value="135">
-                                            <span class="angle-value">135°</span>
-                                        </div>
-                                        <div class="gradient-type">
-                                            <select class="gradient-type-select">
-                                                <option value="linear">Linéaire</option>
-                                                <option value="radial">Radial</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="gradient-preview"></div>
-                                <input type="hidden" name="typo_subtitle_color" id="propSubtitleColor" value="#666666">
-                            </div>
-                        </div>
-
-                        <div class="prop-group">
-                            <label>Style du titre</label>
-                            <div class="typo-toggles">
-                                <button type="button" class="typo-toggle" data-field="typo_bold" title="Gras">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                        <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
-                                        <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
-                                    </svg>
-                                </button>
-                                <button type="button" class="typo-toggle" data-field="typo_italic" title="Italique">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <line x1="19" y1="4" x2="10" y2="4"/>
-                                        <line x1="14" y1="20" x2="5" y2="20"/>
-                                        <line x1="15" y1="4" x2="9" y2="20"/>
-                                    </svg>
-                                </button>
-                                <button type="button" class="typo-toggle" data-field="typo_underline" title="Souligné">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/>
-                                        <line x1="4" y1="21" x2="20" y2="21"/>
-                                    </svg>
-                                </button>
-                                <button type="button" class="typo-toggle" data-field="typo_uppercase" title="Majuscules">
-                                    <span style="font-weight: 600; font-size: 12px;">AA</span>
-                                </button>
-                            </div>
-                            <input type="hidden" name="typo_bold" id="propTypoBold" value="0">
-                            <input type="hidden" name="typo_italic" id="propTypoItalic" value="0">
-                            <input type="hidden" name="typo_underline" id="propTypoUnderline" value="0">
-                            <input type="hidden" name="typo_uppercase" id="propTypoUppercase" value="0">
-                        </div>
-
-                        <!-- Positionnement du titre -->
-                        <div class="prop-group">
-                            <label>Alignement</label>
-                            <div class="align-toggles">
-                                <button type="button" class="align-toggle" data-value="left" title="Gauche">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <line x1="3" y1="6" x2="21" y2="6"/>
-                                        <line x1="3" y1="12" x2="15" y2="12"/>
-                                        <line x1="3" y1="18" x2="18" y2="18"/>
-                                    </svg>
-                                </button>
-                                <button type="button" class="align-toggle active" data-value="center" title="Centre">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <line x1="3" y1="6" x2="21" y2="6"/>
-                                        <line x1="6" y1="12" x2="18" y2="12"/>
-                                        <line x1="4" y1="18" x2="20" y2="18"/>
-                                    </svg>
-                                </button>
-                                <button type="button" class="align-toggle" data-value="right" title="Droite">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <line x1="3" y1="6" x2="21" y2="6"/>
-                                        <line x1="9" y1="12" x2="21" y2="12"/>
-                                        <line x1="6" y1="18" x2="21" y2="18"/>
-                                    </svg>
-                                </button>
-                            </div>
-                            <input type="hidden" name="typo_align" id="propTypoAlign" value="center">
-                        </div>
-
-                        <div class="prop-group-row">
                             <div class="prop-group">
-                                <label>Décalage vertical</label>
-                                <div class="offset-control">
-                                    <input type="range" name="typo_offset_y" id="propOffsetY" min="-100" max="100" value="0">
-                                    <span class="offset-value" id="offsetYValue">0px</span>
+                                <label>Style</label>
+                                <div class="typo-toggles">
+                                    <button type="button" class="typo-toggle" data-field="typo_subtitle_bold" title="Gras">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="typo-toggle" data-field="typo_subtitle_italic" title="Italique">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="19" y1="4" x2="10" y2="4"/>
+                                            <line x1="14" y1="20" x2="5" y2="20"/>
+                                            <line x1="15" y1="4" x2="9" y2="20"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="typo-toggle" data-field="typo_subtitle_underline" title="Souligné">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/>
+                                            <line x1="4" y1="21" x2="20" y2="21"/>
+                                        </svg>
+                                    </button>
                                 </div>
+                                <input type="hidden" name="typo_subtitle_bold" id="propTypoSubtitleBold" value="0">
+                                <input type="hidden" name="typo_subtitle_italic" id="propTypoSubtitleItalic" value="0">
+                                <input type="hidden" name="typo_subtitle_underline" id="propTypoSubtitleUnderline" value="0">
                             </div>
+                        </div>
+
+                        <!-- BLOC POSITIONNEMENT -->
+                        <div class="prop-subsection">
+                            <div class="prop-subsection-title">Positionnement</div>
+
                             <div class="prop-group">
-                                <label>Décalage horizontal</label>
-                                <div class="offset-control">
-                                    <input type="range" name="typo_offset_x" id="propOffsetX" min="-100" max="100" value="0">
-                                    <span class="offset-value" id="offsetXValue">0px</span>
+                                <label>Alignement</label>
+                                <div class="align-toggles">
+                                    <button type="button" class="align-toggle" data-value="left" title="Gauche">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="3" y1="6" x2="21" y2="6"/>
+                                            <line x1="3" y1="12" x2="15" y2="12"/>
+                                            <line x1="3" y1="18" x2="18" y2="18"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="align-toggle active" data-value="center" title="Centre">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="3" y1="6" x2="21" y2="6"/>
+                                            <line x1="6" y1="12" x2="18" y2="12"/>
+                                            <line x1="4" y1="18" x2="20" y2="18"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="align-toggle" data-value="right" title="Droite">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="3" y1="6" x2="21" y2="6"/>
+                                            <line x1="9" y1="12" x2="21" y2="12"/>
+                                            <line x1="6" y1="18" x2="21" y2="18"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="typo_align" id="propTypoAlign" value="center">
+                            </div>
+
+                            <div class="prop-group-row">
+                                <div class="prop-group">
+                                    <label>Décalage vertical</label>
+                                    <div class="offset-control">
+                                        <input type="range" name="typo_offset_y" id="propOffsetY" min="-100" max="100" value="0">
+                                        <span class="offset-value" id="offsetYValue">0px</span>
+                                    </div>
+                                </div>
+                                <div class="prop-group">
+                                    <label>Décalage horizontal</label>
+                                    <div class="offset-control">
+                                        <input type="range" name="typo_offset_x" id="propOffsetX" min="-100" max="100" value="0">
+                                        <span class="offset-value" id="offsetXValue">0px</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1594,6 +1639,25 @@ $typeIcons = [
         color: var(--pink-main, #ff69b4);
     }
 
+    /* Sous-sections (Titre, Sous-titre, Positionnement) */
+    .prop-subsection {
+        background: #fafafa;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 12px;
+    }
+
+    .prop-subsection-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #eee;
+    }
+
     /* Typography toggles */
     .typo-toggles {
         display: flex;
@@ -2457,11 +2521,23 @@ $typeIcons = [
         // Subtitle color
         document.getElementById('propSubtitleColor').value = typo.subtitle_color || '#666666';
 
-        // Bold, Italic, Underline, Uppercase toggles
+        // Bold, Italic, Underline, Uppercase toggles (titre)
         const toggleFields = ['bold', 'italic', 'underline', 'uppercase'];
         toggleFields.forEach(field => {
             const btn = document.querySelector(`.typo-toggle[data-field="typo_${field}"]`);
             const input = document.getElementById('propTypo' + field.charAt(0).toUpperCase() + field.slice(1));
+            const value = typo[field] === '1' || typo[field] === 1 || typo[field] === true;
+
+            if (btn) btn.classList.toggle('active', value);
+            if (input) input.value = value ? '1' : '0';
+        });
+
+        // Bold, Italic, Underline toggles (sous-titre)
+        const subtitleToggleFields = ['subtitle_bold', 'subtitle_italic', 'subtitle_underline'];
+        subtitleToggleFields.forEach(field => {
+            const btn = document.querySelector(`.typo-toggle[data-field="typo_${field}"]`);
+            const inputId = 'propTypo' + field.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+            const input = document.getElementById(inputId);
             const value = typo[field] === '1' || typo[field] === 1 || typo[field] === true;
 
             if (btn) btn.classList.toggle('active', value);
@@ -2803,11 +2879,23 @@ $typeIcons = [
             setGradientPickerValue(textColorPicker, style.text_color || '#1a1a1a');
         }
 
-        // Bold, Italic, Underline, Uppercase toggles
+        // Bold, Italic, Underline, Uppercase toggles (titre)
         const toggleFields = ['bold', 'italic', 'underline', 'uppercase'];
         toggleFields.forEach(field => {
             const btn = document.querySelector(`.typo-toggle[data-field="typo_${field}"]`);
             const input = document.getElementById('propTypo' + field.charAt(0).toUpperCase() + field.slice(1));
+            const value = typo[field] === '1' || typo[field] === 1 || typo[field] === true;
+
+            if (btn) btn.classList.toggle('active', value);
+            if (input) input.value = value ? '1' : '0';
+        });
+
+        // Bold, Italic, Underline toggles (sous-titre)
+        const subtitleToggleFields = ['subtitle_bold', 'subtitle_italic', 'subtitle_underline'];
+        subtitleToggleFields.forEach(field => {
+            const btn = document.querySelector(`.typo-toggle[data-field="typo_${field}"]`);
+            const inputId = 'propTypo' + field.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+            const input = document.getElementById(inputId);
             const value = typo[field] === '1' || typo[field] === 1 || typo[field] === true;
 
             if (btn) btn.classList.toggle('active', value);

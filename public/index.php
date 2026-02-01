@@ -257,6 +257,21 @@ function getSubtitleStyles(array $section): string {
         }
     }
 
+    // Bold
+    if (!empty($typo['subtitle_bold']) && $typo['subtitle_bold'] === '1') {
+        $styles[] = 'font-weight: 700';
+    }
+
+    // Italic
+    if (!empty($typo['subtitle_italic']) && $typo['subtitle_italic'] === '1') {
+        $styles[] = 'font-style: italic';
+    }
+
+    // Underline
+    if (!empty($typo['subtitle_underline']) && $typo['subtitle_underline'] === '1') {
+        $styles[] = 'text-decoration: underline';
+    }
+
     return !empty($styles) ? implode('; ', $styles) : '';
 }
 ?>
