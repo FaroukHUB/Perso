@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/helpers/ImageHelper.php';
+require_once __DIR__ . '/../app/helpers/FontLoader.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/HomepageSection.php';
@@ -13,6 +14,7 @@ require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Pack.php';
 require_once __DIR__ . '/../app/models/BlogPost.php';
 require_once __DIR__ . '/../app/models/Category.php';
+require_once __DIR__ . '/../app/models/Font.php';
 
 Auth::requireAdmin();
 
@@ -223,6 +225,10 @@ $packs = $packModel->findActive();
 $categories = $categoryModel->findAllActive();
 $blogPosts = $blogModel->findAll();
 
+// Polices depuis la BDD
+$fontModel = new Font();
+$fonts = $fontModel->findActive();
+
 $typeIcons = [
     'hero' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>',
     'featured_products' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
@@ -239,9 +245,7 @@ $typeIcons = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page Builder - PERSONNALY Admin</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600;700&family=Oswald:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;600;700;800&family=Raleway:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <?= FontLoader::renderHead() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/admin.css">
 </head>
@@ -412,16 +416,11 @@ $typeIcons = [
                                 <label>Police</label>
                                 <select name="typo_font_family" id="propFontFamily">
                                     <option value="">Par défaut</option>
-                                    <option value="Inter">Inter</option>
-                                    <option value="Poppins">Poppins</option>
-                                    <option value="Montserrat">Montserrat</option>
-                                    <option value="Playfair Display">Playfair Display</option>
-                                    <option value="Roboto">Roboto</option>
-                                    <option value="Open Sans">Open Sans</option>
-                                    <option value="Lato">Lato</option>
-                                    <option value="Oswald">Oswald</option>
-                                    <option value="Raleway">Raleway</option>
-                                    <option value="Dancing Script">Dancing Script</option>
+                                    <?php foreach ($fonts as $font): ?>
+                                    <option value="<?= h($font['family']) ?>" style="font-family: '<?= h($font['family']) ?>'">
+                                        <?= h($font['name']) ?>
+                                    </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="prop-group">
@@ -436,14 +435,83 @@ $typeIcons = [
                             </div>
                         </div>
 
-                        <div class="prop-group-row">
-                            <div class="prop-group">
-                                <label>Couleur titre</label>
-                                <input type="color" name="typo_title_color" id="propTitleColor" value="#1a1a1a">
+                        <div class="prop-group">
+                            <label>Couleur titre</label>
+                            <div class="gradient-picker" id="titleColorPicker" data-field="typo_title_color">
+                                <div class="gradient-tabs">
+                                    <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
+                                    <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
+                                </div>
+                                <div class="gradient-content">
+                                    <div class="gradient-solid active">
+                                        <input type="color" class="color-solid" value="#1a1a1a">
+                                    </div>
+                                    <div class="gradient-options">
+                                        <div class="gradient-colors">
+                                            <div class="gradient-color-item">
+                                                <label>Début</label>
+                                                <input type="color" class="color-start" value="#ff69b4">
+                                            </div>
+                                            <div class="gradient-color-item">
+                                                <label>Fin</label>
+                                                <input type="color" class="color-end" value="#ff1493">
+                                            </div>
+                                        </div>
+                                        <div class="gradient-angle">
+                                            <label>Angle</label>
+                                            <input type="range" class="angle-slider" min="0" max="360" value="135">
+                                            <span class="angle-value">135°</span>
+                                        </div>
+                                        <div class="gradient-type">
+                                            <select class="gradient-type-select">
+                                                <option value="linear">Linéaire</option>
+                                                <option value="radial">Radial</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="gradient-preview"></div>
+                                <input type="hidden" name="typo_title_color" id="propTitleColor" value="#1a1a1a">
                             </div>
-                            <div class="prop-group">
-                                <label>Couleur sous-titre</label>
-                                <input type="color" name="typo_subtitle_color" id="propSubtitleColor" value="#666666">
+                        </div>
+
+                        <div class="prop-group">
+                            <label>Couleur sous-titre</label>
+                            <div class="gradient-picker" id="subtitleColorPicker" data-field="typo_subtitle_color">
+                                <div class="gradient-tabs">
+                                    <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
+                                    <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
+                                </div>
+                                <div class="gradient-content">
+                                    <div class="gradient-solid active">
+                                        <input type="color" class="color-solid" value="#666666">
+                                    </div>
+                                    <div class="gradient-options">
+                                        <div class="gradient-colors">
+                                            <div class="gradient-color-item">
+                                                <label>Début</label>
+                                                <input type="color" class="color-start" value="#3dffc0">
+                                            </div>
+                                            <div class="gradient-color-item">
+                                                <label>Fin</label>
+                                                <input type="color" class="color-end" value="#00d9a0">
+                                            </div>
+                                        </div>
+                                        <div class="gradient-angle">
+                                            <label>Angle</label>
+                                            <input type="range" class="angle-slider" min="0" max="360" value="135">
+                                            <span class="angle-value">135°</span>
+                                        </div>
+                                        <div class="gradient-type">
+                                            <select class="gradient-type-select">
+                                                <option value="linear">Linéaire</option>
+                                                <option value="radial">Radial</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="gradient-preview"></div>
+                                <input type="hidden" name="typo_subtitle_color" id="propSubtitleColor" value="#666666">
                             </div>
                         </div>
 
@@ -682,14 +750,121 @@ $typeIcons = [
                             </svg>
                             Apparence
                         </div>
-                        <div class="prop-group-row">
-                            <div class="prop-group">
-                                <label>Fond</label>
-                                <input type="color" name="style_bg_color" id="propBgColor" value="#ffffff">
+
+                        <div class="prop-group">
+                            <label>Couleur de fond</label>
+                            <div class="gradient-picker" id="bgColorPicker" data-field="style_bg_color">
+                                <div class="gradient-tabs">
+                                    <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
+                                    <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
+                                </div>
+                                <div class="gradient-content">
+                                    <div class="gradient-solid active">
+                                        <input type="color" class="color-solid" value="#ffffff">
+                                    </div>
+                                    <div class="gradient-options">
+                                        <div class="gradient-colors">
+                                            <div class="gradient-color-item">
+                                                <label>Début</label>
+                                                <input type="color" class="color-start" value="#1a1a2e">
+                                            </div>
+                                            <div class="gradient-color-item">
+                                                <label>Fin</label>
+                                                <input type="color" class="color-end" value="#252542">
+                                            </div>
+                                        </div>
+                                        <div class="gradient-angle">
+                                            <label>Angle</label>
+                                            <input type="range" class="angle-slider" min="0" max="360" value="180">
+                                            <span class="angle-value">180°</span>
+                                        </div>
+                                        <div class="gradient-type">
+                                            <select class="gradient-type-select">
+                                                <option value="linear">Linéaire</option>
+                                                <option value="radial">Radial</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="gradient-preview"></div>
+                                <input type="hidden" name="style_bg_color" id="propBgColor" value="#ffffff">
                             </div>
-                            <div class="prop-group">
-                                <label>Texte</label>
-                                <input type="color" name="style_text_color" id="propTextColor" value="#1a1a1a">
+                        </div>
+
+                        <div class="prop-group">
+                            <label>Couleur du texte</label>
+                            <div class="gradient-picker" id="textColorPicker" data-field="style_text_color">
+                                <div class="gradient-tabs">
+                                    <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
+                                    <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
+                                </div>
+                                <div class="gradient-content">
+                                    <div class="gradient-solid active">
+                                        <input type="color" class="color-solid" value="#1a1a1a">
+                                    </div>
+                                    <div class="gradient-options">
+                                        <div class="gradient-colors">
+                                            <div class="gradient-color-item">
+                                                <label>Début</label>
+                                                <input type="color" class="color-start" value="#ff69b4">
+                                            </div>
+                                            <div class="gradient-color-item">
+                                                <label>Fin</label>
+                                                <input type="color" class="color-end" value="#3dffc0">
+                                            </div>
+                                        </div>
+                                        <div class="gradient-angle">
+                                            <label>Angle</label>
+                                            <input type="range" class="angle-slider" min="0" max="360" value="90">
+                                            <span class="angle-value">90°</span>
+                                        </div>
+                                        <div class="gradient-type">
+                                            <select class="gradient-type-select">
+                                                <option value="linear">Linéaire</option>
+                                                <option value="radial">Radial</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="gradient-preview"></div>
+                                <input type="hidden" name="style_text_color" id="propTextColor" value="#1a1a1a">
+                            </div>
+                        </div>
+
+                        <!-- Presets de dégradés populaires -->
+                        <div class="prop-group">
+                            <label>Dégradés prédéfinis</label>
+                            <div class="gradient-presets">
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #ff69b4 0%, #ff1493 100%)" title="Pink">
+                                    <span style="background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #3dffc0 0%, #00d9a0 100%)" title="Mint">
+                                    <span style="background: linear-gradient(135deg, #3dffc0 0%, #00d9a0 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" title="Purple">
+                                    <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" title="Sunset">
+                                    <span style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" title="Ocean">
+                                    <span style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" title="Nature">
+                                    <span style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)" title="Warm">
+                                    <span style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)" title="Pastel">
+                                    <span style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #0c0c0c 0%, #434343 100%)" title="Dark">
+                                    <span style="background: linear-gradient(135deg, #0c0c0c 0%, #434343 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" title="Light">
+                                    <span style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)"></span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1189,6 +1364,195 @@ $typeIcons = [
         cursor: pointer;
     }
 
+    /* Gradient Picker */
+    .gradient-picker {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .gradient-tabs {
+        display: flex;
+        border-bottom: 1px solid #eee;
+    }
+
+    .gradient-tab {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        background: #f8f8f8;
+        font-size: 12px;
+        font-weight: 600;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .gradient-tab:first-child {
+        border-radius: 9px 0 0 0;
+    }
+
+    .gradient-tab:last-child {
+        border-radius: 0 9px 0 0;
+    }
+
+    .gradient-tab.active {
+        background: #fff;
+        color: var(--pink-main, #ff69b4);
+    }
+
+    .gradient-tab:hover:not(.active) {
+        background: #f0f0f0;
+    }
+
+    .gradient-content {
+        padding: 12px;
+    }
+
+    .gradient-solid {
+        display: none;
+    }
+
+    .gradient-solid.active {
+        display: block;
+    }
+
+    .gradient-solid input[type="color"] {
+        height: 45px;
+        border-radius: 8px;
+    }
+
+    .gradient-options {
+        display: none;
+    }
+
+    .gradient-options.active {
+        display: block;
+    }
+
+    .gradient-colors {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .gradient-color-item label {
+        font-size: 11px;
+        color: #888;
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    .gradient-color-item input[type="color"] {
+        height: 36px;
+    }
+
+    .gradient-angle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .gradient-angle label {
+        font-size: 11px;
+        color: #888;
+        min-width: 40px;
+        margin: 0 !important;
+    }
+
+    .gradient-angle .angle-slider {
+        flex: 1;
+        height: 6px;
+        -webkit-appearance: none;
+        background: linear-gradient(to right, #ff69b4, #3dffc0, #667eea, #ff69b4);
+        border-radius: 3px;
+        outline: none;
+    }
+
+    .gradient-angle .angle-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        background: #fff;
+        border: 2px solid var(--pink-main, #ff69b4);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .gradient-angle .angle-value {
+        font-size: 12px;
+        font-weight: 600;
+        color: #666;
+        min-width: 35px;
+        text-align: right;
+    }
+
+    .gradient-type {
+        margin-bottom: 10px;
+    }
+
+    .gradient-type-select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 12px;
+        background: #f8f8f8;
+    }
+
+    .gradient-preview {
+        height: 30px;
+        border-radius: 6px;
+        margin-top: 8px;
+        border: 1px solid #ddd;
+        background: #f0f0f0;
+    }
+
+    /* Gradient Presets */
+    .gradient-presets {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+    }
+
+    .gradient-preset {
+        width: 100%;
+        aspect-ratio: 1;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        padding: 3px;
+        background: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .gradient-preset:hover {
+        transform: scale(1.1);
+        border-color: var(--pink-main, #ff69b4);
+    }
+
+    .gradient-preset.active {
+        border-color: var(--pink-main, #ff69b4);
+        box-shadow: 0 0 0 2px rgba(255, 105, 180, 0.3);
+    }
+
+    .gradient-preset span {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: 5px;
+    }
+
+    /* Font select avec preview */
+    #propFontFamily option {
+        padding: 8px;
+        font-size: 14px;
+    }
+
     .prop-group-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -1608,6 +1972,8 @@ $typeIcons = [
         initAlignmentToggles();
         initOffsetControls();
         initAutoSave();
+        initGradientPickers();
+        initGradientPresets();
     });
 
     // Liste des sections
@@ -2210,6 +2576,240 @@ $typeIcons = [
             closeAddModal();
         }
     });
+
+    // ===== GRADIENT PICKERS =====
+    function initGradientPickers() {
+        document.querySelectorAll('.gradient-picker').forEach(picker => {
+            const tabs = picker.querySelectorAll('.gradient-tab');
+            const solidSection = picker.querySelector('.gradient-solid');
+            const gradientSection = picker.querySelector('.gradient-options');
+            const preview = picker.querySelector('.gradient-preview');
+            const hiddenInput = picker.querySelector('input[type="hidden"]');
+
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const mode = this.dataset.mode;
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    if (mode === 'solid') {
+                        solidSection.classList.add('active');
+                        gradientSection.classList.remove('active');
+                    } else {
+                        solidSection.classList.remove('active');
+                        gradientSection.classList.add('active');
+                    }
+                    updateGradientValue(picker);
+                });
+            });
+
+            // Color inputs change
+            const colorSolid = picker.querySelector('.color-solid');
+            const colorStart = picker.querySelector('.color-start');
+            const colorEnd = picker.querySelector('.color-end');
+            const angleSlider = picker.querySelector('.angle-slider');
+            const angleValue = picker.querySelector('.angle-value');
+            const typeSelect = picker.querySelector('.gradient-type-select');
+
+            if (colorSolid) {
+                colorSolid.addEventListener('input', () => updateGradientValue(picker));
+            }
+            if (colorStart) {
+                colorStart.addEventListener('input', () => updateGradientValue(picker));
+            }
+            if (colorEnd) {
+                colorEnd.addEventListener('input', () => updateGradientValue(picker));
+            }
+            if (angleSlider) {
+                angleSlider.addEventListener('input', function() {
+                    angleValue.textContent = this.value + '°';
+                    updateGradientValue(picker);
+                });
+            }
+            if (typeSelect) {
+                typeSelect.addEventListener('change', () => updateGradientValue(picker));
+            }
+
+            // Initial preview
+            updateGradientValue(picker);
+        });
+    }
+
+    function updateGradientValue(picker) {
+        const isGradient = picker.querySelector('.gradient-tab[data-mode="gradient"]').classList.contains('active');
+        const preview = picker.querySelector('.gradient-preview');
+        const hiddenInput = picker.querySelector('input[type="hidden"]');
+        let value;
+
+        if (isGradient) {
+            const colorStart = picker.querySelector('.color-start').value;
+            const colorEnd = picker.querySelector('.color-end').value;
+            const angle = picker.querySelector('.angle-slider').value;
+            const type = picker.querySelector('.gradient-type-select').value;
+
+            if (type === 'radial') {
+                value = `radial-gradient(circle, ${colorStart} 0%, ${colorEnd} 100%)`;
+            } else {
+                value = `linear-gradient(${angle}deg, ${colorStart} 0%, ${colorEnd} 100%)`;
+            }
+        } else {
+            value = picker.querySelector('.color-solid').value;
+        }
+
+        preview.style.background = value;
+        hiddenInput.value = value;
+
+        // Auto-save si section sélectionnée
+        if (selectedSectionId) {
+            debouncedAutoSave();
+        }
+    }
+
+    function setGradientPickerValue(picker, value) {
+        if (!value || !picker) return;
+
+        const tabs = picker.querySelectorAll('.gradient-tab');
+        const solidSection = picker.querySelector('.gradient-solid');
+        const gradientSection = picker.querySelector('.gradient-options');
+        const colorSolid = picker.querySelector('.color-solid');
+        const colorStart = picker.querySelector('.color-start');
+        const colorEnd = picker.querySelector('.color-end');
+        const angleSlider = picker.querySelector('.angle-slider');
+        const angleValue = picker.querySelector('.angle-value');
+        const typeSelect = picker.querySelector('.gradient-type-select');
+        const preview = picker.querySelector('.gradient-preview');
+        const hiddenInput = picker.querySelector('input[type="hidden"]');
+
+        // Check if it's a gradient
+        if (value.includes('gradient')) {
+            // Switch to gradient mode
+            tabs.forEach(t => t.classList.toggle('active', t.dataset.mode === 'gradient'));
+            solidSection.classList.remove('active');
+            gradientSection.classList.add('active');
+
+            // Parse gradient
+            const isRadial = value.includes('radial');
+            typeSelect.value = isRadial ? 'radial' : 'linear';
+
+            // Extract colors
+            const colorMatches = value.match(/#[a-fA-F0-9]{6}/g);
+            if (colorMatches && colorMatches.length >= 2) {
+                colorStart.value = colorMatches[0];
+                colorEnd.value = colorMatches[1];
+            }
+
+            // Extract angle for linear gradient
+            if (!isRadial) {
+                const angleMatch = value.match(/(\d+)deg/);
+                if (angleMatch) {
+                    angleSlider.value = angleMatch[1];
+                    angleValue.textContent = angleMatch[1] + '°';
+                }
+            }
+        } else {
+            // Solid color mode
+            tabs.forEach(t => t.classList.toggle('active', t.dataset.mode === 'solid'));
+            solidSection.classList.add('active');
+            gradientSection.classList.remove('active');
+
+            // Set color (handle hex colors)
+            if (value.startsWith('#')) {
+                colorSolid.value = value;
+            }
+        }
+
+        preview.style.background = value;
+        hiddenInput.value = value;
+    }
+
+    // Gradient Presets
+    let activePresetTarget = null;
+
+    function initGradientPresets() {
+        document.querySelectorAll('.gradient-preset').forEach(preset => {
+            preset.addEventListener('click', function() {
+                const gradient = this.dataset.gradient;
+
+                // Apply to background color picker
+                const bgPicker = document.getElementById('bgColorPicker');
+                if (bgPicker) {
+                    setGradientPickerValue(bgPicker, gradient);
+                }
+
+                // Visual feedback
+                document.querySelectorAll('.gradient-preset').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+
+                // Auto-save
+                if (selectedSectionId) {
+                    debouncedAutoSave();
+                }
+            });
+        });
+    }
+
+    // Update setTypographyValues to handle gradient values
+    const originalSetTypographyValues = setTypographyValues;
+    setTypographyValues = function(config) {
+        // Call original function for non-gradient values
+        const typo = config?.typography || {};
+        const style = config?.style || {};
+
+        // Font family
+        document.getElementById('propFontFamily').value = typo.font_family || '';
+
+        // Title size
+        document.getElementById('propTitleSize').value = typo.title_size || '';
+
+        // Handle gradient pickers for typography colors
+        const titleColorPicker = document.getElementById('titleColorPicker');
+        const subtitleColorPicker = document.getElementById('subtitleColorPicker');
+
+        if (titleColorPicker) {
+            setGradientPickerValue(titleColorPicker, typo.title_color || '#1a1a1a');
+        }
+        if (subtitleColorPicker) {
+            setGradientPickerValue(subtitleColorPicker, typo.subtitle_color || '#666666');
+        }
+
+        // Handle gradient pickers for style colors
+        const bgColorPicker = document.getElementById('bgColorPicker');
+        const textColorPicker = document.getElementById('textColorPicker');
+
+        if (bgColorPicker) {
+            setGradientPickerValue(bgColorPicker, style.background_color || '#ffffff');
+        }
+        if (textColorPicker) {
+            setGradientPickerValue(textColorPicker, style.text_color || '#1a1a1a');
+        }
+
+        // Bold, Italic, Underline, Uppercase toggles
+        const toggleFields = ['bold', 'italic', 'underline', 'uppercase'];
+        toggleFields.forEach(field => {
+            const btn = document.querySelector(`.typo-toggle[data-field="typo_${field}"]`);
+            const input = document.getElementById('propTypo' + field.charAt(0).toUpperCase() + field.slice(1));
+            const value = typo[field] === '1' || typo[field] === 1 || typo[field] === true;
+
+            if (btn) btn.classList.toggle('active', value);
+            if (input) input.value = value ? '1' : '0';
+        });
+
+        // Alignment
+        const align = typo.align || 'center';
+        document.querySelectorAll('.align-toggle').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === align);
+        });
+        document.getElementById('propTypoAlign').value = align;
+
+        // Offsets
+        const offsetY = parseInt(typo.offset_y) || 0;
+        const offsetX = parseInt(typo.offset_x) || 0;
+        document.getElementById('propOffsetY').value = offsetY;
+        document.getElementById('propOffsetX').value = offsetX;
+        document.getElementById('offsetYValue').textContent = offsetY + 'px';
+        document.getElementById('offsetXValue').textContent = offsetX + 'px';
+    };
     </script>
 </body>
 </html>

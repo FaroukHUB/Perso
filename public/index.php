@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/helpers/Cart.php';
+require_once __DIR__ . '/../app/helpers/FontLoader.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Pack.php';
@@ -173,9 +174,18 @@ function getTitleStyles(array $section): string {
         $styles[] = 'font-size: ' . $sizeMap[$typo['title_size']];
     }
 
-    // Title color
+    // Title color (supporte les dégradés)
     if (!empty($typo['title_color'])) {
-        $styles[] = 'color: ' . htmlspecialchars($typo['title_color']);
+        $color = $typo['title_color'];
+        if (strpos($color, 'gradient') !== false) {
+            // Appliquer un dégradé au texte
+            $styles[] = 'background: ' . htmlspecialchars($color);
+            $styles[] = '-webkit-background-clip: text';
+            $styles[] = 'background-clip: text';
+            $styles[] = '-webkit-text-fill-color: transparent';
+        } else {
+            $styles[] = 'color: ' . htmlspecialchars($color);
+        }
     }
 
     // Bold
@@ -231,9 +241,18 @@ function getSubtitleStyles(array $section): string {
         $styles[] = 'font-family: "' . htmlspecialchars($typo['font_family']) . '", sans-serif';
     }
 
-    // Subtitle color
+    // Subtitle color (supporte les dégradés)
     if (!empty($typo['subtitle_color'])) {
-        $styles[] = 'color: ' . htmlspecialchars($typo['subtitle_color']);
+        $color = $typo['subtitle_color'];
+        if (strpos($color, 'gradient') !== false) {
+            // Appliquer un dégradé au texte
+            $styles[] = 'background: ' . htmlspecialchars($color);
+            $styles[] = '-webkit-background-clip: text';
+            $styles[] = 'background-clip: text';
+            $styles[] = '-webkit-text-fill-color: transparent';
+        } else {
+            $styles[] = 'color: ' . htmlspecialchars($color);
+        }
     }
 
     return !empty($styles) ? implode('; ', $styles) : '';
@@ -253,10 +272,8 @@ function getSubtitleStyles(array $section): string {
     <link rel="icon" type="image/x-icon" href="<?= h($favicon) ?>">
     <?php endif; ?>
     <?= $brandingService->getFontLinks() ?>
-    <!-- Polices additionnelles pour la personnalisation des sections -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600;700&family=Oswald:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Raleway:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Polices dynamiques depuis la base de données -->
+    <?= FontLoader::renderHead() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <?= $brandingService->getStyleBlock() ?>
     <style>
