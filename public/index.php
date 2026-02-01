@@ -161,7 +161,7 @@ function getTitleStyles(array $section): string {
 
     // Font family
     if (!empty($typo['font_family'])) {
-        $styles[] = 'font-family: "' . htmlspecialchars($typo['font_family']) . '", sans-serif';
+        $styles[] = "font-family: '" . htmlspecialchars($typo['font_family']) . "', sans-serif";
     }
 
     // Title size
@@ -239,7 +239,7 @@ function getSubtitleStyles(array $section): string {
 
     // Font family (hérite du titre)
     if (!empty($typo['font_family'])) {
-        $styles[] = 'font-family: "' . htmlspecialchars($typo['font_family']) . '", sans-serif';
+        $styles[] = "font-family: '" . htmlspecialchars($typo['font_family']) . "', sans-serif";
     }
 
     // Subtitle color (supporte les dégradés)
