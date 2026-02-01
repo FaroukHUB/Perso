@@ -287,12 +287,12 @@ $typeIcons = [
                             <circle cx="9" cy="18" r="2"/><circle cx="15" cy="18" r="2"/>
                         </svg>
                     </div>
-                    <div class="section-icon type-<?= h($section['type']) ?>">
-                        <?= $typeIcons[$section['type']] ?? '' ?>
+                    <div class="section-icon type-<?= h($section['type'] ?? 'hero') ?>">
+                        <?= $typeIcons[$section['type'] ?? ''] ?? '' ?>
                     </div>
                     <div class="section-info">
-                        <span class="section-name"><?= h($section['title'] ?: $types[$section['type']]) ?></span>
-                        <span class="section-type-label"><?= h($types[$section['type']]) ?></span>
+                        <span class="section-name"><?= h($section['title'] ?: ($types[$section['type'] ?? ''] ?? 'Section')) ?></span>
+                        <span class="section-type-label"><?= h($types[$section['type'] ?? ''] ?? 'Inconnu') ?></span>
                     </div>
                     <div class="section-status <?= $section['status'] ?>"></div>
                 </div>
