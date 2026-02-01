@@ -849,46 +849,6 @@ $typeIcons = [
                             </div>
                         </div>
 
-                        <div class="prop-group">
-                            <label>Couleur du texte</label>
-                            <div class="gradient-picker" id="textColorPicker" data-field="style_text_color">
-                                <div class="gradient-tabs">
-                                    <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
-                                    <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
-                                </div>
-                                <div class="gradient-content">
-                                    <div class="gradient-solid active">
-                                        <input type="color" class="color-solid" value="#1a1a1a">
-                                    </div>
-                                    <div class="gradient-options">
-                                        <div class="gradient-colors">
-                                            <div class="gradient-color-item">
-                                                <label>Début</label>
-                                                <input type="color" class="color-start" value="#ff69b4">
-                                            </div>
-                                            <div class="gradient-color-item">
-                                                <label>Fin</label>
-                                                <input type="color" class="color-end" value="#3dffc0">
-                                            </div>
-                                        </div>
-                                        <div class="gradient-angle">
-                                            <label>Angle</label>
-                                            <input type="range" class="angle-slider" min="0" max="360" value="90">
-                                            <span class="angle-value">90°</span>
-                                        </div>
-                                        <div class="gradient-type">
-                                            <select class="gradient-type-select">
-                                                <option value="linear">Linéaire</option>
-                                                <option value="radial">Radial</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="gradient-preview"></div>
-                                <input type="hidden" name="style_text_color" id="propTextColor" value="#1a1a1a">
-                            </div>
-                        </div>
-
                         <!-- Presets de dégradés populaires -->
                         <div class="prop-group">
                             <label>Dégradés prédéfinis</label>
