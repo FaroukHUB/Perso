@@ -650,11 +650,29 @@ function renderDesktopFontDropdown(dropdown, textSpan, selector) {
       option.classList.add('selected');
     }
 
-    // Forcer l'application directe de la police (font.family de l'API, pas du state)
-    const span = document.createElement('span');
-    span.textContent = font.label;
-    span.style.setProperty('font-family', `"${font.family}", sans-serif`, 'important');
-    option.appendChild(span);
+    // Container pour le contenu
+    const content = document.createElement('div');
+    content.className = 'ps-font-option-content';
+
+    // Nom de la police (petit)
+    const label = document.createElement('span');
+    label.className = 'ps-font-option-label';
+    label.textContent = font.label;
+
+    // Preview de la police avec texte exemple
+    const preview = document.createElement('span');
+    preview.className = 'ps-font-option-preview';
+    preview.textContent = 'Personnaly';
+    preview.style.setProperty('font-family', `"${font.family}", sans-serif`, 'important');
+
+    content.appendChild(label);
+    content.appendChild(preview);
+    option.appendChild(content);
+
+    // Indicateur de sélection
+    const check = document.createElement('span');
+    check.className = 'ps-font-option-check';
+    option.appendChild(check);
 
     option.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1429,10 +1447,16 @@ function renderFontModalList() {
     const content = document.createElement('div');
     content.className = 'ps-selection-item-content';
 
-    // Forcer l'application directe de la police (font.family de l'API, pas du state)
+    // Nom de la police (petit label)
+    const label = document.createElement('div');
+    label.className = 'ps-font-item-label';
+    label.textContent = font.label;
+    content.appendChild(label);
+
+    // Preview de la police avec texte exemple
     const preview = document.createElement('div');
     preview.className = 'ps-font-preview';
-    preview.textContent = font.label;
+    preview.textContent = 'Personnaly';
     preview.style.setProperty('font-family', `"${font.family}", sans-serif`, 'important');
     content.appendChild(preview);
 

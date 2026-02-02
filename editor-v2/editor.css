@@ -230,12 +230,14 @@ body {
 }
 
 /* ========================================
-   TABS NAVIGATION
+   TABS NAVIGATION - Ultra Modern 2026
    ======================================== */
 .ps-tabs {
   display: flex;
-  border-bottom: 1px solid var(--gray-light);
-  padding: 0 8px;
+  gap: 6px;
+  padding: 12px 12px 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,248,250,1) 100%);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -247,108 +249,188 @@ body {
 
 .ps-tab {
   flex: 1;
-  min-width: 70px;
-  padding: 14px 12px;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
+  min-width: 72px;
+  padding: 12px 10px 14px;
+  background: rgba(0,0,0,0.02);
+  border: 2px solid transparent;
+  border-radius: 16px;
   font-family: var(--font-main);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
   color: var(--gray);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   white-space: nowrap;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.ps-tab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 14px;
 }
 
 .ps-tab:hover {
-  color: var(--pink-main);
+  background: rgba(255,255,255,0.9);
+  border-color: rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.ps-tab:hover::before {
+  opacity: 1;
+}
+
+.ps-tab:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .ps-tab.active {
-  color: var(--pink-dark);
-  border-bottom-color: var(--pink-main);
+  background: var(--white);
+  border-color: transparent;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+  transform: translateY(-3px);
 }
 
 .ps-tab-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  margin: 0 auto 6px;
-  background: var(--gray-light);
-  border-radius: var(--radius-sm);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 38px;
+  height: 38px;
+  margin: 0 auto 8px;
+  border-radius: 12px;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  z-index: 1;
+}
+
+.ps-tab-icon::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 15px;
+  background: inherit;
+  filter: blur(8px);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.ps-tab.active .ps-tab-icon::after {
+  opacity: 0.5;
 }
 
 .ps-tab-icon svg {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 
-/* Couleurs spécifiques par onglet */
+/* Couleurs spécifiques par onglet - Style Glassmorphism */
 .ps-tab[data-tab="text"] .ps-tab-icon {
-  background: linear-gradient(135deg, rgba(231, 85, 149, 0.15) 0%, rgba(231, 85, 149, 0.05) 100%);
+  background: linear-gradient(145deg, rgba(231, 85, 149, 0.15) 0%, rgba(255, 105, 180, 0.08) 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
 }
 .ps-tab[data-tab="text"] .ps-tab-icon svg {
-  stroke: var(--pink-main);
+  stroke: #e75595;
+}
+.ps-tab[data-tab="text"]:hover {
+  background: linear-gradient(145deg, rgba(231, 85, 149, 0.08) 0%, rgba(255,255,255,0.95) 100%);
+}
+.ps-tab[data-tab="text"].active {
+  background: linear-gradient(145deg, rgba(255,255,255,1) 0%, rgba(255, 240, 245, 1) 100%);
+  color: #d63384;
 }
 
 .ps-tab[data-tab="designs"] .ps-tab-icon {
-  background: linear-gradient(135deg, rgba(255, 193, 7, 0.2) 0%, rgba(255, 152, 0, 0.1) 100%);
+  background: linear-gradient(145deg, rgba(255, 193, 7, 0.2) 0%, rgba(255, 152, 0, 0.1) 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
 }
 .ps-tab[data-tab="designs"] .ps-tab-icon svg {
   stroke: #f59e0b;
-  fill: rgba(245, 158, 11, 0.2);
+  fill: rgba(245, 158, 11, 0.15);
+}
+.ps-tab[data-tab="designs"]:hover {
+  background: linear-gradient(145deg, rgba(255, 193, 7, 0.08) 0%, rgba(255,255,255,0.95) 100%);
+}
+.ps-tab[data-tab="designs"].active {
+  background: linear-gradient(145deg, rgba(255,255,255,1) 0%, rgba(255, 251, 235, 1) 100%);
+  color: #d97706;
 }
 
 .ps-tab[data-tab="elements"] .ps-tab-icon {
-  background: linear-gradient(135deg, rgba(139, 221, 199, 0.3) 0%, rgba(139, 221, 199, 0.1) 100%);
+  background: linear-gradient(145deg, rgba(61, 255, 192, 0.25) 0%, rgba(139, 221, 199, 0.1) 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
 }
 .ps-tab[data-tab="elements"] .ps-tab-icon svg {
-  stroke: var(--mint-main);
+  stroke: #10b981;
+}
+.ps-tab[data-tab="elements"]:hover {
+  background: linear-gradient(145deg, rgba(61, 255, 192, 0.08) 0%, rgba(255,255,255,0.95) 100%);
+}
+.ps-tab[data-tab="elements"].active {
+  background: linear-gradient(145deg, rgba(255,255,255,1) 0%, rgba(236, 253, 245, 1) 100%);
+  color: #059669;
 }
 
 .ps-tab[data-tab="layers"] .ps-tab-icon {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%);
+  background: linear-gradient(145deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
 }
 .ps-tab[data-tab="layers"] .ps-tab-icon svg {
   stroke: #6366f1;
 }
+.ps-tab[data-tab="layers"]:hover {
+  background: linear-gradient(145deg, rgba(99, 102, 241, 0.08) 0%, rgba(255,255,255,0.95) 100%);
+}
+.ps-tab[data-tab="layers"].active {
+  background: linear-gradient(145deg, rgba(255,255,255,1) 0%, rgba(238, 242, 255, 1) 100%);
+  color: #4f46e5;
+}
 
-/* État actif */
+/* État actif - Icônes colorées */
 .ps-tab.active .ps-tab-icon {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .ps-tab[data-tab="text"].active .ps-tab-icon {
-  background: var(--gradient-pink);
+  background: linear-gradient(145deg, #ff69b4 0%, #e75595 100%);
+  box-shadow: 0 4px 16px rgba(231, 85, 149, 0.35);
 }
 .ps-tab[data-tab="text"].active .ps-tab-icon svg {
   stroke: var(--white);
 }
 
 .ps-tab[data-tab="designs"].active .ps-tab-icon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
 }
 .ps-tab[data-tab="designs"].active .ps-tab-icon svg {
   stroke: var(--white);
-  fill: rgba(255, 255, 255, 0.3);
+  fill: rgba(255, 255, 255, 0.25);
 }
 
 .ps-tab[data-tab="elements"].active .ps-tab-icon {
-  background: var(--gradient-mint);
+  background: linear-gradient(145deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
 }
 .ps-tab[data-tab="elements"].active .ps-tab-icon svg {
-  stroke: var(--black-soft);
+  stroke: var(--white);
 }
 
 .ps-tab[data-tab="layers"].active .ps-tab-icon {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(145deg, #818cf8 0%, #6366f1 100%);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
 }
 .ps-tab[data-tab="layers"].active .ps-tab-icon svg {
   stroke: var(--white);
@@ -1561,23 +1643,182 @@ body {
 }
 
 /* ========================================
-   FONT OPTION PREVIEW (Bottom Sheet)
+   FONT SELECTOR - Ultra Modern 2026
+   Preview typographique direct
    ======================================== */
-.ps-option-font-info {
+
+/* Desktop Dropdown Font Options */
+.ps-font-option {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px !important;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  transition: all 0.25s ease;
+}
+
+.ps-font-option:last-child {
+  border-bottom: none;
+}
+
+.ps-font-option:hover {
+  background: linear-gradient(135deg, rgba(255,105,180,0.06) 0%, rgba(255,255,255,1) 100%) !important;
+}
+
+.ps-font-option.selected {
+  background: linear-gradient(135deg, rgba(255,105,180,0.1) 0%, rgba(255,240,245,1) 100%) !important;
+}
+
+.ps-font-option-content {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.ps-option-font-sample {
-  font-size: 20px;
-  line-height: 1.3;
+.ps-font-option-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ps-font-option.selected .ps-font-option-label {
+  color: var(--pink-main);
+}
+
+.ps-font-option-preview {
+  font-size: 26px !important;
+  line-height: 1.2;
   color: var(--black-soft);
-  margin-top: 4px;
-  letter-spacing: 0.02em;
+  transition: color 0.2s ease, transform 0.2s ease;
+  /* Force la police à s'appliquer */
+  font-weight: 400;
 }
 
-.ps-option.selected .ps-option-font-sample {
+.ps-font-option:hover .ps-font-option-preview {
   color: var(--pink-dark);
+  transform: translateX(4px);
+}
+
+.ps-font-option.selected .ps-font-option-preview {
+  color: var(--pink-dark);
+}
+
+.ps-font-option-check {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--gray-light);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: 12px;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ps-font-option.selected .ps-font-option-check {
+  background: var(--gradient-pink);
+  border-color: var(--pink-main);
+  box-shadow: 0 2px 8px rgba(231, 85, 149, 0.3);
+  transform: scale(1.1);
+}
+
+.ps-font-option.selected .ps-font-option-check::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: var(--white);
+  border-radius: 50%;
+}
+
+/* Mobile Modal Font Items */
+.ps-font-item {
+  padding: 18px 16px !important;
+  border: 2px solid transparent !important;
+  border-radius: 16px !important;
+  margin-bottom: 8px;
+  background: var(--white) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ps-font-item:hover {
+  border-color: var(--pink-light) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(231, 85, 149, 0.12);
+}
+
+.ps-font-item.selected {
+  border-color: var(--pink-main) !important;
+  background: linear-gradient(145deg, rgba(255,255,255,1) 0%, rgba(255,240,245,1) 100%) !important;
+  box-shadow: 0 6px 24px rgba(231, 85, 149, 0.18);
+}
+
+.ps-font-item-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.ps-font-item.selected .ps-font-item-label {
+  color: var(--pink-main);
+}
+
+.ps-font-item .ps-font-preview {
+  font-size: 28px !important;
+  line-height: 1.2;
+  color: var(--black-soft);
+  transition: color 0.2s ease;
+  font-weight: 400;
+}
+
+.ps-font-item:hover .ps-font-preview {
+  color: var(--pink-dark);
+}
+
+.ps-font-item.selected .ps-font-preview {
+  color: var(--pink-dark);
+}
+
+/* Font loading state */
+.ps-fonts-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: var(--gray);
+  font-size: 14px;
+  text-align: center;
+}
+
+.ps-fonts-loading::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--gray-light);
+  border-top-color: var(--pink-main);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Trigger avec preview de police */
+.ps-custom-select-trigger {
+  min-height: 52px;
+}
+
+.ps-custom-select-text {
+  font-size: 15px;
+  font-weight: 500;
 }
 
 /* ========================================
@@ -2574,17 +2815,30 @@ body {
     left: 0;
     right: 0;
     background: var(--white);
-    border: 1px solid var(--gray-light);
-    border-radius: var(--radius-md);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    max-height: 240px;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0,0,0,0.08);
+    max-height: 320px;
     overflow-y: auto;
     z-index: 100;
-    margin-top: 4px;
+    margin-top: 8px;
+    padding: 8px;
   }
 
   .ps-custom-select.open .ps-custom-select-dropdown {
     display: block;
+    animation: dropdownSlideIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes dropdownSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   .ps-select-option {
