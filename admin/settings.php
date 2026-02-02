@@ -93,9 +93,32 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
     }
 }
 
+    // Paramètres Marketing (Brevo + WhatsApp)
+    if (isset($_POST['save_marketing'])) {
+        $settingsModel->setMultiple([
+            // Brevo
+            'brevo_enabled' => post('brevo_enabled', '0'),
+            'brevo_api_key' => post('brevo_api_key', ''),
+            'brevo_sender_name' => post('brevo_sender_name', ''),
+            'brevo_sender_email' => post('brevo_sender_email', ''),
+            'brevo_daily_limit' => post('brevo_daily_limit', '300'),
+            // WhatsApp
+            'whatsapp_enabled' => post('whatsapp_enabled', '0'),
+            'whatsapp_phone_id' => post('whatsapp_phone_id', ''),
+            'whatsapp_access_token' => post('whatsapp_access_token', ''),
+            'whatsapp_business_id' => post('whatsapp_business_id', ''),
+            'whatsapp_verify_token' => post('whatsapp_verify_token', ''),
+            'whatsapp_monthly_limit' => post('whatsapp_monthly_limit', '1000')
+        ]);
+        $success = 'Paramètres marketing enregistrés.';
+        $activeTab = 'marketing';
+    }
+}
+
 // Récupérer les paramètres actuels
 $stripeSettings = $settingsModel->getByCategory('payment');
 $shippingSettings = $settingsModel->getByCategory('shipping');
+$marketingSettings = $settingsModel->getByCategory('marketing');
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -150,6 +173,13 @@ $shippingSettings = $settingsModel->getByCategory('shipping');
                         <circle cx="18.5" cy="18.5" r="2.5"/>
                     </svg>
                     Livraison (Boxtal)
+                </a>
+                <a href="?tab=marketing" class="tab <?= $activeTab === 'marketing' ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    Marketing
                 </a>
             </div>
 
@@ -485,6 +515,206 @@ $shippingSettings = $settingsModel->getByCategory('shipping');
                 </form>
                 <?php endif; ?>
 
+                <!-- MARKETING TAB (Brevo + WhatsApp) -->
+                <?php if ($activeTab === 'marketing'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_marketing" value="1">
+
+                    <!-- Brevo (Email) -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #0B996E;">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                    <polyline points="22,6 12,13 2,6"/>
+                                </svg>
+                                Brevo (Email Marketing)
+                            </h3>
+                            <span class="badge badge-green">300 emails/jour gratuits</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-box info-box-green">
+                                <strong>Pour obtenir votre clé API Brevo :</strong><br>
+                                1. Créez un compte sur <a href="https://app.brevo.com" target="_blank">app.brevo.com</a><br>
+                                2. Allez dans Paramètres > Clés API et SMTP<br>
+                                3. Générez une clé API v3
+                            </div>
+
+                            <?php
+                            $brevoSent = (int) ($marketingSettings['brevo_daily_sent']['value'] ?? 0);
+                            $brevoLimit = (int) ($marketingSettings['brevo_daily_limit']['value'] ?? 300);
+                            $brevoPercent = $brevoLimit > 0 ? min(100, round(($brevoSent / $brevoLimit) * 100)) : 0;
+                            ?>
+                            <div class="usage-stats">
+                                <div class="usage-header">
+                                    <span>Utilisation aujourd'hui</span>
+                                    <span class="usage-count"><?= $brevoSent ?> / <?= $brevoLimit ?> emails</span>
+                                </div>
+                                <div class="usage-bar">
+                                    <div class="usage-fill" style="width: <?= $brevoPercent ?>%; background: <?= $brevoPercent > 80 ? '#ff6b6b' : '#0B996E' ?>;"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label toggle-label">
+                                        <input type="checkbox" name="brevo_enabled" value="1"
+                                            <?= ($marketingSettings['brevo_enabled']['value'] ?? '0') === '1' ? 'checked' : '' ?>>
+                                        <span class="toggle-switch"></span>
+                                        Activer Brevo
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Limite quotidienne</label>
+                                    <input type="number" name="brevo_daily_limit" class="form-input" style="max-width: 150px;"
+                                           value="<?= h($marketingSettings['brevo_daily_limit']['value'] ?? '300') ?>">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Clé API Brevo</label>
+                                <input type="password" name="brevo_api_key" class="form-input font-mono"
+                                       placeholder="xkeysib-..."
+                                       value="<?= h($marketingSettings['brevo_api_key']['value'] ?? '') ?>">
+                            </div>
+
+                            <div class="section-divider">
+                                <span>Expéditeur</span>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Nom de l'expéditeur</label>
+                                    <input type="text" name="brevo_sender_name" class="form-input"
+                                           placeholder="PERSONNALY"
+                                           value="<?= h($marketingSettings['brevo_sender_name']['value'] ?? '') ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Email de l'expéditeur</label>
+                                    <input type="email" name="brevo_sender_email" class="form-input"
+                                           placeholder="contact@personnaly.fr"
+                                           value="<?= h($marketingSettings['brevo_sender_email']['value'] ?? '') ?>">
+                                    <small class="form-hint">Doit être vérifié dans Brevo</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WhatsApp Business -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #25D366;">
+                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                                </svg>
+                                WhatsApp Business API
+                            </h3>
+                            <span class="badge badge-green">1000 conversations/mois gratuites</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-box info-box-whatsapp">
+                                <strong>Pour configurer WhatsApp Business API :</strong><br>
+                                1. Créez une app sur <a href="https://developers.facebook.com" target="_blank">Meta for Developers</a><br>
+                                2. Ajoutez le produit "WhatsApp"<br>
+                                3. Configurez votre numéro de téléphone business<br>
+                                4. Récupérez les identifiants dans la section "API Setup"
+                            </div>
+
+                            <?php
+                            $whatsappSent = (int) ($marketingSettings['whatsapp_monthly_sent']['value'] ?? 0);
+                            $whatsappLimit = (int) ($marketingSettings['whatsapp_monthly_limit']['value'] ?? 1000);
+                            $whatsappPercent = $whatsappLimit > 0 ? min(100, round(($whatsappSent / $whatsappLimit) * 100)) : 0;
+                            ?>
+                            <div class="usage-stats">
+                                <div class="usage-header">
+                                    <span>Utilisation ce mois</span>
+                                    <span class="usage-count"><?= $whatsappSent ?> / <?= $whatsappLimit ?> messages</span>
+                                </div>
+                                <div class="usage-bar">
+                                    <div class="usage-fill" style="width: <?= $whatsappPercent ?>%; background: <?= $whatsappPercent > 80 ? '#ff6b6b' : '#25D366' ?>;"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label toggle-label">
+                                        <input type="checkbox" name="whatsapp_enabled" value="1"
+                                            <?= ($marketingSettings['whatsapp_enabled']['value'] ?? '0') === '1' ? 'checked' : '' ?>>
+                                        <span class="toggle-switch"></span>
+                                        Activer WhatsApp
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Limite mensuelle</label>
+                                    <input type="number" name="whatsapp_monthly_limit" class="form-input" style="max-width: 150px;"
+                                           value="<?= h($marketingSettings['whatsapp_monthly_limit']['value'] ?? '1000') ?>">
+                                </div>
+                            </div>
+
+                            <div class="section-divider">
+                                <span>Identifiants API</span>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Phone Number ID</label>
+                                    <input type="text" name="whatsapp_phone_id" class="form-input font-mono"
+                                           placeholder="123456789012345"
+                                           value="<?= h($marketingSettings['whatsapp_phone_id']['value'] ?? '') ?>">
+                                    <small class="form-hint">ID du numéro WhatsApp Business</small>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Business Account ID</label>
+                                    <input type="text" name="whatsapp_business_id" class="form-input font-mono"
+                                           placeholder="123456789012345"
+                                           value="<?= h($marketingSettings['whatsapp_business_id']['value'] ?? '') ?>">
+                                    <small class="form-hint">Pour récupérer les templates</small>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Access Token</label>
+                                <input type="password" name="whatsapp_access_token" class="form-input font-mono"
+                                       placeholder="EAAG..."
+                                       value="<?= h($marketingSettings['whatsapp_access_token']['value'] ?? '') ?>">
+                                <small class="form-hint">Token permanent recommandé (System User Token)</small>
+                            </div>
+
+                            <div class="section-divider">
+                                <span>Webhook (optionnel)</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Verify Token</label>
+                                <input type="text" name="whatsapp_verify_token" class="form-input font-mono"
+                                       placeholder="mon_token_secret"
+                                       value="<?= h($marketingSettings['whatsapp_verify_token']['value'] ?? '') ?>">
+                                <small class="form-hint">Token personnalisé pour vérifier le webhook</small>
+                            </div>
+
+                            <div class="info-box" style="margin-top: 16px; margin-bottom: 0;">
+                                <strong>URL du Webhook :</strong><br>
+                                <code style="font-size: 12px; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px;">
+                                    <?= h((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'votre-domaine.com')) ?>/api/webhooks/whatsapp.php
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                <polyline points="17 21 17 13 7 13 7 21"/>
+                                <polyline points="7 3 7 8 15 8"/>
+                            </svg>
+                            Enregistrer les paramètres marketing
+                        </button>
+                    </div>
+                </form>
+                <?php endif; ?>
+
             </div>
         </main>
     </div>
@@ -656,6 +886,52 @@ $shippingSettings = $settingsModel->getByCategory('shipping');
         .info-box-cyan {
             background: linear-gradient(135deg, rgba(0,184,212,0.08) 0%, rgba(0,184,212,0.04) 100%);
             border-left-color: #00B8D4;
+        }
+        .info-box-green {
+            background: linear-gradient(135deg, rgba(11,153,110,0.08) 0%, rgba(11,153,110,0.04) 100%);
+            border-left-color: #0B996E;
+        }
+        .info-box-whatsapp {
+            background: linear-gradient(135deg, rgba(37,211,102,0.08) 0%, rgba(37,211,102,0.04) 100%);
+            border-left-color: #25D366;
+        }
+
+        /* Usage stats */
+        .usage-stats {
+            background: var(--gray-lighter);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .usage-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .usage-count {
+            font-weight: 600;
+        }
+        .usage-bar {
+            height: 8px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .usage-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Badge variants */
+        .badge-green {
+            background: linear-gradient(135deg, #0B996E 0%, #0d7a58 100%);
+            color: white;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
         }
 
         /* Dividers */

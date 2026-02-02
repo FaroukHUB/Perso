@@ -47,6 +47,25 @@ INSERT INTO settings (setting_key, setting_value, is_encrypted, category, descri
 ('shipping_standard_price', '4.90', 0, 'shipping', 'Prix livraison standard (€)'),
 ('shipping_express_price', '9.90', 0, 'shipping', 'Prix livraison express (€)'),
 
+-- Brevo (Email Marketing) - 300 emails/jour gratuits
+('brevo_enabled', '0', 0, 'marketing', 'Activer Brevo pour les emails'),
+('brevo_api_key', '', 1, 'marketing', 'Clé API Brevo'),
+('brevo_sender_name', '', 0, 'marketing', 'Nom expéditeur'),
+('brevo_sender_email', '', 0, 'marketing', 'Email expéditeur'),
+('brevo_daily_limit', '300', 0, 'marketing', 'Limite quotidienne'),
+('brevo_daily_sent', '0', 0, 'marketing', 'Emails envoyés aujourd''hui'),
+('brevo_daily_reset', '', 0, 'marketing', 'Date dernier reset'),
+
+-- WhatsApp Business (Meta Cloud API) - 1000 conversations/mois gratuites
+('whatsapp_enabled', '0', 0, 'marketing', 'Activer WhatsApp Business'),
+('whatsapp_phone_id', '', 1, 'marketing', 'Phone Number ID'),
+('whatsapp_access_token', '', 1, 'marketing', 'Access Token'),
+('whatsapp_business_id', '', 1, 'marketing', 'Business Account ID'),
+('whatsapp_verify_token', '', 0, 'marketing', 'Webhook Verify Token'),
+('whatsapp_monthly_limit', '1000', 0, 'marketing', 'Limite mensuelle'),
+('whatsapp_monthly_sent', '0', 0, 'marketing', 'Messages ce mois'),
+('whatsapp_monthly_reset', '', 0, 'marketing', 'Date dernier reset'),
+
 -- Général
 ('currency', 'EUR', 0, 'general', 'Devise'),
 ('tax_rate', '20', 0, 'general', 'Taux de TVA (%)'),
