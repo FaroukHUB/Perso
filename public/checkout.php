@@ -2,6 +2,7 @@
 /**
  * PERSONNALY - Page Checkout (Commande)
  * Design: Ultra-moderne • Girly • Rose + Vert Menthe + Noir
+ * Intégration Stripe pour les paiements
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
@@ -12,9 +13,79 @@ require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/User.php';
 require_once __DIR__ . '/../app/models/Upsell.php';
+require_once __DIR__ . '/../app/services/StripeService.php';
+require_once __DIR__ . '/../app/services/BoxtalService.php';
 
-// Panier vide = retour accueil
-if (Cart::isEmpty()) {
+// Initialiser les services
+$stripeService = new StripeService();
+$boxtalService = new BoxtalService();
+
+// Vérifier si c'est un retour de Stripe
+$stripeSessionId = $_GET['session_id'] ?? null;
+$paymentSuccess = false;
+$orderId = null;
+
+if ($stripeSessionId && $stripeService->isEnabled()) {
+    // Retour de Stripe - vérifier le paiement
+    $session = $stripeService->getCheckoutSession($stripeSessionId);
+
+    if ($session && $session['payment_status'] === 'paid') {
+        // Récupérer l'order_id depuis les metadata
+        $orderId = $session['metadata']['order_id'] ?? null;
+
+        if ($orderId) {
+            // Mettre à jour le statut de la commande
+            $db = Database::getInstance();
+            $stmt = $db->prepare('UPDATE orders SET status = "paid", stripe_session_id = ? WHERE id = ?');
+            $stmt->execute([$stripeSessionId, $orderId]);
+
+            // Récupérer les infos pour les emails
+            $orderModel = new Order();
+            $order = $orderModel->findById($orderId);
+
+            if ($order) {
+                // Envoyer les emails de confirmation
+                $userModel = new User();
+                $customer = $userModel->findById($order['user_id']);
+
+                if ($customer) {
+                    $shippingData = json_decode($order['shipping_address'], true);
+                    $customerData = [
+                        'email' => $customer['email'],
+                        'first_name' => $shippingData['first_name'] ?? $customer['first_name'],
+                        'last_name' => $shippingData['last_name'] ?? $customer['last_name'],
+                        'phone' => $shippingData['phone'] ?? ''
+                    ];
+
+                    $items = $orderModel->getCustomizations($orderId);
+                    $emailItems = [];
+                    foreach ($items as $item) {
+                        $emailItems[] = [
+                            'product_name' => $item['product_name'] ?? 'Produit',
+                            'quantity' => $item['quantity'],
+                            'unit_price' => $item['unit_price'],
+                            'data_json' => json_decode($item['data_json'], true) ?? []
+                        ];
+                    }
+
+                    try {
+                        Email::sendOrderConfirmation($order, $customerData, $emailItems);
+                        Email::sendAdminNewOrder($order, $customerData, $emailItems);
+                    } catch (Exception $e) {
+                        // Log silencieux
+                    }
+                }
+            }
+
+            // Vider le panier si encore présent
+            Cart::clear();
+            $paymentSuccess = true;
+        }
+    }
+}
+
+// Panier vide = retour accueil (sauf si paiement réussi)
+if (Cart::isEmpty() && !$paymentSuccess) {
     redirect('/');
 }
 
@@ -65,12 +136,15 @@ foreach ($upsells as $upsell) {
     $applicableUpsells[] = $data;
 }
 
-$success = false;
-$orderId = null;
+$success = $paymentSuccess;
 $error = '';
 
+// Récupérer les frais de livraison depuis la session
+$shippingMethod = $_SESSION['shipping_method'] ?? 'standard';
+$shippingCost = $_SESSION['shipping_cost'] ?? 0;
+
 // Traitement de la commande
-if (isPost() && isset($_POST['place_order'])) {
+if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
     if (verifyCsrf($_POST['csrf_token'] ?? '')) {
         // Validation des champs
         $email = trim(post('email', ''));
@@ -117,13 +191,18 @@ if (isPost() && isset($_POST['place_order'])) {
                     'phone' => $phone,
                 ], JSON_UNESCAPED_UNICODE);
 
-                // Créer la commande
+                // Calculer le total avec livraison
+                $totalWithShipping = $cartTotal + $shippingCost;
+
+                // Créer la commande avec statut approprié
                 $orderModel = new Order();
+                $initialStatus = $stripeService->isEnabled() ? 'pending_payment' : 'pending';
+
                 $stmt = $db->prepare(
-                    'INSERT INTO orders (user_id, total, status, shipping_address, notes, created_at)
-                     VALUES (?, ?, "pending", ?, ?, NOW())'
+                    'INSERT INTO orders (user_id, total, status, shipping_address, shipping_cost, notes, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, NOW())'
                 );
-                $stmt->execute([$userId, $cartTotal, $shippingAddress, $notes]);
+                $stmt->execute([$userId, $totalWithShipping, $initialStatus, $shippingAddress, $shippingCost, $notes]);
                 $orderId = (int) $db->lastInsertId();
 
                 // Ajouter les personnalisations
@@ -144,45 +223,95 @@ if (isPost() && isset($_POST['place_order'])) {
 
                 $db->commit();
 
-                // Préparer les données pour les emails
-                $orderData = [
-                    'id' => $orderId,
-                    'total' => $cartTotal,
-                    'shipping_address' => $shippingAddress,
-                ];
-                $customerData = [
-                    'email' => $email,
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'phone' => $phone,
-                ];
+                // Si Stripe est activé, rediriger vers le paiement
+                if ($stripeService->isEnabled()) {
+                    // Préparer les items pour Stripe
+                    $stripeItems = [];
+                    foreach ($cartItems as $item) {
+                        $stripeItems[] = [
+                            'name' => $item['product']['name'],
+                            'description' => sprintf(
+                                'Taille: %s, Couleur: %s',
+                                $item['customization']['size'] ?? 'M',
+                                ucfirst($item['customization']['color'] ?? 'blanc')
+                            ),
+                            'price' => $item['unit_price'],
+                            'quantity' => $item['quantity'],
+                            'image' => !empty($item['product']['image_front_url'])
+                                ? (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/public' . $item['product']['image_front_url']
+                                : ''
+                        ];
+                    }
 
-                // Récupérer les items avec noms produits pour emails
-                $emailItems = [];
-                foreach ($cartItems as $item) {
-                    $emailItems[] = [
-                        'product_name' => $item['product']['name'],
-                        'quantity' => $item['quantity'],
-                        'unit_price' => $item['unit_price'],
-                        'data_json' => $item['customization'],
+                    // Construire les URLs
+                    $baseUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+
+                    // Créer la session Stripe Checkout
+                    $stripeResult = $stripeService->createCheckoutSession([
+                        'items' => $stripeItems,
+                        'shipping_cost' => $shippingCost,
+                        'shipping_label' => $shippingMethod,
+                        'discount' => $_SESSION['promo_code']['discount'] ?? 0,
+                        'promo_code' => $_SESSION['promo_code']['code'] ?? '',
+                        'success_url' => $baseUrl . '/public/checkout.php',
+                        'cancel_url' => $baseUrl . '/public/cart.php',
+                        'customer_email' => $email,
+                        'customer_name' => $firstName . ' ' . $lastName,
+                        'order_id' => $orderId
+                    ]);
+
+                    if ($stripeResult['success']) {
+                        // Rediriger vers Stripe Checkout
+                        header('Location: ' . $stripeResult['url']);
+                        exit;
+                    } else {
+                        // Erreur Stripe - annuler la commande
+                        $stmt = $db->prepare('UPDATE orders SET status = "cancelled" WHERE id = ?');
+                        $stmt->execute([$orderId]);
+                        $error = 'Erreur lors de la création du paiement: ' . $stripeResult['error'];
+                    }
+                } else {
+                    // Pas de Stripe - procéder normalement
+                    $orderData = [
+                        'id' => $orderId,
+                        'total' => $totalWithShipping,
+                        'shipping_address' => $shippingAddress,
                     ];
-                }
+                    $customerData = [
+                        'email' => $email,
+                        'first_name' => $firstName,
+                        'last_name' => $lastName,
+                        'phone' => $phone,
+                    ];
 
-                // Envoyer emails (ne bloque pas si échec)
-                try {
-                    Email::sendOrderConfirmation($orderData, $customerData, $emailItems);
-                    Email::sendAdminNewOrder($orderData, $customerData, $emailItems);
-                } catch (Exception $emailError) {
-                    // Log silencieux, ne pas bloquer la commande
-                }
+                    // Récupérer les items pour emails
+                    $emailItems = [];
+                    foreach ($cartItems as $item) {
+                        $emailItems[] = [
+                            'product_name' => $item['product']['name'],
+                            'quantity' => $item['quantity'],
+                            'unit_price' => $item['unit_price'],
+                            'data_json' => $item['customization'],
+                        ];
+                    }
 
-                // Vider le panier
-                Cart::clear();
-                $success = true;
+                    // Envoyer emails
+                    try {
+                        Email::sendOrderConfirmation($orderData, $customerData, $emailItems);
+                        Email::sendAdminNewOrder($orderData, $customerData, $emailItems);
+                    } catch (Exception $emailError) {
+                        // Log silencieux
+                    }
+
+                    // Vider le panier
+                    Cart::clear();
+                    $success = true;
+                }
 
             } catch (Exception $e) {
-                $db->rollBack();
+                if (isset($db)) $db->rollBack();
                 $error = 'Une erreur est survenue. Veuillez réessayer.';
+                error_log('Checkout error: ' . $e->getMessage());
             }
         }
     } else {

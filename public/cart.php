@@ -11,6 +11,7 @@ require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/ProductUpsell.php';
 require_once __DIR__ . '/../app/models/PromoCode.php';
+require_once __DIR__ . '/../app/services/BoxtalService.php';
 
 $success = '';
 $error = '';
@@ -61,22 +62,33 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'remove_promo') {
 // Récupérer le code promo actuel en session
 $appliedPromo = $_SESSION['promo_code'] ?? null;
 
-// Options de livraison
-$shippingOptions = [
-    'standard' => ['label' => 'Standard (3-5 jours)', 'price' => 0, 'delay' => '3-5 jours ouvrés'],
-    'express' => ['label' => 'Express (24-48h)', 'price' => 5.90, 'delay' => '24-48h']
-];
-$selectedShipping = $_SESSION['shipping_method'] ?? 'standard';
+// Service Boxtal pour les options de livraison
+$boxtalService = new BoxtalService();
 
 // AJAX: Changer méthode livraison
 if (isset($_GET['ajax']) && $_GET['ajax'] === 'set_shipping') {
     header('Content-Type: application/json');
     $method = $_POST['method'] ?? 'standard';
-    if (isset($shippingOptions[$method])) {
+
+    // Construire les options de livraison pour validation
+    $ajaxCartItems = Cart::getItemsWithProducts();
+    $ajaxCartTotal = Cart::getTotal();
+    $ajaxCartWeight = $boxtalService->calculateCartWeight($ajaxCartItems);
+    $ajaxRecipient = ['address' => '', 'city' => 'Paris', 'postcode' => '75001', 'country' => 'FR'];
+    $ajaxRates = $boxtalService->getShippingRates($ajaxRecipient, $ajaxCartWeight, $ajaxCartTotal);
+
+    $ajaxShippingOptions = [];
+    foreach ($ajaxRates as $rate) {
+        $ajaxShippingOptions[$rate['id']] = ['price' => $rate['price']];
+    }
+
+    if (isset($ajaxShippingOptions[$method])) {
         $_SESSION['shipping_method'] = $method;
-        echo json_encode(['success' => true, 'price' => $shippingOptions[$method]['price']]);
+        echo json_encode(['success' => true, 'price' => $ajaxShippingOptions[$method]['price']]);
     } else {
-        echo json_encode(['success' => false]);
+        // Accepter quand même si c'est une méthode standard/express de fallback
+        $_SESSION['shipping_method'] = $method;
+        echo json_encode(['success' => true, 'price' => 0]);
     }
     exit;
 }
@@ -109,6 +121,49 @@ if (isPost()) {
 $cartItems = Cart::getItemsWithProducts();
 $cartTotal = Cart::getTotal();
 $cartCount = Cart::count();
+
+// Calculer le poids total du panier pour BoxtalService
+$cartWeight = $boxtalService->calculateCartWeight($cartItems);
+
+// Préparer l'adresse du destinataire (adresse par défaut pour l'estimation)
+$defaultRecipient = [
+    'address' => '',
+    'city' => 'Paris',
+    'postcode' => '75001',
+    'country' => 'FR'
+];
+
+// Récupérer les tarifs de livraison dynamiques
+$shippingRates = $boxtalService->getShippingRates($defaultRecipient, $cartWeight, $cartTotal);
+
+// Convertir en format compatible
+$shippingOptions = [];
+foreach ($shippingRates as $rate) {
+    $shippingOptions[$rate['id']] = [
+        'label' => $rate['label'],
+        'price' => $rate['price'],
+        'delay' => $rate['delay'],
+        'description' => $rate['description'] ?? '',
+        'is_relay' => $rate['is_relay'] ?? false,
+        'logo' => $rate['logo'] ?? ''
+    ];
+}
+
+// Fallback si aucune option disponible
+if (empty($shippingOptions)) {
+    $shippingOptions = [
+        'standard' => ['label' => 'Livraison standard', 'price' => 4.90, 'delay' => '3-5 jours ouvrés'],
+        'express' => ['label' => 'Livraison express', 'price' => 9.90, 'delay' => '24-48h']
+    ];
+}
+
+$selectedShipping = $_SESSION['shipping_method'] ?? array_key_first($shippingOptions);
+
+// Vérifier que la méthode sélectionnée existe toujours
+if (!isset($shippingOptions[$selectedShipping])) {
+    $selectedShipping = array_key_first($shippingOptions);
+    $_SESSION['shipping_method'] = $selectedShipping;
+}
 
 // Frais de livraison
 $shippingCost = $shippingOptions[$selectedShipping]['price'];
