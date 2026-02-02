@@ -811,6 +811,9 @@ function getSubtitleStyles(array $section): string {
             scroll-snap-align: start;
             transition: all var(--transition-normal);
             box-shadow: var(--shadow-sm);
+            text-decoration: none;
+            color: inherit;
+            display: block;
         }
         .blog-card:hover {
             transform: translateY(-5px);
@@ -1417,7 +1420,7 @@ function getSubtitleStyles(array $section): string {
 
             <div class="blog-slider">
                 <?php foreach ($section['posts'] as $post): ?>
-                    <div class="blog-card">
+                    <a href="/public/article.php?slug=<?= h($post['slug']) ?>" class="blog-card">
                         <div class="blog-card-image">
                             <?php if (!empty($post['cover_image_url'])): ?>
                                 <?= picture($post['cover_image_url'], $post['title']) ?>
@@ -1432,7 +1435,7 @@ function getSubtitleStyles(array $section): string {
                                 <p><?= h(substr($post['excerpt'], 0, 120)) ?>...</p>
                             <?php endif; ?>
                         </div>
-                    </div>
+                    </a>
                 <?php endforeach; ?>
             </div>
         </div>
