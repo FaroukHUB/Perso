@@ -55,7 +55,7 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
         }
     }
 
-    // Ajouter une police Custom
+    // Ajouter une police Custom (OTF/TTF)
     if (isset($_POST['add_custom'])) {
         $name = trim(post('name', ''));
         $family = trim(post('family', ''));
@@ -64,31 +64,20 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
         if (empty($name) || empty($family)) {
             $error = 'Le nom et la famille sont obligatoires.';
         } else {
-            $woff2Url = null;
-            $woffUrl = null;
+            $fontUrl = null;
 
-            // Upload WOFF2
-            if (isset($_FILES['woff2_file']) && $_FILES['woff2_file']['error'] === UPLOAD_ERR_OK) {
-                $uploadResult = uploadFontFile($_FILES['woff2_file'], 'woff2');
+            // Upload OTF ou TTF
+            if (isset($_FILES['font_file']) && $_FILES['font_file']['error'] === UPLOAD_ERR_OK) {
+                $uploadResult = uploadFontFile($_FILES['font_file']);
                 if ($uploadResult['success']) {
-                    $woff2Url = $uploadResult['url'];
+                    $fontUrl = $uploadResult['url'];
                 } else {
                     $error = $uploadResult['error'];
                 }
             }
 
-            // Upload WOFF (fallback)
-            if (!$error && isset($_FILES['woff_file']) && $_FILES['woff_file']['error'] === UPLOAD_ERR_OK) {
-                $uploadResult = uploadFontFile($_FILES['woff_file'], 'woff');
-                if ($uploadResult['success']) {
-                    $woffUrl = $uploadResult['url'];
-                } else {
-                    $error = $uploadResult['error'];
-                }
-            }
-
-            if (!$error && !$woff2Url) {
-                $error = 'Le fichier WOFF2 est obligatoire pour les polices custom.';
+            if (!$error && !$fontUrl) {
+                $error = 'Le fichier de police (OTF ou TTF) est obligatoire.';
             }
 
             if (!$error) {
@@ -98,8 +87,8 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
                         'family' => $family,
                         'source' => 'custom',
                         'google_weights' => '400',
-                        'custom_woff2_url' => $woff2Url,
-                        'custom_woff_url' => $woffUrl,
+                        'custom_woff2_url' => $fontUrl,
+                        'custom_woff_url' => null,
                         'category' => $category,
                         'active' => 1,
                         'sort_order' => 0
@@ -188,28 +177,21 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
 }
 
 /**
- * Upload un fichier police
+ * Upload un fichier police (OTF, TTF, WOFF, WOFF2)
  */
-function uploadFontFile(array $file, string $type): array
+function uploadFontFile(array $file): array
 {
-    $allowedTypes = [
-        'woff2' => ['font/woff2', 'application/font-woff2', 'application/octet-stream'],
-        'woff' => ['font/woff', 'application/font-woff', 'application/octet-stream']
-    ];
-    $allowedExts = [
-        'woff2' => ['woff2'],
-        'woff' => ['woff']
-    ];
-    $maxSize = 2 * 1024 * 1024; // 2 MB
+    $allowedExts = ['otf', 'ttf', 'woff', 'woff2'];
+    $maxSize = 5 * 1024 * 1024; // 5 MB
 
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
-    if (!in_array($ext, $allowedExts[$type])) {
-        return ['success' => false, 'error' => "Le fichier doit être au format .{$type}"];
+    if (!in_array($ext, $allowedExts)) {
+        return ['success' => false, 'error' => 'Le fichier doit être au format OTF, TTF, WOFF ou WOFF2.'];
     }
 
     if ($file['size'] > $maxSize) {
-        return ['success' => false, 'error' => 'Le fichier ne doit pas dépasser 2 Mo.'];
+        return ['success' => false, 'error' => 'Le fichier ne doit pas dépasser 5 Mo.'];
     }
 
     $uploadDir = __DIR__ . '/../public/uploads/fonts/';
@@ -481,6 +463,166 @@ function uploadFontFile(array $file, string $type): array
                 position: static;
             }
         }
+
+        /* Google Fonts Search & List */
+        .font-search {
+            margin-bottom: 10px;
+        }
+        .font-list-container {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            background: #fafafa;
+        }
+        .font-list-item {
+            padding: 12px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.15s;
+        }
+        .font-list-item:last-child {
+            border-bottom: none;
+        }
+        .font-list-item:hover {
+            background: var(--pink-glow);
+        }
+        .font-list-item.selected {
+            background: var(--pink-light);
+            color: var(--pink-dark);
+            font-weight: 600;
+        }
+        .font-list-item-name {
+            font-size: 14px;
+        }
+        .font-list-item-category {
+            font-size: 11px;
+            color: var(--gray);
+            background: white;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+        }
+        .font-list-empty {
+            padding: 30px;
+            text-align: center;
+            color: var(--gray);
+            font-size: 13px;
+        }
+
+        /* Selected Font Card */
+        .selected-font-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--gradient-mint);
+            border-radius: var(--radius-md);
+        }
+        .selected-font-name {
+            font-weight: 700;
+            font-size: 15px;
+        }
+        .btn-remove-font {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: rgba(0,0,0,0.1);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .btn-remove-font:hover {
+            background: rgba(0,0,0,0.2);
+        }
+
+        /* Weights Checkboxes */
+        .weights-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .weight-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: var(--radius-sm);
+            transition: background 0.15s;
+        }
+        .weight-checkbox:hover {
+            background: var(--gray-light);
+        }
+        .weight-checkbox input {
+            width: auto;
+            margin: 0;
+        }
+
+        /* File Upload Zone */
+        .file-upload-zone {
+            position: relative;
+            border: 2px dashed #ddd;
+            border-radius: var(--radius-md);
+            padding: 30px 20px;
+            text-align: center;
+            transition: all 0.2s;
+            background: #fafafa;
+        }
+        .file-upload-zone:hover {
+            border-color: var(--pink-main);
+            background: var(--pink-glow);
+        }
+        .file-upload-zone.dragover {
+            border-color: var(--pink-main);
+            background: var(--pink-glow);
+        }
+        .file-upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .file-upload-content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: none;
+        }
+        .file-upload-icon {
+            font-size: 2rem;
+        }
+        .file-upload-text {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .file-upload-formats {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        .file-upload-selected {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            background: var(--gradient-mint);
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+        }
+        .btn-remove-file {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: rgba(0,0,0,0.1);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -619,7 +761,7 @@ function uploadFontFile(array $file, string $type): array
 
                         <div class="form-tabs">
                             <button type="button" class="form-tab active" data-tab="google">Google Fonts</button>
-                            <button type="button" class="form-tab" data-tab="custom">Custom (.woff2)</button>
+                            <button type="button" class="form-tab" data-tab="custom">Upload (OTF/TTF)</button>
                         </div>
 
                         <!-- Formulaire Google -->
@@ -628,32 +770,49 @@ function uploadFontFile(array $file, string $type): array
                                 <input type="hidden" name="csrf_token" value="<?= generateCsrf() ?>">
 
                                 <div class="form-group">
-                                    <label>Nom affiché</label>
-                                    <input type="text" name="name" placeholder="Poppins Bold" required>
+                                    <label>Choisir une police Google</label>
+                                    <input type="text" id="google-font-search" class="font-search" placeholder="🔍 Rechercher une police..." autocomplete="off">
+                                    <div class="font-list-container" id="google-font-list">
+                                        <!-- Liste générée par JS -->
+                                    </div>
+                                    <input type="hidden" name="family" id="selected-family" required>
+                                    <input type="hidden" name="name" id="selected-name" required>
+                                </div>
+
+                                <div class="form-group" id="selected-font-preview" style="display: none;">
+                                    <label>Police sélectionnée</label>
+                                    <div class="selected-font-card">
+                                        <span class="selected-font-name" id="preview-font-name">-</span>
+                                        <button type="button" class="btn-remove-font" id="btn-remove-font">✕</button>
+                                    </div>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Famille (Google Fonts)</label>
-                                    <input type="text" name="family" placeholder="Poppins" required>
-                                    <div class="form-hint">Nom exact de la police sur Google Fonts</div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Weights</label>
-                                    <input type="text" name="google_weights" value="400;700" placeholder="400;700">
-                                    <div class="form-hint">Séparés par ; (ex: 400;600;700)</div>
+                                    <label>Weights (graisses)</label>
+                                    <div class="weights-checkboxes" id="weights-checkboxes">
+                                        <label class="weight-checkbox"><input type="checkbox" name="weights[]" value="100"> Thin 100</label>
+                                        <label class="weight-checkbox"><input type="checkbox" name="weights[]" value="200"> Light 200</label>
+                                        <label class="weight-checkbox"><input type="checkbox" name="weights[]" value="300"> Light 300</label>
+                                        <label class="weight-checkbox"><input type="checkbox" name="weights[]" value="400" checked> Regular 400</label>
+                                        <label class="weight-checkbox"><input type="checkbox" name="weights[]" value="500"> Medium 500</label>
+                                        <label class="weight-checkbox"><input type="checkbox" name="weights[]" value="600"> SemiBold 600</label>
+                                        <label class="weight-checkbox"><input type="checkbox" name="weights[]" value="700" checked> Bold 700</label>
+                                        <label class="weight-checkbox"><input type="checkbox" name="weights[]" value="800"> ExtraBold 800</label>
+                                        <label class="weight-checkbox"><input type="checkbox" name="weights[]" value="900"> Black 900</label>
+                                    </div>
+                                    <input type="hidden" name="google_weights" id="google-weights-hidden" value="400;700">
                                 </div>
 
                                 <div class="form-group">
                                     <label>Catégorie</label>
-                                    <select name="category">
+                                    <select name="category" id="google-category">
                                         <?php foreach ($categories as $key => $label): ?>
                                             <option value="<?= $key ?>"><?= $label ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
 
-                                <button type="submit" name="add_google" class="btn-submit">Ajouter Google Font</button>
+                                <button type="submit" name="add_google" class="btn-submit" id="btn-add-google" disabled>Ajouter cette police</button>
                             </form>
                         </div>
 
@@ -670,17 +829,23 @@ function uploadFontFile(array $file, string $type): array
                                 <div class="form-group">
                                     <label>Famille CSS</label>
                                     <input type="text" name="family" placeholder="MaPolice" required>
-                                    <div class="form-hint">Nom utilisé dans font-family CSS</div>
+                                    <div class="form-hint">Nom utilisé dans font-family (sans espaces)</div>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Fichier WOFF2 (obligatoire)</label>
-                                    <input type="file" name="woff2_file" accept=".woff2" required>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Fichier WOFF (fallback, optionnel)</label>
-                                    <input type="file" name="woff_file" accept=".woff">
+                                    <label>Fichier de police</label>
+                                    <div class="file-upload-zone" id="font-upload-zone">
+                                        <input type="file" name="font_file" id="font-file-input" accept=".otf,.ttf,.woff,.woff2" required>
+                                        <div class="file-upload-content">
+                                            <span class="file-upload-icon">📁</span>
+                                            <span class="file-upload-text">Cliquez ou glissez un fichier</span>
+                                            <span class="file-upload-formats">OTF, TTF, WOFF, WOFF2 (max 5 Mo)</span>
+                                        </div>
+                                        <div class="file-upload-selected" id="file-selected" style="display: none;">
+                                            <span id="file-name">fichier.otf</span>
+                                            <button type="button" class="btn-remove-file" id="btn-remove-file">✕</button>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="form-group">
@@ -702,16 +867,267 @@ function uploadFontFile(array $file, string $type): array
     </div>
 
     <script>
+        // =============================================
+        // Liste des Google Fonts populaires
+        // =============================================
+        const GOOGLE_FONTS = [
+            { name: 'Roboto', category: 'sans-serif' },
+            { name: 'Open Sans', category: 'sans-serif' },
+            { name: 'Lato', category: 'sans-serif' },
+            { name: 'Montserrat', category: 'sans-serif' },
+            { name: 'Poppins', category: 'sans-serif' },
+            { name: 'Inter', category: 'sans-serif' },
+            { name: 'Oswald', category: 'sans-serif' },
+            { name: 'Raleway', category: 'sans-serif' },
+            { name: 'Nunito', category: 'sans-serif' },
+            { name: 'Nunito Sans', category: 'sans-serif' },
+            { name: 'Ubuntu', category: 'sans-serif' },
+            { name: 'Playfair Display', category: 'serif' },
+            { name: 'Merriweather', category: 'serif' },
+            { name: 'Lora', category: 'serif' },
+            { name: 'PT Serif', category: 'serif' },
+            { name: 'Libre Baskerville', category: 'serif' },
+            { name: 'Crimson Text', category: 'serif' },
+            { name: 'Cormorant Garamond', category: 'serif' },
+            { name: 'Dancing Script', category: 'cursive' },
+            { name: 'Pacifico', category: 'cursive' },
+            { name: 'Great Vibes', category: 'cursive' },
+            { name: 'Lobster', category: 'cursive' },
+            { name: 'Sacramento', category: 'cursive' },
+            { name: 'Satisfy', category: 'cursive' },
+            { name: 'Allura', category: 'cursive' },
+            { name: 'Alex Brush', category: 'cursive' },
+            { name: 'Tangerine', category: 'cursive' },
+            { name: 'Pinyon Script', category: 'cursive' },
+            { name: 'Kaushan Script', category: 'cursive' },
+            { name: 'Cookie', category: 'cursive' },
+            { name: 'Yellowtail', category: 'cursive' },
+            { name: 'Caveat', category: 'cursive' },
+            { name: 'Permanent Marker', category: 'cursive' },
+            { name: 'Indie Flower', category: 'cursive' },
+            { name: 'Amatic SC', category: 'cursive' },
+            { name: 'Shadows Into Light', category: 'cursive' },
+            { name: 'Comfortaa', category: 'sans-serif' },
+            { name: 'Quicksand', category: 'sans-serif' },
+            { name: 'Work Sans', category: 'sans-serif' },
+            { name: 'Rubik', category: 'sans-serif' },
+            { name: 'Karla', category: 'sans-serif' },
+            { name: 'Josefin Sans', category: 'sans-serif' },
+            { name: 'Cabin', category: 'sans-serif' },
+            { name: 'Barlow', category: 'sans-serif' },
+            { name: 'Barlow Condensed', category: 'sans-serif' },
+            { name: 'Bebas Neue', category: 'sans-serif' },
+            { name: 'Anton', category: 'sans-serif' },
+            { name: 'Archivo', category: 'sans-serif' },
+            { name: 'Arimo', category: 'sans-serif' },
+            { name: 'Source Sans Pro', category: 'sans-serif' },
+            { name: 'Fira Sans', category: 'sans-serif' },
+            { name: 'DM Sans', category: 'sans-serif' },
+            { name: 'Manrope', category: 'sans-serif' },
+            { name: 'Space Grotesk', category: 'sans-serif' },
+            { name: 'Sora', category: 'sans-serif' },
+            { name: 'Plus Jakarta Sans', category: 'sans-serif' },
+            { name: 'Lexend', category: 'sans-serif' },
+            { name: 'Outfit', category: 'sans-serif' },
+            { name: 'Figtree', category: 'sans-serif' },
+            { name: 'Bitter', category: 'serif' },
+            { name: 'Vollkorn', category: 'serif' },
+            { name: 'Spectral', category: 'serif' },
+            { name: 'Cardo', category: 'serif' },
+            { name: 'EB Garamond', category: 'serif' },
+            { name: 'Noto Serif', category: 'serif' },
+            { name: 'Source Serif Pro', category: 'serif' },
+            { name: 'Roboto Slab', category: 'serif' },
+            { name: 'Zilla Slab', category: 'serif' },
+            { name: 'Abril Fatface', category: 'display' },
+            { name: 'Righteous', category: 'display' },
+            { name: 'Fredoka One', category: 'display' },
+            { name: 'Baloo 2', category: 'display' },
+            { name: 'Alfa Slab One', category: 'display' },
+            { name: 'Bangers', category: 'display' },
+            { name: 'Bungee', category: 'display' },
+            { name: 'Changa One', category: 'display' },
+            { name: 'Cinzel', category: 'serif' },
+            { name: 'Cinzel Decorative', category: 'display' },
+            { name: 'Courgette', category: 'cursive' },
+            { name: 'Covered By Your Grace', category: 'cursive' },
+            { name: 'Damion', category: 'cursive' },
+            { name: 'Dosis', category: 'sans-serif' },
+            { name: 'Exo 2', category: 'sans-serif' },
+            { name: 'Francois One', category: 'sans-serif' },
+            { name: 'Gloria Hallelujah', category: 'cursive' },
+            { name: 'Handlee', category: 'cursive' },
+            { name: 'IBM Plex Sans', category: 'sans-serif' },
+            { name: 'IBM Plex Serif', category: 'serif' },
+            { name: 'Inconsolata', category: 'monospace' },
+            { name: 'JetBrains Mono', category: 'monospace' },
+            { name: 'Fira Code', category: 'monospace' },
+            { name: 'Source Code Pro', category: 'monospace' },
+            { name: 'Roboto Mono', category: 'monospace' },
+            { name: 'Space Mono', category: 'monospace' },
+            { name: 'League Spartan', category: 'sans-serif' },
+            { name: 'Libre Franklin', category: 'sans-serif' },
+            { name: 'Maven Pro', category: 'sans-serif' },
+            { name: 'Mulish', category: 'sans-serif' },
+            { name: 'Nanum Gothic', category: 'sans-serif' },
+            { name: 'Overpass', category: 'sans-serif' },
+            { name: 'Oxygen', category: 'sans-serif' },
+            { name: 'Patrick Hand', category: 'cursive' },
+            { name: 'Philosopher', category: 'sans-serif' },
+            { name: 'PT Sans', category: 'sans-serif' },
+            { name: 'Questrial', category: 'sans-serif' },
+            { name: 'Rokkitt', category: 'serif' },
+            { name: 'Saira', category: 'sans-serif' },
+            { name: 'Signika', category: 'sans-serif' },
+            { name: 'Staatliches', category: 'display' },
+            { name: 'Teko', category: 'sans-serif' },
+            { name: 'Titillium Web', category: 'sans-serif' },
+            { name: 'Varela Round', category: 'sans-serif' },
+            { name: 'Yanone Kaffeesatz', category: 'sans-serif' }
+        ].sort((a, b) => a.name.localeCompare(b.name));
+
+        // =============================================
         // Tabs switching
+        // =============================================
         document.querySelectorAll('.form-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
-
                 this.classList.add('active');
                 document.getElementById('form-' + this.dataset.tab).classList.add('active');
             });
         });
+
+        // =============================================
+        // Google Fonts Selector
+        // =============================================
+        const fontSearch = document.getElementById('google-font-search');
+        const fontList = document.getElementById('google-font-list');
+        const selectedFamily = document.getElementById('selected-family');
+        const selectedName = document.getElementById('selected-name');
+        const previewSection = document.getElementById('selected-font-preview');
+        const previewFontName = document.getElementById('preview-font-name');
+        const btnAddGoogle = document.getElementById('btn-add-google');
+        const googleCategory = document.getElementById('google-category');
+
+        let currentSelectedFont = null;
+
+        function renderFontList(filter = '') {
+            const filtered = GOOGLE_FONTS.filter(f =>
+                f.name.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                fontList.innerHTML = '<div class="font-list-empty">Aucune police trouvée</div>';
+                return;
+            }
+
+            fontList.innerHTML = filtered.map(font => `
+                <div class="font-list-item ${currentSelectedFont?.name === font.name ? 'selected' : ''}"
+                     data-name="${font.name}" data-category="${font.category}">
+                    <span class="font-list-item-name">${font.name}</span>
+                    <span class="font-list-item-category">${font.category}</span>
+                </div>
+            `).join('');
+
+            // Event listeners
+            fontList.querySelectorAll('.font-list-item').forEach(item => {
+                item.addEventListener('click', () => selectFont(item.dataset.name, item.dataset.category));
+            });
+        }
+
+        function selectFont(name, category) {
+            currentSelectedFont = { name, category };
+            selectedFamily.value = name;
+            selectedName.value = name;
+            previewFontName.textContent = name;
+            previewSection.style.display = 'block';
+            fontSearch.value = '';
+            btnAddGoogle.disabled = false;
+
+            // Mettre à jour la catégorie
+            googleCategory.value = category;
+
+            renderFontList();
+        }
+
+        function clearFontSelection() {
+            currentSelectedFont = null;
+            selectedFamily.value = '';
+            selectedName.value = '';
+            previewSection.style.display = 'none';
+            btnAddGoogle.disabled = true;
+            renderFontList();
+        }
+
+        fontSearch.addEventListener('input', (e) => renderFontList(e.target.value));
+        document.getElementById('btn-remove-font')?.addEventListener('click', clearFontSelection);
+
+        // Initial render
+        renderFontList();
+
+        // =============================================
+        // Weights Checkboxes
+        // =============================================
+        const weightsCheckboxes = document.querySelectorAll('.weight-checkbox input');
+        const weightsHidden = document.getElementById('google-weights-hidden');
+
+        function updateWeightsValue() {
+            const checked = Array.from(weightsCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+            weightsHidden.value = checked.join(';') || '400';
+        }
+
+        weightsCheckboxes.forEach(cb => cb.addEventListener('change', updateWeightsValue));
+
+        // =============================================
+        // File Upload Zone
+        // =============================================
+        const uploadZone = document.getElementById('font-upload-zone');
+        const fileInput = document.getElementById('font-file-input');
+        const fileSelected = document.getElementById('file-selected');
+        const fileName = document.getElementById('file-name');
+        const uploadContent = uploadZone?.querySelector('.file-upload-content');
+
+        if (uploadZone) {
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    showSelectedFile(e.dataTransfer.files[0].name);
+                }
+            });
+
+            fileInput?.addEventListener('change', () => {
+                if (fileInput.files.length) {
+                    showSelectedFile(fileInput.files[0].name);
+                }
+            });
+
+            document.getElementById('btn-remove-file')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                fileInput.value = '';
+                fileSelected.style.display = 'none';
+                uploadContent.style.display = 'flex';
+            });
+        }
+
+        function showSelectedFile(name) {
+            fileName.textContent = name;
+            fileSelected.style.display = 'flex';
+            uploadContent.style.display = 'none';
+        }
     </script>
 </body>
 </html>

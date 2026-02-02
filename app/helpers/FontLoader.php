@@ -50,6 +50,7 @@ class FontLoader
     /**
      * Génère le CSS @font-face pour les polices custom
      * Retourne le CSS à insérer dans une balise <style>
+     * Supporte: OTF, TTF, WOFF, WOFF2
      */
     public static function getCustomFontsCss(): string
     {
@@ -65,11 +66,18 @@ class FontLoader
         foreach ($customFonts as $font) {
             $sources = [];
 
+            // Fichier principal (peut être OTF, TTF, WOFF ou WOFF2)
             if (!empty($font['custom_woff2_url'])) {
-                $sources[] = "url('" . $font['custom_woff2_url'] . "') format('woff2')";
+                $url = $font['custom_woff2_url'];
+                $format = self::detectFontFormat($url);
+                $sources[] = "url('" . $url . "') format('" . $format . "')";
             }
+
+            // Fichier fallback (optionnel)
             if (!empty($font['custom_woff_url'])) {
-                $sources[] = "url('" . $font['custom_woff_url'] . "') format('woff')";
+                $url = $font['custom_woff_url'];
+                $format = self::detectFontFormat($url);
+                $sources[] = "url('" . $url . "') format('" . $format . "')";
             }
 
             if (!empty($sources)) {
@@ -84,6 +92,22 @@ class FontLoader
         }
 
         return $css;
+    }
+
+    /**
+     * Détecte le format d'une police à partir de son URL/extension
+     */
+    private static function detectFontFormat(string $url): string
+    {
+        $ext = strtolower(pathinfo($url, PATHINFO_EXTENSION));
+
+        return match ($ext) {
+            'woff2' => 'woff2',
+            'woff' => 'woff',
+            'ttf' => 'truetype',
+            'otf' => 'opentype',
+            default => 'woff2'
+        };
     }
 
     /**
