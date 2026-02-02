@@ -307,14 +307,27 @@ function injectFontLinkAsync(font) {
     // Vérifier si déjà injecté
     const existing = document.querySelector(`link[data-font="${font.family}"]`);
     if (existing) {
-      // Déjà injecté, vérifier si chargé
-      if (existing.dataset.loaded === 'true') {
+      // Déjà injecté, vérifier si chargé via la propriété sheet
+      if (existing.dataset.loaded === 'true' || existing.sheet) {
+        existing.dataset.loaded = 'true';
         resolve(true);
         return;
       }
-      // Attendre le chargement
-      existing.addEventListener('load', () => resolve(true), { once: true });
-      existing.addEventListener('error', () => resolve(false), { once: true });
+      // Attendre le chargement avec timeout
+      const timeout = setTimeout(() => {
+        console.warn(`[Editor] Timeout CSS Police: ${font.label}`);
+        resolve(true); // Continuer quand même
+      }, 3000);
+
+      existing.addEventListener('load', () => {
+        clearTimeout(timeout);
+        existing.dataset.loaded = 'true';
+        resolve(true);
+      }, { once: true });
+      existing.addEventListener('error', () => {
+        clearTimeout(timeout);
+        resolve(false);
+      }, { once: true });
       return;
     }
 
@@ -325,13 +338,22 @@ function injectFontLinkAsync(font) {
     link.dataset.font = font.family;
     link.crossOrigin = 'anonymous';
 
+    // Timeout de sécurité
+    const timeout = setTimeout(() => {
+      console.warn(`[Editor] Timeout CSS Police: ${font.label}`);
+      link.dataset.loaded = 'true';
+      resolve(true); // Continuer quand même
+    }, 5000);
+
     link.addEventListener('load', () => {
+      clearTimeout(timeout);
       link.dataset.loaded = 'true';
       console.info(`[Editor] CSS Police chargée: ${font.label} (${font.family})`);
       resolve(true);
     }, { once: true });
 
     link.addEventListener('error', () => {
+      clearTimeout(timeout);
       console.warn(`[Editor] Erreur CSS Police: ${font.label} (${font.family})`);
       resolve(false);
     }, { once: true });
@@ -400,9 +422,15 @@ async function loadAllFonts() {
 
   console.info(`[Editor] Chargement de ${state.fonts.length} police(s)...`);
 
-  await Promise.all(state.fonts.map(font => loadFontCompletely(font)));
+  // Timeout global de 8 secondes max
+  const timeoutPromise = new Promise(resolve => setTimeout(resolve, 8000));
 
-  console.info(`[Editor] Toutes les polices sont chargées`);
+  await Promise.race([
+    Promise.all(state.fonts.map(font => loadFontCompletely(font))),
+    timeoutPromise
+  ]);
+
+  console.info(`[Editor] Chargement des polices terminé`);
 }
 
 
