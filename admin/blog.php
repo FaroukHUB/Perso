@@ -105,7 +105,7 @@ $statuses = $blogModel->getStatuses();
                         </thead>
                         <tbody>
                             <?php foreach ($posts as $post): ?>
-                                <tr>
+                                <tr class="clickable-row" data-href="/admin/blog-form.php?id=<?= $post['id'] ?>">
                                     <td>
                                         <div style="display: flex; align-items: center; gap: 12px;">
                                             <div class="post-cover" style="width: 60px; height: 45px; background: linear-gradient(135deg, rgba(255,105,180,0.15) 0%, rgba(61,255,192,0.15) 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; overflow: hidden;">
@@ -116,7 +116,9 @@ $statuses = $blogModel->getStatuses();
                                                 <?php endif; ?>
                                             </div>
                                             <div>
-                                                <strong><?= h($post['title']) ?></strong>
+                                                <a href="/admin/blog-form.php?id=<?= $post['id'] ?>" style="color: inherit; text-decoration: none;">
+                                                    <strong><?= h($post['title']) ?></strong>
+                                                </a>
                                                 <?php if (!empty($post['excerpt'])): ?>
                                                     <div class="text-muted" style="font-size: 13px;">
                                                         <?= h(substr($post['excerpt'], 0, 60)) ?>...
@@ -227,6 +229,22 @@ $statuses = $blogModel->getStatuses();
         .btn-icon-danger:hover {
             background: #dc3545;
         }
+        .clickable-row {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .clickable-row:hover {
+            background-color: rgba(255, 105, 180, 0.05);
+        }
     </style>
+    <script>
+    document.querySelectorAll('.clickable-row').forEach(row => {
+        row.addEventListener('click', function(e) {
+            if (!e.target.closest('a') && !e.target.closest('button')) {
+                window.location.href = this.dataset.href;
+            }
+        });
+    });
+    </script>
 </body>
 </html>
