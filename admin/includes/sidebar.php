@@ -1,20 +1,17 @@
 <?php
 /**
  * PERSONNALY - Admin Sidebar Navigation
- * Fichier commun pour éviter la duplication du menu
- *
- * ARCHITECTURE IMPOSÉE :
- * - PAS de page "Styles Sections" (homepage-styles.php)
- * - Les styles de section sont gérés DANS le formulaire Page d'accueil
- * - Stockage : config.style (JSON) par section
- * - UNE SEULE SOURCE DE VÉRITÉ
+ * Menu organisé par groupes thématiques
  */
 
 // Déterminer la page active
 $currentPage = basename($_SERVER['PHP_SELF']);
 
-function isActive($page, $current) {
-    return $page === $current ? 'active' : '';
+function isActive($pages, $current) {
+    if (is_array($pages)) {
+        return in_array($current, $pages) ? 'active' : '';
+    }
+    return $pages === $current ? 'active' : '';
 }
 ?>
 <aside class="sidebar">
@@ -24,6 +21,7 @@ function isActive($page, $current) {
     </div>
 
     <nav class="sidebar-nav">
+        <!-- TABLEAU DE BORD -->
         <a href="/admin/dashboard.php" class="nav-item <?= isActive('dashboard.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="7" height="7" rx="1"/>
@@ -34,7 +32,10 @@ function isActive($page, $current) {
             <span>Dashboard</span>
         </a>
 
-        <a href="/admin/orders.php" class="nav-item <?= isActive('orders.php', $currentPage) ?><?= isActive('order.php', $currentPage) ?>">
+        <!-- VENTES -->
+        <div class="nav-group-label">Ventes</div>
+
+        <a href="/admin/orders.php" class="nav-item <?= isActive(['orders.php', 'order.php'], $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
                 <line x1="3" y1="6" x2="21" y2="6"/>
@@ -46,7 +47,20 @@ function isActive($page, $current) {
             <?php endif; ?>
         </a>
 
-        <a href="/admin/products.php" class="nav-item <?= isActive('products.php', $currentPage) ?><?= isActive('product-form.php', $currentPage) ?>">
+        <a href="/admin/customers.php" class="nav-item <?= isActive(['customers.php', 'customer.php'], $currentPage) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>Clients</span>
+        </a>
+
+        <!-- CATALOGUE -->
+        <div class="nav-group-label">Catalogue</div>
+
+        <a href="/admin/products.php" class="nav-item <?= isActive(['products.php', 'product-form.php', 'product-zones.php'], $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
                 <line x1="7" y1="7" x2="7.01" y2="7"/>
@@ -54,14 +68,14 @@ function isActive($page, $current) {
             <span>Produits</span>
         </a>
 
-        <a href="/admin/categories.php" class="nav-item <?= isActive('categories.php', $currentPage) ?><?= isActive('category-form.php', $currentPage) ?>">
+        <a href="/admin/categories.php" class="nav-item <?= isActive(['categories.php', 'category-form.php'], $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
             </svg>
             <span>Catégories</span>
         </a>
 
-        <a href="/admin/packs.php" class="nav-item <?= isActive('packs.php', $currentPage) ?><?= isActive('pack-form.php', $currentPage) ?>">
+        <a href="/admin/packs.php" class="nav-item <?= isActive(['packs.php', 'pack-form.php'], $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
                 <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
@@ -70,27 +84,31 @@ function isActive($page, $current) {
             <span>Packs / Idées</span>
         </a>
 
-        <a href="/admin/upsells.php" class="nav-item <?= isActive('upsells.php', $currentPage) ?><?= isActive('upsell-form.php', $currentPage) ?>">
+        <a href="/admin/upsells.php" class="nav-item <?= isActive(['upsells.php', 'upsell-form.php'], $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                <polyline points="7.5 4.21 12 6.81 16.5 4.21"/>
-                <polyline points="7.5 19.79 7.5 14.6 3 12"/>
-                <polyline points="21 12 16.5 14.6 16.5 19.79"/>
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                <line x1="12" y1="22.08" x2="12" y2="12"/>
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                <path d="M16 10l-4-4-4 4"/>
             </svg>
             <span>Upsells</span>
         </a>
 
-        <a href="/admin/promo-codes.php" class="nav-item <?= isActive('promo-codes.php', $currentPage) ?><?= isActive('promo-code-form.php', $currentPage) ?><?= isActive('promo-rules.php', $currentPage) ?><?= isActive('promo-rule-form.php', $currentPage) ?>">
+        <a href="/admin/promo-codes.php" class="nav-item <?= isActive(['promo-codes.php', 'promo-code-form.php', 'promo-rules.php', 'promo-rule-form.php'], $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                <line x1="7" y1="7" x2="7.01" y2="7"/>
+                <polyline points="20 12 20 22 4 22 4 12"/>
+                <rect x="2" y="7" width="20" height="5"/>
+                <line x1="12" y1="22" x2="12" y2="7"/>
+                <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+                <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
             </svg>
             <span>Promotions</span>
         </a>
 
-        <a href="/admin/pages.php" class="nav-item <?= isActive('pages.php', $currentPage) ?><?= isActive('homepage-builder.php', $currentPage) ?><?= isActive('page-editor.php', $currentPage) ?><?= isActive('menu-editor.php', $currentPage) ?>">
+        <!-- CONTENU -->
+        <div class="nav-group-label">Contenu</div>
+
+        <a href="/admin/pages.php" class="nav-item <?= isActive(['pages.php', 'homepage-builder.php', 'page-editor.php', 'menu-editor.php'], $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
                 <line x1="3" y1="9" x2="21" y2="9"/>
@@ -99,12 +117,37 @@ function isActive($page, $current) {
             <span>Page Builder</span>
         </a>
 
-        <a href="/admin/blog.php" class="nav-item <?= isActive('blog.php', $currentPage) ?><?= isActive('blog-form.php', $currentPage) ?>">
+        <a href="/admin/blog.php" class="nav-item <?= isActive(['blog.php', 'blog-form.php'], $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
             </svg>
             <span>Blog</span>
+        </a>
+
+        <!-- PERSONNALISATION -->
+        <div class="nav-group-label">Personnalisation</div>
+
+        <a href="/admin/options.php" class="nav-item <?= isActive('options.php', $currentPage) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+            </svg>
+            <span>Options produits</span>
+        </a>
+
+        <!-- APPARENCE -->
+        <div class="nav-group-label">Apparence</div>
+
+        <a href="/admin/branding.php" class="nav-item <?= isActive('branding.php', $currentPage) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="13.5" cy="6.5" r="2.5"/>
+                <circle cx="17.5" cy="10.5" r="2.5"/>
+                <circle cx="8.5" cy="7.5" r="2.5"/>
+                <circle cx="6.5" cy="12.5" r="2.5"/>
+                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/>
+            </svg>
+            <span>Branding</span>
         </a>
 
         <a href="/admin/fonts.php" class="nav-item <?= isActive('fonts.php', $currentPage) ?>">
@@ -116,40 +159,19 @@ function isActive($page, $current) {
             <span>Polices</span>
         </a>
 
-        <a href="/admin/options.php" class="nav-item <?= isActive('options.php', $currentPage) ?>">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7m0-18H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7m0-18v18"/>
-                <path d="M7 8h2m-2 4h2m6-4h2m-2 4h2"/>
-            </svg>
-            <span>Options</span>
-        </a>
-
-        <a href="/admin/branding.php" class="nav-item <?= isActive('branding.php', $currentPage) ?>">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-                <path d="M2 12h20"/>
-            </svg>
-            <span>Branding</span>
-        </a>
-
-        <a href="/admin/customers.php" class="nav-item <?= isActive('customers.php', $currentPage) ?><?= isActive('customer.php', $currentPage) ?>">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            <span>Clients</span>
-        </a>
+        <!-- MARKETING -->
+        <div class="nav-group-label">Marketing</div>
 
         <a href="/admin/marketing.php" class="nav-item <?= isActive('marketing.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                 <polyline points="22,6 12,13 2,6"/>
             </svg>
-            <span>Marketing</span>
+            <span>Campagnes</span>
         </a>
+
+        <!-- CONFIGURATION -->
+        <div class="nav-group-label">Configuration</div>
 
         <a href="/admin/settings.php" class="nav-item <?= isActive('settings.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

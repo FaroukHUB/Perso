@@ -121,6 +121,20 @@
     border-radius: var(--radius-full);
 }
 
+.nav-group-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 16px 18px 8px;
+    margin-top: 8px;
+}
+
+.nav-group-label:first-of-type {
+    margin-top: 0;
+}
+
 .sidebar-footer {
     padding-top: var(--spacing-lg);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
