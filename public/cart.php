@@ -150,6 +150,11 @@ $defaultRecipient = $shopSettings->getDefaultAddress();
 // Récupérer les tarifs de livraison dynamiques
 $shippingRates = $boxtalService->getShippingRates($defaultRecipient, $cartWeight, $cartTotal);
 
+// DEBUG - Afficher les valeurs (à supprimer après debug)
+$debugFreeShippingEnabled = $shopSettings->isFreeShippingEnabled();
+$debugFreeShippingThreshold = $shopSettings->get('free_shipping_threshold', 50);
+echo "<!-- DEBUG FREE SHIPPING: enabled=" . ($debugFreeShippingEnabled ? 'true' : 'false') . ", threshold=$debugFreeShippingThreshold, cartTotal=$cartTotal -->";
+
 // Convertir en format compatible
 $shippingOptions = [];
 foreach ($shippingRates as $rate) {
