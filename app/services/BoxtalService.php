@@ -391,4 +391,137 @@ class BoxtalService
 
         return max($totalWeight, 100); // Minimum 100g
     }
+
+    /**
+     * Récupère les points relais disponibles pour un transporteur et un code postal
+     */
+    public function getRelayPoints(string $carrierCode, string $postcode, string $country = 'FR'): array
+    {
+        if (!$this->isEnabled) {
+            return [];
+        }
+
+        // Mapper les codes opérateurs vers les codes de service point relais
+        $carrierMapping = [
+            'MONR' => 'MONR',           // Mondial Relay
+            'SOGP' => 'SOGP',           // Relais Colis (So Colissimo)
+            'UPSE' => 'UPSE',           // UPS Access Point
+            'CHRP' => 'CHRP',           // Chronopost Relais
+            'POFR' => 'POFR',           // Colissimo Point Retrait
+        ];
+
+        // Extraire le code opérateur de l'ID (ex: MONR_RELAIS -> MONR)
+        $operatorCode = explode('_', $carrierCode)[0];
+
+        if (!isset($carrierMapping[$operatorCode])) {
+            return [];
+        }
+
+        try {
+            $params = [
+                'pays' => $country,
+                'code_postal' => $postcode,
+                'ope_code' => $operatorCode,
+            ];
+
+            $url = $this->apiUrl . 'listpoints?' . http_build_query($params);
+
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => [
+                    'Authorization: Basic ' . base64_encode($this->accessKey . ':' . $this->secretKey),
+                    'Accept: application/xml'
+                ],
+                CURLOPT_TIMEOUT => 15,
+                CURLOPT_SSL_VERIFYPEER => true
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode !== 200 || empty($response)) {
+                return [];
+            }
+
+            libxml_use_internal_errors(true);
+            $xml = simplexml_load_string($response);
+
+            if ($xml === false) {
+                return [];
+            }
+
+            return $this->formatRelayPoints($xml);
+
+        } catch (Exception $e) {
+            error_log('Boxtal Relay Points Error: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Formate les points relais depuis la réponse XML
+     */
+    private function formatRelayPoints(SimpleXMLElement $xml): array
+    {
+        $points = [];
+
+        // L'API retourne une liste de points
+        foreach ($xml->point as $point) {
+            $code = (string)$point->code;
+            $name = (string)$point->name;
+            $address = (string)$point->address;
+            $city = (string)$point->city;
+            $postcode = (string)$point->zipcode;
+            $country = (string)$point->country;
+
+            // Coordonnées GPS si disponibles
+            $lat = (float)$point->latitude;
+            $lng = (float)$point->longitude;
+
+            // Horaires d'ouverture
+            $schedule = [];
+            if (isset($point->schedule)) {
+                foreach ($point->schedule->day as $day) {
+                    $dayName = (string)$day['name'];
+                    $hours = (string)$day;
+                    if (!empty($hours)) {
+                        $schedule[$dayName] = $hours;
+                    }
+                }
+            }
+
+            // Distance si disponible
+            $distance = isset($point->distance) ? (float)$point->distance : null;
+
+            $points[] = [
+                'code' => $code,
+                'name' => $name,
+                'address' => $address,
+                'city' => $city,
+                'postcode' => $postcode,
+                'country' => $country,
+                'latitude' => $lat,
+                'longitude' => $lng,
+                'schedule' => $schedule,
+                'distance' => $distance,
+                'formatted_address' => trim("$address, $postcode $city")
+            ];
+        }
+
+        // Limiter à 10 points relais
+        return array_slice($points, 0, 10);
+    }
+
+    /**
+     * Vérifie si un transporteur supporte les points relais
+     */
+    public function isRelayCarrier(string $carrierCode): bool
+    {
+        $relayCarriers = ['MONR', 'SOGP', 'UPSE', 'CHRP', 'POFR_RELAIS'];
+        $operatorCode = explode('_', $carrierCode)[0];
+        return in_array($operatorCode, $relayCarriers);
+    }
 }

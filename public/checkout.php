@@ -179,16 +179,55 @@ if (isset($_POST['ajax_shipping']) && isset($_POST['shipping_method'])) {
             $_SESSION['shipping_method'] = $method;
             $_SESSION['shipping_cost'] = $rate['price'];
             $_SESSION['shipping_label'] = $rate['label'];
+            // Vérifier si c'est un transporteur point relais
+            $isRelay = $rate['is_relay'] ?? false;
             echo json_encode([
                 'success' => true,
                 'price' => $rate['price'],
                 'label' => $rate['label'],
-                'total' => $cartTotal + $rate['price']
+                'total' => $cartTotal + $rate['price'],
+                'is_relay' => $isRelay
             ]);
             exit;
         }
     }
     echo json_encode(['success' => false]);
+    exit;
+}
+
+// Traitement AJAX pour récupérer les points relais
+if (isset($_POST['ajax_relay_points'])) {
+    header('Content-Type: application/json');
+    $carrierCode = $_POST['carrier'] ?? '';
+    $postcode = $_POST['postcode'] ?? '';
+
+    if (empty($carrierCode) || empty($postcode)) {
+        echo json_encode(['success' => false, 'error' => 'Paramètres manquants']);
+        exit;
+    }
+
+    $relayPoints = $boxtalService->getRelayPoints($carrierCode, $postcode);
+    echo json_encode([
+        'success' => true,
+        'points' => $relayPoints
+    ]);
+    exit;
+}
+
+// Traitement AJAX pour sélectionner un point relais
+if (isset($_POST['ajax_select_relay'])) {
+    header('Content-Type: application/json');
+    $relayCode = $_POST['relay_code'] ?? '';
+    $relayName = $_POST['relay_name'] ?? '';
+    $relayAddress = $_POST['relay_address'] ?? '';
+
+    $_SESSION['relay_point'] = [
+        'code' => $relayCode,
+        'name' => $relayName,
+        'address' => $relayAddress
+    ];
+
+    echo json_encode(['success' => true]);
     exit;
 }
 
@@ -230,15 +269,30 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                     $userId = (int) $db->lastInsertId();
                 }
 
-                // Adresse de livraison formatée
-                $shippingAddress = json_encode([
+                // Adresse de livraison formatée (avec point relais si sélectionné)
+                $relayPointCode = post('relay_point_code', '');
+                $relayPointName = post('relay_point_name', '');
+                $relayPointAddress = post('relay_point_address', '');
+
+                $shippingData = [
                     'first_name' => $firstName,
                     'last_name' => $lastName,
                     'address' => $address,
                     'city' => $city,
                     'zipcode' => $zipcode,
                     'phone' => $phone,
-                ], JSON_UNESCAPED_UNICODE);
+                ];
+
+                // Ajouter les infos point relais si sélectionné
+                if (!empty($relayPointCode)) {
+                    $shippingData['relay_point'] = [
+                        'code' => $relayPointCode,
+                        'name' => $relayPointName,
+                        'address' => $relayPointAddress
+                    ];
+                }
+
+                $shippingAddress = json_encode($shippingData, JSON_UNESCAPED_UNICODE);
 
                 // Calculer le total avec livraison
                 $totalWithShipping = $cartTotal + $shippingCost;
@@ -679,6 +733,82 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
             color: var(--pink-dark);
         }
 
+        /* Relay Points */
+        .relay-search { margin-bottom: 20px; }
+        .relay-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 30px;
+            color: var(--gray);
+        }
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e5e5e5;
+            border-top-color: var(--pink-main);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .relay-points-list { max-height: 400px; overflow-y: auto; }
+        .relay-point {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .relay-point:hover { border-color: var(--pink-light); background: rgba(255, 105, 180, 0.02); }
+        .relay-point.selected { border-color: var(--pink-main); background: rgba(255, 105, 180, 0.05); }
+        .relay-point-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-mint);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .relay-point-icon svg { stroke: var(--black); }
+        .relay-point-info { flex: 1; }
+        .relay-point-name { font-weight: 600; font-size: 15px; color: var(--black-soft); margin-bottom: 4px; }
+        .relay-point-address { font-size: 13px; color: var(--gray); line-height: 1.4; }
+        .relay-point-distance {
+            font-size: 12px;
+            color: var(--pink-dark);
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        .relay-point-check {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e5e5e5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .relay-point.selected .relay-point-check {
+            background: var(--gradient-pink);
+            border-color: var(--pink-main);
+        }
+        .relay-point.selected .relay-point-check svg { display: block; }
+        .relay-point-check svg { display: none; stroke: white; }
+        .relay-empty {
+            text-align: center;
+            padding: 30px;
+            color: var(--gray);
+        }
+
         /* Success Page */
         .success-page {
             max-width: 600px;
@@ -884,8 +1014,47 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                                 </div>
                             </div>
 
+                            <!-- Relay Point Selection (hidden by default) -->
+                            <div class="checkout-form-section relay-point-section" id="relay-section" style="margin-bottom: 25px; display: none;">
+                                <h2 class="section-title">
+                                    <span class="section-number">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                            <circle cx="12" cy="10" r="3"/>
+                                        </svg>
+                                    </span>
+                                    Choisir votre point relais
+                                </h2>
+
+                                <div class="relay-search">
+                                    <div class="form-row">
+                                        <div class="form-group" style="flex: 2;">
+                                            <label class="form-label">Code postal <span class="required">*</span></label>
+                                            <input type="text" id="relay-postcode" class="form-input"
+                                                   placeholder="75001" maxlength="5">
+                                        </div>
+                                        <div class="form-group" style="flex: 1; display: flex; align-items: flex-end;">
+                                            <button type="button" id="search-relay-btn" class="btn btn-secondary" style="width: 100%; margin-bottom: 0;">
+                                                Rechercher
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="relay-loading" class="relay-loading" style="display: none;">
+                                    <div class="spinner"></div>
+                                    <span>Recherche des points relais...</span>
+                                </div>
+
+                                <div id="relay-points-list" class="relay-points-list"></div>
+
+                                <input type="hidden" name="relay_point_code" id="relay-point-code" value="">
+                                <input type="hidden" name="relay_point_name" id="relay-point-name" value="">
+                                <input type="hidden" name="relay_point_address" id="relay-point-address" value="">
+                            </div>
+
                             <!-- Shipping Address -->
-                            <div class="checkout-form-section">
+                            <div class="checkout-form-section" id="address-section">
                                 <h2 class="section-title">
                                     <span class="section-number">3</span>
                                     Adresse de livraison
@@ -893,7 +1062,7 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
 
                                 <div class="form-group">
                                     <label class="form-label">Adresse <span class="required">*</span></label>
-                                    <input type="text" name="address" class="form-input"
+                                    <input type="text" name="address" class="form-input" id="address-input"
                                            placeholder="123 rue de la Paix" required
                                            value="<?= h(post('address', '')) ?>">
                                 </div>
@@ -901,13 +1070,13 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label class="form-label">Code postal <span class="required">*</span></label>
-                                        <input type="text" name="zipcode" class="form-input"
+                                        <input type="text" name="zipcode" class="form-input" id="zipcode-input"
                                                placeholder="75001" required
                                                value="<?= h(post('zipcode', '')) ?>">
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Ville <span class="required">*</span></label>
-                                        <input type="text" name="city" class="form-input"
+                                        <input type="text" name="city" class="form-input" id="city-input"
                                                placeholder="Paris" required
                                                value="<?= h(post('city', '')) ?>">
                                     </div>
@@ -1015,7 +1184,17 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
     document.addEventListener('DOMContentLoaded', function() {
         const cartTotal = <?= $cartTotal ?>;
         const shippingOptions = document.querySelectorAll('input[name="shipping_method"]');
+        const relaySection = document.getElementById('relay-section');
+        const addressSection = document.getElementById('address-section');
+        const relayPostcode = document.getElementById('relay-postcode');
+        const searchRelayBtn = document.getElementById('search-relay-btn');
+        const relayLoading = document.getElementById('relay-loading');
+        const relayPointsList = document.getElementById('relay-points-list');
 
+        let currentCarrier = '';
+        let isRelaySelected = false;
+
+        // Shipping method selection
         shippingOptions.forEach(function(option) {
             option.addEventListener('change', function() {
                 // Update selected state
@@ -1024,6 +1203,7 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
 
                 const price = parseFloat(this.dataset.price);
                 const label = this.dataset.label;
+                currentCarrier = this.value;
 
                 // Update summary
                 document.getElementById('shipping-label').textContent = label;
@@ -1039,14 +1219,135 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                 const total = cartTotal + price;
                 document.getElementById('total-price').textContent = total.toFixed(2).replace('.', ',') + ' €';
 
-                // Save to session via AJAX
+                // Save to session and check if relay
                 fetch('/public/checkout.php', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: 'ajax_shipping=1&shipping_method=' + encodeURIComponent(this.value)
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.is_relay) {
+                        // Show relay section, hide address (or make optional)
+                        relaySection.style.display = 'block';
+                        isRelaySelected = true;
+                        // Clear previous selection
+                        relayPointsList.innerHTML = '';
+                        document.getElementById('relay-point-code').value = '';
+                        document.getElementById('relay-point-name').value = '';
+                        document.getElementById('relay-point-address').value = '';
+                        // Pre-fill postcode from address if available
+                        const zipInput = document.getElementById('zipcode-input');
+                        if (zipInput && zipInput.value) {
+                            relayPostcode.value = zipInput.value;
+                        }
+                    } else {
+                        relaySection.style.display = 'none';
+                        isRelaySelected = false;
+                    }
                 });
             });
         });
+
+        // Search relay points
+        if (searchRelayBtn) {
+            searchRelayBtn.addEventListener('click', function() {
+                const postcode = relayPostcode.value.trim();
+                if (!postcode || postcode.length < 5) {
+                    alert('Veuillez entrer un code postal valide');
+                    return;
+                }
+
+                relayLoading.style.display = 'flex';
+                relayPointsList.innerHTML = '';
+
+                fetch('/public/checkout.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'ajax_relay_points=1&carrier=' + encodeURIComponent(currentCarrier) + '&postcode=' + encodeURIComponent(postcode)
+                })
+                .then(r => r.json())
+                .then(data => {
+                    relayLoading.style.display = 'none';
+                    if (data.success && data.points && data.points.length > 0) {
+                        renderRelayPoints(data.points);
+                    } else {
+                        relayPointsList.innerHTML = '<div class="relay-empty">Aucun point relais trouvé pour ce code postal. Essayez un autre code postal.</div>';
+                    }
+                })
+                .catch(err => {
+                    relayLoading.style.display = 'none';
+                    relayPointsList.innerHTML = '<div class="relay-empty">Erreur lors de la recherche. Veuillez réessayer.</div>';
+                });
+            });
+        }
+
+        // Render relay points
+        function renderRelayPoints(points) {
+            relayPointsList.innerHTML = points.map(point => `
+                <div class="relay-point" data-code="${point.code}" data-name="${escapeHtml(point.name)}" data-address="${escapeHtml(point.formatted_address)}">
+                    <div class="relay-point-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                    <div class="relay-point-info">
+                        <div class="relay-point-name">${escapeHtml(point.name)}</div>
+                        <div class="relay-point-address">${escapeHtml(point.address)}<br>${point.postcode} ${escapeHtml(point.city)}</div>
+                        ${point.distance ? `<div class="relay-point-distance">À ${point.distance.toFixed(1)} km</div>` : ''}
+                    </div>
+                    <div class="relay-point-check">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add click handlers
+            document.querySelectorAll('.relay-point').forEach(el => {
+                el.addEventListener('click', function() {
+                    document.querySelectorAll('.relay-point').forEach(p => p.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    const code = this.dataset.code;
+                    const name = this.dataset.name;
+                    const address = this.dataset.address;
+
+                    document.getElementById('relay-point-code').value = code;
+                    document.getElementById('relay-point-name').value = name;
+                    document.getElementById('relay-point-address').value = address;
+
+                    // Save to session
+                    fetch('/public/checkout.php', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'ajax_select_relay=1&relay_code=' + encodeURIComponent(code) + '&relay_name=' + encodeURIComponent(name) + '&relay_address=' + encodeURIComponent(address)
+                    });
+                });
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Check initial state for relay
+        const checkedOption = document.querySelector('input[name="shipping_method"]:checked');
+        if (checkedOption) {
+            currentCarrier = checkedOption.value;
+            const parentLabel = checkedOption.closest('.shipping-option');
+            if (parentLabel && parentLabel.closest('.shipping-group')) {
+                const groupTitle = parentLabel.closest('.shipping-group').querySelector('.shipping-group-title');
+                if (groupTitle && groupTitle.textContent.includes('relais')) {
+                    relaySection.style.display = 'block';
+                    isRelaySelected = true;
+                }
+            }
+        }
     });
     </script>
 </body>
