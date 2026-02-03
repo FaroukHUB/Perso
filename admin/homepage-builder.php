@@ -74,7 +74,7 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 'subtitle' => trim($_POST['subtitle'] ?? ''),
                 'content' => trim($_POST['content'] ?? ''),
                 'cta_text' => trim($_POST['cta_text'] ?? ''),
-                'cta_url' => trim($_POST['cta_url'] ?? ''),
+                'cta_url' => sanitizeUrl($_POST['cta_url'] ?? ''),
                 'media_type' => $_POST['media_type'] ?? 'none',
                 'status' => $_POST['status'] ?? 'draft',
                 'config' => []
@@ -160,7 +160,7 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 $data['config']['badge'] = trim($_POST['hero_badge'] ?? '');
                 $data['config']['highlight'] = trim($_POST['hero_highlight'] ?? '');
                 $data['config']['cta2_text'] = trim($_POST['hero_cta2_text'] ?? '');
-                $data['config']['cta2_url'] = trim($_POST['hero_cta2_url'] ?? '');
+                $data['config']['cta2_url'] = sanitizeUrl($_POST['hero_cta2_url'] ?? '');
             }
 
             // Style

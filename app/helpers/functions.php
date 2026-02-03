@@ -12,6 +12,47 @@ function h(string $string): string
 }
 
 /**
+ * Sanitise une URL pour prévenir les injections XSS
+ * Bloque les protocoles dangereux (javascript:, data:, vbscript:)
+ * Accepte les URLs relatives, http://, https://, mailto:, tel:
+ */
+function sanitizeUrl(?string $url): string
+{
+    if ($url === null || $url === '') {
+        return '';
+    }
+
+    $url = trim($url);
+
+    // Protocoles autorisés
+    $allowedProtocols = ['http://', 'https://', 'mailto:', 'tel:', '/', '#'];
+
+    // Vérifier si l'URL commence par un protocole autorisé ou est relative
+    $isAllowed = false;
+    foreach ($allowedProtocols as $protocol) {
+        if (strpos($url, $protocol) === 0) {
+            $isAllowed = true;
+            break;
+        }
+    }
+
+    // Si pas de protocole reconnu, vérifier que ce n'est pas un protocole dangereux
+    if (!$isAllowed) {
+        $lowercaseUrl = strtolower($url);
+        $dangerousProtocols = ['javascript:', 'data:', 'vbscript:', 'file:'];
+        foreach ($dangerousProtocols as $dangerous) {
+            if (strpos($lowercaseUrl, $dangerous) === 0) {
+                return '#'; // Retourner un lien vide/sûr
+            }
+        }
+        // URL relative sans protocole - autorisé
+        $isAllowed = true;
+    }
+
+    return $isAllowed ? $url : '#';
+}
+
+/**
  * Redirige vers une URL
  */
 function redirect(string $url): void

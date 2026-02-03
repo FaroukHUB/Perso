@@ -108,7 +108,7 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 'subtitle' => trim($_POST['subtitle'] ?? ''),
                 'content' => trim($_POST['content'] ?? ''),
                 'cta_text' => trim($_POST['cta_text'] ?? ''),
-                'cta_url' => trim($_POST['cta_url'] ?? ''),
+                'cta_url' => sanitizeUrl($_POST['cta_url'] ?? ''),
                 'media_type' => $_POST['media_type'] ?? 'none',
                 'status' => $_POST['status'] ?? 'draft',
                 'config' => []
