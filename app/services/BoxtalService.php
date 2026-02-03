@@ -414,6 +414,7 @@ class BoxtalService
             'UPSE' => 'UPSE',           // UPS Access Point
             'CHRP' => 'CHRP',           // Chronopost Relais
             'POFR' => 'POFR',           // Colissimo Point Retrait
+            'COPR' => 'COPR',           // Colis Privé
         ];
 
         // Extraire le code opérateur de l'ID (ex: MONR_RELAIS -> MONR)
