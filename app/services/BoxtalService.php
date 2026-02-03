@@ -47,30 +47,8 @@ class BoxtalService
      */
     private function isFreeShipping(float $cartTotal): bool
     {
-        // Lire directement depuis la BDD pour éviter tout problème de cache
-        try {
-            $db = Database::getInstance();
-            $stmt = $db->prepare("SELECT setting_value FROM shop_settings WHERE setting_key = 'free_shipping_enabled' LIMIT 1");
-            $stmt->execute();
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            // Si pas trouvé ou valeur = '0', désactivé
-            $enabled = $row && $row['setting_value'] === '1';
-
-            if (!$enabled) {
-                return false;
-            }
-
-            // Récupérer le seuil
-            $stmt = $db->prepare("SELECT setting_value FROM shop_settings WHERE setting_key = 'free_shipping_threshold' LIMIT 1");
-            $stmt->execute();
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            $threshold = $row ? (float)$row['setting_value'] : 50.0;
-
-            return $cartTotal >= $threshold;
-        } catch (Exception $e) {
-            return false;
-        }
+        // FORCE DÉSACTIVÉ POUR DEBUG
+        return false;
     }
 
     /**
