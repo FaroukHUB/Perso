@@ -119,10 +119,11 @@ if (!$settings->isBoxtalEnabled()) {
                 echo "<h4>Transporteurs disponibles:</h4>";
                 echo "<ul>";
                 $count = 0;
-                foreach ($xml->shipment as $shipment) {
-                    $carrier = (string)$shipment->offer->operator->label;
-                    $service = (string)$shipment->offer->service->label;
-                    $price = (string)$shipment->offer->price['tax-inclusive'];
+                // L'API retourne UN shipment avec PLUSIEURS offers dedans
+                foreach ($xml->shipment->offer as $offer) {
+                    $carrier = (string)$offer->operator->label;
+                    $service = (string)$offer->service->label;
+                    $price = (string)$offer->price['tax-inclusive'];
                     echo "<li><strong>$carrier</strong> - $service : " . number_format((float)$price, 2, ',', ' ') . " €</li>";
                     $count++;
                     if ($count >= 10) {

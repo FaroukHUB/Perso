@@ -157,9 +157,8 @@ class BoxtalService
         $rates = [];
         $config = $this->settings->getManualShippingRates();
 
-        // L'API v1 retourne <shipment> pour chaque offre
-        foreach ($xml->shipment as $shipment) {
-            $offer = $shipment->offer;
+        // L'API v1 retourne UN <shipment> avec PLUSIEURS <offer> dedans
+        foreach ($xml->shipment->offer as $offer) {
             $operator = $offer->operator;
             $service = $offer->service;
 
@@ -177,7 +176,7 @@ class BoxtalService
             }
 
             // Délai de livraison
-            $deliveryDate = (string)$shipment->delivery->date;
+            $deliveryDate = (string)$offer->delivery->date;
             $delay = $deliveryDate ? date('d/m', strtotime($deliveryDate)) : '';
 
             // Point relais?
