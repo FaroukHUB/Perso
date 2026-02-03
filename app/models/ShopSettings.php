@@ -225,7 +225,8 @@ class ShopSettings
      */
     public function isFreeShippingEnabled(): bool
     {
-        return (bool) $this->get('free_shipping_enabled', true);
+        // Default à false pour ne pas activer la livraison gratuite par défaut
+        return (bool) $this->get('free_shipping_enabled', false);
     }
 
     /**

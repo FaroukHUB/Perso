@@ -1378,7 +1378,7 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                                 <div class="form-group">
                                     <label class="form-label toggle-label">
                                         <input type="checkbox" name="free_shipping_enabled" value="1"
-                                            <?= $shopSettings->get('free_shipping_enabled', true) ? 'checked' : '' ?>>
+                                            <?= $shopSettings->get('free_shipping_enabled', false) ? 'checked' : '' ?>>
                                         <span class="toggle-switch"></span>
                                         Activer la livraison gratuite
                                     </label>
