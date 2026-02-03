@@ -1246,6 +1246,30 @@ $typeIcons = [
         width: 100%;
         height: 100%;
         border: none;
+        transition: opacity 0.15s ease;
+    }
+
+    .preview-frame-wrapper.refreshing #previewFrame {
+        opacity: 0.4;
+    }
+
+    .preview-frame-wrapper.refreshing::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 32px;
+        height: 32px;
+        margin: -16px 0 0 -16px;
+        border: 3px solid rgba(139, 92, 246, 0.2);
+        border-top-color: var(--purple-main);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        z-index: 10;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 
     .preview-overlay {
@@ -2311,7 +2335,34 @@ $typeIcons = [
 
     function refreshPreview() {
         const frame = document.getElementById('previewFrame');
-        frame.src = frame.src.split('?')[0] + '?preview=builder&t=' + Date.now();
+        const wrapper = document.getElementById('previewWrapper');
+
+        // Stocker la position de scroll actuelle
+        let scrollY = 0;
+        try {
+            scrollY = frame.contentWindow.scrollY || 0;
+        } catch(e) {}
+
+        // Ajouter classe de transition (fade out)
+        wrapper.classList.add('refreshing');
+
+        // Après un court délai, recharger l'iframe
+        setTimeout(() => {
+            const newSrc = frame.src.split('?')[0] + '?preview=builder&t=' + Date.now();
+            frame.src = newSrc;
+
+            // Quand l'iframe est chargée, restaurer le scroll et fade in
+            frame.onload = function() {
+                try {
+                    frame.contentWindow.scrollTo(0, scrollY);
+                } catch(e) {}
+
+                // Petit délai pour laisser le rendu se stabiliser
+                setTimeout(() => {
+                    wrapper.classList.remove('refreshing');
+                }, 50);
+            };
+        }, 150);
     }
 
     // Media upload

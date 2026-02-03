@@ -866,6 +866,9 @@ function getSubtitleStyles(array $section): string {
             background-repeat: no-repeat;
             background-color: var(--black-soft);
         }
+        .newsletter-section.no-overlay {
+            background-color: transparent;
+        }
         .newsletter-overlay {
             position: absolute;
             top: 0;
@@ -1443,12 +1446,16 @@ function getSubtitleStyles(array $section): string {
             case 'newsletter':
                 $sectionStyles = getSectionInlineStyles($section);
                 $newsletterStyle = $sectionStyles;
-                if ($section['media_type'] === 'image' && !empty($section['media_url'])) {
+                $hasCustomBg = !empty($section['config']['style']['background_color']);
+                $hasBgImage = ($section['media_type'] === 'image' && !empty($section['media_url']));
+                if ($hasBgImage) {
                     $newsletterStyle .= ($newsletterStyle ? '; ' : '') . 'background-image: url(\'/public' . h($section['media_url']) . '\')';
                 }
+                // Overlay seulement si image de fond (pour lisibilité) ou pas de couleur custom
+                $showOverlay = $hasBgImage || !$hasCustomBg;
     ?>
-    <section class="newsletter-section" data-section-id="<?= $section['id'] ?>" style="<?= $newsletterStyle ?>">
-        <div class="newsletter-overlay"></div>
+    <section class="newsletter-section<?= $hasCustomBg && !$hasBgImage ? ' no-overlay' : '' ?>" data-section-id="<?= $section['id'] ?>" style="<?= $newsletterStyle ?>">
+        <?php if ($showOverlay): ?><div class="newsletter-overlay"></div><?php endif; ?>
         <div class="container">
             <div class="newsletter-content">
                 <?php $titleStyle = getTitleStyles($section); $subtitleStyle = getSubtitleStyles($section); ?>

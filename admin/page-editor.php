@@ -528,6 +528,30 @@ $typeIcons = [
             height: 100%;
             min-height: calc(100vh - 140px);
             border: none;
+            transition: opacity 0.15s ease;
+        }
+
+        .preview-frame-wrapper.refreshing iframe {
+            opacity: 0.4;
+        }
+
+        .preview-frame-wrapper.refreshing::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 32px;
+            height: 32px;
+            margin: -16px 0 0 -16px;
+            border: 3px solid rgba(139, 92, 246, 0.2);
+            border-top-color: #8B5CF6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            z-index: 10;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* Panneau Propriétés à droite */
@@ -1114,7 +1138,32 @@ $typeIcons = [
 
         function refreshPreview() {
             const frame = document.getElementById('previewFrame');
-            frame.src = '/' + pageSlug + '?preview=builder&t=' + Date.now();
+            const wrapper = document.getElementById('previewWrapper');
+
+            // Stocker la position de scroll actuelle
+            let scrollY = 0;
+            try {
+                scrollY = frame.contentWindow.scrollY || 0;
+            } catch(e) {}
+
+            // Ajouter classe de transition (fade out)
+            wrapper.classList.add('refreshing');
+
+            // Après un court délai, recharger l'iframe
+            setTimeout(() => {
+                frame.src = '/' + pageSlug + '?preview=builder&t=' + Date.now();
+
+                // Quand l'iframe est chargée, restaurer le scroll et fade in
+                frame.onload = function() {
+                    try {
+                        frame.contentWindow.scrollTo(0, scrollY);
+                    } catch(e) {}
+
+                    setTimeout(() => {
+                        wrapper.classList.remove('refreshing');
+                    }, 50);
+                };
+            }, 150);
         }
 
         // Section selection
