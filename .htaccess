@@ -12,8 +12,14 @@ RewriteRule ^(.*)$ /public/$1 [L]
 # Pages légales spécifiques
 RewriteCond %{REQUEST_URI} !^/public/
 RewriteRule ^mentions-legales$ /public/mentions-legales.php [L]
+
+RewriteCond %{REQUEST_URI} !^/public/
 RewriteRule ^cgv$ /public/cgv.php [L]
+
+RewriteCond %{REQUEST_URI} !^/public/
 RewriteRule ^politique-confidentialite$ /public/politique-confidentialite.php [L]
+
+RewriteCond %{REQUEST_URI} !^/public/
 RewriteRule ^politique-retour$ /public/politique-retour.php [L]
 
 # Pages personnalisées (slug dynamique)
