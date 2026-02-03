@@ -42,7 +42,11 @@ if (!$page || $page['status'] !== 'published') {
 
 // Charger les sections
 $sectionModel = new PageSection();
-$sections = $sectionModel->findByPage($page['id'], true);
+$isBuilderPreview = isset($_GET['preview']) && $_GET['preview'] === 'builder';
+
+// En mode preview, charger toutes les sections (y compris brouillons)
+// Sinon, seulement les actives
+$sections = $sectionModel->findByPage($page['id'], !$isBuilderPreview);
 
 // Modèles pour les données
 $productModel = new Product();
