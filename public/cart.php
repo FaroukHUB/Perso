@@ -1307,7 +1307,9 @@ if (!Cart::isEmpty()) {
                                 $colorHex = $colorMap[strtolower($colorName)] ?? '#CCCCCC';
                                 $viewLabel = ($item['customization']['view'] ?? 'front') === 'back' ? 'Dos' : 'Face';
                             ?>
-                                <div class="cart-item">
+                                <!-- DEBUG: Rendering item <?= htmlspecialchars($key) ?> -->
+                                <div class="cart-item" style="border: 3px solid red !important; background: #ffe0e0 !important; min-height: 150px !important; display: block !important;">
+                                    <p style="color: red; font-weight: bold; font-size: 16px;">🔴 ITEM: <?= h($item['product']['name'] ?? 'Unknown') ?></p>
                                     <div class="item-image" onclick="openCartLightbox(this)"
                                          data-img="<?= !empty($item['product']['image_front_url']) ? '/public' . h($item['product']['image_front_url']) : '' ?>"
                                          data-text="<?= h($item['customization']['text'] ?? '') ?>"
