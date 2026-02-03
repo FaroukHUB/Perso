@@ -1124,6 +1124,9 @@ $typeIcons = [
         let currentSectionId = null;
         let selectedType = null;
 
+        // Debug info
+        console.log('Page Editor chargé:', { pageId, pageSlug, previewUrl: '/' + pageSlug + '?preview=builder' });
+
         // Device toggle
         document.querySelectorAll('.device-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1177,7 +1180,7 @@ $typeIcons = [
                 item.classList.toggle('active', item.dataset.id == id);
             });
 
-            fetch('', {
+            fetch('?id=' + pageId, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `ajax_action=get_section&csrf_token=${csrf}&section_id=${id}`
@@ -1257,7 +1260,7 @@ $typeIcons = [
             const form = document.getElementById('sectionForm');
             const formData = new FormData(form);
 
-            fetch('', { method: 'POST', body: formData })
+            fetch('?id=' + pageId, { method: 'POST', body: formData })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
@@ -1279,7 +1282,7 @@ $typeIcons = [
         // Toggle status
         document.getElementById('toggleStatusBtn').addEventListener('click', function() {
             if (!currentSectionId) return;
-            fetch('', {
+            fetch('?id=' + pageId, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `ajax_action=toggle&csrf_token=${csrf}&section_id=${currentSectionId}`
@@ -1301,7 +1304,7 @@ $typeIcons = [
         // Delete
         document.getElementById('deleteBtn').addEventListener('click', function() {
             if (!currentSectionId || !confirm('Supprimer cette section ?')) return;
-            fetch('', {
+            fetch('?id=' + pageId, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `ajax_action=delete&csrf_token=${csrf}&section_id=${currentSectionId}`
@@ -1324,7 +1327,7 @@ $typeIcons = [
 
         document.getElementById('pageForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            fetch('', { method: 'POST', body: new FormData(this) })
+            fetch('?id=' + pageId, { method: 'POST', body: new FormData(this) })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
@@ -1363,11 +1366,16 @@ $typeIcons = [
             formData.append('type', selectedType);
             formData.append('status', 'draft');
 
-            fetch('', { method: 'POST', body: formData })
+            // Envoyer vers l'URL avec l'ID de page explicite
+            fetch('?id=' + pageId, { method: 'POST', body: formData })
             .then(r => r.json())
             .then(data => {
                 if (data.success) location.reload();
                 else alert('Erreur : ' + data.error);
+            })
+            .catch(err => {
+                console.error('Erreur AJAX:', err);
+                alert('Erreur réseau lors de l\'ajout');
             });
         });
 
@@ -1395,7 +1403,7 @@ $typeIcons = [
                         this.parentNode.insertBefore(draggedItem, this);
                     }
                     const newOrder = Array.from(list.querySelectorAll('.section-item')).map(i => i.dataset.id);
-                    fetch('', {
+                    fetch('?id=' + pageId, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: `ajax_action=reorder&csrf_token=${csrf}&order=${JSON.stringify(newOrder)}`
