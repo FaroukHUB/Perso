@@ -418,45 +418,56 @@ class BoxtalService
         }
 
         try {
-            // Paramètres corrects pour l'API EnvoiMoinsCher v1
-            $params = [
-                'pays' => $country,
-                'cp' => $postcode,  // cp et non code_postal
-                'ville' => '',      // Ville optionnelle
-                'collecte' => 'retrait', // retrait pour livraison
-                'ope_code' => $operatorCode,
-            ];
+            // L'API EnvoiMoinsCher v1 utilise l'endpoint 'parcelshop' pour les points relais
+            // Essayer d'abord parcelshop, puis listpoints en fallback
+            $endpoints = ['parcelshop', 'listpoints'];
 
-            $url = $this->apiUrl . 'listpoints?' . http_build_query($params);
+            foreach ($endpoints as $endpoint) {
+                $params = [
+                    'pays' => $country,
+                    'cp' => $postcode,
+                    'collecte' => 'retrait',
+                    'ope_code' => $operatorCode,
+                ];
 
-            $ch = curl_init();
-            curl_setopt_array($ch, [
-                CURLOPT_URL => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_HTTPHEADER => [
-                    'Authorization: Basic ' . base64_encode($this->accessKey . ':' . $this->secretKey),
-                    'Accept: application/xml'
-                ],
-                CURLOPT_TIMEOUT => 15,
-                CURLOPT_SSL_VERIFYPEER => true
-            ]);
+                $url = $this->apiUrl . $endpoint . '?' . http_build_query($params);
 
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+                $ch = curl_init();
+                curl_setopt_array($ch, [
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_HTTPHEADER => [
+                        'Authorization: Basic ' . base64_encode($this->accessKey . ':' . $this->secretKey),
+                        'Accept: application/xml'
+                    ],
+                    CURLOPT_TIMEOUT => 15,
+                    CURLOPT_SSL_VERIFYPEER => true
+                ]);
 
-            if ($httpCode !== 200 || empty($response)) {
-                return [];
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlError = curl_error($ch);
+                curl_close($ch);
+
+                // Log pour debug
+                error_log("Boxtal Relay API: endpoint=$endpoint, code=$httpCode, url=$url");
+
+                if ($httpCode === 200 && !empty($response)) {
+                    libxml_use_internal_errors(true);
+                    $xml = simplexml_load_string($response);
+
+                    if ($xml !== false) {
+                        $points = $this->formatRelayPoints($xml);
+                        if (!empty($points)) {
+                            return $points;
+                        }
+                    }
+                }
             }
 
-            libxml_use_internal_errors(true);
-            $xml = simplexml_load_string($response);
-
-            if ($xml === false) {
-                return [];
-            }
-
-            return $this->formatRelayPoints($xml);
+            // Aucun endpoint n'a fonctionné
+            error_log("Boxtal Relay API: no points found for $operatorCode in $postcode");
+            return [];
 
         } catch (Exception $e) {
             error_log('Boxtal Relay Points Error: ' . $e->getMessage());
