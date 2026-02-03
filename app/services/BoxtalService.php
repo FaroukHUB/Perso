@@ -322,19 +322,21 @@ class BoxtalService
     {
         $operator = strtoupper($operator);
         $logos = [
-            'POFR' => '/public/assets/images/carriers/colissimo.png',
-            'COLISSIMO' => '/public/assets/images/carriers/colissimo.png',
-            'CHRP' => '/public/assets/images/carriers/chronopost.png',
-            'CHRONOPOST' => '/public/assets/images/carriers/chronopost.png',
-            'MONR' => '/public/assets/images/carriers/mondialrelay.png',
-            'MONDIAL_RELAY' => '/public/assets/images/carriers/mondialrelay.png',
-            'SOGP' => '/public/assets/images/carriers/relaiscolis.png',
-            'RELAIS_COLIS' => '/public/assets/images/carriers/relaiscolis.png',
-            'UPSE' => '/public/assets/images/carriers/ups.png',
-            'UPS' => '/public/assets/images/carriers/ups.png',
-            'DPFR' => '/public/assets/images/carriers/dpd.png',
-            'DPD' => '/public/assets/images/carriers/dpd.png',
-            'GLS' => '/public/assets/images/carriers/gls.png',
+            'POFR' => '/public/assets/images/carriers/colissimo.svg',
+            'COLISSIMO' => '/public/assets/images/carriers/colissimo.svg',
+            'CHRP' => '/public/assets/images/carriers/chronopost.svg',
+            'CHRONOPOST' => '/public/assets/images/carriers/chronopost.svg',
+            'MONR' => '/public/assets/images/carriers/mondialrelay.svg',
+            'MONDIAL_RELAY' => '/public/assets/images/carriers/mondialrelay.svg',
+            'SOGP' => '/public/assets/images/carriers/relaiscolis.svg',
+            'RELAIS_COLIS' => '/public/assets/images/carriers/relaiscolis.svg',
+            'UPSE' => '/public/assets/images/carriers/ups.svg',
+            'UPS' => '/public/assets/images/carriers/ups.svg',
+            'DPFR' => '/public/assets/images/carriers/dpd.svg',
+            'DPD' => '/public/assets/images/carriers/dpd.svg',
+            'GLS' => '/public/assets/images/carriers/gls.svg',
+            'COPR' => '/public/assets/images/carriers/colisprive.svg',
+            'COLIS_PRIVE' => '/public/assets/images/carriers/colisprive.svg',
         ];
 
         return $logos[$operator] ?? '';
