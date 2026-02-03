@@ -485,18 +485,24 @@ class BoxtalService
         $points = [];
         $pointsList = [];
 
+        // Debug: log XML structure
+        $rootName = $xml->getName();
+        error_log("formatRelayPoints: rootName=$rootName, operatorCode=$operatorCode");
+
         // Structure API EnvoiMoinsCher: carriers > carrier > points > point
+        // Note: si le root est "carriers", on accède directement à carrier
         if (isset($xml->carrier)) {
+            error_log("formatRelayPoints: found carrier elements");
             foreach ($xml->carrier as $carrier) {
+                $carrierOpe = (string)($carrier->operator ?? '');
+                error_log("formatRelayPoints: carrier operator=$carrierOpe");
                 // Si un code opérateur est spécifié, filtrer
-                if (!empty($operatorCode)) {
-                    $carrierOpe = (string)($carrier->operator ?? '');
-                    if ($carrierOpe !== $operatorCode) {
-                        continue;
-                    }
+                if (!empty($operatorCode) && $carrierOpe !== $operatorCode) {
+                    continue;
                 }
                 // Récupérer les points de ce carrier
                 if (isset($carrier->points->point)) {
+                    error_log("formatRelayPoints: found points in carrier");
                     foreach ($carrier->points->point as $point) {
                         $pointsList[] = $point;
                     }
@@ -505,16 +511,22 @@ class BoxtalService
         }
         // Fallback: structure directe points > point
         elseif (isset($xml->points->point)) {
+            error_log("formatRelayPoints: using fallback xml->points->point");
             foreach ($xml->points->point as $point) {
                 $pointsList[] = $point;
             }
         }
         // Fallback: structure directe point
         elseif (isset($xml->point)) {
+            error_log("formatRelayPoints: using fallback xml->point");
             foreach ($xml->point as $point) {
                 $pointsList[] = $point;
             }
+        } else {
+            error_log("formatRelayPoints: no matching structure found");
         }
+
+        error_log("formatRelayPoints: pointsList count=" . count($pointsList));
 
         foreach ($pointsList as $point) {
             // Essayer les noms français puis anglais

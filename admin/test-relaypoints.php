@@ -99,6 +99,55 @@ if (!$settings->isBoxtalEnabled()) {
         echo "<pre>" . htmlspecialchars(json_encode($points, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . "</pre>";
     } else {
         echo "<p class='error'>Aucun point relais trouvé</p>";
+        echo "<p>Vérifiez les logs PHP pour voir le debug de formatRelayPoints</p>";
+    }
+
+    // Debug direct: parser manuellement le XML parcelshop
+    echo "<h2>Debug: XML Structure Analysis</h2>";
+    $testUrl = $apiBaseUrl . 'parcelshop?' . http_build_query(['pays' => 'FR', 'cp' => $postcode, 'collecte' => 'retrait', 'ope_code' => $carrier]);
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $testUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: Basic ' . base64_encode($credentials['user'] . ':' . $credentials['api_key']),
+            'Accept: application/xml'
+        ],
+        CURLOPT_TIMEOUT => 15
+    ]);
+    $testResponse = curl_exec($ch);
+    $testCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($testCode === 200 && !empty($testResponse)) {
+        $testXml = simplexml_load_string($testResponse);
+        if ($testXml) {
+            echo "<p><strong>Root element:</strong> " . $testXml->getName() . "</p>";
+            echo "<p><strong>Children of root:</strong> ";
+            $children = [];
+            foreach ($testXml->children() as $child) {
+                $children[] = $child->getName();
+            }
+            echo implode(', ', array_unique($children)) . "</p>";
+
+            // First carrier details
+            if (isset($testXml->carrier)) {
+                $firstCarrier = $testXml->carrier[0];
+                echo "<p><strong>First carrier operator:</strong> " . (string)($firstCarrier->operator ?? 'N/A') . "</p>";
+                if (isset($firstCarrier->points)) {
+                    echo "<p><strong>Points in first carrier:</strong> " . count($firstCarrier->points->point) . "</p>";
+                    if (isset($firstCarrier->points->point[0])) {
+                        $firstPoint = $firstCarrier->points->point[0];
+                        echo "<p><strong>First point fields:</strong> ";
+                        $fields = [];
+                        foreach ($firstPoint->children() as $field) {
+                            $fields[] = $field->getName() . '=' . (string)$field;
+                        }
+                        echo implode(', ', array_slice($fields, 0, 10)) . "</p>";
+                    }
+                }
+            }
+        }
     }
 }
 
