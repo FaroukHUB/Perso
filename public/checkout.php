@@ -1128,6 +1128,15 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                                         <?= $shippingCost == 0 ? 'Gratuite' : formatPrice($shippingCost) ?>
                                     </span>
                                 </div>
+                                <div class="summary-row relay-info" id="relay-info-row" style="display: none;">
+                                    <span id="relay-info-label" style="font-size: 13px; color: var(--gray); display: flex; align-items: center; gap: 6px;">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                            <circle cx="12" cy="10" r="3"/>
+                                        </svg>
+                                        <span id="relay-info-name"></span>
+                                    </span>
+                                </div>
                                 <div class="summary-row total">
                                     <span>Total</span>
                                     <span id="total-price"><?= formatPrice($cartTotal + $shippingCost) ?></span>
@@ -1237,6 +1246,9 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                     document.getElementById('relay-point-code').value = '';
                     document.getElementById('relay-point-name').value = '';
                     document.getElementById('relay-point-address').value = '';
+                    // Hide relay info in summary (will be shown when user selects a point)
+                    document.getElementById('relay-info-row').style.display = 'none';
+                    document.getElementById('relay-info-name').textContent = '';
                     // Pre-fill postcode from address if available
                     const zipInput = document.getElementById('zipcode-input');
                     if (zipInput && zipInput.value) {
@@ -1245,6 +1257,9 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                 } else {
                     relaySection.style.display = 'none';
                     isRelaySelected = false;
+                    // Hide relay info in summary
+                    document.getElementById('relay-info-row').style.display = 'none';
+                    document.getElementById('relay-info-name').textContent = '';
                 }
 
                 // Save to session
@@ -1337,6 +1352,10 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                     document.getElementById('relay-point-code').value = code;
                     document.getElementById('relay-point-name').value = name;
                     document.getElementById('relay-point-address').value = address;
+
+                    // Update summary with relay point name
+                    document.getElementById('relay-info-name').textContent = name;
+                    document.getElementById('relay-info-row').style.display = 'flex';
 
                     // Save to session
                     fetch('/public/checkout.php', {
