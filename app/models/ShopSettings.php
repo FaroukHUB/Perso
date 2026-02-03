@@ -136,12 +136,13 @@ class ShopSettings
                 $value = $value ? '1' : '0';
             }
 
+            // Utiliser INSERT ... ON DUPLICATE KEY UPDATE pour créer ou mettre à jour
             $stmt = $this->db->prepare("
-                UPDATE shop_settings
-                SET setting_value = ?, updated_at = NOW()
-                WHERE setting_key = ?
+                INSERT INTO shop_settings (setting_key, setting_value, setting_group, setting_type, created_at, updated_at)
+                VALUES (?, ?, 'general', 'text', NOW(), NOW())
+                ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW()
             ");
-            $result = $stmt->execute([$value, $key]);
+            $result = $stmt->execute([$key, $value]);
 
             // Mettre à jour le cache
             if ($result && self::$cacheLoaded) {
@@ -150,6 +151,7 @@ class ShopSettings
 
             return $result;
         } catch (PDOException $e) {
+            error_log("ShopSettings::set error: " . $e->getMessage());
             return false;
         }
     }
