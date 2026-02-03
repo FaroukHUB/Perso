@@ -181,10 +181,14 @@ class BoxtalService
             $operator = $offer->operator;
             $service = $offer->service;
 
-            $operatorCode = (string)$operator['code'];
-            $serviceCode = (string)$service['code'];
-            $operatorLabel = (string)$operator->label;
-            $serviceLabel = (string)$service->label;
+            // Essayer attribut, puis élément enfant, puis contenu texte
+            $operatorCode = (string)($operator['code'] ?? '') ?: (string)($operator->code ?? '') ?: (string)$operator;
+            $serviceCode = (string)($service['code'] ?? '') ?: (string)($service->code ?? '') ?: (string)$service;
+            $operatorLabel = (string)($operator->label ?? $operator ?? '');
+            $serviceLabel = (string)($service->label ?? $service ?? '');
+
+            // Debug log
+            error_log("formatBoxtalRatesV1: operatorCode=$operatorCode, serviceCode=$serviceCode");
 
             // Prix TTC (élément enfant, pas attribut)
             $price = (float)$offer->price->{'tax-inclusive'};
