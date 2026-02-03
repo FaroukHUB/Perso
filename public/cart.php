@@ -253,32 +253,56 @@ if (!Cart::isEmpty()) {
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .navbar-actions {
+        .navbar-brand img.navbar-logo {
+            height: 40px;
+            width: auto;
+            max-width: 150px;
+            object-fit: contain;
+        }
+        .navbar-actions,
+        .navbar-nav {
             display: flex;
             align-items: center;
             gap: 25px;
         }
-        .navbar-actions a {
-            color: rgba(255,255,255,0.8);
+        .navbar-actions a,
+        .navbar-nav a {
+            color: rgba(255,255,255,0.8) !important;
             text-decoration: none;
             font-weight: 500;
             font-size: 14px;
             transition: all 0.2s;
+            -webkit-text-fill-color: initial;
+            background: none;
         }
-        .navbar-actions a:hover {
-            color: var(--pink-main);
+        .navbar-actions a:hover,
+        .navbar-nav a:hover {
+            color: var(--pink-main) !important;
         }
-        .nav-cart-icon {
+        .nav-cart-icon,
+        .cart-nav-link {
             position: relative;
             display: flex;
             align-items: center;
             gap: 8px;
             padding: 8px 16px;
-            background: var(--gradient-pink);
+            background: var(--gradient-pink) !important;
             border-radius: var(--radius-full);
-            color: white;
+            color: white !important;
             font-weight: 600;
             font-size: 13px;
+            -webkit-text-fill-color: white !important;
+        }
+        .cart-nav-link svg {
+            stroke: white !important;
+        }
+        .cart-badge {
+            background: var(--mint-main);
+            color: var(--black-soft);
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 4px;
         }
 
         /* ============ PAGE HEADER ============ */

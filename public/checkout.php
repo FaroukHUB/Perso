@@ -355,6 +355,29 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        .navbar-logo { height: 40px; width: auto; max-width: 150px; object-fit: contain; }
+        .navbar-nav { display: flex; align-items: center; gap: 20px; }
+        .navbar-nav a { color: rgba(255,255,255,0.8) !important; text-decoration: none; font-weight: 500; transition: color 0.2s; -webkit-text-fill-color: initial; background: none; }
+        .navbar-nav a:hover { color: var(--pink-main) !important; }
+        .cart-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--gradient-mint) !important;
+            color: var(--black) !important;
+            padding: 10px 20px;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            -webkit-text-fill-color: var(--black) !important;
+        }
+        .cart-nav-link svg { stroke: var(--black) !important; }
+        .cart-badge {
+            background: var(--pink-main);
+            color: white;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+        }
 
         /* Checkout Page */
         .checkout-page { padding: 40px 0 80px; }

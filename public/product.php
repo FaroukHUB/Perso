@@ -368,19 +368,22 @@ $cartCount = Cart::count();
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .navbar-actions { display: flex; align-items: center; gap: 20px; }
-        .navbar-actions a { color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500; transition: color 0.2s; }
-        .navbar-actions a:hover { color: var(--pink-main); }
-        .cart-link {
+        .navbar-logo { height: 40px; width: auto; max-width: 150px; object-fit: contain; }
+        .navbar-actions, .navbar-nav { display: flex; align-items: center; gap: 20px; }
+        .navbar-actions a, .navbar-nav a { color: rgba(255,255,255,0.8) !important; text-decoration: none; font-weight: 500; transition: color 0.2s; -webkit-text-fill-color: initial; background: none; }
+        .navbar-actions a:hover, .navbar-nav a:hover { color: var(--pink-main) !important; }
+        .cart-link, .cart-nav-link {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: var(--gradient-mint);
+            background: var(--gradient-mint) !important;
             color: var(--black) !important;
             padding: 10px 20px;
             border-radius: var(--radius-full);
             font-weight: 600;
+            -webkit-text-fill-color: var(--black) !important;
         }
+        .cart-link svg, .cart-nav-link svg { stroke: var(--black) !important; }
         .cart-badge {
             background: var(--pink-main);
             color: white;
