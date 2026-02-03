@@ -11,6 +11,9 @@
 if (!class_exists('ShopSettings')) {
     require_once __DIR__ . '/../models/ShopSettings.php';
 }
+if (!class_exists('BrandingService')) {
+    require_once __DIR__ . '/../services/BrandingService.php';
+}
 
 // Initialiser les variables si non définies
 if (!isset($hasPacks)) {
@@ -24,6 +27,10 @@ $footerTextColor = $settings->get('footer_text_color', '#ffffff');
 $siteName = $settings->getSiteName();
 $contactEmail = $settings->getContactEmail();
 $footerContent = $settings->getFooterContent();
+
+// Récupérer le logo pour fond sombre
+$brandingService = new BrandingService();
+$footerLogoUrl = $brandingService->getLogo(null, false); // false = fond sombre
 ?>
 <!-- Footer -->
 <footer class="footer" id="contact" style="background: <?= htmlspecialchars($footerBgColor) ?>;">
@@ -32,11 +39,16 @@ $footerContent = $settings->getFooterContent();
         .footer h3, .footer h4 { color: <?= htmlspecialchars($footerTextColor) ?> !important; }
         .footer a, .footer-links a { color: <?= htmlspecialchars($footerTextColor) ?> !important; opacity: 0.85; }
         .footer a:hover { opacity: 1; }
+        .footer-logo { max-height: 50px; width: auto; margin-bottom: 12px; }
     </style>
     <div class="container">
         <div class="footer-content">
             <div class="footer-brand">
-                <h3><?= htmlspecialchars($siteName) ?></h3>
+                <?php if ($footerLogoUrl): ?>
+                    <a href="/"><img src="<?= htmlspecialchars($footerLogoUrl) ?>" alt="<?= htmlspecialchars($siteName) ?>" class="footer-logo"></a>
+                <?php else: ?>
+                    <h3><?= htmlspecialchars($siteName) ?></h3>
+                <?php endif; ?>
                 <p><?= htmlspecialchars($footerContent['description'] ?: 'Personnalisation textile de qualité pour toute la famille.') ?></p>
             </div>
 
