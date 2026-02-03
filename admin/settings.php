@@ -94,7 +94,6 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
         $success = 'Paramètres de livraison enregistrés.';
         $activeTab = 'shipping';
     }
-}
 
     // Paramètres Marketing (Brevo + WhatsApp)
     if (isset($_POST['save_marketing'])) {
