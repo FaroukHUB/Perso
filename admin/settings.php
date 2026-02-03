@@ -9,8 +9,11 @@ require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/Settings.php';
+require_once __DIR__ . '/../app/models/ShopSettings.php';
 
 Auth::requireAdmin();
+
+$shopSettings = new ShopSettings();
 
 $orderModel = new Order();
 $settingsModel = new Settings();
@@ -113,6 +116,105 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
         $success = 'Paramètres marketing enregistrés.';
         $activeTab = 'marketing';
     }
+
+    // Paramètres Boutique (général)
+    if (isset($_POST['save_shop_general'])) {
+        $shopSettings->setMultiple([
+            'site_name' => post('site_name', 'PERSONNALY'),
+            'site_description' => post('site_description', ''),
+            'contact_email' => post('contact_email', ''),
+            'contact_phone' => post('contact_phone', ''),
+            'copyright_text' => post('copyright_text', '')
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Paramètres généraux enregistrés.';
+        $activeTab = 'shop';
+    }
+
+    // Paramètres Livraison boutique
+    if (isset($_POST['save_shop_shipping'])) {
+        $shopSettings->setMultiple([
+            'free_shipping_enabled' => isset($_POST['free_shipping_enabled']) ? '1' : '0',
+            'free_shipping_threshold' => post('free_shipping_threshold', '50'),
+            'shipping_default_country' => post('shipping_default_country', 'FR'),
+            'shipping_default_city' => post('shipping_default_city', 'Paris'),
+            'shipping_default_postcode' => post('shipping_default_postcode', '75001'),
+            'shipping_fallback_standard_price' => post('shipping_fallback_standard_price', '4.90'),
+            'shipping_fallback_standard_label' => post('shipping_fallback_standard_label', 'Livraison standard'),
+            'shipping_fallback_standard_delay' => post('shipping_fallback_standard_delay', '3-5 jours ouvrés'),
+            'shipping_fallback_express_price' => post('shipping_fallback_express_price', '9.90'),
+            'shipping_fallback_express_label' => post('shipping_fallback_express_label', 'Livraison express'),
+            'shipping_fallback_express_delay' => post('shipping_fallback_express_delay', '24-48h')
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Paramètres de livraison enregistrés.';
+        $activeTab = 'shop_shipping';
+    }
+
+    // Paramètres Retours
+    if (isset($_POST['save_shop_returns'])) {
+        $shopSettings->setMultiple([
+            'returns_enabled' => isset($_POST['returns_enabled']) ? '1' : '0',
+            'returns_days' => post('returns_days', '14'),
+            'returns_free' => isset($_POST['returns_free']) ? '1' : '0',
+            'returns_conditions' => post('returns_conditions', '')
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Paramètres de retours enregistrés.';
+        $activeTab = 'shop_returns';
+    }
+
+    // Paramètres Paiements affichés
+    if (isset($_POST['save_shop_payments'])) {
+        $shopSettings->setMultiple([
+            'payment_visa_enabled' => isset($_POST['payment_visa_enabled']) ? '1' : '0',
+            'payment_mastercard_enabled' => isset($_POST['payment_mastercard_enabled']) ? '1' : '0',
+            'payment_amex_enabled' => isset($_POST['payment_amex_enabled']) ? '1' : '0',
+            'payment_cb_enabled' => isset($_POST['payment_cb_enabled']) ? '1' : '0',
+            'payment_paypal_enabled' => isset($_POST['payment_paypal_enabled']) ? '1' : '0',
+            'payment_apple_pay_enabled' => isset($_POST['payment_apple_pay_enabled']) ? '1' : '0',
+            'payment_google_pay_enabled' => isset($_POST['payment_google_pay_enabled']) ? '1' : '0'
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Moyens de paiement enregistrés.';
+        $activeTab = 'shop_payments';
+    }
+
+    // Paramètres Trust Badges
+    if (isset($_POST['save_shop_badges'])) {
+        $shopSettings->setMultiple([
+            'trust_badge_1_enabled' => isset($_POST['trust_badge_1_enabled']) ? '1' : '0',
+            'trust_badge_1_icon' => post('trust_badge_1_icon', 'lock'),
+            'trust_badge_1_text' => post('trust_badge_1_text', ''),
+            'trust_badge_2_enabled' => isset($_POST['trust_badge_2_enabled']) ? '1' : '0',
+            'trust_badge_2_icon' => post('trust_badge_2_icon', 'check'),
+            'trust_badge_2_text' => post('trust_badge_2_text', ''),
+            'trust_badge_3_enabled' => isset($_POST['trust_badge_3_enabled']) ? '1' : '0',
+            'trust_badge_3_icon' => post('trust_badge_3_icon', 'truck'),
+            'trust_badge_3_text' => post('trust_badge_3_text', ''),
+            'trust_badge_4_enabled' => isset($_POST['trust_badge_4_enabled']) ? '1' : '0',
+            'trust_badge_4_icon' => post('trust_badge_4_icon', 'shield'),
+            'trust_badge_4_text' => post('trust_badge_4_text', '')
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Badges de confiance enregistrés.';
+        $activeTab = 'shop_badges';
+    }
+
+    // Paramètres Footer
+    if (isset($_POST['save_shop_footer'])) {
+        $shopSettings->setMultiple([
+            'footer_reassurance_1' => post('footer_reassurance_1', ''),
+            'footer_reassurance_2' => post('footer_reassurance_2', ''),
+            'footer_reassurance_3' => post('footer_reassurance_3', ''),
+            'footer_col1_title' => post('footer_col1_title', 'Navigation'),
+            'footer_col2_title' => post('footer_col2_title', 'Informations'),
+            'footer_col3_title' => post('footer_col3_title', 'Contact')
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Paramètres footer enregistrés.';
+        $activeTab = 'shop_footer';
+    }
 }
 
 // Récupérer les paramètres actuels
@@ -157,6 +259,13 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                         <circle cx="12" cy="7" r="4"/>
                     </svg>
                     Mon compte
+                </a>
+                <a href="?tab=shop" class="tab <?= strpos($activeTab, 'shop') === 0 ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    Boutique
                 </a>
                 <a href="?tab=payment" class="tab <?= $activeTab === 'payment' ? 'active' : '' ?>">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -715,6 +824,422 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                 </form>
                 <?php endif; ?>
 
+                <!-- SHOP TAB (Boutique Settings) -->
+                <?php if (strpos($activeTab, 'shop') === 0): ?>
+
+                <!-- Sub-tabs for shop settings -->
+                <div class="sub-tabs">
+                    <a href="?tab=shop" class="sub-tab <?= $activeTab === 'shop' ? 'active' : '' ?>">Général</a>
+                    <a href="?tab=shop_shipping" class="sub-tab <?= $activeTab === 'shop_shipping' ? 'active' : '' ?>">Livraison</a>
+                    <a href="?tab=shop_returns" class="sub-tab <?= $activeTab === 'shop_returns' ? 'active' : '' ?>">Retours</a>
+                    <a href="?tab=shop_payments" class="sub-tab <?= $activeTab === 'shop_payments' ? 'active' : '' ?>">Paiements affichés</a>
+                    <a href="?tab=shop_badges" class="sub-tab <?= $activeTab === 'shop_badges' ? 'active' : '' ?>">Badges confiance</a>
+                    <a href="?tab=shop_footer" class="sub-tab <?= $activeTab === 'shop_footer' ? 'active' : '' ?>">Footer</a>
+                </div>
+
+                <!-- GENERAL -->
+                <?php if ($activeTab === 'shop'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_shop_general" value="1">
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Informations générales</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Nom du site / Marque</label>
+                                <input type="text" name="site_name" class="form-input"
+                                       value="<?= h($shopSettings->get('site_name', 'PERSONNALY')) ?>">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Description du site</label>
+                                <textarea name="site_description" class="form-input" rows="3"><?= h($shopSettings->get('site_description', '')) ?></textarea>
+                                <small class="form-hint">Affichée dans le footer</small>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Email de contact</label>
+                                    <input type="email" name="contact_email" class="form-input"
+                                           value="<?= h($shopSettings->get('contact_email', '')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Téléphone (optionnel)</label>
+                                    <input type="text" name="contact_phone" class="form-input"
+                                           value="<?= h($shopSettings->get('contact_phone', '')) ?>">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Texte copyright</label>
+                                <input type="text" name="copyright_text" class="form-input"
+                                       value="<?= h($shopSettings->get('copyright_text', '© ' . date('Y') . ' PERSONNALY')) ?>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">Enregistrer</button>
+                    </div>
+                </form>
+                <?php endif; ?>
+
+                <!-- SHIPPING DISPLAY -->
+                <?php if ($activeTab === 'shop_shipping'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_shop_shipping" value="1">
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Livraison gratuite</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label toggle-label">
+                                        <input type="checkbox" name="free_shipping_enabled" value="1"
+                                            <?= $shopSettings->get('free_shipping_enabled', true) ? 'checked' : '' ?>>
+                                        <span class="toggle-switch"></span>
+                                        Activer la livraison gratuite
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Seuil (€)</label>
+                                    <input type="number" step="0.01" name="free_shipping_threshold" class="form-input"
+                                           value="<?= h($shopSettings->get('free_shipping_threshold', 50)) ?>">
+                                    <small class="form-hint">Livraison gratuite à partir de ce montant</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Adresse par défaut (estimation)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-box">
+                                Utilisée pour estimer les frais de port avant que le client entre son adresse.
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Ville</label>
+                                    <input type="text" name="shipping_default_city" class="form-input"
+                                           value="<?= h($shopSettings->get('shipping_default_city', 'Paris')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Code postal</label>
+                                    <input type="text" name="shipping_default_postcode" class="form-input"
+                                           value="<?= h($shopSettings->get('shipping_default_postcode', '75001')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Pays</label>
+                                    <select name="shipping_default_country" class="form-input">
+                                        <option value="FR" <?= $shopSettings->get('shipping_default_country', 'FR') === 'FR' ? 'selected' : '' ?>>France</option>
+                                        <option value="BE" <?= $shopSettings->get('shipping_default_country', 'FR') === 'BE' ? 'selected' : '' ?>>Belgique</option>
+                                        <option value="CH" <?= $shopSettings->get('shipping_default_country', 'FR') === 'CH' ? 'selected' : '' ?>>Suisse</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Tarifs de secours (si Boxtal indisponible)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="section-divider"><span>Livraison Standard</span></div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Nom</label>
+                                    <input type="text" name="shipping_fallback_standard_label" class="form-input"
+                                           value="<?= h($shopSettings->get('shipping_fallback_standard_label', 'Livraison standard')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Prix (€)</label>
+                                    <input type="number" step="0.01" name="shipping_fallback_standard_price" class="form-input"
+                                           value="<?= h($shopSettings->get('shipping_fallback_standard_price', 4.90)) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Délai</label>
+                                    <input type="text" name="shipping_fallback_standard_delay" class="form-input"
+                                           value="<?= h($shopSettings->get('shipping_fallback_standard_delay', '3-5 jours ouvrés')) ?>">
+                                </div>
+                            </div>
+
+                            <div class="section-divider"><span>Livraison Express</span></div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Nom</label>
+                                    <input type="text" name="shipping_fallback_express_label" class="form-input"
+                                           value="<?= h($shopSettings->get('shipping_fallback_express_label', 'Livraison express')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Prix (€)</label>
+                                    <input type="number" step="0.01" name="shipping_fallback_express_price" class="form-input"
+                                           value="<?= h($shopSettings->get('shipping_fallback_express_price', 9.90)) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Délai</label>
+                                    <input type="text" name="shipping_fallback_express_delay" class="form-input"
+                                           value="<?= h($shopSettings->get('shipping_fallback_express_delay', '24-48h')) ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">Enregistrer</button>
+                    </div>
+                </form>
+                <?php endif; ?>
+
+                <!-- RETURNS -->
+                <?php if ($activeTab === 'shop_returns'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_shop_returns" value="1">
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Politique de retours</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label toggle-label">
+                                        <input type="checkbox" name="returns_enabled" value="1"
+                                            <?= $shopSettings->get('returns_enabled', true) ? 'checked' : '' ?>>
+                                        <span class="toggle-switch"></span>
+                                        Autoriser les retours
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label toggle-label">
+                                        <input type="checkbox" name="returns_free" value="1"
+                                            <?= $shopSettings->get('returns_free', true) ? 'checked' : '' ?>>
+                                        <span class="toggle-switch"></span>
+                                        Retours gratuits
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Délai de retour (jours)</label>
+                                <input type="number" name="returns_days" class="form-input" style="max-width: 150px;"
+                                       value="<?= h($shopSettings->get('returns_days', 14)) ?>">
+                                <small class="form-hint">Nombre de jours après réception pour demander un retour</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Conditions de retour</label>
+                                <textarea name="returns_conditions" class="form-input" rows="4"><?= h($shopSettings->get('returns_conditions', '')) ?></textarea>
+                                <small class="form-hint">Ex: "Produit non porté, dans son emballage d'origine..."</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">Enregistrer</button>
+                    </div>
+                </form>
+                <?php endif; ?>
+
+                <!-- PAYMENT METHODS DISPLAY -->
+                <?php if ($activeTab === 'shop_payments'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_shop_payments" value="1">
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Moyens de paiement à afficher</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-box">
+                                Sélectionnez les moyens de paiement à afficher sur le site. Cela n'active pas le paiement,
+                                c'est uniquement pour l'affichage (les icônes dans le panier).
+                            </div>
+
+                            <div class="payment-methods-grid">
+                                <label class="payment-method-item">
+                                    <input type="checkbox" name="payment_visa_enabled" value="1"
+                                        <?= $shopSettings->get('payment_visa_enabled', true) ? 'checked' : '' ?>>
+                                    <span class="payment-icon" style="color: #1A1F71;">VISA</span>
+                                    <span>Visa</span>
+                                </label>
+                                <label class="payment-method-item">
+                                    <input type="checkbox" name="payment_mastercard_enabled" value="1"
+                                        <?= $shopSettings->get('payment_mastercard_enabled', true) ? 'checked' : '' ?>>
+                                    <span class="payment-icon" style="color: #EB001B;">MC</span>
+                                    <span>Mastercard</span>
+                                </label>
+                                <label class="payment-method-item">
+                                    <input type="checkbox" name="payment_amex_enabled" value="1"
+                                        <?= $shopSettings->get('payment_amex_enabled', true) ? 'checked' : '' ?>>
+                                    <span class="payment-icon" style="color: #006FCF;">AMEX</span>
+                                    <span>American Express</span>
+                                </label>
+                                <label class="payment-method-item">
+                                    <input type="checkbox" name="payment_cb_enabled" value="1"
+                                        <?= $shopSettings->get('payment_cb_enabled', true) ? 'checked' : '' ?>>
+                                    <span class="payment-icon" style="color: #1D4F91;">CB</span>
+                                    <span>Carte Bancaire</span>
+                                </label>
+                                <label class="payment-method-item">
+                                    <input type="checkbox" name="payment_paypal_enabled" value="1"
+                                        <?= $shopSettings->get('payment_paypal_enabled', false) ? 'checked' : '' ?>>
+                                    <span class="payment-icon" style="color: #003087;">PP</span>
+                                    <span>PayPal</span>
+                                </label>
+                                <label class="payment-method-item">
+                                    <input type="checkbox" name="payment_apple_pay_enabled" value="1"
+                                        <?= $shopSettings->get('payment_apple_pay_enabled', false) ? 'checked' : '' ?>>
+                                    <span class="payment-icon" style="color: #000;">AP</span>
+                                    <span>Apple Pay</span>
+                                </label>
+                                <label class="payment-method-item">
+                                    <input type="checkbox" name="payment_google_pay_enabled" value="1"
+                                        <?= $shopSettings->get('payment_google_pay_enabled', false) ? 'checked' : '' ?>>
+                                    <span class="payment-icon" style="color: #4285F4;">GP</span>
+                                    <span>Google Pay</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">Enregistrer</button>
+                    </div>
+                </form>
+                <?php endif; ?>
+
+                <!-- TRUST BADGES -->
+                <?php if ($activeTab === 'shop_badges'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_shop_badges" value="1">
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Badges de confiance</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-box">
+                                Ces badges sont affichés dans le panier pour rassurer le client (paiement sécurisé, retours, etc.)
+                            </div>
+
+                            <?php for ($i = 1; $i <= 4; $i++): ?>
+                            <div class="badge-config-row">
+                                <div class="form-group" style="flex: 0 0 auto;">
+                                    <label class="form-label toggle-label">
+                                        <input type="checkbox" name="trust_badge_<?= $i ?>_enabled" value="1"
+                                            <?= $shopSettings->get("trust_badge_{$i}_enabled", $i <= 3) ? 'checked' : '' ?>>
+                                        <span class="toggle-switch"></span>
+                                    </label>
+                                </div>
+                                <div class="form-group" style="flex: 0 0 150px;">
+                                    <label class="form-label">Icône <?= $i ?></label>
+                                    <select name="trust_badge_<?= $i ?>_icon" class="form-input">
+                                        <option value="lock" <?= $shopSettings->get("trust_badge_{$i}_icon") === 'lock' ? 'selected' : '' ?>>🔒 Cadenas</option>
+                                        <option value="check" <?= $shopSettings->get("trust_badge_{$i}_icon") === 'check' ? 'selected' : '' ?>>✓ Check</option>
+                                        <option value="truck" <?= $shopSettings->get("trust_badge_{$i}_icon") === 'truck' ? 'selected' : '' ?>>🚚 Camion</option>
+                                        <option value="shield" <?= $shopSettings->get("trust_badge_{$i}_icon") === 'shield' ? 'selected' : '' ?>>🛡️ Bouclier</option>
+                                        <option value="star" <?= $shopSettings->get("trust_badge_{$i}_icon") === 'star' ? 'selected' : '' ?>>⭐ Étoile</option>
+                                        <option value="heart" <?= $shopSettings->get("trust_badge_{$i}_icon") === 'heart' ? 'selected' : '' ?>>❤️ Cœur</option>
+                                        <option value="return" <?= $shopSettings->get("trust_badge_{$i}_icon") === 'return' ? 'selected' : '' ?>>↩️ Retour</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <label class="form-label">Texte <?= $i ?></label>
+                                    <input type="text" name="trust_badge_<?= $i ?>_text" class="form-input"
+                                           placeholder="Ex: Paiement 100% sécurisé"
+                                           value="<?= h($shopSettings->get("trust_badge_{$i}_text", '')) ?>">
+                                </div>
+                            </div>
+                            <?php endfor; ?>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">Enregistrer</button>
+                    </div>
+                </form>
+                <?php endif; ?>
+
+                <!-- FOOTER -->
+                <?php if ($activeTab === 'shop_footer'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_shop_footer" value="1">
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Éléments de réassurance</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-box">
+                                Affichés en bas du footer (ex: 🔒 Paiement sécurisé, 🚚 Livraison gratuite...)
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Réassurance 1</label>
+                                <input type="text" name="footer_reassurance_1" class="form-input"
+                                       placeholder="🔒 Paiement sécurisé"
+                                       value="<?= h($shopSettings->get('footer_reassurance_1', '')) ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Réassurance 2</label>
+                                <input type="text" name="footer_reassurance_2" class="form-input"
+                                       placeholder="🚚 Livraison gratuite dès 50€"
+                                       value="<?= h($shopSettings->get('footer_reassurance_2', '')) ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Réassurance 3</label>
+                                <input type="text" name="footer_reassurance_3" class="form-input"
+                                       placeholder="↩️ Retours 14 jours"
+                                       value="<?= h($shopSettings->get('footer_reassurance_3', '')) ?>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Titres des colonnes</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Colonne 1</label>
+                                    <input type="text" name="footer_col1_title" class="form-input"
+                                           value="<?= h($shopSettings->get('footer_col1_title', 'Navigation')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Colonne 2</label>
+                                    <input type="text" name="footer_col2_title" class="form-input"
+                                           value="<?= h($shopSettings->get('footer_col2_title', 'Informations')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Colonne 3</label>
+                                    <input type="text" name="footer_col3_title" class="form-input"
+                                           value="<?= h($shopSettings->get('footer_col3_title', 'Contact')) ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">Enregistrer</button>
+                    </div>
+                </form>
+                <?php endif; ?>
+
+                <?php endif; ?>
+
             </div>
         </main>
     </div>
@@ -976,6 +1501,91 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
             color: var(--black-soft);
         }
 
+        /* Sub-tabs */
+        .sub-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .sub-tab {
+            padding: 10px 18px;
+            background: var(--gray-lighter);
+            border-radius: var(--radius-md);
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .sub-tab:hover {
+            background: var(--pink-light);
+            color: var(--pink-dark);
+        }
+        .sub-tab.active {
+            background: var(--gradient-pink);
+            color: white;
+        }
+
+        /* Payment methods grid */
+        .payment-methods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .payment-method-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--gray-lighter);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .payment-method-item:hover {
+            border-color: var(--pink-light);
+        }
+        .payment-method-item input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--pink-main);
+        }
+        .payment-method-item input:checked + .payment-icon {
+            opacity: 1;
+        }
+        .payment-method-item .payment-icon {
+            width: 40px;
+            height: 26px;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .payment-method-item span:last-child {
+            font-weight: 500;
+            color: var(--black-soft);
+        }
+
+        /* Badge config row */
+        .badge-config-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            padding: 16px;
+            background: var(--gray-lighter);
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+        }
+        .badge-config-row .form-group {
+            margin-bottom: 0;
+        }
+
         @media (max-width: 768px) {
             .settings-tabs {
                 flex-wrap: wrap;
@@ -989,6 +1599,13 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
             }
             .settings-grid {
                 grid-template-columns: 1fr;
+            }
+            .badge-config-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .badge-config-row .form-group {
+                flex: 1 !important;
             }
         }
     </style>

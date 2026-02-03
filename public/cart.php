@@ -11,7 +11,19 @@ require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/ProductUpsell.php';
 require_once __DIR__ . '/../app/models/PromoCode.php';
+require_once __DIR__ . '/../app/models/ShopSettings.php';
 require_once __DIR__ . '/../app/services/BoxtalService.php';
+
+// Charger les paramètres de la boutique
+$shopSettings = new ShopSettings();
+$siteName = $shopSettings->getSiteName();
+$cartTexts = $shopSettings->getCartTexts();
+$messages = $shopSettings->getMessages();
+$trustBadges = $shopSettings->getTrustBadges();
+$footerContent = $shopSettings->getFooterContent();
+$enabledPayments = $shopSettings->getEnabledPaymentMethods();
+$freeShippingThreshold = $shopSettings->getFreeShippingThreshold();
+$freeShippingEnabled = $shopSettings->isFreeShippingEnabled();
 
 $success = '';
 $error = '';
@@ -107,21 +119,21 @@ if (isPost()) {
             $itemKey = post('item_key', '');
             $quantity = (int) post('quantity', 1);
             Cart::updateQuantity($itemKey, $quantity);
-            $success = 'Quantité mise à jour.';
+            $success = $messages['quantity_updated'];
         }
 
         if (isset($_POST['remove_item'])) {
             $itemKey = post('item_key', '');
             Cart::remove($itemKey);
-            $success = 'Article supprimé du panier.';
+            $success = $messages['item_removed'];
         }
 
         if (isset($_POST['clear_cart'])) {
             Cart::clear();
-            $success = 'Panier vidé.';
+            $success = $messages['cart_cleared'];
         }
     } else {
-        $error = 'Session expirée. Veuillez réessayer.';
+        $error = $messages['session_expired'];
     }
 }
 
@@ -133,12 +145,7 @@ $cartCount = Cart::count();
 $cartWeight = $boxtalService->calculateCartWeight($cartItems);
 
 // Préparer l'adresse du destinataire (adresse par défaut pour l'estimation)
-$defaultRecipient = [
-    'address' => '',
-    'city' => 'Paris',
-    'postcode' => '75001',
-    'country' => 'FR'
-];
+$defaultRecipient = $shopSettings->getDefaultAddress();
 
 // Récupérer les tarifs de livraison dynamiques
 $shippingRates = $boxtalService->getShippingRates($defaultRecipient, $cartWeight, $cartTotal);
@@ -156,11 +163,12 @@ foreach ($shippingRates as $rate) {
     ];
 }
 
-// Fallback si aucune option disponible
+// Fallback si aucune option disponible (depuis les paramètres admin)
 if (empty($shippingOptions)) {
+    $fallbackOptions = $shopSettings->getShippingFallback();
     $shippingOptions = [
-        'standard' => ['label' => 'Livraison standard', 'price' => 4.90, 'delay' => '3-5 jours ouvrés'],
-        'express' => ['label' => 'Livraison express', 'price' => 9.90, 'delay' => '24-48h']
+        'standard' => ['label' => $fallbackOptions['standard']['label'], 'price' => $fallbackOptions['standard']['price'], 'delay' => $fallbackOptions['standard']['delay']],
+        'express' => ['label' => $fallbackOptions['express']['label'], 'price' => $fallbackOptions['express']['price'], 'delay' => $fallbackOptions['express']['delay']]
     ];
 }
 
@@ -204,7 +212,7 @@ if (!Cart::isEmpty()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Votre Panier - PERSONNALY</title>
+    <title><?= h($cartTexts['title']) ?> - <?= h($siteName) ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
@@ -1186,10 +1194,11 @@ if (!Cart::isEmpty()) {
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
-            <a href="/" class="navbar-brand">PERSONNALY</a>
+            <a href="/" class="navbar-brand"><?= h($siteName) ?></a>
             <div class="navbar-actions">
-                <a href="/">Accueil</a>
-                <a href="/#produits">Nos Produits</a>
+                <?php foreach ($shopSettings->getNavbarLinks() as $link): ?>
+                    <a href="<?= h($link['url']) ?>"><?= h($link['label']) ?></a>
+                <?php endforeach; ?>
                 <a href="/public/cart.php" class="nav-cart-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
@@ -1206,7 +1215,7 @@ if (!Cart::isEmpty()) {
     <section class="cart-page">
         <div class="container">
             <div class="page-header">
-                <h1 class="page-title">Votre <span>Panier</span></h1>
+                <h1 class="page-title"><?= h(str_replace('Panier', '<span>Panier</span>', $cartTexts['title'])) ?></h1>
                 <?php if (!Cart::isEmpty()): ?>
                     <p class="page-subtitle"><?= $cartCount ?> article<?= $cartCount > 1 ? 's' : '' ?> dans votre panier</p>
                 <?php endif; ?>
@@ -1236,9 +1245,9 @@ if (!Cart::isEmpty()) {
             <?php if (Cart::isEmpty()): ?>
                 <div class="empty-cart">
                     <div class="empty-cart-icon">🛒</div>
-                    <h2>Votre panier est vide</h2>
-                    <p>Découvrez nos produits personnalisables et créez quelque chose d'unique !</p>
-                    <a href="/" class="btn btn-primary">Découvrir nos produits</a>
+                    <h2><?= h($cartTexts['empty_title']) ?></h2>
+                    <p><?= h($cartTexts['empty_description']) ?></p>
+                    <a href="/" class="btn btn-primary"><?= h($cartTexts['empty_button']) ?></a>
                 </div>
             <?php elseif (empty($cartItems)): ?>
                 <!-- Cas où le panier a des items mais getItemsWithProducts échoue -->
@@ -1265,7 +1274,7 @@ if (!Cart::isEmpty()) {
                         <div class="cart-items">
                             <div class="cart-header">
                                 <h2>
-                                    Vos articles
+                                    <?= h($cartTexts['items_title']) ?>
                                     <span class="cart-count-badge"><?= $cartCount ?></span>
                                 </h2>
                                 <form method="post" style="display: inline;">
@@ -1276,7 +1285,7 @@ if (!Cart::isEmpty()) {
                                             <polyline points="3 6 5 6 21 6"/>
                                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                                         </svg>
-                                        Vider
+                                        <?= h($cartTexts['clear_button']) ?>
                                     </button>
                                 </form>
                             </div>
@@ -1378,7 +1387,7 @@ if (!Cart::isEmpty()) {
                                 <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
                                 <line x1="1" y1="10" x2="23" y2="10"/>
                             </svg>
-                            Récapitulatif
+                            <?= h($cartTexts['summary_title']) ?>
                         </h2>
 
                         <!-- Promo Code Section -->
@@ -1388,13 +1397,13 @@ if (!Cart::isEmpty()) {
                                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
                                     <line x1="7" y1="7" x2="7.01" y2="7"/>
                                 </svg>
-                                Code promo
+                                <?= h($cartTexts['promo_label']) ?>
                             </div>
 
                             <div id="promoInputWrapper" style="<?= $appliedPromo ? 'display:none;' : '' ?>">
                                 <div class="promo-input-group">
-                                    <input type="text" id="promoCode" placeholder="Entrez votre code" autocomplete="off">
-                                    <button type="button" id="applyPromoBtn" class="promo-apply-btn">Appliquer</button>
+                                    <input type="text" id="promoCode" placeholder="<?= h($cartTexts['promo_placeholder']) ?>" autocomplete="off">
+                                    <button type="button" id="applyPromoBtn" class="promo-apply-btn"><?= h($cartTexts['promo_button']) ?></button>
                                 </div>
                                 <p class="promo-error" id="promoError"></p>
                             </div>
@@ -1434,7 +1443,7 @@ if (!Cart::isEmpty()) {
                                     <circle cx="5.5" cy="18.5" r="2.5"/>
                                     <circle cx="18.5" cy="18.5" r="2.5"/>
                                 </svg>
-                                Livraison
+                                <?= h($cartTexts['shipping_label']) ?>
                             </div>
                             <div class="shipping-options">
                                 <?php foreach ($shippingOptions as $key => $option): ?>
@@ -1456,15 +1465,15 @@ if (!Cart::isEmpty()) {
                         <!-- Summary Rows -->
                         <div class="summary-rows">
                             <div class="summary-row">
-                                <span>Sous-total</span>
+                                <span><?= h($cartTexts['subtotal_label']) ?></span>
                                 <span id="subtotalValue"><?= formatPrice($cartTotal) ?></span>
                             </div>
                             <div class="summary-row">
-                                <span>Livraison</span>
+                                <span><?= h($cartTexts['shipping_label']) ?></span>
                                 <span id="shippingValue"><?= $shippingCost == 0 ? 'Gratuit' : formatPrice($shippingCost) ?></span>
                             </div>
                             <div class="summary-row discount" id="discountRow" style="<?= ($appliedPromo && $appliedPromo['discount'] > 0) ? '' : 'display:none;' ?>">
-                                <span>Réduction</span>
+                                <span><?= h($cartTexts['discount_label']) ?></span>
                                 <span id="discountValue">-<?= formatPrice($appliedPromo['discount'] ?? 0) ?></span>
                             </div>
                             <?php
@@ -1474,14 +1483,14 @@ if (!Cart::isEmpty()) {
                             }
                             ?>
                             <div class="summary-row total">
-                                <span>Total</span>
+                                <span><?= h($cartTexts['total_label']) ?></span>
                                 <span id="finalTotal"><?= formatPrice($finalTotal) ?></span>
                             </div>
                         </div>
 
                         <!-- Checkout Button -->
                         <a href="/public/checkout.php" class="checkout-btn">
-                            Passer commande
+                            <?= h($cartTexts['checkout_button']) ?>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M5 12h14M12 5l7 7-7 7"/>
                             </svg>
@@ -1490,39 +1499,37 @@ if (!Cart::isEmpty()) {
                         <!-- Payment Trust Section -->
                         <div class="payment-trust">
                             <div class="payment-icons">
-                                <div class="payment-icon visa">VISA</div>
-                                <div class="payment-icon mc">MC</div>
-                                <div class="payment-icon amex">AMEX</div>
-                                <div class="payment-icon cb">CB</div>
+                                <?php if (in_array('visa', $enabledPayments)): ?><div class="payment-icon visa">VISA</div><?php endif; ?>
+                                <?php if (in_array('mastercard', $enabledPayments)): ?><div class="payment-icon mc">MC</div><?php endif; ?>
+                                <?php if (in_array('amex', $enabledPayments)): ?><div class="payment-icon amex">AMEX</div><?php endif; ?>
+                                <?php if (in_array('cb', $enabledPayments)): ?><div class="payment-icon cb">CB</div><?php endif; ?>
+                                <?php if (in_array('paypal', $enabledPayments)): ?><div class="payment-icon" style="color:#003087;">PP</div><?php endif; ?>
+                                <?php if (in_array('apple_pay', $enabledPayments)): ?><div class="payment-icon" style="color:#000;">AP</div><?php endif; ?>
+                                <?php if (in_array('google_pay', $enabledPayments)): ?><div class="payment-icon" style="color:#4285F4;">GP</div><?php endif; ?>
                             </div>
                             <div class="trust-badges">
+                                <?php foreach ($trustBadges as $badge): ?>
                                 <div class="trust-badge">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                    </svg>
-                                    Paiement 100% sécurisé
+                                    <?php
+                                    $iconSvg = match($badge['icon']) {
+                                        'lock' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+                                        'check' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+                                        'truck' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+                                        'shield' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+                                        'star' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+                                        'heart' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+                                        'return' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>',
+                                        default => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>'
+                                    };
+                                    echo $iconSvg;
+                                    ?>
+                                    <?= h($badge['text']) ?>
                                 </div>
-                                <div class="trust-badge">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                                        <polyline points="22 4 12 14.01 9 11.01"/>
-                                    </svg>
-                                    Satisfait ou remboursé 14 jours
-                                </div>
-                                <div class="trust-badge">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="1" y="3" width="15" height="13"/>
-                                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
-                                        <circle cx="5.5" cy="18.5" r="2.5"/>
-                                        <circle cx="18.5" cy="18.5" r="2.5"/>
-                                    </svg>
-                                    Livraison offerte dès 0€
-                                </div>
+                                <?php endforeach; ?>
                             </div>
                         </div>
 
-                        <a href="/" class="continue-link">← Continuer mes achats</a>
+                        <a href="/" class="continue-link"><?= h($cartTexts['continue_link']) ?></a>
                     </div>
                 </div>
             <?php endif; ?>
@@ -1534,39 +1541,46 @@ if (!Cart::isEmpty()) {
         <div class="container">
             <div class="footer-content">
                 <div class="footer-brand">
-                    <h3>PERSONNALY</h3>
-                    <p>Créez des produits uniques qui vous ressemblent. Personnalisation textile de qualité, made in France.</p>
+                    <h3><?= h($footerContent['site_name']) ?></h3>
+                    <p><?= h($footerContent['description']) ?></p>
                 </div>
                 <div class="footer-col">
-                    <h4>Navigation</h4>
+                    <h4><?= h($footerContent['col1_title']) ?></h4>
                     <ul>
-                        <li><a href="/">Accueil</a></li>
-                        <li><a href="/#produits">Nos produits</a></li>
+                        <?php foreach ($shopSettings->getNavbarLinks() as $link): ?>
+                            <li><a href="<?= h($link['url']) ?>"><?= h($link['label']) ?></a></li>
+                        <?php endforeach; ?>
                         <li><a href="/public/cart.php">Panier</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
-                    <h4>Informations</h4>
+                    <h4><?= h($footerContent['col2_title']) ?></h4>
                     <ul>
-                        <li><a href="#">Livraison</a></li>
-                        <li><a href="#">Retours</a></li>
-                        <li><a href="#">FAQ</a></li>
+                        <?php
+                        $footerLinks = $footerContent['links'];
+                        if (is_array($footerLinks)):
+                            foreach ($footerLinks as $link): ?>
+                                <li><a href="<?= h($link['url']) ?>"><?= h($link['label']) ?></a></li>
+                            <?php endforeach;
+                        endif; ?>
                     </ul>
                 </div>
                 <div class="footer-col">
-                    <h4>Contact</h4>
+                    <h4><?= h($footerContent['col3_title']) ?></h4>
                     <ul>
-                        <li><a href="mailto:contact@personnaly.fr">contact@personnaly.fr</a></li>
+                        <?php if (!empty($footerContent['contact_email'])): ?>
+                            <li><a href="mailto:<?= h($footerContent['contact_email']) ?>"><?= h($footerContent['contact_email']) ?></a></li>
+                        <?php endif; ?>
                         <li><a href="#">Nous contacter</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <span>© 2026 PERSONNALY. Tous droits réservés.</span>
+                <span><?= h($footerContent['copyright']) ?></span>
                 <div class="footer-reassurance">
-                    <span>🔒 Paiement sécurisé</span>
-                    <span>🚚 Livraison gratuite</span>
-                    <span>↩️ Retours 14 jours</span>
+                    <?php if (!empty($footerContent['reassurance_1'])): ?><span><?= h($footerContent['reassurance_1']) ?></span><?php endif; ?>
+                    <?php if (!empty($footerContent['reassurance_2'])): ?><span><?= h($footerContent['reassurance_2']) ?></span><?php endif; ?>
+                    <?php if (!empty($footerContent['reassurance_3'])): ?><span><?= h($footerContent['reassurance_3']) ?></span><?php endif; ?>
                 </div>
             </div>
         </div>
@@ -1619,11 +1633,20 @@ if (!Cart::isEmpty()) {
                 finalTotal.textContent = formatPrice(total);
             }
 
+            // Messages dynamiques depuis PHP
+            const jsMessages = {
+                enter_promo: <?= json_encode($messages['enter_promo']) ?>,
+                free_shipping_applied: <?= json_encode($messages['free_shipping_applied']) ?>,
+                discount_applied: <?= json_encode($messages['discount_applied']) ?>,
+                connection_error: <?= json_encode($messages['connection_error']) ?>,
+                promo_button: <?= json_encode($cartTexts['promo_button']) ?>
+            };
+
             if (applyBtn) {
                 applyBtn.addEventListener('click', async function() {
                     const code = promoInput.value.trim().toUpperCase();
                     if (!code) {
-                        showError('Veuillez entrer un code promo');
+                        showError(jsMessages.enter_promo);
                         return;
                     }
 
@@ -1646,12 +1669,12 @@ if (!Cart::isEmpty()) {
                             appliedCodeText.textContent = code;
 
                             if (data.free_shipping) {
-                                promoSuccessText.textContent = 'Livraison gratuite appliquée !';
+                                promoSuccessText.textContent = jsMessages.free_shipping_applied;
                                 discountRow.style.display = 'none';
                                 currentShippingCost = 0;
                                 shippingValue.textContent = 'Gratuit';
                             } else {
-                                promoSuccessText.textContent = '-' + formatPrice(data.discount) + ' de réduction !';
+                                promoSuccessText.textContent = '-' + formatPrice(data.discount) + ' ' + jsMessages.discount_applied;
                                 discountRow.style.display = 'flex';
                                 discountValue.textContent = '-' + formatPrice(data.discount);
                                 currentDiscount = data.discount;
@@ -1663,11 +1686,11 @@ if (!Cart::isEmpty()) {
                             showError(data.message);
                         }
                     } catch (err) {
-                        showError('Erreur de connexion. Réessayez.');
+                        showError(jsMessages.connection_error);
                     }
 
                     applyBtn.disabled = false;
-                    applyBtn.textContent = 'Appliquer';
+                    applyBtn.textContent = jsMessages.promo_button;
                 });
             }
 
