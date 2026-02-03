@@ -16,6 +16,13 @@ require_once __DIR__ . '/../app/services/BoxtalService.php';
 $success = '';
 $error = '';
 
+// Clear cart via URL (for recovery)
+if (isset($_GET['clear']) && $_GET['clear'] === '1') {
+    Cart::clear();
+    header('Location: /public/cart.php');
+    exit;
+}
+
 // AJAX: Validation code promo
 if (isset($_GET['ajax']) && $_GET['ajax'] === 'validate_promo') {
     header('Content-Type: application/json');
@@ -1226,6 +1233,23 @@ if (!Cart::isEmpty()) {
                     <h2>Votre panier est vide</h2>
                     <p>Découvrez nos produits personnalisables et créez quelque chose d'unique !</p>
                     <a href="/" class="btn btn-primary">Découvrir nos produits</a>
+                </div>
+            <?php elseif (empty($cartItems)): ?>
+                <!-- Cas où le panier a des items mais getItemsWithProducts échoue -->
+                <div class="alert alert-error">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    Une erreur est survenue lors du chargement de votre panier.
+                    <a href="?clear=1" style="color: inherit; text-decoration: underline; margin-left: 10px;">Vider le panier</a>
+                </div>
+                <div class="empty-cart">
+                    <div class="empty-cart-icon">⚠️</div>
+                    <h2>Impossible de charger vos articles</h2>
+                    <p>Les produits de votre panier semblent ne plus être disponibles.</p>
+                    <a href="/" class="btn btn-primary">Continuer mes achats</a>
                 </div>
             <?php else: ?>
                 <div class="cart-layout">

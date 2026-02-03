@@ -132,15 +132,43 @@ class Cart
         $productModel = new Product();
 
         foreach ($_SESSION[self::SESSION_KEY] as $key => $item) {
-            $product = $productModel->findById($item['product_id']);
-            if ($product) {
-                $items[$key] = array_merge($item, [
-                    'product' => $product,
-                    'subtotal' => $item['unit_price'] * $item['quantity'],
-                ]);
+            // Vérifier que l'item est valide
+            if (!isset($item['product_id']) || !isset($item['unit_price']) || !isset($item['quantity'])) {
+                continue;
             }
+
+            $product = $productModel->findById((int) $item['product_id']);
+
+            // Créer un produit par défaut si non trouvé (pour éviter les items invisibles)
+            if (!$product) {
+                $product = [
+                    'id' => $item['product_id'],
+                    'name' => 'Produit #' . $item['product_id'],
+                    'description' => '',
+                    'base_price' => $item['unit_price'],
+                    'image_front_url' => null,
+                    'image_back_url' => null,
+                    'available_sizes' => null,
+                    'active' => 0,
+                    '_not_found' => true
+                ];
+            }
+
+            $items[$key] = array_merge($item, [
+                'product' => $product,
+                'subtotal' => $item['unit_price'] * $item['quantity'],
+            ]);
         }
 
         return $items;
+    }
+
+    /**
+     * Debug: affiche le contenu du panier (pour le développement)
+     */
+    public static function debug(): array
+    {
+        self::init();
+        return $_SESSION[self::SESSION_KEY] ?? [];
     }
 }
