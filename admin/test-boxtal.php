@@ -125,7 +125,7 @@ if (!$settings->isBoxtalEnabled()) {
                 foreach ($xml->shipment->offer as $offer) {
                     $carrier = (string)$offer->operator->label;
                     $service = (string)$offer->service->label;
-                    $price = (string)$offer->price['tax-inclusive'];
+                    $price = (string)$offer->price->{'tax-inclusive'};
                     echo "<li><strong>$carrier</strong> - $service : " . number_format((float)$price, 2, ',', ' ') . " €</li>";
                     $count++;
                     if ($count >= 10) {

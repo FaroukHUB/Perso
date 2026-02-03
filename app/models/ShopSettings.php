@@ -136,8 +136,6 @@ class ShopSettings
                 $value = $value ? '1' : '0';
             }
 
-            error_log("ShopSettings::set - key: $key, value: $value");
-
             // Utiliser INSERT ... ON DUPLICATE KEY UPDATE pour créer ou mettre à jour
             $stmt = $this->db->prepare("
                 INSERT INTO shop_settings (setting_key, setting_value, setting_group, setting_type, created_at, updated_at)
@@ -145,8 +143,6 @@ class ShopSettings
                 ON DUPLICATE KEY UPDATE setting_value = ?, updated_at = NOW()
             ");
             $result = $stmt->execute([$key, $value, $value]);
-
-            error_log("ShopSettings::set - result: " . ($result ? 'true' : 'false') . ", affected: " . $stmt->rowCount());
 
             // Mettre à jour le cache
             if ($result && self::$cacheLoaded) {
@@ -226,10 +222,7 @@ class ShopSettings
     public function isFreeShippingEnabled(): bool
     {
         // Default à false pour ne pas activer la livraison gratuite par défaut
-        $rawValue = $this->get('free_shipping_enabled', false);
-        $result = (bool) $rawValue;
-        error_log("DEBUG isFreeShippingEnabled: rawValue=" . var_export($rawValue, true) . ", result=" . ($result ? 'true' : 'false'));
-        return $result;
+        return (bool) $this->get('free_shipping_enabled', false);
     }
 
     /**

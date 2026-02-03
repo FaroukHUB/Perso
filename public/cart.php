@@ -17,8 +17,6 @@ require_once __DIR__ . '/../app/services/BoxtalService.php';
 // Charger les paramètres de la boutique
 $shopSettings = new ShopSettings();
 
-// DEBUG - À SUPPRIMER
-echo "<!-- CART_DEBUG: free_shipping_enabled=" . ($shopSettings->isFreeShippingEnabled() ? 'TRUE' : 'FALSE') . " -->";
 $siteName = $shopSettings->getSiteName();
 $cartTexts = $shopSettings->getCartTexts();
 $messages = $shopSettings->getMessages();
@@ -152,11 +150,6 @@ $defaultRecipient = $shopSettings->getDefaultAddress();
 
 // Récupérer les tarifs de livraison dynamiques
 $shippingRates = $boxtalService->getShippingRates($defaultRecipient, $cartWeight, $cartTotal);
-
-// DEBUG - Afficher les valeurs (à supprimer après debug)
-$debugFreeShippingEnabled = $shopSettings->isFreeShippingEnabled();
-$debugFreeShippingThreshold = $shopSettings->get('free_shipping_threshold', 50);
-echo "<!-- DEBUG FREE SHIPPING: enabled=" . ($debugFreeShippingEnabled ? 'true' : 'false') . ", threshold=$debugFreeShippingThreshold, cartTotal=$cartTotal -->";
 
 // Convertir en format compatible
 $shippingOptions = [];

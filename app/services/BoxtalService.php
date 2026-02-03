@@ -47,8 +47,14 @@ class BoxtalService
      */
     private function isFreeShipping(float $cartTotal): bool
     {
-        // FORCE DÉSACTIVÉ POUR DEBUG
-        return false;
+        // Vérifier si la livraison gratuite est activée dans les paramètres
+        if (!$this->shopSettings->isFreeShippingEnabled()) {
+            return false;
+        }
+
+        // Vérifier si le total du panier atteint le seuil
+        $threshold = $this->shopSettings->getFreeShippingThreshold();
+        return $cartTotal >= $threshold;
     }
 
     /**
@@ -180,8 +186,8 @@ class BoxtalService
             $operatorLabel = (string)$operator->label;
             $serviceLabel = (string)$service->label;
 
-            // Prix TTC
-            $price = (float)$offer->price['tax-inclusive'];
+            // Prix TTC (élément enfant, pas attribut)
+            $price = (float)$offer->price->{'tax-inclusive'};
 
             // Appliquer la livraison gratuite si activée et au-dessus du seuil
             if ($this->isFreeShipping($cartTotal)) {
