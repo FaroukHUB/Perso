@@ -958,7 +958,8 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                                                     <input type="radio" name="shipping_method" value="<?= h($option['id']) ?>"
                                                            <?= $shippingMethod === $option['id'] ? 'checked' : '' ?>
                                                            data-price="<?= $option['price'] ?>"
-                                                           data-label="<?= h($option['label']) ?>">
+                                                           data-label="<?= h($option['label']) ?>"
+                                                           data-is-relay="0">
                                                     <div class="shipping-option-content">
                                                         <?php if (!empty($option['logo'])): ?>
                                                             <img src="<?= h($option['logo']) ?>" alt="" class="shipping-logo">
@@ -992,7 +993,8 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                                                     <input type="radio" name="shipping_method" value="<?= h($option['id']) ?>"
                                                            <?= $shippingMethod === $option['id'] ? 'checked' : '' ?>
                                                            data-price="<?= $option['price'] ?>"
-                                                           data-label="<?= h($option['label']) ?>">
+                                                           data-label="<?= h($option['label']) ?>"
+                                                           data-is-relay="1">
                                                     <div class="shipping-option-content">
                                                         <?php if (!empty($option['logo'])): ?>
                                                             <img src="<?= h($option['logo']) ?>" alt="" class="shipping-logo">
@@ -1203,6 +1205,7 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
 
                 const price = parseFloat(this.dataset.price);
                 const label = this.dataset.label;
+                const isRelay = this.dataset.isRelay === '1';
                 currentCarrier = this.value;
 
                 // Update summary
@@ -1219,32 +1222,30 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                 const total = cartTotal + price;
                 document.getElementById('total-price').textContent = total.toFixed(2).replace('.', ',') + ' €';
 
-                // Save to session and check if relay
+                // Show/hide relay section immediately based on data attribute
+                if (isRelay) {
+                    relaySection.style.display = 'block';
+                    isRelaySelected = true;
+                    // Clear previous selection
+                    relayPointsList.innerHTML = '';
+                    document.getElementById('relay-point-code').value = '';
+                    document.getElementById('relay-point-name').value = '';
+                    document.getElementById('relay-point-address').value = '';
+                    // Pre-fill postcode from address if available
+                    const zipInput = document.getElementById('zipcode-input');
+                    if (zipInput && zipInput.value) {
+                        relayPostcode.value = zipInput.value;
+                    }
+                } else {
+                    relaySection.style.display = 'none';
+                    isRelaySelected = false;
+                }
+
+                // Save to session
                 fetch('/public/checkout.php', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: 'ajax_shipping=1&shipping_method=' + encodeURIComponent(this.value)
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.is_relay) {
-                        // Show relay section, hide address (or make optional)
-                        relaySection.style.display = 'block';
-                        isRelaySelected = true;
-                        // Clear previous selection
-                        relayPointsList.innerHTML = '';
-                        document.getElementById('relay-point-code').value = '';
-                        document.getElementById('relay-point-name').value = '';
-                        document.getElementById('relay-point-address').value = '';
-                        // Pre-fill postcode from address if available
-                        const zipInput = document.getElementById('zipcode-input');
-                        if (zipInput && zipInput.value) {
-                            relayPostcode.value = zipInput.value;
-                        }
-                    } else {
-                        relaySection.style.display = 'none';
-                        isRelaySelected = false;
-                    }
                 });
             });
         });
@@ -1339,13 +1340,10 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
         const checkedOption = document.querySelector('input[name="shipping_method"]:checked');
         if (checkedOption) {
             currentCarrier = checkedOption.value;
-            const parentLabel = checkedOption.closest('.shipping-option');
-            if (parentLabel && parentLabel.closest('.shipping-group')) {
-                const groupTitle = parentLabel.closest('.shipping-group').querySelector('.shipping-group-title');
-                if (groupTitle && groupTitle.textContent.includes('relais')) {
-                    relaySection.style.display = 'block';
-                    isRelaySelected = true;
-                }
+            // Use data-is-relay attribute for reliable detection
+            if (checkedOption.dataset.isRelay === '1') {
+                relaySection.style.display = 'block';
+                isRelaySelected = true;
             }
         }
     });
