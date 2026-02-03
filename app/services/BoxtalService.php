@@ -581,7 +581,7 @@ class BoxtalService
      */
     public function isRelayCarrier(string $carrierCode): bool
     {
-        $relayCarriers = ['MONR', 'SOGP', 'UPSE', 'CHRP', 'POFR_RELAIS'];
+        $relayCarriers = ['MONR', 'SOGP', 'UPSE', 'CHRP', 'POFR_RELAIS', 'COPR'];
         $operatorCode = explode('_', $carrierCode)[0];
         return in_array($operatorCode, $relayCarriers);
     }
