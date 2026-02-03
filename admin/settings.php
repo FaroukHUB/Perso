@@ -633,16 +633,18 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
 
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label class="form-label">Utilisateur API</label>
+                                    <label class="form-label">Clé d'accès Boxtal</label>
                                     <input type="text" name="boxtal_user" class="form-input"
-                                           placeholder="Votre login Boxtal"
+                                           placeholder="Ex: 0JXTU98QPOLMQJ92J61..."
                                            value="<?= h($shippingSettings['boxtal_user']['value'] ?? '') ?>">
+                                    <small class="form-hint">Disponible dans Boxtal > Développeur > Applications</small>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Clé API</label>
+                                    <label class="form-label">Clé secrète Boxtal</label>
                                     <input type="password" name="boxtal_api_key" class="form-input"
-                                           placeholder="Votre clé secrète"
+                                           placeholder="Ex: 0d90af56-7a95-4b76-..."
                                            value="<?= h($shippingSettings['boxtal_api_key']['value'] ?? '') ?>">
+                                    <small class="form-hint">Copiez-la lors de la création, non récupérable ensuite</small>
                                 </div>
                             </div>
 
