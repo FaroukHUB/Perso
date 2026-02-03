@@ -83,6 +83,7 @@ $formData = [
     'name' => $product['name'] ?? '',
     'description' => $product['description'] ?? '',
     'base_price' => $product['base_price'] ?? '',
+    'weight' => $product['weight'] ?? '',
     'category' => $product['category'] ?? '',
     'active' => $product['active'] ?? 1,
     'image_front_url' => $product['image_front_url'] ?? '',
@@ -171,6 +172,7 @@ if (isPost()) {
             'name' => trim(post('name', '')),
             'description' => trim(post('description', '')),
             'base_price' => (float)post('base_price', 0),
+            'weight' => (int)post('weight', 0) ?: null,
             'category' => trim(post('category', '')),
             'active' => post('active') ? 1 : 0,
             'image_front_url' => $formData['image_front_url'],
@@ -1043,6 +1045,17 @@ if (isPost()) {
                                            value="<?= h($formData['base_price']) ?>" required>
                                 </div>
 
+                                <div class="form-group">
+                                    <label class="form-label" for="weight">Poids (grammes)</label>
+                                    <input type="number" id="weight" name="weight" class="form-input"
+                                           min="0" step="1"
+                                           placeholder="500"
+                                           value="<?= h($formData['weight']) ?>">
+                                    <small class="form-hint">Pour le calcul des frais de livraison</small>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
                                 <div class="form-group">
                                     <label class="form-label">Catégories</label>
                                     <?php if (empty($allCategories)): ?>
