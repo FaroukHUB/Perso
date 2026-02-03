@@ -11,7 +11,7 @@ if (!isset($shopSettings)) {
 }
 
 // Vérifier si la top bar est activée
-$topbarEnabled = $shopSettings->get('topbar_enabled', '1') === '1';
+$topbarEnabled = $shopSettings->get('topbar_enabled', true);
 
 if (!$topbarEnabled) {
     return;
