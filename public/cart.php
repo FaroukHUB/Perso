@@ -16,6 +16,9 @@ require_once __DIR__ . '/../app/services/BoxtalService.php';
 
 // Charger les paramètres de la boutique
 $shopSettings = new ShopSettings();
+
+// DEBUG - À SUPPRIMER
+echo "<!-- CART_DEBUG: free_shipping_enabled=" . ($shopSettings->isFreeShippingEnabled() ? 'TRUE' : 'FALSE') . " -->";
 $siteName = $shopSettings->getSiteName();
 $cartTexts = $shopSettings->getCartTexts();
 $messages = $shopSettings->getMessages();
