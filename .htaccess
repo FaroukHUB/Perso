@@ -9,9 +9,30 @@ RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
 RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
 RewriteRule ^(.*)$ /public/$1 [L]
 
-# Sinon, tout envoyer vers public/index.php
+# Pages légales spécifiques
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^mentions-legales$ /public/mentions-legales.php [L]
+RewriteRule ^cgv$ /public/cgv.php [L]
+RewriteRule ^politique-confidentialite$ /public/politique-confidentialite.php [L]
+RewriteRule ^politique-retour$ /public/politique-retour.php [L]
+
+# Pages personnalisées (slug dynamique)
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteCond %{REQUEST_URI} !^/admin/
+RewriteCond %{REQUEST_URI} !^/produits
+RewriteCond %{REQUEST_URI} !^/packs
+RewriteCond %{REQUEST_URI} !^/blog
+RewriteCond %{REQUEST_URI} !^/contact
+RewriteCond %{REQUEST_URI} !^/categorie/
+RewriteCond %{REQUEST_URI} !^/panier
+RewriteCond %{REQUEST_URI} !^/checkout
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-z0-9-]+)$ /public/page.php?slug=$1 [L,QSA]
+
+# Sinon, tout envoyer vers public/index.php (accueil)
 RewriteCond %{REQUEST_URI} !^/public/
 RewriteCond %{REQUEST_URI} !^/admin/
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ /public/index.php [L]
+RewriteRule ^$ /public/index.php [L]

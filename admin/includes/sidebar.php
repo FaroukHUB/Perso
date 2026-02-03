@@ -90,7 +90,7 @@ function isActive($page, $current) {
             <span>Promotions</span>
         </a>
 
-        <a href="/admin/homepage-builder.php" class="nav-item <?= isActive('homepage-builder.php', $currentPage) ?><?= isActive('homepage.php', $currentPage) ?><?= isActive('homepage-section.php', $currentPage) ?>">
+        <a href="/admin/pages.php" class="nav-item <?= isActive('pages.php', $currentPage) ?><?= isActive('homepage-builder.php', $currentPage) ?><?= isActive('page-editor.php', $currentPage) ?><?= isActive('menu-editor.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
                 <line x1="3" y1="9" x2="21" y2="9"/>
