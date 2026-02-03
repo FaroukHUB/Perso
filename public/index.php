@@ -14,6 +14,7 @@ require_once __DIR__ . '/../app/models/HomepageSection.php';
 require_once __DIR__ . '/../app/models/BlogPost.php';
 require_once __DIR__ . '/../app/models/Category.php';
 require_once __DIR__ . '/../app/services/BrandingService.php';
+require_once __DIR__ . '/../app/models/ShopSettings.php';
 
 $cartCount = Cart::count();
 
@@ -1057,33 +1058,7 @@ function getSubtitleStyles(array $section): string {
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container">
-<?php
-            $logoUrl = $brandingService->getLogo(null, false); // false = fond sombre
-            if ($logoUrl): ?>
-                <a href="/" class="navbar-brand"><img src="<?= h($logoUrl) ?>" alt="Logo" class="navbar-logo"></a>
-            <?php else: ?>
-                <a href="/" class="navbar-brand">PERSONNALY</a>
-            <?php endif; ?>
-            <div class="navbar-nav">
-                <a href="#produits">Produits</a>
-                <?php if ($hasPacks): ?><a href="#inspirations">Idées</a><?php endif; ?>
-                <a href="#categories">Catégories</a>
-                <a href="#contact">Contact</a>
-                <a href="/public/cart.php" class="cart-nav-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                        <line x1="3" y1="6" x2="21" y2="6"/>
-                        <path d="M16 10a4 4 0 0 1-8 0"/>
-                    </svg>
-                    Panier
-                    <?php if ($cartCount > 0): ?><span class="cart-badge"><?= $cartCount ?></span><?php endif; ?>
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include __DIR__ . '/../app/templates/header.php'; ?>
 
     <?php
     // Rendu dynamique des sections
@@ -1490,43 +1465,7 @@ function getSubtitleStyles(array $section): string {
     endforeach;
     ?>
 
-    <!-- Footer -->
-    <footer class="footer" id="contact">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <h3>PERSONNALY</h3>
-                    <p>Personnalisation textile de qualité pour toute la famille.</p>
-                </div>
-
-                <div class="footer-links">
-                    <h4>Navigation</h4>
-                    <a href="#produits">Produits</a>
-                    <?php if ($hasPacks): ?><a href="#inspirations">Idées</a><?php endif; ?>
-                    <a href="#categories">Catégories</a>
-                    <a href="#">FAQ</a>
-                </div>
-
-                <div class="footer-links">
-                    <h4>Légal</h4>
-                    <a href="#">CGV</a>
-                    <a href="#">Mentions légales</a>
-                    <a href="#">Politique de confidentialité</a>
-                </div>
-
-                <div class="footer-links">
-                    <h4>Contact</h4>
-                    <a href="mailto:contact@personnaly.fr">contact@personnaly.fr</a>
-                    <a href="#">Instagram</a>
-                    <a href="#">Facebook</a>
-                </div>
-            </div>
-
-            <div class="footer-bottom">
-                <p>&copy; <?= date('Y') ?> PERSONNALY - Tous droits réservés</p>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/../app/templates/footer.php'; ?>
 
     <!-- Newsletter AJAX Script -->
     <script>

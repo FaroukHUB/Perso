@@ -248,32 +248,7 @@ if (!$article || $article['status'] !== 'published') {
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container">
-            <?php
-            $logoUrl = $brandingService->getLogo(null, false);
-            if ($logoUrl): ?>
-                <a href="/" class="navbar-brand"><img src="<?= h($logoUrl) ?>" alt="Logo" class="navbar-logo"></a>
-            <?php else: ?>
-                <a href="/" class="navbar-brand">PERSONNALY</a>
-            <?php endif; ?>
-            <div class="navbar-nav">
-                <a href="/#produits">Produits</a>
-                <a href="/#categories">Catégories</a>
-                <a href="/#contact">Contact</a>
-                <a href="/public/cart.php" class="cart-nav-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                        <line x1="3" y1="6" x2="21" y2="6"/>
-                        <path d="M16 10a4 4 0 0 1-8 0"/>
-                    </svg>
-                    Panier
-                    <?php if ($cartCount > 0): ?><span class="cart-badge"><?= $cartCount ?></span><?php endif; ?>
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include __DIR__ . '/../app/templates/header.php'; ?>
 
     <main class="article-page">
         <?php if ($notFound): ?>
@@ -325,5 +300,7 @@ if (!$article || $article['status'] !== 'published') {
             </div>
         <?php endif; ?>
     </main>
+
+    <?php include __DIR__ . '/../app/templates/footer.php'; ?>
 </body>
 </html>

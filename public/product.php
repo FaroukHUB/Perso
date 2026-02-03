@@ -442,26 +442,7 @@ $cartCount = Cart::count();
     </script>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container">
-            <a href="/" class="navbar-brand">PERSONNALY</a>
-            <div class="navbar-actions">
-                <a href="/">Accueil</a>
-                <a href="/public/cart.php" class="cart-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                        <line x1="3" y1="6" x2="21" y2="6"/>
-                        <path d="M16 10a4 4 0 0 1-8 0"/>
-                    </svg>
-                    Panier
-                    <?php if ($cartCount > 0): ?>
-                        <span class="cart-badge"><?= $cartCount ?></span>
-                    <?php endif; ?>
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include __DIR__ . '/../app/templates/header.php'; ?>
 
     <!-- Product Page - 3 Column Layout -->
     <section class="product-page">
@@ -948,5 +929,7 @@ $cartCount = Cart::count();
         };
         window.__COLOR_IMAGES = <?= json_encode($colorImages) ?>;
     </script>
+
+    <?php include __DIR__ . '/../app/templates/footer.php'; ?>
 </body>
 </html>

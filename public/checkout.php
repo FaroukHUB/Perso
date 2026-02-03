@@ -605,12 +605,7 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container">
-            <a href="/" class="navbar-brand">PERSONNALY</a>
-        </div>
-    </nav>
+    <?php include __DIR__ . '/../app/templates/header.php'; ?>
 
     <!-- Checkout Page -->
     <section class="checkout-page">
@@ -803,5 +798,7 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
             <?php endif; ?>
         </div>
     </section>
+
+    <?php include __DIR__ . '/../app/templates/footer.php'; ?>
 </body>
 </html>
