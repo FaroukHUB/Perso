@@ -111,12 +111,13 @@ class BoxtalService
             'colis_1.longueur' => 30,
             'colis_1.largeur' => 20,
             'colis_1.hauteur' => 10,
+            'colis_1.valeur' => max(1, round($cartTotal)), // Valeur déclarée en euros
 
             // Options
             'code_contenu' => 10120,
+            'type_envoi' => 'colis',
             'collecte' => date('Y-m-d', strtotime('+1 day')),
             'delai' => 'aucun',
-            'operateur' => '', // Tous les transporteurs
         ];
 
         $url = $this->apiUrl . 'cotation?' . http_build_query($params);

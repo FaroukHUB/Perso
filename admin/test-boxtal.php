@@ -71,7 +71,9 @@ if (!$settings->isBoxtalEnabled()) {
         'colis_1.longueur' => 30,
         'colis_1.largeur' => 20,
         'colis_1.hauteur' => 10,
+        'colis_1.valeur' => 50, // Valeur déclarée en euros
         'code_contenu' => 10120,
+        'type_envoi' => 'colis',
         'collecte' => date('Y-m-d', strtotime('+1 day')),
     ];
 
