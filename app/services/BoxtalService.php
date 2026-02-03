@@ -115,7 +115,7 @@ class BoxtalService
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => [
                 'Authorization: Basic ' . base64_encode($this->accessKey . ':' . $this->secretKey),
-                'Accept: application/json'
+                'Accept: application/xml'
             ],
             CURLOPT_TIMEOUT => 30,
             CURLOPT_SSL_VERIFYPEER => true
@@ -131,58 +131,71 @@ class BoxtalService
         }
 
         if ($httpCode !== 200) {
-            $errorData = json_decode($response, true);
-            $errorMsg = $errorData['error']['message'] ?? $errorData['message'] ?? "HTTP $httpCode";
-            throw new Exception("Boxtal API: " . $errorMsg . " (Response: " . substr($response, 0, 200) . ")");
+            throw new Exception("Boxtal API: HTTP $httpCode - " . substr($response, 0, 200));
         }
 
-        $data = json_decode($response, true);
-        if (!$data) {
-            throw new Exception("Réponse JSON invalide");
+        // L'API v1 retourne du XML
+        if (empty($response)) {
+            throw new Exception("Réponse vide de l'API");
         }
 
-        // L'API v1 retourne les cotations dans 'cotation'
-        $cotations = $data['cotation'] ?? $data;
-        if (!is_array($cotations)) {
-            throw new Exception("Format de réponse inattendu");
+        libxml_use_internal_errors(true);
+        $xml = simplexml_load_string($response);
+
+        if ($xml === false) {
+            throw new Exception("Réponse XML invalide");
         }
 
-        return $this->formatBoxtalRatesV1($cotations, $cartTotal);
+        return $this->formatBoxtalRatesV1($xml, $cartTotal);
     }
 
     /**
-     * Formate les tarifs Boxtal API v1 pour l'affichage
+     * Formate les tarifs Boxtal API v1 pour l'affichage (XML)
      */
-    private function formatBoxtalRatesV1(array $cotations, float $cartTotal): array
+    private function formatBoxtalRatesV1(SimpleXMLElement $xml, float $cartTotal): array
     {
         $rates = [];
         $config = $this->settings->getManualShippingRates();
 
-        foreach ($cotations as $cotation) {
-            $operateur = $cotation['operateur']['code'] ?? '';
-            $service = $cotation['service']['code'] ?? '';
-            $label = $cotation['operateur']['label'] ?? $cotation['service']['label'] ?? 'Livraison';
+        // L'API v1 retourne <shipment> pour chaque offre
+        foreach ($xml->shipment as $shipment) {
+            $offer = $shipment->offer;
+            $operator = $offer->operator;
+            $service = $offer->service;
 
-            $price = (float)($cotation['prix']['ttc'] ?? $cotation['prix']['ht'] ?? 0);
+            $operatorCode = (string)$operator['code'];
+            $serviceCode = (string)$service['code'];
+            $operatorLabel = (string)$operator->label;
+            $serviceLabel = (string)$service->label;
+
+            // Prix TTC
+            $price = (float)$offer->price['tax-inclusive'];
 
             // Appliquer la livraison gratuite si au-dessus du seuil
             if ($cartTotal >= $config['free_threshold']) {
                 $price = 0;
             }
 
-            $delay = $cotation['collecte'] ?? '';
-            $isRelay = in_array($operateur, ['MONR', 'SOGP', 'UPSE', 'POFR_RELAIS']);
+            // Délai de livraison
+            $deliveryDate = (string)$shipment->delivery->date;
+            $delay = $deliveryDate ? date('d/m', strtotime($deliveryDate)) : '';
+
+            // Point relais?
+            $isRelay = in_array($operatorCode, ['MONR', 'SOGP', 'UPSE', 'POFR_RELAIS'])
+                    || stripos($serviceLabel, 'relais') !== false
+                    || stripos($serviceLabel, 'relay') !== false
+                    || stripos($serviceLabel, 'point') !== false;
 
             $rates[] = [
-                'id' => $operateur . '_' . $service,
-                'operator' => $operateur,
-                'service' => $service,
-                'label' => $this->formatCarrierName($operateur, $label),
-                'description' => $delay,
+                'id' => $operatorCode . '_' . $serviceCode,
+                'operator' => $operatorCode,
+                'service' => $serviceCode,
+                'label' => $this->formatCarrierName($operatorCode, $operatorLabel . ' - ' . $serviceLabel),
+                'description' => $serviceLabel,
                 'price' => $price,
                 'delay' => $delay,
                 'is_relay' => $isRelay,
-                'logo' => $this->getOperatorLogo($operateur)
+                'logo' => $this->getOperatorLogo($operatorCode)
             ];
         }
 

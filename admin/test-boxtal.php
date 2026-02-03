@@ -107,9 +107,40 @@ if (!$settings->isBoxtalEnabled()) {
         echo "<p class='error'>Erreur HTTP $httpCode</p>";
         echo "<pre>" . htmlspecialchars($response) . "</pre>";
     } else {
-        echo "<p class='ok'>Succès!</p>";
-        $data = json_decode($response, true);
-        echo "<pre>" . htmlspecialchars(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . "</pre>";
+        echo "<p class='ok'>Succès! Connexion API fonctionnelle.</p>";
+
+        // L'API v1 retourne du XML
+        if (!empty($response)) {
+            // Essayer de parser le XML
+            libxml_use_internal_errors(true);
+            $xml = simplexml_load_string($response);
+
+            if ($xml !== false) {
+                echo "<h4>Transporteurs disponibles:</h4>";
+                echo "<ul>";
+                $count = 0;
+                foreach ($xml->shipment as $shipment) {
+                    $carrier = (string)$shipment->offer->operator->label;
+                    $service = (string)$shipment->offer->service->label;
+                    $price = (string)$shipment->offer->price['tax-inclusive'];
+                    echo "<li><strong>$carrier</strong> - $service : " . number_format((float)$price, 2, ',', ' ') . " €</li>";
+                    $count++;
+                    if ($count >= 10) {
+                        echo "<li>... et plus</li>";
+                        break;
+                    }
+                }
+                echo "</ul>";
+
+                echo "<h4>Réponse XML brute:</h4>";
+                echo "<pre style='max-height:300px;overflow:auto'>" . htmlspecialchars($response) . "</pre>";
+            } else {
+                echo "<h4>Réponse brute:</h4>";
+                echo "<pre>" . htmlspecialchars($response) . "</pre>";
+            }
+        } else {
+            echo "<p>Réponse vide - vérifiez vos paramètres</p>";
+        }
     }
 }
 
