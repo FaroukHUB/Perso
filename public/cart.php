@@ -1221,7 +1221,7 @@ if (!Cart::isEmpty()) {
     <section class="cart-page">
         <div class="container">
             <div class="page-header">
-                <h1 class="page-title"><?= h(str_replace('Panier', '<span>Panier</span>', $cartTexts['title'])) ?></h1>
+                <h1 class="page-title"><?= h($cartTexts['title']) ?></h1>
                 <?php if (!Cart::isEmpty()): ?>
                     <p class="page-subtitle"><?= $cartCount ?> article<?= $cartCount > 1 ? 's' : '' ?> dans votre panier</p>
                 <?php endif; ?>
@@ -1541,56 +1541,6 @@ if (!Cart::isEmpty()) {
             <?php endif; ?>
         </div>
     </section>
-
-    <!-- Footer -->
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <h3><?= h($footerContent['site_name']) ?></h3>
-                    <p><?= h($footerContent['description']) ?></p>
-                </div>
-                <div class="footer-col">
-                    <h4><?= h($footerContent['col1_title']) ?></h4>
-                    <ul>
-                        <?php foreach ($shopSettings->getNavbarLinks() as $link): ?>
-                            <li><a href="<?= h($link['url']) ?>"><?= h($link['label']) ?></a></li>
-                        <?php endforeach; ?>
-                        <li><a href="/public/cart.php">Panier</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4><?= h($footerContent['col2_title']) ?></h4>
-                    <ul>
-                        <?php
-                        $footerLinks = $footerContent['links'];
-                        if (is_array($footerLinks)):
-                            foreach ($footerLinks as $link): ?>
-                                <li><a href="<?= h($link['url']) ?>"><?= h($link['label']) ?></a></li>
-                            <?php endforeach;
-                        endif; ?>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4><?= h($footerContent['col3_title']) ?></h4>
-                    <ul>
-                        <?php if (!empty($footerContent['contact_email'])): ?>
-                            <li><a href="mailto:<?= h($footerContent['contact_email']) ?>"><?= h($footerContent['contact_email']) ?></a></li>
-                        <?php endif; ?>
-                        <li><a href="#">Nous contacter</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <span><?= h($footerContent['copyright']) ?></span>
-                <div class="footer-reassurance">
-                    <?php if (!empty($footerContent['reassurance_1'])): ?><span><?= h($footerContent['reassurance_1']) ?></span><?php endif; ?>
-                    <?php if (!empty($footerContent['reassurance_2'])): ?><span><?= h($footerContent['reassurance_2']) ?></span><?php endif; ?>
-                    <?php if (!empty($footerContent['reassurance_3'])): ?><span><?= h($footerContent['reassurance_3']) ?></span><?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </footer>
 
     <!-- Lightbox Component -->
     <script src="/public/assets/js/lightbox.js"></script>
