@@ -47,15 +47,20 @@ class BoxtalService
      */
     private function isFreeShipping(float $cartTotal): bool
     {
+        // Debug
+        $enabled = $this->shopSettings->isFreeShippingEnabled();
+        $threshold = (float)$this->shopSettings->get('free_shipping_threshold', 50);
+        error_log("DEBUG isFreeShipping: enabled=" . ($enabled ? 'true' : 'false') . ", threshold=$threshold, cartTotal=$cartTotal");
+
         // Vérifier si la livraison gratuite est activée
-        if (!$this->shopSettings->isFreeShippingEnabled()) {
+        if (!$enabled) {
+            error_log("DEBUG isFreeShipping: returning FALSE (disabled)");
             return false;
         }
 
-        // Récupérer le seuil depuis ShopSettings
-        $threshold = (float)$this->shopSettings->get('free_shipping_threshold', 50);
-
-        return $cartTotal >= $threshold;
+        $result = $cartTotal >= $threshold;
+        error_log("DEBUG isFreeShipping: returning " . ($result ? 'TRUE' : 'FALSE') . " (cart >= threshold)");
+        return $result;
     }
 
     /**
