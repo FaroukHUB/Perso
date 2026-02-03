@@ -1281,107 +1281,50 @@ if (!Cart::isEmpty()) {
                                 </form>
                             </div>
 
-                            <!-- DEBUG VISIBLE -->
-                            <div style="background: #ffeb3b; padding: 15px; margin: 10px; border-radius: 8px; font-family: monospace; font-size: 13px; color: #333;">
-                                <strong>DEBUG cartItems:</strong> count = <?= count($cartItems) ?><br>
-                                <?php if (empty($cartItems)): ?>
-                                    ⚠️ cartItems est VIDE!<br>
-                                    Session raw: <pre style="background: #fff; padding: 10px; border-radius: 4px; overflow: auto; max-height: 200px;"><?= htmlspecialchars(print_r(Cart::debug(), true)) ?></pre>
-                                <?php else: ?>
-                                    ✅ <?= count($cartItems) ?> items trouvés<br>
-                                    <?php foreach ($cartItems as $dk => $dv): ?>
-                                        • <?= htmlspecialchars($dk) ?>: product_id=<?= $dv['product_id'] ?? 'N/A' ?>, product_name=<?= htmlspecialchars($dv['product']['name'] ?? 'N/A') ?>, qty=<?= $dv['quantity'] ?? 'N/A' ?><br>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </div>
-
-                            <?php foreach ($cartItems as $key => $item):
-                                $colorHex = '#CCCCCC';
-                                $colorName = $item['customization']['color'] ?? 'blanc';
-                                // Essayer de trouver le code hex de la couleur
-                                $colorMap = [
-                                    'blanc' => '#FFFFFF', 'noir' => '#1A1A2E', 'rose' => '#FF69B4',
-                                    'menthe' => '#3DFFC0', 'bleu' => '#4A90D9', 'gris' => '#6B7280',
-                                    'rouge' => '#EF4444', 'vert' => '#10B981', 'jaune' => '#F59E0B'
-                                ];
-                                $colorHex = $colorMap[strtolower($colorName)] ?? '#CCCCCC';
-                                $viewLabel = ($item['customization']['view'] ?? 'front') === 'back' ? 'Dos' : 'Face';
-                            ?>
-                                <!-- DEBUG: Rendering item <?= htmlspecialchars($key) ?> -->
-                                <div class="cart-item" style="border: 3px solid red !important; background: #ffe0e0 !important; min-height: 150px !important; display: block !important;">
-                                    <p style="color: red; font-weight: bold; font-size: 16px;">🔴 ITEM: <?= h($item['product']['name'] ?? 'Unknown') ?></p>
-                                    <div class="item-image" onclick="openCartLightbox(this)"
-                                         data-img="<?= !empty($item['product']['image_front_url']) ? '/public' . h($item['product']['image_front_url']) : '' ?>"
-                                         data-text="<?= h($item['customization']['text'] ?? '') ?>"
-                                         data-font="<?= h($item['customization']['font'] ?? 'Poppins') ?>"
-                                         data-text-color="<?= h($item['customization']['text_color'] ?? '#FF1493') ?>"
-                                         data-technique="<?= h($item['customization']['technique'] ?? 'flex') ?>"
-                                         data-name="<?= h($item['product']['name']) ?>">
+                            <?php foreach ($cartItems as $key => $item): ?>
+                                <div class="cart-item" style="border: 2px solid #FF69B4; background: white; padding: 20px; margin-bottom: 15px; border-radius: 12px; display: flex; align-items: center; gap: 20px;">
+                                    <!-- Image -->
+                                    <div style="width: 100px; height: 100px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                         <?php if (!empty($item['product']['image_front_url'])): ?>
-                                            <img src="/public<?= h($item['product']['image_front_url']) ?>" alt="<?= h($item['product']['name']) ?>">
+                                            <img src="/public<?= htmlspecialchars($item['product']['image_front_url']) ?>" alt="" style="max-width: 90%; max-height: 90%; object-fit: contain;">
                                         <?php else: ?>
                                             <span style="font-size: 2.5rem;">👕</span>
                                         <?php endif; ?>
-                                        <div class="zoom-icon">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <circle cx="11" cy="11" r="8"/>
-                                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                                            </svg>
-                                        </div>
                                     </div>
 
-                                    <div class="item-details">
-                                        <h3><?= h($item['product']['name']) ?></h3>
-                                        <div class="item-tags">
-                                            <span class="item-tag">
-                                                📏 <strong><?= h($item['customization']['size'] ?? 'M') ?></strong>
-                                            </span>
-                                            <span class="item-tag">
-                                                <span class="color-dot" style="background-color: <?= $colorHex ?>"></span>
-                                                <strong><?= ucfirst(h($colorName)) ?></strong>
-                                            </span>
-                                            <span class="item-tag">
-                                                📍 <strong><?= $viewLabel ?></strong>
-                                            </span>
-                                            <?php if (!empty($item['customization']['technique'])): ?>
-                                                <span class="item-tag">
-                                                    ✨ <strong><?= ucfirst(h($item['customization']['technique'])) ?></strong>
-                                                </span>
-                                            <?php endif; ?>
-                                        </div>
+                                    <!-- Details -->
+                                    <div style="flex: 1;">
+                                        <h3 style="margin: 0 0 8px 0; font-size: 1.1rem; color: #1a1a2e;"><?= htmlspecialchars($item['product']['name'] ?? 'Produit') ?></h3>
+                                        <p style="margin: 0 0 5px 0; font-size: 13px; color: #666;">
+                                            Taille: <strong><?= htmlspecialchars($item['customization']['size'] ?? 'M') ?></strong> •
+                                            Couleur: <strong><?= htmlspecialchars($item['customization']['color'] ?? 'blanc') ?></strong>
+                                        </p>
                                         <?php if (!empty($item['customization']['text'])): ?>
-                                            <div class="item-text-preview">
-                                                ✏️ "<?= h($item['customization']['text']) ?>"
-                                            </div>
+                                            <p style="margin: 0; font-size: 13px; color: #FF69B4;">✏️ "<?= htmlspecialchars($item['customization']['text']) ?>"</p>
                                         <?php endif; ?>
-                                        <div class="item-unit-price"><?= formatPrice($item['unit_price']) ?> / unité</div>
+                                        <p style="margin: 8px 0 0 0; font-size: 13px; color: #888;"><?= number_format($item['unit_price'], 2, ',', ' ') ?> € / unité</p>
                                     </div>
 
-                                    <div class="item-actions">
-                                        <div class="item-subtotal"><?= formatPrice($item['subtotal']) ?></div>
-
-                                        <form method="post" class="qty-form">
-                                            <?= csrfField() ?>
-                                            <input type="hidden" name="item_key" value="<?= h($key) ?>">
-                                            <input type="hidden" name="update_qty" value="1">
-                                            <div class="qty-control">
-                                                <button type="submit" name="quantity" value="<?= max(1, $item['quantity'] - 1) ?>" class="qty-btn">−</button>
-                                                <span class="qty-value"><?= $item['quantity'] ?></span>
-                                                <button type="submit" name="quantity" value="<?= $item['quantity'] + 1 ?>" class="qty-btn">+</button>
-                                            </div>
-                                        </form>
-
-                                        <form method="post">
-                                            <?= csrfField() ?>
-                                            <input type="hidden" name="item_key" value="<?= h($key) ?>">
-                                            <button type="submit" name="remove_item" value="1" class="remove-btn">
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <line x1="18" y1="6" x2="6" y2="18"/>
-                                                    <line x1="6" y1="6" x2="18" y2="18"/>
-                                                </svg>
-                                                Supprimer
-                                            </button>
-                                        </form>
+                                    <!-- Quantity & Actions -->
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 1.3rem; font-weight: 800; color: #FF1493; margin-bottom: 10px;">
+                                            <?= number_format($item['subtotal'], 2, ',', ' ') ?> €
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;">
+                                            <form method="post" style="display: flex; align-items: center; gap: 5px;">
+                                                <?= csrfField() ?>
+                                                <input type="hidden" name="item_key" value="<?= htmlspecialchars($key) ?>">
+                                                <input type="hidden" name="update_qty" value="1">
+                                                <button type="submit" name="quantity" value="<?= max(1, $item['quantity'] - 1) ?>" style="width: 32px; height: 32px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-size: 16px;">−</button>
+                                                <span style="width: 40px; text-align: center; font-weight: 700;"><?= (int)$item['quantity'] ?></span>
+                                                <button type="submit" name="quantity" value="<?= $item['quantity'] + 1 ?>" style="width: 32px; height: 32px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-size: 16px;">+</button>
+                                            </form>
+                                            <form method="post">
+                                                <?= csrfField() ?>
+                                                <input type="hidden" name="item_key" value="<?= htmlspecialchars($key) ?>">
+                                                <button type="submit" name="remove_item" value="1" style="background: none; border: none; color: #999; cursor: pointer; font-size: 12px;">✕ Supprimer</button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
