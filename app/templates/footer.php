@@ -20,12 +20,19 @@ if (!isset($hasPacks)) {
 // Récupérer les paramètres
 $settings = new ShopSettings();
 $footerBgColor = $settings->get('footer_bg_color', '#1a1a2e');
+$footerTextColor = $settings->get('footer_text_color', '#ffffff');
 $siteName = $settings->getSiteName();
 $contactEmail = $settings->getContactEmail();
 $footerContent = $settings->getFooterContent();
 ?>
 <!-- Footer -->
 <footer class="footer" id="contact" style="background: <?= htmlspecialchars($footerBgColor) ?>;">
+    <style>
+        .footer, .footer p, .footer-bottom p { color: <?= htmlspecialchars($footerTextColor) ?> !important; }
+        .footer h3, .footer h4 { color: <?= htmlspecialchars($footerTextColor) ?> !important; }
+        .footer a, .footer-links a { color: <?= htmlspecialchars($footerTextColor) ?> !important; opacity: 0.85; }
+        .footer a:hover { opacity: 1; }
+    </style>
     <div class="container">
         <div class="footer-content">
             <div class="footer-brand">

@@ -32,15 +32,21 @@ if (!isset($hasPacks)) {
     $hasPacks = false;
 }
 
-// Récupérer la couleur de fond du header
+// Récupérer les couleurs du header
 $settings = new ShopSettings();
 $headerBgColor = $settings->get('header_bg_color', '#1a1a2e');
+$headerTextColor = $settings->get('header_text_color', '#ffffff');
 
 // Récupérer le logo
 $logoUrl = $brandingService->getLogo(null, false); // false = fond sombre
 ?>
 <!-- Navbar -->
-<nav class="navbar" style="background: <?= htmlspecialchars($headerBgColor) ?>;">
+<nav class="navbar" style="background: <?= htmlspecialchars($headerBgColor) ?>; --header-text-color: <?= htmlspecialchars($headerTextColor) ?>;">
+    <style>
+        .navbar { color: <?= htmlspecialchars($headerTextColor) ?>; }
+        .navbar a, .navbar .navbar-brand, .navbar .navbar-nav a { color: <?= htmlspecialchars($headerTextColor) ?> !important; }
+        .navbar .cart-nav-link svg { stroke: <?= htmlspecialchars($headerTextColor) ?>; }
+    </style>
     <div class="container">
         <?php if ($logoUrl): ?>
             <a href="/" class="navbar-brand"><img src="<?= htmlspecialchars($logoUrl) ?>" alt="Logo" class="navbar-logo"></a>

@@ -204,7 +204,9 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
     if (isset($_POST['save_shop_appearance'])) {
         $shopSettings->setMultiple([
             'header_bg_color' => post('header_bg_color', '#1a1a2e'),
-            'footer_bg_color' => post('footer_bg_color', '#1a1a2e')
+            'header_text_color' => post('header_text_color', '#ffffff'),
+            'footer_bg_color' => post('footer_bg_color', '#1a1a2e'),
+            'footer_text_color' => post('footer_text_color', '#ffffff')
         ]);
         $shopSettings->clearCache();
         $success = 'Couleurs enregistrées.';
@@ -1031,65 +1033,98 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
 
                     <div class="data-card">
                         <div class="data-card-header">
-                            <h3 class="data-card-title">Couleurs Header & Footer</h3>
+                            <h3 class="data-card-title">Couleurs du Header (Navigation)</h3>
                         </div>
                         <div class="card-body">
-                            <p style="color: #666; margin-bottom: 20px;">
-                                Personnalisez les couleurs de fond du header (barre de navigation) et du footer (pied de page) de votre site.
-                            </p>
-
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label class="form-label">Couleur de fond du Header</label>
+                                    <label class="form-label">Couleur de fond</label>
                                     <div style="display: flex; gap: 10px; align-items: center;">
-                                        <input type="color" name="header_bg_color"
+                                        <input type="color" name="header_bg_color" id="headerBgColor"
                                                value="<?= h($shopSettings->get('header_bg_color', '#1a1a2e')) ?>"
                                                style="width: 60px; height: 40px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
                                         <input type="text" class="form-input" style="width: 120px;"
                                                value="<?= h($shopSettings->get('header_bg_color', '#1a1a2e')) ?>"
-                                               oninput="this.previousElementSibling.value = this.value"
-                                               onchange="this.previousElementSibling.value = this.value">
+                                               oninput="document.getElementById('headerBgColor').value = this.value"
+                                               onchange="document.getElementById('headerBgColor').value = this.value">
                                     </div>
-                                    <small class="form-hint">Barre de navigation en haut du site</small>
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="form-label">Couleur de fond du Footer</label>
+                                    <label class="form-label">Couleur du texte</label>
                                     <div style="display: flex; gap: 10px; align-items: center;">
-                                        <input type="color" name="footer_bg_color"
+                                        <input type="color" name="header_text_color" id="headerTextColor"
+                                               value="<?= h($shopSettings->get('header_text_color', '#ffffff')) ?>"
+                                               style="width: 60px; height: 40px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
+                                        <input type="text" class="form-input" style="width: 120px;"
+                                               value="<?= h($shopSettings->get('header_text_color', '#ffffff')) ?>"
+                                               oninput="document.getElementById('headerTextColor').value = this.value"
+                                               onchange="document.getElementById('headerTextColor').value = this.value">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Couleurs du Footer (Pied de page)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Couleur de fond</label>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <input type="color" name="footer_bg_color" id="footerBgColor"
                                                value="<?= h($shopSettings->get('footer_bg_color', '#1a1a2e')) ?>"
                                                style="width: 60px; height: 40px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
                                         <input type="text" class="form-input" style="width: 120px;"
                                                value="<?= h($shopSettings->get('footer_bg_color', '#1a1a2e')) ?>"
-                                               oninput="this.previousElementSibling.value = this.value"
-                                               onchange="this.previousElementSibling.value = this.value">
+                                               oninput="document.getElementById('footerBgColor').value = this.value"
+                                               onchange="document.getElementById('footerBgColor').value = this.value">
                                     </div>
-                                    <small class="form-hint">Pied de page en bas du site</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Couleur du texte</label>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <input type="color" name="footer_text_color" id="footerTextColor"
+                                               value="<?= h($shopSettings->get('footer_text_color', '#ffffff')) ?>"
+                                               style="width: 60px; height: 40px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
+                                        <input type="text" class="form-input" style="width: 120px;"
+                                               value="<?= h($shopSettings->get('footer_text_color', '#ffffff')) ?>"
+                                               oninput="document.getElementById('footerTextColor').value = this.value"
+                                               onchange="document.getElementById('footerTextColor').value = this.value">
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <!-- Preview -->
-                            <div style="margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 12px;">
-                                <h4 style="margin: 0 0 15px; font-size: 14px; color: #666;">Aperçu</h4>
-                                <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                                    <!-- Header preview -->
-                                    <div id="headerPreview" style="background: <?= h($shopSettings->get('header_bg_color', '#1a1a2e')) ?>; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-                                        <span style="color: white; font-weight: 600;"><?= h($shopSettings->get('site_name', 'PERSONNALY')) ?></span>
-                                        <div style="display: flex; gap: 15px;">
-                                            <span style="color: rgba(255,255,255,0.8); font-size: 13px;">Produits</span>
-                                            <span style="color: rgba(255,255,255,0.8); font-size: 13px;">Contact</span>
-                                            <span style="color: rgba(255,255,255,0.8); font-size: 13px;">Panier</span>
-                                        </div>
+                    <!-- Preview -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">Aperçu en temps réel</h3>
+                        </div>
+                        <div class="card-body">
+                            <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <!-- Header preview -->
+                                <div id="headerPreview" style="background: <?= h($shopSettings->get('header_bg_color', '#1a1a2e')) ?>; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span id="headerPreviewBrand" style="color: <?= h($shopSettings->get('header_text_color', '#ffffff')) ?>; font-weight: 600;"><?= h($shopSettings->get('site_name', 'PERSONNALY')) ?></span>
+                                    <div id="headerPreviewNav" style="display: flex; gap: 15px; color: <?= h($shopSettings->get('header_text_color', '#ffffff')) ?>;">
+                                        <span style="font-size: 13px; opacity: 0.9;">Produits</span>
+                                        <span style="font-size: 13px; opacity: 0.9;">Contact</span>
+                                        <span style="font-size: 13px; opacity: 0.9;">Panier</span>
                                     </div>
-                                    <!-- Content placeholder -->
-                                    <div style="height: 80px; background: #fafafa; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 12px;">
-                                        Contenu de la page...
-                                    </div>
-                                    <!-- Footer preview -->
-                                    <div id="footerPreview" style="background: <?= h($shopSettings->get('footer_bg_color', '#1a1a2e')) ?>; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-                                        <span style="color: rgba(255,255,255,0.7); font-size: 12px;"><?= h($shopSettings->get('site_name', 'PERSONNALY')) ?></span>
-                                        <span style="color: rgba(255,255,255,0.5); font-size: 11px;">© <?= date('Y') ?></span>
-                                    </div>
+                                </div>
+                                <!-- Content placeholder -->
+                                <div style="height: 80px; background: #fafafa; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 12px;">
+                                    Contenu de la page...
+                                </div>
+                                <!-- Footer preview -->
+                                <div id="footerPreview" style="background: <?= h($shopSettings->get('footer_bg_color', '#1a1a2e')) ?>; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span id="footerPreviewBrand" style="color: <?= h($shopSettings->get('footer_text_color', '#ffffff')) ?>; font-size: 12px; opacity: 0.9;"><?= h($shopSettings->get('site_name', 'PERSONNALY')) ?></span>
+                                    <span id="footerPreviewCopy" style="color: <?= h($shopSettings->get('footer_text_color', '#ffffff')) ?>; font-size: 11px; opacity: 0.7;">© <?= date('Y') ?></span>
                                 </div>
                             </div>
                         </div>
@@ -1101,14 +1136,27 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                 </form>
 
                 <script>
-                // Live preview for colors
-                document.querySelector('input[name="header_bg_color"]').addEventListener('input', function(e) {
+                // Live preview for header colors
+                document.getElementById('headerBgColor').addEventListener('input', function(e) {
                     document.getElementById('headerPreview').style.background = e.target.value;
                     this.nextElementSibling.value = e.target.value;
                 });
-                document.querySelector('input[name="footer_bg_color"]').addEventListener('input', function(e) {
+                document.getElementById('headerTextColor').addEventListener('input', function(e) {
+                    const color = e.target.value;
+                    document.getElementById('headerPreviewBrand').style.color = color;
+                    document.getElementById('headerPreviewNav').style.color = color;
+                    this.nextElementSibling.value = color;
+                });
+                // Live preview for footer colors
+                document.getElementById('footerBgColor').addEventListener('input', function(e) {
                     document.getElementById('footerPreview').style.background = e.target.value;
                     this.nextElementSibling.value = e.target.value;
+                });
+                document.getElementById('footerTextColor').addEventListener('input', function(e) {
+                    const color = e.target.value;
+                    document.getElementById('footerPreviewBrand').style.color = color;
+                    document.getElementById('footerPreviewCopy').style.color = color;
+                    this.nextElementSibling.value = color;
                 });
                 </script>
                 <?php endif; ?>
