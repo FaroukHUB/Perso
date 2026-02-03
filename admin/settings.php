@@ -654,6 +654,15 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                                        value="<?= h($shippingSettings['boxtal_default_weight']['value'] ?? '500') ?>">
                                 <small class="form-hint">Utilisé si le poids du produit n'est pas défini</small>
                             </div>
+
+                            <div class="form-group" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                                <a href="/admin/test-boxtal.php" class="btn btn-secondary" target="_blank">
+                                    Tester la connexion Boxtal
+                                </a>
+                                <small class="form-hint" style="display: block; margin-top: 8px;">
+                                    Ouvre une page de diagnostic pour vérifier que les credentials fonctionnent
+                                </small>
+                            </div>
                         </div>
                     </div>
 
