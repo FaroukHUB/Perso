@@ -14,9 +14,9 @@ class BoxtalService
     private $secretKey;
     private $isEnabled;
 
-    // URLs API Boxtal v3
-    private const API_URL_TEST = 'https://api.boxtal.build/v3/';
-    private const API_URL_LIVE = 'https://api.boxtal.com/v3/';
+    // URLs API Boxtal v1 (EnvoiMoinsCher)
+    private const API_URL_TEST = 'https://test.envoimoinscher.com/api/v1/';
+    private const API_URL_LIVE = 'https://www.envoimoinscher.com/api/v1/';
 
     public function __construct()
     {
@@ -61,7 +61,7 @@ class BoxtalService
     }
 
     /**
-     * Appelle l'API Boxtal v3 pour obtenir les cotations
+     * Appelle l'API Boxtal v1 (EnvoiMoinsCher) pour obtenir les cotations
      */
     private function callBoxtalAPI(array $recipient, int $weight, float $cartTotal): array
     {
@@ -72,48 +72,49 @@ class BoxtalService
             throw new Exception("Informations expéditeur incomplètes");
         }
 
-        // Construction du payload pour l'API v3
-        $payload = [
-            'shipper' => [
-                'company' => $shipper['company'],
-                'street' => $shipper['address'],
-                'city' => $shipper['city'],
-                'zipCode' => $shipper['postcode'],
-                'country' => $shipper['country'] ?: 'FR',
-                'phone' => $shipper['phone'] ?: '',
-                'email' => $shipper['email'] ?: ''
-            ],
-            'recipient' => [
-                'company' => $recipient['company'] ?? '',
-                'firstName' => $recipient['firstname'] ?? 'Client',
-                'lastName' => $recipient['lastname'] ?? 'Test',
-                'street' => $recipient['address'] ?? '1 rue de Paris',
-                'city' => $recipient['city'] ?? 'Paris',
-                'zipCode' => $recipient['postcode'] ?? '75001',
-                'country' => $recipient['country'] ?? 'FR',
-                'phone' => $recipient['phone'] ?? '',
-                'email' => $recipient['email'] ?? ''
-            ],
-            'parcels' => [
-                [
-                    'weight' => round($weight / 1000, 2), // Convertir g en kg
-                    'length' => 30,
-                    'width' => 20,
-                    'height' => 10
-                ]
-            ],
-            'orderValue' => $cartTotal
+        // Construction des paramètres pour l'API v1 (format query string)
+        $params = [
+            // Expéditeur
+            'expediteur.type' => 'entreprise',
+            'expediteur.pays' => $shipper['country'] ?: 'FR',
+            'expediteur.code_postal' => $shipper['postcode'],
+            'expediteur.ville' => $shipper['city'],
+            'expediteur.adresse' => $shipper['address'],
+            'expediteur.civilite' => 'M',
+            'expediteur.prenom' => 'Service',
+            'expediteur.nom' => 'Expedition',
+
+            // Destinataire
+            'destinataire.type' => 'particulier',
+            'destinataire.pays' => $recipient['country'] ?? 'FR',
+            'destinataire.code_postal' => $recipient['postcode'] ?? '75001',
+            'destinataire.ville' => $recipient['city'] ?? 'Paris',
+            'destinataire.adresse' => $recipient['address'] ?? '1 rue de Paris',
+            'destinataire.civilite' => 'M',
+            'destinataire.prenom' => $recipient['firstname'] ?? 'Client',
+            'destinataire.nom' => $recipient['lastname'] ?? 'Test',
+
+            // Colis
+            'colis_1.poids' => max(0.1, round($weight / 1000, 2)),
+            'colis_1.longueur' => 30,
+            'colis_1.largeur' => 20,
+            'colis_1.hauteur' => 10,
+
+            // Options
+            'code_contenu' => 10120,
+            'collecte' => date('Y-m-d', strtotime('+1 day')),
+            'delai' => 'aucun',
+            'operateur' => '', // Tous les transporteurs
         ];
+
+        $url = $this->apiUrl . 'cotation?' . http_build_query($params);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => $this->apiUrl . 'shipping/quote',
+            CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($payload),
             CURLOPT_HTTPHEADER => [
                 'Authorization: Basic ' . base64_encode($this->accessKey . ':' . $this->secretKey),
-                'Content-Type: application/json',
                 'Accept: application/json'
             ],
             CURLOPT_TIMEOUT => 30,
@@ -131,8 +132,8 @@ class BoxtalService
 
         if ($httpCode !== 200) {
             $errorData = json_decode($response, true);
-            $errorMsg = $errorData['message'] ?? $errorData['error'] ?? "HTTP $httpCode";
-            throw new Exception("Boxtal API: " . $errorMsg);
+            $errorMsg = $errorData['error']['message'] ?? $errorData['message'] ?? "HTTP $httpCode";
+            throw new Exception("Boxtal API: " . $errorMsg . " (Response: " . substr($response, 0, 200) . ")");
         }
 
         $data = json_decode($response, true);
@@ -140,17 +141,60 @@ class BoxtalService
             throw new Exception("Réponse JSON invalide");
         }
 
-        // L'API v3 retourne directement les offres
-        $offers = $data['offers'] ?? $data['quotes'] ?? $data;
-        if (!is_array($offers)) {
+        // L'API v1 retourne les cotations dans 'cotation'
+        $cotations = $data['cotation'] ?? $data;
+        if (!is_array($cotations)) {
             throw new Exception("Format de réponse inattendu");
         }
 
-        return $this->formatBoxtalRates($offers, $cartTotal);
+        return $this->formatBoxtalRatesV1($cotations, $cartTotal);
     }
 
     /**
-     * Formate les tarifs Boxtal pour l'affichage
+     * Formate les tarifs Boxtal API v1 pour l'affichage
+     */
+    private function formatBoxtalRatesV1(array $cotations, float $cartTotal): array
+    {
+        $rates = [];
+        $config = $this->settings->getManualShippingRates();
+
+        foreach ($cotations as $cotation) {
+            $operateur = $cotation['operateur']['code'] ?? '';
+            $service = $cotation['service']['code'] ?? '';
+            $label = $cotation['operateur']['label'] ?? $cotation['service']['label'] ?? 'Livraison';
+
+            $price = (float)($cotation['prix']['ttc'] ?? $cotation['prix']['ht'] ?? 0);
+
+            // Appliquer la livraison gratuite si au-dessus du seuil
+            if ($cartTotal >= $config['free_threshold']) {
+                $price = 0;
+            }
+
+            $delay = $cotation['collecte'] ?? '';
+            $isRelay = in_array($operateur, ['MONR', 'SOGP', 'UPSE', 'POFR_RELAIS']);
+
+            $rates[] = [
+                'id' => $operateur . '_' . $service,
+                'operator' => $operateur,
+                'service' => $service,
+                'label' => $this->formatCarrierName($operateur, $label),
+                'description' => $delay,
+                'price' => $price,
+                'delay' => $delay,
+                'is_relay' => $isRelay,
+                'logo' => $this->getOperatorLogo($operateur)
+            ];
+        }
+
+        // Trier par prix
+        usort($rates, fn($a, $b) => $a['price'] <=> $b['price']);
+
+        // Limiter à 5 options
+        return array_slice($rates, 0, 5);
+    }
+
+    /**
+     * Formate les tarifs Boxtal pour l'affichage (API v3)
      */
     private function formatBoxtalRates(array $offers, float $cartTotal): array
     {

@@ -45,45 +45,49 @@ if (!$settings->isBoxtalEnabled()) {
 } elseif (empty($shipper['company']) || empty($shipper['postcode']) || empty($shipper['city'])) {
     echo "<p class='error'>Informations expéditeur incomplètes. Remplissez-les dans les paramètres.</p>";
 } else {
-    // Faire un appel test
-    $apiUrl = $credentials['mode'] === 'live'
-        ? 'https://api.boxtal.com/v3/shipping/quote'
-        : 'https://api.boxtal.build/v3/shipping/quote';
+    // Faire un appel test avec l'API v1 (EnvoiMoinsCher)
+    $apiBaseUrl = $credentials['mode'] === 'live'
+        ? 'https://www.envoimoinscher.com/api/v1/'
+        : 'https://test.envoimoinscher.com/api/v1/';
 
-    $payload = [
-        'shipper' => [
-            'company' => $shipper['company'],
-            'street' => $shipper['address'],
-            'city' => $shipper['city'],
-            'zipCode' => $shipper['postcode'],
-            'country' => $shipper['country'] ?: 'FR'
-        ],
-        'recipient' => [
-            'firstName' => 'Test',
-            'lastName' => 'Client',
-            'street' => '1 rue de Paris',
-            'city' => 'Paris',
-            'zipCode' => '75001',
-            'country' => 'FR'
-        ],
-        'parcels' => [
-            ['weight' => 0.5, 'length' => 30, 'width' => 20, 'height' => 10]
-        ],
-        'orderValue' => 50
+    $params = [
+        'expediteur.type' => 'entreprise',
+        'expediteur.pays' => $shipper['country'] ?: 'FR',
+        'expediteur.code_postal' => $shipper['postcode'],
+        'expediteur.ville' => $shipper['city'],
+        'expediteur.adresse' => $shipper['address'],
+        'expediteur.civilite' => 'M',
+        'expediteur.prenom' => 'Service',
+        'expediteur.nom' => 'Expedition',
+        'destinataire.type' => 'particulier',
+        'destinataire.pays' => 'FR',
+        'destinataire.code_postal' => '75001',
+        'destinataire.ville' => 'Paris',
+        'destinataire.adresse' => '1 rue de Paris',
+        'destinataire.civilite' => 'M',
+        'destinataire.prenom' => 'Client',
+        'destinataire.nom' => 'Test',
+        'colis_1.poids' => 0.5,
+        'colis_1.longueur' => 30,
+        'colis_1.largeur' => 20,
+        'colis_1.hauteur' => 10,
+        'code_contenu' => 10120,
+        'collecte' => date('Y-m-d', strtotime('+1 day')),
     ];
 
-    echo "<h3>Requête envoyée à: " . htmlspecialchars($apiUrl) . "</h3>";
-    echo "<pre>" . htmlspecialchars(json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . "</pre>";
+    $apiUrl = $apiBaseUrl . 'cotation?' . http_build_query($params);
+
+    echo "<h3>API v1 (EnvoiMoinsCher)</h3>";
+    echo "<p>URL: " . htmlspecialchars($apiBaseUrl . 'cotation') . "</p>";
+    echo "<h4>Paramètres:</h4>";
+    echo "<pre>" . htmlspecialchars(json_encode($params, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . "</pre>";
 
     $ch = curl_init();
     curl_setopt_array($ch, [
         CURLOPT_URL => $apiUrl,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode($payload),
         CURLOPT_HTTPHEADER => [
             'Authorization: Basic ' . base64_encode($credentials['user'] . ':' . $credentials['api_key']),
-            'Content-Type: application/json',
             'Accept: application/json'
         ],
         CURLOPT_TIMEOUT => 30,
