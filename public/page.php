@@ -34,7 +34,18 @@ if (empty($slug)) {
 $pageModel = new Page();
 $page = $pageModel->findBySlug($slug);
 
-if (!$page || $page['status'] !== 'published') {
+// Mode preview builder (permet de voir les pages brouillon)
+$isBuilderPreview = isset($_GET['preview']) && $_GET['preview'] === 'builder';
+
+// Vérifier que la page existe
+if (!$page) {
+    header('HTTP/1.0 404 Not Found');
+    include __DIR__ . '/404.php';
+    exit;
+}
+
+// Si pas en mode preview, la page doit être publiée
+if (!$isBuilderPreview && $page['status'] !== 'published') {
     header('HTTP/1.0 404 Not Found');
     include __DIR__ . '/404.php';
     exit;
@@ -42,7 +53,6 @@ if (!$page || $page['status'] !== 'published') {
 
 // Charger les sections
 $sectionModel = new PageSection();
-$isBuilderPreview = isset($_GET['preview']) && $_GET['preview'] === 'builder';
 
 // En mode preview, charger toutes les sections (y compris brouillons)
 // Sinon, seulement les actives
