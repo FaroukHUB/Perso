@@ -262,7 +262,7 @@ class Page
         if (!$page || $page['status'] !== 'published') return null;
 
         $sectionModel = new PageSection();
-        $page['sections'] = $sectionModel->findByPage($id = $page['id'], true);
+        $page['sections'] = $sectionModel->findByPage($page['id'], true);
 
         return $page;
     }
