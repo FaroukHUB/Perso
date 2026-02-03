@@ -2097,8 +2097,17 @@ $typeIcons = [
         highlightInPreview(id);
     }
 
+    // Variable pour tracker l'interval de highlight (éviter accumulation)
+    let currentHighlightInterval = null;
+
     function highlightInPreview(id) {
         try {
+            // Nettoyer l'interval précédent s'il existe
+            if (currentHighlightInterval) {
+                clearInterval(currentHighlightInterval);
+                currentHighlightInterval = null;
+            }
+
             const frame = document.getElementById('previewFrame');
             const doc = frame.contentDocument || frame.contentWindow.document;
             const section = doc.querySelector(`[data-section-id="${id}"]`);
@@ -2128,10 +2137,11 @@ $typeIcons = [
 
                 // Animation pulse
                 let pulseCount = 0;
-                const pulseInterval = setInterval(() => {
+                currentHighlightInterval = setInterval(() => {
                     pulseCount++;
                     if (pulseCount >= 4) {
-                        clearInterval(pulseInterval);
+                        clearInterval(currentHighlightInterval);
+                        currentHighlightInterval = null;
                         section.style.outline = '2px dashed rgba(255, 105, 180, 0.5)';
                         section.style.outlineOffset = '2px';
                     } else {
@@ -2333,7 +2343,37 @@ $typeIcons = [
         });
     }
 
+    // Anti-flood protection pour le refresh preview
+    let isRefreshing = false;
+    let refreshQueued = false;
+    let lastRefreshTime = 0;
+    const MIN_REFRESH_INTERVAL = 500; // Minimum 500ms entre les refreshs
+
     function refreshPreview() {
+        const now = Date.now();
+
+        // Si un refresh est en cours, on marque qu'un refresh est demandé pour plus tard
+        if (isRefreshing) {
+            refreshQueued = true;
+            return;
+        }
+
+        // Vérifier l'intervalle minimum entre les refreshs
+        if (now - lastRefreshTime < MIN_REFRESH_INTERVAL) {
+            // Programmer un refresh après l'intervalle
+            if (!refreshQueued) {
+                refreshQueued = true;
+                setTimeout(() => {
+                    refreshQueued = false;
+                    refreshPreview();
+                }, MIN_REFRESH_INTERVAL - (now - lastRefreshTime));
+            }
+            return;
+        }
+
+        isRefreshing = true;
+        lastRefreshTime = now;
+
         const frame = document.getElementById('previewFrame');
         const wrapper = document.getElementById('previewWrapper');
 
@@ -2360,6 +2400,13 @@ $typeIcons = [
                 // Petit délai pour laisser le rendu se stabiliser
                 setTimeout(() => {
                     wrapper.classList.remove('refreshing');
+                    isRefreshing = false;
+
+                    // Si un refresh était en attente, le lancer
+                    if (refreshQueued) {
+                        refreshQueued = false;
+                        refreshPreview();
+                    }
                 }, 50);
             };
         }, 150);

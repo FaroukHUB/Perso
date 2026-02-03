@@ -1139,7 +1139,37 @@ $typeIcons = [
             });
         });
 
+        // Anti-flood protection pour le refresh preview
+        let isRefreshing = false;
+        let refreshQueued = false;
+        let lastRefreshTime = 0;
+        const MIN_REFRESH_INTERVAL = 500; // Minimum 500ms entre les refreshs
+
         function refreshPreview() {
+            const now = Date.now();
+
+            // Si un refresh est en cours, on marque qu'un refresh est demandé pour plus tard
+            if (isRefreshing) {
+                refreshQueued = true;
+                return;
+            }
+
+            // Vérifier l'intervalle minimum entre les refreshs
+            if (now - lastRefreshTime < MIN_REFRESH_INTERVAL) {
+                // Programmer un refresh après l'intervalle
+                if (!refreshQueued) {
+                    refreshQueued = true;
+                    setTimeout(() => {
+                        refreshQueued = false;
+                        refreshPreview();
+                    }, MIN_REFRESH_INTERVAL - (now - lastRefreshTime));
+                }
+                return;
+            }
+
+            isRefreshing = true;
+            lastRefreshTime = now;
+
             const frame = document.getElementById('previewFrame');
             const wrapper = document.getElementById('previewWrapper');
 
@@ -1164,6 +1194,13 @@ $typeIcons = [
 
                     setTimeout(() => {
                         wrapper.classList.remove('refreshing');
+                        isRefreshing = false;
+
+                        // Si un refresh était en attente, le lancer
+                        if (refreshQueued) {
+                            refreshQueued = false;
+                            refreshPreview();
+                        }
                     }, 50);
                 };
             }, 150);
