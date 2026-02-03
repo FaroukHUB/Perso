@@ -418,9 +418,12 @@ class BoxtalService
         }
 
         try {
+            // Paramètres corrects pour l'API EnvoiMoinsCher v1
             $params = [
                 'pays' => $country,
-                'code_postal' => $postcode,
+                'cp' => $postcode,  // cp et non code_postal
+                'ville' => '',      // Ville optionnelle
+                'collecte' => 'retrait', // retrait pour livraison
                 'ope_code' => $operatorCode,
             ];
 
@@ -463,49 +466,48 @@ class BoxtalService
 
     /**
      * Formate les points relais depuis la réponse XML
+     * L'API EnvoiMoinsCher utilise des noms de champs en français
      */
     private function formatRelayPoints(SimpleXMLElement $xml): array
     {
         $points = [];
 
-        // L'API retourne une liste de points
-        foreach ($xml->point as $point) {
-            $code = (string)$point->code;
-            $name = (string)$point->name;
-            $address = (string)$point->address;
-            $city = (string)$point->city;
-            $postcode = (string)$point->zipcode;
-            $country = (string)$point->country;
+        // L'API peut retourner les points sous différentes structures
+        $pointsList = $xml->point ?? $xml->points->point ?? [];
 
-            // Coordonnées GPS si disponibles
-            $lat = (float)$point->latitude;
-            $lng = (float)$point->longitude;
+        foreach ($pointsList as $point) {
+            // Essayer les noms français puis anglais
+            $code = (string)($point->code ?? $point->point_code ?? '');
+            $name = (string)($point->nom ?? $point->name ?? $point->raison_sociale ?? '');
+            $address = (string)($point->adresse ?? $point->address ?? '');
+            $city = (string)($point->ville ?? $point->city ?? '');
+            $postcode = (string)($point->code_postal ?? $point->cp ?? $point->zipcode ?? '');
+            $country = (string)($point->pays ?? $point->country ?? 'FR');
 
-            // Horaires d'ouverture
-            $schedule = [];
-            if (isset($point->schedule)) {
-                foreach ($point->schedule->day as $day) {
-                    $dayName = (string)$day['name'];
-                    $hours = (string)$day;
-                    if (!empty($hours)) {
-                        $schedule[$dayName] = $hours;
-                    }
-                }
+            // Coordonnées GPS
+            $lat = (float)($point->latitude ?? $point->lat ?? 0);
+            $lng = (float)($point->longitude ?? $point->lng ?? $point->lon ?? 0);
+
+            // Distance si disponible (en km)
+            $distance = null;
+            if (isset($point->distance)) {
+                $distance = (float)$point->distance;
             }
 
-            // Distance si disponible
-            $distance = isset($point->distance) ? (float)$point->distance : null;
+            // Ne pas ajouter si pas de données essentielles
+            if (empty($code) && empty($name)) {
+                continue;
+            }
 
             $points[] = [
                 'code' => $code,
-                'name' => $name,
+                'name' => $name ?: 'Point Relais',
                 'address' => $address,
                 'city' => $city,
                 'postcode' => $postcode,
                 'country' => $country,
                 'latitude' => $lat,
                 'longitude' => $lng,
-                'schedule' => $schedule,
                 'distance' => $distance,
                 'formatted_address' => trim("$address, $postcode $city")
             ];

@@ -868,73 +868,36 @@ if (!Cart::isEmpty()) {
             color: var(--black-soft);
             margin-bottom: 12px;
         }
-        .shipping-options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .shipping-option {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            background: white;
-            border: 2px solid #e8e8e8;
+        .shipping-info-simple {
+            background: linear-gradient(135deg, rgba(61,255,192,0.1), rgba(61,255,192,0.02));
+            border: 1px solid rgba(61,255,192,0.3);
             border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: all 0.2s;
+            padding: 15px;
+            text-align: center;
         }
-        .shipping-option:hover {
-            border-color: var(--pink-light);
-        }
-        .shipping-option.selected {
-            border-color: var(--mint-main);
-            background: linear-gradient(135deg, rgba(61,255,192,0.08), rgba(61,255,192,0.02));
-        }
-        .shipping-option input {
-            display: none;
-        }
-        .shipping-radio {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #ccc;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        .shipping-option.selected .shipping-radio {
-            border-color: var(--mint-main);
-        }
-        .shipping-option.selected .shipping-radio::after {
-            content: '';
-            width: 10px;
-            height: 10px;
-            background: var(--gradient-mint);
-            border-radius: 50%;
-        }
-        .shipping-info {
-            flex: 1;
-        }
-        .shipping-name {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--black-soft);
-        }
-        .shipping-delay {
-            font-size: 12px;
-            color: var(--gray);
-        }
-        .shipping-price {
+        .shipping-estimate {
+            display: block;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 15px;
             color: var(--mint-dark);
+            margin-bottom: 4px;
         }
-        .shipping-price.free {
+        .shipping-estimate.free {
             background: var(--gradient-mint);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+        .shipping-note {
+            display: block;
+            font-size: 12px;
+            color: var(--gray);
+        }
+        .shipping-checkout-note {
+            text-align: center;
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 10px;
+            font-style: italic;
         }
 
         /* Summary Rows */
@@ -1457,20 +1420,23 @@ if (!Cart::isEmpty()) {
                                 </svg>
                                 <?= h($cartTexts['shipping_label']) ?>
                             </div>
-                            <div class="shipping-options">
-                                <?php foreach ($shippingOptions as $key => $option): ?>
-                                    <label class="shipping-option <?= $selectedShipping === $key ? 'selected' : '' ?>" data-method="<?= $key ?>">
-                                        <input type="radio" name="shipping" value="<?= $key ?>" <?= $selectedShipping === $key ? 'checked' : '' ?>>
-                                        <span class="shipping-radio"></span>
-                                        <span class="shipping-info">
-                                            <span class="shipping-name"><?= h($option['label']) ?></span>
-                                            <span class="shipping-delay"><?= h($option['delay']) ?></span>
-                                        </span>
-                                        <span class="shipping-price <?= $option['price'] == 0 ? 'free' : '' ?>">
-                                            <?= $option['price'] == 0 ? 'Gratuit' : formatPrice($option['price']) ?>
-                                        </span>
-                                    </label>
-                                <?php endforeach; ?>
+                            <div class="shipping-info-simple">
+                                <?php
+                                // Trouver le prix minimum de livraison
+                                $minShipping = PHP_FLOAT_MAX;
+                                foreach ($shippingOptions as $option) {
+                                    if ($option['price'] < $minShipping) {
+                                        $minShipping = $option['price'];
+                                    }
+                                }
+                                if ($minShipping == 0): ?>
+                                    <span class="shipping-estimate free">Livraison gratuite disponible</span>
+                                <?php elseif ($minShipping < PHP_FLOAT_MAX): ?>
+                                    <span class="shipping-estimate">À partir de <?= formatPrice($minShipping) ?></span>
+                                <?php else: ?>
+                                    <span class="shipping-estimate">Calculé au checkout</span>
+                                <?php endif; ?>
+                                <span class="shipping-note">Choix du mode de livraison à l'étape suivante</span>
                             </div>
                         </div>
 
@@ -1480,23 +1446,22 @@ if (!Cart::isEmpty()) {
                                 <span><?= h($cartTexts['subtotal_label']) ?></span>
                                 <span id="subtotalValue"><?= formatPrice($cartTotal) ?></span>
                             </div>
-                            <div class="summary-row">
-                                <span><?= h($cartTexts['shipping_label']) ?></span>
-                                <span id="shippingValue"><?= $shippingCost == 0 ? 'Gratuit' : formatPrice($shippingCost) ?></span>
-                            </div>
                             <div class="summary-row discount" id="discountRow" style="<?= ($appliedPromo && $appliedPromo['discount'] > 0) ? '' : 'display:none;' ?>">
                                 <span><?= h($cartTexts['discount_label']) ?></span>
                                 <span id="discountValue">-<?= formatPrice($appliedPromo['discount'] ?? 0) ?></span>
                             </div>
                             <?php
-                            $finalTotal = $cartTotal + $shippingCost;
+                            $subtotalAfterDiscount = $cartTotal;
                             if ($appliedPromo && $appliedPromo['discount'] > 0) {
-                                $finalTotal = max(0, $finalTotal - $appliedPromo['discount']);
+                                $subtotalAfterDiscount = max(0, $cartTotal - $appliedPromo['discount']);
                             }
                             ?>
                             <div class="summary-row total">
-                                <span><?= h($cartTexts['total_label']) ?></span>
-                                <span id="finalTotal"><?= formatPrice($finalTotal) ?></span>
+                                <span>Sous-total</span>
+                                <span id="finalTotal"><?= formatPrice($subtotalAfterDiscount) ?></span>
+                            </div>
+                            <div class="shipping-checkout-note">
+                                + frais de livraison (calculés au checkout)
                             </div>
                         </div>
 
@@ -1700,36 +1665,6 @@ if (!Cart::isEmpty()) {
                 promoError.classList.remove('show');
             }
 
-            // === Shipping Options ===
-            const shippingOptions = document.querySelectorAll('.shipping-option');
-            shippingOptions.forEach(option => {
-                option.addEventListener('click', async function() {
-                    const method = this.dataset.method;
-
-                    // Update UI
-                    shippingOptions.forEach(o => o.classList.remove('selected'));
-                    this.classList.add('selected');
-                    this.querySelector('input').checked = true;
-
-                    // Update price
-                    const prices = <?= json_encode($shippingOptions) ?>;
-                    currentShippingCost = prices[method].price;
-                    shippingValue.textContent = currentShippingCost == 0 ? 'Gratuit' : formatPrice(currentShippingCost);
-                    updateTotal();
-
-                    // Save to session
-                    try {
-                        const formData = new FormData();
-                        formData.append('method', method);
-                        await fetch('/public/cart.php?ajax=set_shipping', {
-                            method: 'POST',
-                            body: formData
-                        });
-                    } catch (err) {
-                        console.error('Erreur:', err);
-                    }
-                });
-            });
 
             function formatPrice(amount) {
                 return new Intl.NumberFormat('fr-FR', {
