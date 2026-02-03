@@ -255,6 +255,87 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
         $success = 'Informations légales enregistrées. Les pages CGV, Mentions légales et Politique de confidentialité sont maintenant générées automatiquement.';
         $activeTab = 'shop_legal';
     }
+
+    // Paramètres CGV détaillés
+    if (isset($_POST['save_shop_cgv'])) {
+        $shopSettings->setMultiple([
+            // Commandes
+            'cgv_order_confirmation' => post('cgv_order_confirmation', ''),
+            'cgv_order_modification' => post('cgv_order_modification', ''),
+            'cgv_order_cancellation' => post('cgv_order_cancellation', ''),
+            'cgv_production_time' => post('cgv_production_time', ''),
+            // Livraison
+            'cgv_delivery_zones' => post('cgv_delivery_zones', ''),
+            'cgv_delivery_standard_time' => post('cgv_delivery_standard_time', ''),
+            'cgv_delivery_express_time' => post('cgv_delivery_express_time', ''),
+            'cgv_delivery_carriers' => post('cgv_delivery_carriers', ''),
+            'cgv_delivery_tracking' => post('cgv_delivery_tracking', ''),
+            'cgv_delivery_signature' => isset($_POST['cgv_delivery_signature']) ? '1' : '0',
+            'cgv_delivery_insurance' => isset($_POST['cgv_delivery_insurance']) ? '1' : '0',
+            // Paiement
+            'cgv_payment_methods' => post('cgv_payment_methods', ''),
+            'cgv_payment_security' => post('cgv_payment_security', ''),
+            'cgv_payment_debit_time' => post('cgv_payment_debit_time', ''),
+            'cgv_payment_installments' => isset($_POST['cgv_payment_installments']) ? '1' : '0',
+            'cgv_payment_installments_info' => post('cgv_payment_installments_info', ''),
+            // Garanties
+            'cgv_legal_warranty' => post('cgv_legal_warranty', '2 ans'),
+            'cgv_commercial_warranty' => isset($_POST['cgv_commercial_warranty']) ? '1' : '0',
+            'cgv_commercial_warranty_duration' => post('cgv_commercial_warranty_duration', ''),
+            'cgv_commercial_warranty_coverage' => post('cgv_commercial_warranty_coverage', ''),
+            // Produits personnalisés
+            'cgv_custom_products_policy' => post('cgv_custom_products_policy', ''),
+            'cgv_custom_products_ip' => post('cgv_custom_products_ip', ''),
+            'cgv_prohibited_content' => post('cgv_prohibited_content', ''),
+            // Litiges
+            'cgv_mediator_name' => post('cgv_mediator_name', ''),
+            'cgv_mediator_address' => post('cgv_mediator_address', ''),
+            'cgv_mediator_website' => post('cgv_mediator_website', ''),
+            'cgv_applicable_law' => post('cgv_applicable_law', 'droit français'),
+            'cgv_competent_court' => post('cgv_competent_court', '')
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Paramètres CGV enregistrés.';
+        $activeTab = 'shop_cgv';
+    }
+
+    // Paramètres Politique de retour détaillés
+    if (isset($_POST['save_shop_return_policy'])) {
+        $shopSettings->setMultiple([
+            // Conditions générales
+            'return_standard_products' => isset($_POST['return_standard_products']) ? '1' : '0',
+            'return_custom_products' => isset($_POST['return_custom_products']) ? '1' : '0',
+            'return_custom_exception' => post('return_custom_exception', ''),
+            // Conditions produit
+            'return_product_condition' => post('return_product_condition', ''),
+            'return_original_packaging' => isset($_POST['return_original_packaging']) ? '1' : '0',
+            'return_complete_product' => post('return_complete_product', ''),
+            // Processus
+            'return_request_method' => post('return_request_method', 'email'),
+            'return_request_info' => post('return_request_info', ''),
+            'return_label_provided' => isset($_POST['return_label_provided']) ? '1' : '0',
+            'return_drop_points' => post('return_drop_points', ''),
+            'return_address' => post('return_address', ''),
+            // Remboursement
+            'return_refund_delay' => post('return_refund_delay', '14 jours'),
+            'return_refund_method' => post('return_refund_method', ''),
+            'return_shipping_refund' => post('return_shipping_refund', ''),
+            'return_partial_refund' => post('return_partial_refund', ''),
+            // Échange
+            'return_exchange_available' => isset($_POST['return_exchange_available']) ? '1' : '0',
+            'return_exchange_info' => post('return_exchange_info', ''),
+            'return_size_exchange' => post('return_size_exchange', ''),
+            // Défectueux
+            'return_defective_policy' => post('return_defective_policy', ''),
+            'return_defective_evidence' => post('return_defective_evidence', ''),
+            'return_defective_resolution' => post('return_defective_resolution', ''),
+            'return_defective_delay' => post('return_defective_delay', '48 heures'),
+            'return_wrong_item_policy' => post('return_wrong_item_policy', '')
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Politique de retour enregistrée.';
+        $activeTab = 'shop_return_policy';
+    }
 }
 
 // Récupérer les paramètres actuels
@@ -875,7 +956,9 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                     <a href="?tab=shop_payments" class="sub-tab <?= $activeTab === 'shop_payments' ? 'active' : '' ?>">Paiements affichés</a>
                     <a href="?tab=shop_badges" class="sub-tab <?= $activeTab === 'shop_badges' ? 'active' : '' ?>">Badges confiance</a>
                     <a href="?tab=shop_footer" class="sub-tab <?= $activeTab === 'shop_footer' ? 'active' : '' ?>">Footer</a>
-                    <a href="?tab=shop_legal" class="sub-tab <?= $activeTab === 'shop_legal' ? 'active' : '' ?>">📄 Pages légales</a>
+                    <a href="?tab=shop_legal" class="sub-tab <?= $activeTab === 'shop_legal' ? 'active' : '' ?>">📄 Entreprise</a>
+                    <a href="?tab=shop_cgv" class="sub-tab <?= $activeTab === 'shop_cgv' ? 'active' : '' ?>">📋 CGV</a>
+                    <a href="?tab=shop_return_policy" class="sub-tab <?= $activeTab === 'shop_return_policy' ? 'active' : '' ?>">↩️ Politique retour</a>
                 </div>
 
                 <!-- GENERAL -->
@@ -1519,6 +1602,446 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                                 <line x1="16" y1="17" x2="8" y2="17"/>
                             </svg>
                             Enregistrer et générer les pages légales
+                        </button>
+                    </div>
+                </form>
+                <?php endif; ?>
+
+                <!-- CGV DETAILLEES -->
+                <?php if ($activeTab === 'shop_cgv'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_shop_cgv" value="1">
+
+                    <div class="info-box" style="margin-bottom: 24px;">
+                        <strong>📋 Conditions Générales de Vente</strong><br>
+                        Ces informations complètent les données de l'onglet "Entreprise" pour générer des CGV complètes et conformes.
+                    </div>
+
+                    <!-- Commandes -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">📦 Commandes</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Confirmation de commande</label>
+                                <textarea name="cgv_order_confirmation" class="form-input" rows="2"
+                                    placeholder="Ex: Un email de confirmation vous est envoyé dès validation..."><?= h($shopSettings->get('cgv_order_confirmation', 'Un email de confirmation vous est envoyé dès validation de votre commande.')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Délai de fabrication (produits personnalisés)</label>
+                                <input type="text" name="cgv_production_time" class="form-input"
+                                       placeholder="Ex: 3 à 5 jours ouvrés"
+                                       value="<?= h($shopSettings->get('cgv_production_time', '3 à 5 jours ouvrés')) ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Modification de commande</label>
+                                <textarea name="cgv_order_modification" class="form-input" rows="2"
+                                    placeholder="Dans quel délai peut-on modifier une commande ?"><?= h($shopSettings->get('cgv_order_modification', 'Toute modification de commande doit être demandée dans les 2 heures suivant la commande, avant mise en production.')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Annulation de commande</label>
+                                <textarea name="cgv_order_cancellation" class="form-input" rows="2"
+                                    placeholder="Conditions d'annulation"><?= h($shopSettings->get('cgv_order_cancellation', 'L\'annulation est possible uniquement avant la mise en production du produit personnalisé.')) ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Livraison -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">🚚 Livraison</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Zones de livraison</label>
+                                <textarea name="cgv_delivery_zones" class="form-input" rows="2"
+                                    placeholder="Ex: France métropolitaine, DOM-TOM, Belgique..."><?= h($shopSettings->get('cgv_delivery_zones', 'France métropolitaine, DOM-TOM, Belgique, Suisse, Luxembourg')) ?></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Délai livraison standard</label>
+                                    <input type="text" name="cgv_delivery_standard_time" class="form-input"
+                                           placeholder="3 à 5 jours ouvrés"
+                                           value="<?= h($shopSettings->get('cgv_delivery_standard_time', '3 à 5 jours ouvrés')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Délai livraison express</label>
+                                    <input type="text" name="cgv_delivery_express_time" class="form-input"
+                                           placeholder="24 à 48 heures"
+                                           value="<?= h($shopSettings->get('cgv_delivery_express_time', '24 à 48 heures')) ?>">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Transporteurs utilisés</label>
+                                <input type="text" name="cgv_delivery_carriers" class="form-input"
+                                       placeholder="Colissimo, Mondial Relay, Chronopost..."
+                                       value="<?= h($shopSettings->get('cgv_delivery_carriers', 'Colissimo, Mondial Relay, Chronopost')) ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Suivi de livraison</label>
+                                <textarea name="cgv_delivery_tracking" class="form-input" rows="2"><?= h($shopSettings->get('cgv_delivery_tracking', 'Un numéro de suivi vous est communiqué par email dès l\'expédition de votre colis.')) ?></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label toggle-label">
+                                        <input type="checkbox" name="cgv_delivery_signature" value="1"
+                                            <?= $shopSettings->get('cgv_delivery_signature', false) ? 'checked' : '' ?>>
+                                        <span class="toggle-switch"></span>
+                                        Signature requise à la livraison
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label toggle-label">
+                                        <input type="checkbox" name="cgv_delivery_insurance" value="1"
+                                            <?= $shopSettings->get('cgv_delivery_insurance', true) ? 'checked' : '' ?>>
+                                        <span class="toggle-switch"></span>
+                                        Colis assurés
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paiement -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">💳 Paiement</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Moyens de paiement acceptés</label>
+                                <textarea name="cgv_payment_methods" class="form-input" rows="2"><?= h($shopSettings->get('cgv_payment_methods', 'Carte bancaire (Visa, Mastercard, CB, American Express) via Stripe')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Sécurité des paiements</label>
+                                <textarea name="cgv_payment_security" class="form-input" rows="2"><?= h($shopSettings->get('cgv_payment_security', 'Tous les paiements sont sécurisés par Stripe. Vos données bancaires ne transitent jamais par nos serveurs et sont chiffrées en SSL/TLS.')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Moment du débit</label>
+                                <textarea name="cgv_payment_debit_time" class="form-input" rows="2"><?= h($shopSettings->get('cgv_payment_debit_time', 'Le débit est effectué immédiatement à la validation de la commande.')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label toggle-label">
+                                    <input type="checkbox" name="cgv_payment_installments" value="1"
+                                        <?= $shopSettings->get('cgv_payment_installments', false) ? 'checked' : '' ?>>
+                                    <span class="toggle-switch"></span>
+                                    Paiement en plusieurs fois disponible
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Détails paiement en plusieurs fois (si activé)</label>
+                                <textarea name="cgv_payment_installments_info" class="form-input" rows="2"
+                                    placeholder="Ex: Paiement en 3 ou 4 fois sans frais via Alma..."><?= h($shopSettings->get('cgv_payment_installments_info', '')) ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Garanties -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">🛡️ Garanties</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Garantie légale de conformité</label>
+                                <input type="text" name="cgv_legal_warranty" class="form-input"
+                                       placeholder="2 ans"
+                                       value="<?= h($shopSettings->get('cgv_legal_warranty', '2 ans')) ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label toggle-label">
+                                    <input type="checkbox" name="cgv_commercial_warranty" value="1"
+                                        <?= $shopSettings->get('cgv_commercial_warranty', false) ? 'checked' : '' ?>>
+                                    <span class="toggle-switch"></span>
+                                    Garantie commerciale supplémentaire
+                                </label>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Durée garantie commerciale</label>
+                                    <input type="text" name="cgv_commercial_warranty_duration" class="form-input"
+                                           placeholder="Ex: 1 an"
+                                           value="<?= h($shopSettings->get('cgv_commercial_warranty_duration', '')) ?>">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Ce que couvre la garantie commerciale</label>
+                                <textarea name="cgv_commercial_warranty_coverage" class="form-input" rows="2"
+                                    placeholder="Ex: Défauts de fabrication, coutures..."><?= h($shopSettings->get('cgv_commercial_warranty_coverage', '')) ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Produits personnalisés -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">✏️ Produits personnalisés</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Politique produits personnalisés</label>
+                                <textarea name="cgv_custom_products_policy" class="form-input" rows="3"><?= h($shopSettings->get('cgv_custom_products_policy', 'Les produits personnalisés sont fabriqués selon vos spécifications. Nous ne pouvons être tenus responsables des erreurs dues aux informations fournies par le client (textes, images, choix de personnalisation).')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Propriété intellectuelle (contenus fournis par le client)</label>
+                                <textarea name="cgv_custom_products_ip" class="form-input" rows="3"><?= h($shopSettings->get('cgv_custom_products_ip', 'Vous garantissez détenir les droits sur les contenus (textes, images, logos) que vous nous transmettez pour personnalisation. Tout contenu illégal, diffamatoire ou portant atteinte aux droits de tiers sera refusé.')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Contenus interdits</label>
+                                <textarea name="cgv_prohibited_content" class="form-input" rows="2"><?= h($shopSettings->get('cgv_prohibited_content', 'Contenu à caractère pornographique, violent, raciste, discriminatoire, incitant à la haine, ou portant atteinte aux droits de propriété intellectuelle de tiers.')) ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Litiges -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">⚖️ Litiges et médiation</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Nom du médiateur de la consommation</label>
+                                <input type="text" name="cgv_mediator_name" class="form-input"
+                                       placeholder="Ex: FEVAD, CM2C..."
+                                       value="<?= h($shopSettings->get('cgv_mediator_name', '')) ?>">
+                                <small class="form-hint">Obligatoire depuis 2016 pour les sites e-commerce</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Adresse du médiateur</label>
+                                <textarea name="cgv_mediator_address" class="form-input" rows="2"
+                                    placeholder="Adresse complète du médiateur"><?= h($shopSettings->get('cgv_mediator_address', '')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Site web du médiateur</label>
+                                <input type="url" name="cgv_mediator_website" class="form-input"
+                                       placeholder="https://..."
+                                       value="<?= h($shopSettings->get('cgv_mediator_website', '')) ?>">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Droit applicable</label>
+                                    <input type="text" name="cgv_applicable_law" class="form-input"
+                                           value="<?= h($shopSettings->get('cgv_applicable_law', 'droit français')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Tribunal compétent</label>
+                                    <input type="text" name="cgv_competent_court" class="form-input"
+                                           placeholder="Ex: tribunaux de Paris"
+                                           value="<?= h($shopSettings->get('cgv_competent_court', 'les tribunaux du ressort de notre siège social')) ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Enregistrer les CGV
+                        </button>
+                    </div>
+                </form>
+                <?php endif; ?>
+
+                <!-- POLITIQUE DE RETOUR DETAILLEE -->
+                <?php if ($activeTab === 'shop_return_policy'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_shop_return_policy" value="1">
+
+                    <div class="info-box" style="margin-bottom: 24px;">
+                        <strong>↩️ Politique de Retour</strong><br>
+                        Configurez votre politique de retour en détail pour générer une page complète et rassurante pour vos clients.
+                    </div>
+
+                    <!-- Conditions générales -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">📋 Conditions générales de retour</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label toggle-label">
+                                        <input type="checkbox" name="return_standard_products" value="1"
+                                            <?= $shopSettings->get('return_standard_products', true) ? 'checked' : '' ?>>
+                                        <span class="toggle-switch"></span>
+                                        Retour produits standards accepté
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label toggle-label">
+                                        <input type="checkbox" name="return_custom_products" value="1"
+                                            <?= $shopSettings->get('return_custom_products', false) ? 'checked' : '' ?>>
+                                        <span class="toggle-switch"></span>
+                                        Retour produits personnalisés accepté
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Exception pour produits personnalisés</label>
+                                <textarea name="return_custom_exception" class="form-input" rows="3"><?= h($shopSettings->get('return_custom_exception', 'Conformément à l\'article L.221-28 du Code de la consommation, les produits personnalisés ou confectionnés selon vos spécifications ne peuvent faire l\'objet d\'un retour, sauf défaut de fabrication avéré.')) ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conditions du produit -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">📦 État du produit pour retour</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">État requis du produit</label>
+                                <input type="text" name="return_product_condition" class="form-input"
+                                       placeholder="Ex: non porté, non lavé, avec étiquettes..."
+                                       value="<?= h($shopSettings->get('return_product_condition', 'non porté, non lavé, avec étiquettes d\'origine attachées')) ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label toggle-label">
+                                    <input type="checkbox" name="return_original_packaging" value="1"
+                                        <?= $shopSettings->get('return_original_packaging', true) ? 'checked' : '' ?>>
+                                    <span class="toggle-switch"></span>
+                                    Emballage d'origine requis
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Produit complet (accessoires à retourner)</label>
+                                <textarea name="return_complete_product" class="form-input" rows="2"><?= h($shopSettings->get('return_complete_product', 'Le produit doit être retourné complet avec tous ses accessoires (housses, étiquettes, etc.)')) ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Processus de retour -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">🔄 Processus de retour</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Comment demander un retour ?</label>
+                                <select name="return_request_method" class="form-input">
+                                    <option value="email" <?= $shopSettings->get('return_request_method') === 'email' ? 'selected' : '' ?>>Par email</option>
+                                    <option value="formulaire" <?= $shopSettings->get('return_request_method') === 'formulaire' ? 'selected' : '' ?>>Via formulaire en ligne</option>
+                                    <option value="compte" <?= $shopSettings->get('return_request_method') === 'compte' ? 'selected' : '' ?>>Depuis l'espace client</option>
+                                    <option value="telephone" <?= $shopSettings->get('return_request_method') === 'telephone' ? 'selected' : '' ?>>Par téléphone</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Instructions de demande de retour</label>
+                                <textarea name="return_request_info" class="form-input" rows="3"><?= h($shopSettings->get('return_request_info', 'Envoyez un email avec votre numéro de commande et les articles à retourner. Vous recevrez sous 48h les instructions et l\'étiquette de retour.')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label toggle-label">
+                                    <input type="checkbox" name="return_label_provided" value="1"
+                                        <?= $shopSettings->get('return_label_provided', true) ? 'checked' : '' ?>>
+                                    <span class="toggle-switch"></span>
+                                    Étiquette de retour fournie
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Points de dépôt</label>
+                                <input type="text" name="return_drop_points" class="form-input"
+                                       placeholder="Bureau de poste, points relais..."
+                                       value="<?= h($shopSettings->get('return_drop_points', 'Bureau de poste, points relais Mondial Relay, Colissimo')) ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Adresse de retour (si différente du siège)</label>
+                                <textarea name="return_address" class="form-input" rows="2"
+                                    placeholder="Laissez vide pour utiliser l'adresse du siège social"><?= h($shopSettings->get('return_address', '')) ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Remboursement -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">💰 Remboursement</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Délai de remboursement</label>
+                                <input type="text" name="return_refund_delay" class="form-input"
+                                       placeholder="Ex: 14 jours après réception"
+                                       value="<?= h($shopSettings->get('return_refund_delay', '14 jours')) ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Mode de remboursement</label>
+                                <textarea name="return_refund_method" class="form-input" rows="2"><?= h($shopSettings->get('return_refund_method', 'Le remboursement est effectué sur le même moyen de paiement utilisé lors de la commande.')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Remboursement des frais de port</label>
+                                <textarea name="return_shipping_refund" class="form-input" rows="2"><?= h($shopSettings->get('return_shipping_refund', 'Les frais de livraison initiaux sont remboursés uniquement en cas de retour de la totalité de la commande.')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Conditions de remboursement partiel</label>
+                                <textarea name="return_partial_refund" class="form-input" rows="2"><?= h($shopSettings->get('return_partial_refund', 'En cas de produit retourné incomplet ou endommagé, un remboursement partiel pourra être appliqué.')) ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Échange -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">🔁 Échange</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label toggle-label">
+                                    <input type="checkbox" name="return_exchange_available" value="1"
+                                        <?= $shopSettings->get('return_exchange_available', true) ? 'checked' : '' ?>>
+                                    <span class="toggle-switch"></span>
+                                    Échange disponible (en plus du remboursement)
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Conditions d'échange</label>
+                                <textarea name="return_exchange_info" class="form-input" rows="2"><?= h($shopSettings->get('return_exchange_info', 'L\'échange est possible sous réserve de disponibilité. Contactez-nous pour vérifier les stocks avant de retourner l\'article.')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Procédure échange de taille</label>
+                                <textarea name="return_size_exchange" class="form-input" rows="2"><?= h($shopSettings->get('return_size_exchange', 'Pour un échange de taille, retournez l\'article et passez une nouvelle commande. Vous serez remboursé dès réception du retour.')) ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Produits défectueux -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">⚠️ Produits défectueux / Erreur de livraison</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Politique produits défectueux</label>
+                                <textarea name="return_defective_policy" class="form-input" rows="2"><?= h($shopSettings->get('return_defective_policy', 'Si vous recevez un produit défectueux ou non conforme, contactez-nous dans les 48h suivant la réception avec des photos du défaut.')) ?></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Délai de signalement</label>
+                                    <input type="text" name="return_defective_delay" class="form-input"
+                                           value="<?= h($shopSettings->get('return_defective_delay', '48 heures')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Preuves demandées</label>
+                                    <input type="text" name="return_defective_evidence" class="form-input"
+                                           placeholder="Photos du produit, de l'emballage..."
+                                           value="<?= h($shopSettings->get('return_defective_evidence', 'photos du produit et du défaut, photo de l\'emballage')) ?>">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Résolution (défaut confirmé)</label>
+                                <textarea name="return_defective_resolution" class="form-input" rows="2"><?= h($shopSettings->get('return_defective_resolution', 'Remplacement du produit ou remboursement intégral à votre choix, frais de retour pris en charge.')) ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Erreur de livraison (mauvais article)</label>
+                                <textarea name="return_wrong_item_policy" class="form-input" rows="2"><?= h($shopSettings->get('return_wrong_item_policy', 'Si vous recevez un article différent de votre commande, contactez-nous immédiatement. Nous organisons le retour à nos frais et vous envoyons le bon article en priorité.')) ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Enregistrer la politique de retour
                         </button>
                     </div>
                 </form>

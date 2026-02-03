@@ -419,6 +419,87 @@ class ShopSettings
     {
         return !empty($this->get('legal_company_name')) && !empty($this->get('legal_siret'));
     }
+
+    /**
+     * Récupère tous les paramètres CGV
+     */
+    public function getCgvSettings(): array
+    {
+        return [
+            // Commandes
+            'order_confirmation' => $this->get('cgv_order_confirmation', 'Un email de confirmation vous est envoyé dès validation de votre commande.'),
+            'order_modification' => $this->get('cgv_order_modification', 'Toute modification de commande doit être demandée dans les 2 heures suivant la commande, avant mise en production.'),
+            'order_cancellation' => $this->get('cgv_order_cancellation', 'L\'annulation est possible uniquement avant la mise en production du produit personnalisé.'),
+            'production_time' => $this->get('cgv_production_time', '3 à 5 jours ouvrés'),
+            // Livraison
+            'delivery_zones' => $this->get('cgv_delivery_zones', 'France métropolitaine, DOM-TOM, Belgique, Suisse, Luxembourg'),
+            'delivery_standard_time' => $this->get('cgv_delivery_standard_time', '3 à 5 jours ouvrés'),
+            'delivery_express_time' => $this->get('cgv_delivery_express_time', '24 à 48 heures'),
+            'delivery_carriers' => $this->get('cgv_delivery_carriers', 'Colissimo, Mondial Relay, Chronopost'),
+            'delivery_tracking' => $this->get('cgv_delivery_tracking', 'Un numéro de suivi vous est communiqué par email dès l\'expédition de votre colis.'),
+            'delivery_signature' => (bool) $this->get('cgv_delivery_signature', false),
+            'delivery_insurance' => (bool) $this->get('cgv_delivery_insurance', true),
+            // Paiement
+            'payment_methods' => $this->get('cgv_payment_methods', 'Carte bancaire (Visa, Mastercard, CB, American Express) via Stripe'),
+            'payment_security' => $this->get('cgv_payment_security', 'Tous les paiements sont sécurisés par Stripe. Vos données bancaires ne transitent jamais par nos serveurs et sont chiffrées en SSL/TLS.'),
+            'payment_debit_time' => $this->get('cgv_payment_debit_time', 'Le débit est effectué immédiatement à la validation de la commande.'),
+            'payment_installments' => (bool) $this->get('cgv_payment_installments', false),
+            'payment_installments_info' => $this->get('cgv_payment_installments_info', ''),
+            // Garanties
+            'legal_warranty' => $this->get('cgv_legal_warranty', '2 ans'),
+            'commercial_warranty' => (bool) $this->get('cgv_commercial_warranty', false),
+            'commercial_warranty_duration' => $this->get('cgv_commercial_warranty_duration', ''),
+            'commercial_warranty_coverage' => $this->get('cgv_commercial_warranty_coverage', ''),
+            // Produits personnalisés
+            'custom_products_policy' => $this->get('cgv_custom_products_policy', 'Les produits personnalisés sont fabriqués selon vos spécifications. Nous ne pouvons être tenus responsables des erreurs dues aux informations fournies par le client.'),
+            'custom_products_ip' => $this->get('cgv_custom_products_ip', 'Vous garantissez détenir les droits sur les contenus que vous nous transmettez pour personnalisation.'),
+            'prohibited_content' => $this->get('cgv_prohibited_content', 'Contenu à caractère pornographique, violent, raciste, discriminatoire, incitant à la haine, ou portant atteinte aux droits de propriété intellectuelle de tiers.'),
+            // Litiges
+            'mediator_name' => $this->get('cgv_mediator_name', ''),
+            'mediator_address' => $this->get('cgv_mediator_address', ''),
+            'mediator_website' => $this->get('cgv_mediator_website', ''),
+            'applicable_law' => $this->get('cgv_applicable_law', 'droit français'),
+            'competent_court' => $this->get('cgv_competent_court', 'les tribunaux du ressort de notre siège social')
+        ];
+    }
+
+    /**
+     * Récupère tous les paramètres politique de retour
+     */
+    public function getReturnPolicySettings(): array
+    {
+        return [
+            // Conditions générales
+            'standard_products' => (bool) $this->get('return_standard_products', true),
+            'custom_products' => (bool) $this->get('return_custom_products', false),
+            'custom_exception' => $this->get('return_custom_exception', 'Conformément à l\'article L.221-28 du Code de la consommation, les produits personnalisés ne peuvent faire l\'objet d\'un retour.'),
+            // Conditions produit
+            'product_condition' => $this->get('return_product_condition', 'non porté, non lavé, avec étiquettes d\'origine attachées'),
+            'original_packaging' => (bool) $this->get('return_original_packaging', true),
+            'complete_product' => $this->get('return_complete_product', 'Le produit doit être retourné complet avec tous ses accessoires.'),
+            // Processus
+            'request_method' => $this->get('return_request_method', 'email'),
+            'request_info' => $this->get('return_request_info', 'Envoyez un email avec votre numéro de commande et les articles à retourner.'),
+            'label_provided' => (bool) $this->get('return_label_provided', true),
+            'drop_points' => $this->get('return_drop_points', 'Bureau de poste, points relais'),
+            'address' => $this->get('return_address', ''),
+            // Remboursement
+            'refund_delay' => $this->get('return_refund_delay', '14 jours'),
+            'refund_method' => $this->get('return_refund_method', 'Le remboursement est effectué sur le même moyen de paiement utilisé lors de la commande.'),
+            'shipping_refund' => $this->get('return_shipping_refund', 'Les frais de livraison initiaux sont remboursés uniquement en cas de retour de la totalité de la commande.'),
+            'partial_refund' => $this->get('return_partial_refund', 'En cas de produit retourné incomplet ou endommagé, un remboursement partiel pourra être appliqué.'),
+            // Échange
+            'exchange_available' => (bool) $this->get('return_exchange_available', true),
+            'exchange_info' => $this->get('return_exchange_info', 'L\'échange est possible sous réserve de disponibilité.'),
+            'size_exchange' => $this->get('return_size_exchange', 'Pour un échange de taille, retournez l\'article et passez une nouvelle commande.'),
+            // Défectueux
+            'defective_policy' => $this->get('return_defective_policy', 'Si vous recevez un produit défectueux, contactez-nous dans les 48h avec des photos.'),
+            'defective_evidence' => $this->get('return_defective_evidence', 'photos du produit et du défaut'),
+            'defective_resolution' => $this->get('return_defective_resolution', 'Remplacement du produit ou remboursement intégral à votre choix.'),
+            'defective_delay' => $this->get('return_defective_delay', '48 heures'),
+            'wrong_item_policy' => $this->get('return_wrong_item_policy', 'Si vous recevez un mauvais article, contactez-nous immédiatement.')
+        ];
+    }
 }
 
 // =========================================

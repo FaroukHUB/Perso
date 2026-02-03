@@ -198,6 +198,82 @@ INSERT INTO shop_settings (setting_key, setting_value, setting_group, setting_ty
 ('legal_pages_generated', '0', 'legal', 'boolean', 'Pages générées', 'Indique si les pages ont été générées', 50)
 ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
 
+-- =====================================================
+-- GROUPE: cgv - Conditions Générales de Vente détaillées
+-- =====================================================
+INSERT INTO shop_settings (setting_key, setting_value, setting_group, setting_type, setting_label, setting_description, sort_order) VALUES
+-- Commandes
+('cgv_order_confirmation', 'Un email de confirmation vous est envoyé dès validation de votre commande.', 'cgv', 'textarea', 'Confirmation de commande', 'Comment la commande est confirmée', 1),
+('cgv_order_modification', 'Toute modification de commande doit être demandée dans les 2 heures suivant la commande, avant mise en production.', 'cgv', 'textarea', 'Modification de commande', 'Politique de modification', 2),
+('cgv_order_cancellation', 'L''annulation est possible uniquement avant la mise en production du produit personnalisé.', 'cgv', 'textarea', 'Annulation de commande', 'Conditions d''annulation', 3),
+('cgv_production_time', '3 à 5 jours ouvrés', 'cgv', 'text', 'Délai de fabrication', 'Temps de production des articles personnalisés', 4),
+-- Livraison
+('cgv_delivery_zones', 'France métropolitaine, DOM-TOM, Belgique, Suisse, Luxembourg', 'cgv', 'textarea', 'Zones de livraison', 'Pays/régions livrés', 10),
+('cgv_delivery_standard_time', '3 à 5 jours ouvrés', 'cgv', 'text', 'Délai livraison standard', 'Délai pour la livraison standard', 11),
+('cgv_delivery_express_time', '24 à 48 heures', 'cgv', 'text', 'Délai livraison express', 'Délai pour la livraison express', 12),
+('cgv_delivery_carriers', 'Colissimo, Mondial Relay, Chronopost', 'cgv', 'text', 'Transporteurs', 'Liste des transporteurs utilisés', 13),
+('cgv_delivery_tracking', 'Un numéro de suivi vous est communiqué par email dès l''expédition de votre colis.', 'cgv', 'textarea', 'Suivi de livraison', 'Information sur le suivi', 14),
+('cgv_delivery_signature', '0', 'cgv', 'boolean', 'Signature requise', 'La signature est-elle requise à la livraison', 15),
+('cgv_delivery_insurance', '1', 'cgv', 'boolean', 'Assurance incluse', 'Les colis sont-ils assurés', 16),
+-- Paiement
+('cgv_payment_methods', 'Carte bancaire (Visa, Mastercard, CB, American Express) via Stripe', 'cgv', 'textarea', 'Moyens de paiement', 'Détail des moyens de paiement acceptés', 20),
+('cgv_payment_security', 'Tous les paiements sont sécurisés par Stripe. Vos données bancaires ne transitent jamais par nos serveurs et sont chiffrées en SSL/TLS.', 'cgv', 'textarea', 'Sécurité des paiements', 'Information sur la sécurité', 21),
+('cgv_payment_debit_time', 'Le débit est effectué immédiatement à la validation de la commande.', 'cgv', 'textarea', 'Moment du débit', 'Quand le paiement est débité', 22),
+('cgv_payment_installments', '0', 'cgv', 'boolean', 'Paiement en plusieurs fois', 'Proposez-vous le paiement en plusieurs fois', 23),
+('cgv_payment_installments_info', '', 'cgv', 'textarea', 'Détails paiement fractionné', 'Conditions du paiement en plusieurs fois', 24),
+-- Garanties
+('cgv_legal_warranty', '2 ans', 'cgv', 'text', 'Garantie légale de conformité', 'Durée de la garantie légale', 30),
+('cgv_commercial_warranty', '0', 'cgv', 'boolean', 'Garantie commerciale', 'Proposez-vous une garantie commerciale supplémentaire', 31),
+('cgv_commercial_warranty_duration', '', 'cgv', 'text', 'Durée garantie commerciale', 'Durée de la garantie commerciale', 32),
+('cgv_commercial_warranty_coverage', '', 'cgv', 'textarea', 'Couverture garantie', 'Ce que couvre la garantie commerciale', 33),
+-- Produits personnalisés
+('cgv_custom_products_policy', 'Les produits personnalisés sont fabriqués selon vos spécifications. Nous ne pouvons être tenus responsables des erreurs dues aux informations fournies par le client (textes, images, choix de personnalisation).', 'cgv', 'textarea', 'Politique produits personnalisés', 'Responsabilité sur la personnalisation', 40),
+('cgv_custom_products_ip', 'Vous garantissez détenir les droits sur les contenus (textes, images, logos) que vous nous transmettez pour personnalisation. Tout contenu illégal, diffamatoire ou portant atteinte aux droits de tiers sera refusé.', 'cgv', 'textarea', 'Propriété intellectuelle client', 'Droits sur les contenus fournis', 41),
+('cgv_prohibited_content', 'Contenu à caractère pornographique, violent, raciste, discriminatoire, incitant à la haine, ou portant atteinte aux droits de propriété intellectuelle de tiers.', 'cgv', 'textarea', 'Contenus interdits', 'Types de contenus refusés', 42),
+-- Litiges
+('cgv_mediator_name', '', 'cgv', 'text', 'Nom du médiateur', 'Médiateur de la consommation', 50),
+('cgv_mediator_address', '', 'cgv', 'textarea', 'Adresse du médiateur', 'Coordonnées complètes du médiateur', 51),
+('cgv_mediator_website', '', 'cgv', 'url', 'Site du médiateur', 'URL du site de médiation', 52),
+('cgv_applicable_law', 'droit français', 'cgv', 'text', 'Droit applicable', 'Quel droit s''applique', 53),
+('cgv_competent_court', 'les tribunaux du ressort de notre siège social', 'cgv', 'text', 'Tribunal compétent', 'Juridiction compétente', 54)
+ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
+
+-- =====================================================
+-- GROUPE: return_policy - Politique de retour détaillée
+-- =====================================================
+INSERT INTO shop_settings (setting_key, setting_value, setting_group, setting_type, setting_label, setting_description, sort_order) VALUES
+-- Conditions générales
+('return_standard_products', '1', 'return_policy', 'boolean', 'Retour produits standards', 'Les produits non personnalisés peuvent être retournés', 1),
+('return_custom_products', '0', 'return_policy', 'boolean', 'Retour produits personnalisés', 'Les produits personnalisés peuvent être retournés', 2),
+('return_custom_exception', 'Conformément à l''article L.221-28 du Code de la consommation, les produits personnalisés ou confectionnés selon vos spécifications ne peuvent faire l''objet d''un retour, sauf défaut de fabrication avéré.', 'return_policy', 'textarea', 'Exception personnalisés', 'Texte explicatif pour les produits personnalisés', 3),
+-- Conditions du produit
+('return_product_condition', 'non porté, non lavé, avec étiquettes d''origine attachées', 'return_policy', 'text', 'État du produit requis', 'Dans quel état le produit doit être retourné', 10),
+('return_original_packaging', '1', 'return_policy', 'boolean', 'Emballage d''origine requis', 'Le produit doit être dans son emballage d''origine', 11),
+('return_complete_product', 'Le produit doit être retourné complet avec tous ses accessoires (housses, étiquettes, etc.)', 'return_policy', 'textarea', 'Produit complet', 'Éléments à retourner avec le produit', 12),
+-- Processus de retour
+('return_request_method', 'email', 'return_policy', 'text', 'Méthode de demande', 'Comment demander un retour (email, formulaire, téléphone)', 20),
+('return_request_info', 'Envoyez un email avec votre numéro de commande et les articles à retourner. Vous recevrez sous 48h les instructions et l''étiquette de retour.', 'return_policy', 'textarea', 'Instructions de demande', 'Comment faire la demande de retour', 21),
+('return_label_provided', '1', 'return_policy', 'boolean', 'Étiquette fournie', 'Fournissez-vous une étiquette de retour', 22),
+('return_drop_points', 'Bureau de poste, points relais Mondial Relay, Colissimo', 'return_policy', 'text', 'Points de dépôt', 'Où déposer le colis de retour', 23),
+('return_address', '', 'return_policy', 'textarea', 'Adresse de retour', 'Adresse complète pour les retours (si différente du siège)', 24),
+-- Remboursement
+('return_refund_delay', '14 jours', 'return_policy', 'text', 'Délai de remboursement', 'Délai maximum après réception du retour', 30),
+('return_refund_method', 'Le remboursement est effectué sur le même moyen de paiement utilisé lors de la commande.', 'return_policy', 'textarea', 'Mode de remboursement', 'Comment le remboursement est effectué', 31),
+('return_shipping_refund', 'Les frais de livraison initiaux sont remboursés uniquement en cas de retour de la totalité de la commande.', 'return_policy', 'textarea', 'Remboursement frais de port', 'Politique sur les frais de port', 32),
+('return_partial_refund', 'En cas de produit retourné incomplet ou endommagé, un remboursement partiel pourra être appliqué.', 'return_policy', 'textarea', 'Remboursement partiel', 'Conditions de remboursement partiel', 33),
+-- Échange
+('return_exchange_available', '1', 'return_policy', 'boolean', 'Échange possible', 'Proposez-vous l''échange en plus du remboursement', 40),
+('return_exchange_info', 'L''échange est possible sous réserve de disponibilité. Contactez-nous pour vérifier les stocks avant de retourner l''article.', 'return_policy', 'textarea', 'Conditions d''échange', 'Comment fonctionne l''échange', 41),
+('return_size_exchange', 'Pour un échange de taille, retournez l''article et passez une nouvelle commande. Vous serez remboursé dès réception du retour.', 'return_policy', 'textarea', 'Échange de taille', 'Procédure pour changer de taille', 42),
+-- Produits défectueux
+('return_defective_policy', 'Si vous recevez un produit défectueux ou non conforme, contactez-nous dans les 48h suivant la réception avec des photos du défaut.', 'return_policy', 'textarea', 'Produits défectueux', 'Que faire en cas de défaut', 50),
+('return_defective_evidence', 'photos du produit et du défaut, photo de l''emballage', 'return_policy', 'text', 'Preuves demandées', 'Documents/photos à fournir', 51),
+('return_defective_resolution', 'Remplacement du produit ou remboursement intégral à votre choix, frais de retour pris en charge.', 'return_policy', 'textarea', 'Résolution défaut', 'Comment le problème est résolu', 52),
+('return_defective_delay', '48 heures', 'return_policy', 'text', 'Délai de signalement', 'Dans quel délai signaler un défaut', 53),
+-- Erreur de livraison
+('return_wrong_item_policy', 'Si vous recevez un article différent de votre commande, contactez-nous immédiatement. Nous organisons le retour à nos frais et vous envoyons le bon article en priorité.', 'return_policy', 'textarea', 'Erreur de livraison', 'Procédure en cas d''erreur', 60)
+ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
+
 -- Confirmation
 SELECT 'Shop settings migration completed successfully!' AS status;
 SELECT setting_group, COUNT(*) as count FROM shop_settings GROUP BY setting_group ORDER BY setting_group;
