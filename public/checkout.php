@@ -201,15 +201,21 @@ if (isset($_POST['ajax_relay_points'])) {
     $carrierCode = $_POST['carrier'] ?? '';
     $postcode = $_POST['postcode'] ?? '';
 
+    // Debug log
+    error_log("checkout.php ajax_relay_points: carrier=$carrierCode, postcode=$postcode");
+
     if (empty($carrierCode) || empty($postcode)) {
-        echo json_encode(['success' => false, 'error' => 'Paramètres manquants']);
+        echo json_encode(['success' => false, 'error' => 'Paramètres manquants', 'debug' => "carrier=$carrierCode, postcode=$postcode"]);
         exit;
     }
 
     $relayPoints = $boxtalService->getRelayPoints($carrierCode, $postcode);
+    error_log("checkout.php ajax_relay_points: found " . count($relayPoints) . " points");
+
     echo json_encode([
         'success' => true,
-        'points' => $relayPoints
+        'points' => $relayPoints,
+        'debug' => ['carrier' => $carrierCode, 'postcode' => $postcode, 'count' => count($relayPoints)]
     ]);
     exit;
 }
@@ -1270,10 +1276,11 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                 .then(r => r.json())
                 .then(data => {
                     relayLoading.style.display = 'none';
+                    console.log('Relay points response:', data);
                     if (data.success && data.points && data.points.length > 0) {
                         renderRelayPoints(data.points);
                     } else {
-                        relayPointsList.innerHTML = '<div class="relay-empty">Aucun point relais trouvé pour ce code postal. Essayez un autre code postal.</div>';
+                        relayPointsList.innerHTML = '<div class="relay-empty">Aucun point relais trouvé pour ce code postal. Essayez un autre code postal.<br><small style="color:#999;">Debug: carrier=' + currentCarrier + ', postcode=' + postcode + '</small></div>';
                     }
                 })
                 .catch(err => {
