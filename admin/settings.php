@@ -214,6 +214,47 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
         $success = 'Paramètres footer enregistrés.';
         $activeTab = 'shop_footer';
     }
+
+    // Paramètres Pages légales
+    if (isset($_POST['save_shop_legal'])) {
+        $shopSettings->setMultiple([
+            // Entreprise
+            'legal_company_name' => post('legal_company_name', ''),
+            'legal_company_type' => post('legal_company_type', 'auto-entrepreneur'),
+            'legal_siret' => post('legal_siret', ''),
+            'legal_siren' => post('legal_siren', ''),
+            'legal_tva_number' => post('legal_tva_number', ''),
+            'legal_rcs' => post('legal_rcs', ''),
+            'legal_capital' => post('legal_capital', ''),
+            // Adresse
+            'legal_address' => post('legal_address', ''),
+            'legal_postcode' => post('legal_postcode', ''),
+            'legal_city' => post('legal_city', ''),
+            'legal_country' => post('legal_country', 'France'),
+            // Contact
+            'legal_phone' => post('legal_phone', ''),
+            'legal_email' => post('legal_email', ''),
+            // Responsable
+            'legal_director_name' => post('legal_director_name', ''),
+            'legal_director_title' => post('legal_director_title', 'Gérant'),
+            // Hébergeur
+            'legal_host_name' => post('legal_host_name', 'OVH'),
+            'legal_host_address' => post('legal_host_address', ''),
+            'legal_host_phone' => post('legal_host_phone', ''),
+            // RGPD
+            'legal_dpo_name' => post('legal_dpo_name', ''),
+            'legal_dpo_email' => post('legal_dpo_email', ''),
+            'legal_data_collected' => post('legal_data_collected', ''),
+            'legal_data_purpose' => post('legal_data_purpose', ''),
+            'legal_data_retention' => post('legal_data_retention', ''),
+            'legal_cookies_used' => post('legal_cookies_used', ''),
+            // Marquer comme généré
+            'legal_pages_generated' => '1'
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Informations légales enregistrées. Les pages CGV, Mentions légales et Politique de confidentialité sont maintenant générées automatiquement.';
+        $activeTab = 'shop_legal';
+    }
 }
 
 // Récupérer les paramètres actuels
@@ -834,6 +875,7 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                     <a href="?tab=shop_payments" class="sub-tab <?= $activeTab === 'shop_payments' ? 'active' : '' ?>">Paiements affichés</a>
                     <a href="?tab=shop_badges" class="sub-tab <?= $activeTab === 'shop_badges' ? 'active' : '' ?>">Badges confiance</a>
                     <a href="?tab=shop_footer" class="sub-tab <?= $activeTab === 'shop_footer' ? 'active' : '' ?>">Footer</a>
+                    <a href="?tab=shop_legal" class="sub-tab <?= $activeTab === 'shop_legal' ? 'active' : '' ?>">📄 Pages légales</a>
                 </div>
 
                 <!-- GENERAL -->
@@ -1233,6 +1275,251 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
 
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary btn-lg">Enregistrer</button>
+                    </div>
+                </form>
+                <?php endif; ?>
+
+                <!-- LEGAL PAGES -->
+                <?php if ($activeTab === 'shop_legal'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_shop_legal" value="1">
+
+                    <?php if ($shopSettings->get('legal_pages_generated', false)): ?>
+                    <div class="alert alert-success" style="margin-bottom: 24px;">
+                        ✅ Vos pages légales sont générées ! Elles sont accessibles sur :
+                        <ul style="margin: 10px 0 0 20px;">
+                            <li><a href="/mentions-legales" target="_blank">/mentions-legales</a></li>
+                            <li><a href="/cgv" target="_blank">/cgv</a> (Conditions Générales de Vente)</li>
+                            <li><a href="/politique-confidentialite" target="_blank">/politique-confidentialite</a></li>
+                            <li><a href="/politique-retour" target="_blank">/politique-retour</a></li>
+                        </ul>
+                    </div>
+                    <?php endif; ?>
+
+                    <div class="info-box" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(99,91,255,0.1) 0%, rgba(255,105,180,0.1) 100%);">
+                        <strong>📄 Génération automatique des pages légales</strong><br>
+                        Remplissez les informations ci-dessous et vos pages CGV, Mentions légales, Politique de confidentialité
+                        et Politique de retour seront générées automatiquement et accessibles sur votre site.
+                    </div>
+
+                    <!-- Informations entreprise -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">🏢 Informations de l'entreprise</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Raison sociale *</label>
+                                    <input type="text" name="legal_company_name" class="form-input" required
+                                           placeholder="Ex: PERSONNALY"
+                                           value="<?= h($shopSettings->get('legal_company_name', '')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Forme juridique</label>
+                                    <select name="legal_company_type" class="form-input">
+                                        <option value="auto-entrepreneur" <?= $shopSettings->get('legal_company_type') === 'auto-entrepreneur' ? 'selected' : '' ?>>Auto-entrepreneur</option>
+                                        <option value="ei" <?= $shopSettings->get('legal_company_type') === 'ei' ? 'selected' : '' ?>>Entreprise Individuelle (EI)</option>
+                                        <option value="eurl" <?= $shopSettings->get('legal_company_type') === 'eurl' ? 'selected' : '' ?>>EURL</option>
+                                        <option value="sarl" <?= $shopSettings->get('legal_company_type') === 'sarl' ? 'selected' : '' ?>>SARL</option>
+                                        <option value="sas" <?= $shopSettings->get('legal_company_type') === 'sas' ? 'selected' : '' ?>>SAS</option>
+                                        <option value="sasu" <?= $shopSettings->get('legal_company_type') === 'sasu' ? 'selected' : '' ?>>SASU</option>
+                                        <option value="sa" <?= $shopSettings->get('legal_company_type') === 'sa' ? 'selected' : '' ?>>SA</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">SIRET (14 chiffres) *</label>
+                                    <input type="text" name="legal_siret" class="form-input font-mono" required
+                                           placeholder="12345678901234" maxlength="14"
+                                           value="<?= h($shopSettings->get('legal_siret', '')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">N° TVA Intracommunautaire</label>
+                                    <input type="text" name="legal_tva_number" class="form-input font-mono"
+                                           placeholder="FR12345678901 (si assujetti)"
+                                           value="<?= h($shopSettings->get('legal_tva_number', '')) ?>">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">RCS (ville)</label>
+                                    <input type="text" name="legal_rcs" class="form-input"
+                                           placeholder="Paris (si applicable)"
+                                           value="<?= h($shopSettings->get('legal_rcs', '')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Capital social</label>
+                                    <input type="text" name="legal_capital" class="form-input"
+                                           placeholder="1 000 € (si applicable)"
+                                           value="<?= h($shopSettings->get('legal_capital', '')) ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Adresse -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">📍 Adresse du siège social</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Adresse *</label>
+                                <input type="text" name="legal_address" class="form-input" required
+                                       placeholder="123 rue de la Mode"
+                                       value="<?= h($shopSettings->get('legal_address', '')) ?>">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Code postal *</label>
+                                    <input type="text" name="legal_postcode" class="form-input" required
+                                           placeholder="75001"
+                                           value="<?= h($shopSettings->get('legal_postcode', '')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Ville *</label>
+                                    <input type="text" name="legal_city" class="form-input" required
+                                           placeholder="Paris"
+                                           value="<?= h($shopSettings->get('legal_city', '')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Pays</label>
+                                    <input type="text" name="legal_country" class="form-input"
+                                           value="<?= h($shopSettings->get('legal_country', 'France')) ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact & Responsable -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">👤 Contact & Responsable</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Téléphone</label>
+                                    <input type="tel" name="legal_phone" class="form-input"
+                                           placeholder="01 23 45 67 89"
+                                           value="<?= h($shopSettings->get('legal_phone', '')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Email *</label>
+                                    <input type="email" name="legal_email" class="form-input" required
+                                           placeholder="contact@entreprise.fr"
+                                           value="<?= h($shopSettings->get('legal_email', '')) ?>">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Nom du directeur de publication *</label>
+                                    <input type="text" name="legal_director_name" class="form-input" required
+                                           placeholder="Jean Dupont"
+                                           value="<?= h($shopSettings->get('legal_director_name', '')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Fonction</label>
+                                    <input type="text" name="legal_director_title" class="form-input"
+                                           placeholder="Gérant"
+                                           value="<?= h($shopSettings->get('legal_director_title', 'Gérant')) ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hébergeur -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">🌐 Hébergeur du site</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Nom de l'hébergeur *</label>
+                                    <input type="text" name="legal_host_name" class="form-input" required
+                                           placeholder="OVH, Ionos, O2Switch..."
+                                           value="<?= h($shopSettings->get('legal_host_name', 'OVH')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Téléphone hébergeur</label>
+                                    <input type="text" name="legal_host_phone" class="form-input"
+                                           placeholder="09 72 10 10 07"
+                                           value="<?= h($shopSettings->get('legal_host_phone', '')) ?>">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Adresse de l'hébergeur</label>
+                                <input type="text" name="legal_host_address" class="form-input"
+                                       placeholder="2 rue Kellermann, 59100 Roubaix, France"
+                                       value="<?= h($shopSettings->get('legal_host_address', '2 rue Kellermann, 59100 Roubaix, France')) ?>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RGPD -->
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">🔒 Données personnelles (RGPD)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">DPO (Délégué à la protection des données)</label>
+                                    <input type="text" name="legal_dpo_name" class="form-input"
+                                           placeholder="Optionnel - Nom du DPO si vous en avez un"
+                                           value="<?= h($shopSettings->get('legal_dpo_name', '')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Email DPO / Contact RGPD</label>
+                                    <input type="email" name="legal_dpo_email" class="form-input"
+                                           placeholder="rgpd@entreprise.fr"
+                                           value="<?= h($shopSettings->get('legal_dpo_email', '')) ?>">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Données personnelles collectées</label>
+                                <textarea name="legal_data_collected" class="form-input" rows="2"
+                                          placeholder="nom, prénom, adresse email, adresse postale, numéro de téléphone"><?= h($shopSettings->get('legal_data_collected', 'nom, prénom, adresse email, adresse postale, numéro de téléphone')) ?></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Finalités du traitement</label>
+                                <textarea name="legal_data_purpose" class="form-input" rows="2"
+                                          placeholder="traitement des commandes, livraison, service client..."><?= h($shopSettings->get('legal_data_purpose', 'traitement des commandes, livraison, service client, newsletter (avec consentement)')) ?></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Durée de conservation</label>
+                                <input type="text" name="legal_data_retention" class="form-input"
+                                       placeholder="3 ans après la dernière commande"
+                                       value="<?= h($shopSettings->get('legal_data_retention', '3 ans après la dernière commande')) ?>">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Cookies utilisés</label>
+                                <textarea name="legal_cookies_used" class="form-input" rows="2"
+                                          placeholder="cookies de session, cookies de panier..."><?= h($shopSettings->get('legal_cookies_used', 'cookies de session, cookies de panier, cookies analytiques (avec consentement)')) ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                            </svg>
+                            Enregistrer et générer les pages légales
+                        </button>
                     </div>
                 </form>
                 <?php endif; ?>

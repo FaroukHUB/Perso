@@ -371,6 +371,54 @@ class ShopSettings
             ['label' => 'Nos Produits', 'url' => '/#produits']
         ]);
     }
+
+    /**
+     * Récupère toutes les informations légales
+     */
+    public function getLegalInfo(): array
+    {
+        return [
+            'company_name' => $this->get('legal_company_name', ''),
+            'company_type' => $this->get('legal_company_type', 'auto-entrepreneur'),
+            'siret' => $this->get('legal_siret', ''),
+            'siren' => substr($this->get('legal_siret', ''), 0, 9),
+            'tva_number' => $this->get('legal_tva_number', ''),
+            'rcs' => $this->get('legal_rcs', ''),
+            'capital' => $this->get('legal_capital', ''),
+            'address' => $this->get('legal_address', ''),
+            'postcode' => $this->get('legal_postcode', ''),
+            'city' => $this->get('legal_city', ''),
+            'country' => $this->get('legal_country', 'France'),
+            'full_address' => trim($this->get('legal_address', '') . ', ' . $this->get('legal_postcode', '') . ' ' . $this->get('legal_city', '') . ', ' . $this->get('legal_country', 'France'), ', '),
+            'phone' => $this->get('legal_phone', ''),
+            'email' => $this->get('legal_email', ''),
+            'director_name' => $this->get('legal_director_name', ''),
+            'director_title' => $this->get('legal_director_title', 'Gérant'),
+            'host_name' => $this->get('legal_host_name', ''),
+            'host_address' => $this->get('legal_host_address', ''),
+            'host_phone' => $this->get('legal_host_phone', ''),
+            'dpo_name' => $this->get('legal_dpo_name', ''),
+            'dpo_email' => $this->get('legal_dpo_email', ''),
+            'data_collected' => $this->get('legal_data_collected', ''),
+            'data_purpose' => $this->get('legal_data_purpose', ''),
+            'data_retention' => $this->get('legal_data_retention', ''),
+            'cookies_used' => $this->get('legal_cookies_used', ''),
+            'pages_generated' => (bool) $this->get('legal_pages_generated', false),
+            'site_name' => $this->getSiteName(),
+            'site_url' => (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'personnaly.fr'),
+            'returns_days' => $this->getReturnDays(),
+            'returns_free' => (bool) $this->get('returns_free', true),
+            'free_shipping_threshold' => $this->getFreeShippingThreshold()
+        ];
+    }
+
+    /**
+     * Vérifie si les pages légales sont configurées
+     */
+    public function areLegalPagesConfigured(): bool
+    {
+        return !empty($this->get('legal_company_name')) && !empty($this->get('legal_siret'));
+    }
 }
 
 // =========================================

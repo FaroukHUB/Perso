@@ -159,6 +159,45 @@ INSERT INTO shop_settings (setting_key, setting_value, setting_group, setting_ty
 ('navbar_show_cart', '1', 'navbar', 'boolean', 'Afficher panier', 'Afficher l''icône panier dans la navbar', 2)
 ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
 
+-- =====================================================
+-- GROUPE: legal - Informations légales de l'entreprise
+-- =====================================================
+INSERT INTO shop_settings (setting_key, setting_value, setting_group, setting_type, setting_label, setting_description, sort_order) VALUES
+-- Informations entreprise
+('legal_company_name', '', 'legal', 'text', 'Raison sociale', 'Nom légal de l''entreprise', 1),
+('legal_company_type', 'auto-entrepreneur', 'legal', 'text', 'Forme juridique', 'SARL, SAS, Auto-entrepreneur, etc.', 2),
+('legal_siret', '', 'legal', 'text', 'SIRET', 'Numéro SIRET (14 chiffres)', 3),
+('legal_siren', '', 'legal', 'text', 'SIREN', 'Numéro SIREN (9 chiffres)', 4),
+('legal_tva_number', '', 'legal', 'text', 'N° TVA Intracommunautaire', 'Numéro de TVA (si applicable)', 5),
+('legal_rcs', '', 'legal', 'text', 'RCS', 'Ville d''immatriculation RCS', 6),
+('legal_capital', '', 'legal', 'text', 'Capital social', 'Montant du capital (si applicable)', 7),
+-- Adresse
+('legal_address', '', 'legal', 'text', 'Adresse', 'Adresse du siège social', 10),
+('legal_postcode', '', 'legal', 'text', 'Code postal', 'Code postal du siège', 11),
+('legal_city', '', 'legal', 'text', 'Ville', 'Ville du siège social', 12),
+('legal_country', 'France', 'legal', 'text', 'Pays', 'Pays du siège social', 13),
+-- Contact
+('legal_phone', '', 'legal', 'text', 'Téléphone', 'Téléphone professionnel', 15),
+('legal_email', '', 'legal', 'email', 'Email', 'Email de contact légal', 16),
+-- Responsable
+('legal_director_name', '', 'legal', 'text', 'Directeur de publication', 'Nom du responsable/gérant', 20),
+('legal_director_title', 'Gérant', 'legal', 'text', 'Fonction', 'Titre du responsable', 21),
+-- Hébergement
+('legal_host_name', 'OVH', 'legal', 'text', 'Nom de l''hébergeur', 'Société qui héberge le site', 25),
+('legal_host_address', '2 rue Kellermann, 59100 Roubaix, France', 'legal', 'text', 'Adresse de l''hébergeur', 'Adresse complète', 26),
+('legal_host_phone', '', 'legal', 'text', 'Téléphone hébergeur', 'Numéro de contact', 27),
+-- DPO / RGPD
+('legal_dpo_name', '', 'legal', 'text', 'DPO (Délégué à la protection des données)', 'Nom du DPO si applicable', 30),
+('legal_dpo_email', '', 'legal', 'email', 'Email DPO', 'Email de contact pour RGPD', 31),
+-- Données collectées
+('legal_data_collected', 'nom, prénom, adresse email, adresse postale, numéro de téléphone', 'legal', 'textarea', 'Données collectées', 'Types de données personnelles collectées', 35),
+('legal_data_purpose', 'traitement des commandes, livraison, service client, newsletter (avec consentement)', 'legal', 'textarea', 'Finalités du traitement', 'Pourquoi ces données sont collectées', 36),
+('legal_data_retention', '3 ans après la dernière commande', 'legal', 'text', 'Durée de conservation', 'Combien de temps les données sont gardées', 37),
+('legal_cookies_used', 'cookies de session, cookies de panier, cookies analytiques (avec consentement)', 'legal', 'textarea', 'Cookies utilisés', 'Types de cookies sur le site', 38),
+-- Pages générées (contenu)
+('legal_pages_generated', '0', 'legal', 'boolean', 'Pages générées', 'Indique si les pages ont été générées', 50)
+ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
+
 -- Confirmation
 SELECT 'Shop settings migration completed successfully!' AS status;
 SELECT setting_group, COUNT(*) as count FROM shop_settings GROUP BY setting_group ORDER BY setting_group;
