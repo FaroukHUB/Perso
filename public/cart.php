@@ -1281,6 +1281,20 @@ if (!Cart::isEmpty()) {
                                 </form>
                             </div>
 
+                            <!-- DEBUG VISIBLE -->
+                            <div style="background: #ffeb3b; padding: 15px; margin: 10px; border-radius: 8px; font-family: monospace; font-size: 13px; color: #333;">
+                                <strong>DEBUG cartItems:</strong> count = <?= count($cartItems) ?><br>
+                                <?php if (empty($cartItems)): ?>
+                                    ⚠️ cartItems est VIDE!<br>
+                                    Session raw: <pre style="background: #fff; padding: 10px; border-radius: 4px; overflow: auto; max-height: 200px;"><?= htmlspecialchars(print_r(Cart::debug(), true)) ?></pre>
+                                <?php else: ?>
+                                    ✅ <?= count($cartItems) ?> items trouvés<br>
+                                    <?php foreach ($cartItems as $dk => $dv): ?>
+                                        • <?= htmlspecialchars($dk) ?>: product_id=<?= $dv['product_id'] ?? 'N/A' ?>, product_name=<?= htmlspecialchars($dv['product']['name'] ?? 'N/A') ?>, qty=<?= $dv['quantity'] ?? 'N/A' ?><br>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
+
                             <?php foreach ($cartItems as $key => $item):
                                 $colorHex = '#CCCCCC';
                                 $colorName = $item['customization']['color'] ?? 'blanc';
