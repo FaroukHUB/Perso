@@ -39,6 +39,9 @@ $headerTextColor = $settings->get('header_text_color', '#ffffff');
 
 // Récupérer le logo
 $logoUrl = $brandingService->getLogo(null, false); // false = fond sombre
+
+// Inclure la top bar si activée
+include __DIR__ . '/topbar.php';
 ?>
 <!-- Navbar -->
 <nav class="navbar" style="background: <?= htmlspecialchars($headerBgColor) ?>; --header-text-color: <?= htmlspecialchars($headerTextColor) ?>;">
