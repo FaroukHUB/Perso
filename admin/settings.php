@@ -202,7 +202,10 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
 
     // Paramètres Top Bar
     if (isset($_POST['save_shop_topbar'])) {
-        $shopSettings->setMultiple([
+        // DEBUG: Afficher les données reçues
+        error_log("DEBUG TopBar POST: " . print_r($_POST, true));
+
+        $result = $shopSettings->setMultiple([
             'topbar_enabled' => isset($_POST['topbar_enabled']) ? '1' : '0',
             'topbar_text' => post('topbar_text', ''),
             'topbar_link' => post('topbar_link', ''),
@@ -212,6 +215,8 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
             'topbar_font_size' => post('topbar_font_size', '14'),
             'topbar_scroll_speed' => post('topbar_scroll_speed', '30')
         ]);
+        error_log("DEBUG TopBar setMultiple result: " . ($result ? 'true' : 'false'));
+
         $shopSettings->clearCache();
         $success = 'Paramètres de la top bar enregistrés.';
         $activeTab = 'shop_topbar';

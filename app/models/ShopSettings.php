@@ -136,13 +136,17 @@ class ShopSettings
                 $value = $value ? '1' : '0';
             }
 
+            error_log("ShopSettings::set - key: $key, value: $value");
+
             // Utiliser INSERT ... ON DUPLICATE KEY UPDATE pour créer ou mettre à jour
             $stmt = $this->db->prepare("
                 INSERT INTO shop_settings (setting_key, setting_value, setting_group, setting_type, created_at, updated_at)
                 VALUES (?, ?, 'general', 'text', NOW(), NOW())
-                ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW()
+                ON DUPLICATE KEY UPDATE setting_value = ?, updated_at = NOW()
             ");
-            $result = $stmt->execute([$key, $value]);
+            $result = $stmt->execute([$key, $value, $value]);
+
+            error_log("ShopSettings::set - result: " . ($result ? 'true' : 'false') . ", affected: " . $stmt->rowCount());
 
             // Mettre à jour le cache
             if ($result && self::$cacheLoaded) {
