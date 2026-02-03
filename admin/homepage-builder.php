@@ -2409,6 +2409,8 @@ $typeIcons = [
                         statusDot.className = 'section-status ' + data.status;
                         item.classList.toggle('is-draft', data.status === 'draft');
                     }
+                    // Mettre à jour le champ caché du formulaire pour que Save ne l'écrase pas
+                    document.getElementById('sectionStatus').value = data.status;
                     refreshPreview();
                 }
             });
