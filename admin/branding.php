@@ -9,16 +9,21 @@ require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/Branding.php';
+require_once __DIR__ . '/../app/models/ShopSettings.php';
 
 Auth::requireAdmin();
 
 $orderModel = new Order();
 $pendingOrders = $orderModel->countNew();
 $brandingModel = new Branding();
+$shopSettings = new ShopSettings();
 
 $success = '';
 $error = '';
 $tableExists = $brandingModel->tableExists();
+
+// Onglet actif (identity, colors, topbar, appearance)
+$activeTab = $_GET['tab'] ?? 'identity';
 
 // Client ID (null = global config)
 $clientId = isset($_GET['client_id']) ? (int)$_GET['client_id'] : null;
@@ -27,52 +32,81 @@ $clientId = isset($_GET['client_id']) ? (int)$_GET['client_id'] : null;
 $config = $brandingModel->resolveBranding($clientId);
 
 // Traitement du formulaire
-if (isPost() && isset($_POST['save_branding'])) {
-    if (!$tableExists) {
-        $error = 'La table branding_settings n\'existe pas. Exécutez la migration SQL d\'abord.';
-    } elseif (verifyCsrf($_POST['csrf_token'] ?? '')) {
-        $data = [
-            'font_primary' => post('font_primary', ''),
-            'font_primary_url' => post('font_primary_url', ''),
-            'font_secondary' => post('font_secondary', ''),
-            'font_secondary_url' => post('font_secondary_url', ''),
-            'color_primary' => post('color_primary', ''),
-            'color_secondary' => post('color_secondary', ''),
-            'color_accent' => post('color_accent', ''),
-            'color_text' => post('color_text', ''),
-            'color_text_light' => post('color_text_light', ''),
-            'color_background' => post('color_background', ''),
-            'color_surface' => post('color_surface', ''),
-            'color_button' => post('color_button', ''),
-            'color_button_text' => post('color_button_text', ''),
-            'border_radius' => post('border_radius', 'medium'),
-            'shadow_intensity' => post('shadow_intensity', 'subtle'),
-            'logo_url' => post('logo_url', ''),
-            'logo_light_url' => post('logo_light_url', ''),
-            'favicon_url' => post('favicon_url', ''),
-        ];
-
-        // Nettoyer les valeurs vides
-        foreach ($data as $key => $value) {
-            if ($value === '') {
-                $data[$key] = null;
-            }
-        }
-
-        try {
-            if ($clientId === null) {
-                $brandingModel->upsertGlobal($data);
-            } else {
-                $brandingModel->upsertForClient($clientId, $data);
-            }
-            $success = 'Configuration sauvegardée avec succès.';
-            // Recharger la config
-            $config = $brandingModel->resolveBranding($clientId);
-        } catch (Exception $e) {
-            $error = 'Erreur lors de la sauvegarde : ' . $e->getMessage();
-        }
-    } else {
+if (isPost()) {
+    if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
         $error = 'Token CSRF invalide.';
+    } elseif (isset($_POST['save_branding'])) {
+        // Sauvegarde branding (identité, couleurs, polices)
+        if (!$tableExists) {
+            $error = 'La table branding_settings n\'existe pas. Exécutez la migration SQL d\'abord.';
+        } else {
+            $data = [
+                'font_primary' => post('font_primary', ''),
+                'font_primary_url' => post('font_primary_url', ''),
+                'font_secondary' => post('font_secondary', ''),
+                'font_secondary_url' => post('font_secondary_url', ''),
+                'color_primary' => post('color_primary', ''),
+                'color_secondary' => post('color_secondary', ''),
+                'color_accent' => post('color_accent', ''),
+                'color_text' => post('color_text', ''),
+                'color_text_light' => post('color_text_light', ''),
+                'color_background' => post('color_background', ''),
+                'color_surface' => post('color_surface', ''),
+                'color_button' => post('color_button', ''),
+                'color_button_text' => post('color_button_text', ''),
+                'border_radius' => post('border_radius', 'medium'),
+                'shadow_intensity' => post('shadow_intensity', 'subtle'),
+                'logo_url' => post('logo_url', ''),
+                'logo_light_url' => post('logo_light_url', ''),
+                'favicon_url' => post('favicon_url', ''),
+            ];
+
+            // Nettoyer les valeurs vides
+            foreach ($data as $key => $value) {
+                if ($value === '') {
+                    $data[$key] = null;
+                }
+            }
+
+            try {
+                if ($clientId === null) {
+                    $brandingModel->upsertGlobal($data);
+                } else {
+                    $brandingModel->upsertForClient($clientId, $data);
+                }
+                $success = 'Configuration sauvegardée avec succès.';
+                // Recharger la config
+                $config = $brandingModel->resolveBranding($clientId);
+            } catch (Exception $e) {
+                $error = 'Erreur lors de la sauvegarde : ' . $e->getMessage();
+            }
+        }
+    } elseif (isset($_POST['save_topbar'])) {
+        // Sauvegarde TopBar
+        $shopSettings->setMultiple([
+            'topbar_enabled' => isset($_POST['topbar_enabled']) ? '1' : '0',
+            'topbar_text' => post('topbar_text', ''),
+            'topbar_link' => post('topbar_link', ''),
+            'topbar_bg_color' => post('topbar_bg_color', '#1a1a2e'),
+            'topbar_text_color' => post('topbar_text_color', '#ffffff'),
+            'topbar_font_family' => post('topbar_font_family', 'inherit'),
+            'topbar_font_size' => post('topbar_font_size', '14'),
+            'topbar_scroll_speed' => post('topbar_scroll_speed', '30')
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Paramètres de la top bar enregistrés.';
+        $activeTab = 'topbar';
+    } elseif (isset($_POST['save_appearance'])) {
+        // Sauvegarde Apparence header/footer
+        $shopSettings->setMultiple([
+            'header_bg_color' => post('header_bg_color', '#1a1a2e'),
+            'header_text_color' => post('header_text_color', '#ffffff'),
+            'footer_bg_color' => post('footer_bg_color', '#1a1a2e'),
+            'footer_text_color' => post('footer_text_color', '#ffffff')
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Couleurs enregistrées.';
+        $activeTab = 'appearance';
     }
 }
 
@@ -120,6 +154,16 @@ $shadowOptions = [
                 </h1>
             </div>
 
+            <!-- Navigation sous-onglets -->
+            <div class="sub-tabs-wrapper">
+                <div class="sub-tabs">
+                    <a href="?tab=identity" class="sub-tab <?= $activeTab === 'identity' ? 'active' : '' ?>">Identité & Logos</a>
+                    <a href="?tab=colors" class="sub-tab <?= $activeTab === 'colors' ? 'active' : '' ?>">Couleurs & Style</a>
+                    <a href="?tab=topbar" class="sub-tab <?= $activeTab === 'topbar' ? 'active' : '' ?>">Top Bar</a>
+                    <a href="?tab=appearance" class="sub-tab <?= $activeTab === 'appearance' ? 'active' : '' ?>">Header & Footer</a>
+                </div>
+            </div>
+
             <?php if ($success): ?>
                 <div class="alert alert-success"><?= h($success) ?></div>
             <?php endif; ?>
@@ -128,7 +172,7 @@ $shadowOptions = [
                 <div class="alert alert-error"><?= h($error) ?></div>
             <?php endif; ?>
 
-            <?php if (!$tableExists): ?>
+            <?php if (!$tableExists && in_array($activeTab, ['identity', 'colors'])): ?>
                 <div class="alert alert-warning">
                     <strong>Migration requise</strong><br>
                     La table <code>branding_settings</code> n'existe pas encore.
@@ -137,72 +181,106 @@ $shadowOptions = [
                 </div>
             <?php endif; ?>
 
+            <!-- ========== ONGLET IDENTITÉ ========== -->
+            <?php if ($activeTab === 'identity'): ?>
             <form method="post" class="branding-form">
                 <?= csrfField() ?>
                 <input type="hidden" name="save_branding" value="1">
 
-                <!-- Section: Identité -->
+                <!-- Section: Identité (Logos) -->
                 <div class="data-card">
                     <div class="data-card-header">
-                        <h3 class="data-card-title">Identité</h3>
+                        <h3 class="data-card-title">Logos & Identité</h3>
                     </div>
                     <div class="card-body">
-                        <div class="form-grid-3">
+                        <div class="logo-grid">
                             <!-- Logo principal -->
-                            <div class="form-group">
-                                <label class="form-label">Logo principal</label>
-                                <div class="image-upload-wrapper">
+                            <div class="logo-upload-card">
+                                <div class="logo-preview-modern" id="logo_preview">
+                                    <?php if (!empty($config['logo_url'])): ?>
+                                        <img src="<?= h($config['logo_url']) ?>" alt="Logo">
+                                    <?php else: ?>
+                                        <div class="logo-placeholder">
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                                <path d="M21 15l-5-5L5 21"/>
+                                            </svg>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="logo-info">
+                                    <h4>Logo principal</h4>
+                                    <p>Utilisé sur fond clair (header, factures...)</p>
                                     <input type="hidden" name="logo_url" id="logo_url" value="<?= h($config['logo_url'] ?? '') ?>">
-                                    <div class="image-preview" id="logo_preview">
-                                        <?php if (!empty($config['logo_url'])): ?>
-                                            <img src="<?= h($config['logo_url']) ?>" alt="Logo">
-                                        <?php else: ?>
-                                            <span class="placeholder">Aucun logo</span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <button type="button" class="btn btn-secondary btn-sm" onclick="uploadImage('logo_url', 'logo_preview')">
-                                        Choisir
+                                    <button type="button" class="btn btn-outline" onclick="uploadImage('logo_url', 'logo_preview')">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                            <polyline points="17 8 12 3 7 8"/>
+                                            <line x1="12" y1="3" x2="12" y2="15"/>
+                                        </svg>
+                                        Changer
                                     </button>
                                 </div>
-                                <small class="form-help">Utilisé sur fond clair</small>
                             </div>
 
-                            <!-- Logo clair -->
-                            <div class="form-group">
-                                <label class="form-label">Logo (fond sombre)</label>
-                                <div class="image-upload-wrapper">
+                            <!-- Logo clair (fond sombre) -->
+                            <div class="logo-upload-card dark">
+                                <div class="logo-preview-modern dark" id="logo_light_preview">
+                                    <?php if (!empty($config['logo_light_url'])): ?>
+                                        <img src="<?= h($config['logo_light_url']) ?>" alt="Logo clair">
+                                    <?php else: ?>
+                                        <div class="logo-placeholder">
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                                <path d="M21 15l-5-5L5 21"/>
+                                            </svg>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="logo-info">
+                                    <h4>Logo fond sombre</h4>
+                                    <p>Variante pour fond sombre (footer...)</p>
                                     <input type="hidden" name="logo_light_url" id="logo_light_url" value="<?= h($config['logo_light_url'] ?? '') ?>">
-                                    <div class="image-preview dark-bg" id="logo_light_preview">
-                                        <?php if (!empty($config['logo_light_url'])): ?>
-                                            <img src="<?= h($config['logo_light_url']) ?>" alt="Logo clair">
-                                        <?php else: ?>
-                                            <span class="placeholder">Aucun logo</span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <button type="button" class="btn btn-secondary btn-sm" onclick="uploadImage('logo_light_url', 'logo_light_preview')">
-                                        Choisir
+                                    <button type="button" class="btn btn-outline" onclick="uploadImage('logo_light_url', 'logo_light_preview')">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                            <polyline points="17 8 12 3 7 8"/>
+                                            <line x1="12" y1="3" x2="12" y2="15"/>
+                                        </svg>
+                                        Changer
                                     </button>
                                 </div>
-                                <small class="form-help">Variante pour fond sombre</small>
                             </div>
 
                             <!-- Favicon -->
-                            <div class="form-group">
-                                <label class="form-label">Favicon</label>
-                                <div class="image-upload-wrapper">
+                            <div class="logo-upload-card favicon">
+                                <div class="logo-preview-modern favicon" id="favicon_preview">
+                                    <?php if (!empty($config['favicon_url'])): ?>
+                                        <img src="<?= h($config['favicon_url']) ?>" alt="Favicon">
+                                    <?php else: ?>
+                                        <div class="logo-placeholder">
+                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                <rect x="4" y="4" width="16" height="16" rx="2"/>
+                                                <path d="M9 9h6v6H9z"/>
+                                            </svg>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="logo-info">
+                                    <h4>Favicon</h4>
+                                    <p>Icône onglet navigateur (32×32 ou 64×64 px)</p>
                                     <input type="hidden" name="favicon_url" id="favicon_url" value="<?= h($config['favicon_url'] ?? '') ?>">
-                                    <div class="image-preview favicon-preview" id="favicon_preview">
-                                        <?php if (!empty($config['favicon_url'])): ?>
-                                            <img src="<?= h($config['favicon_url']) ?>" alt="Favicon">
-                                        <?php else: ?>
-                                            <span class="placeholder">Aucun</span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <button type="button" class="btn btn-secondary btn-sm" onclick="uploadImage('favicon_url', 'favicon_preview')">
-                                        Choisir
+                                    <button type="button" class="btn btn-outline" onclick="uploadImage('favicon_url', 'favicon_preview')">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                            <polyline points="17 8 12 3 7 8"/>
+                                            <line x1="12" y1="3" x2="12" y2="15"/>
+                                        </svg>
+                                        Changer
                                     </button>
                                 </div>
-                                <small class="form-help">32x32 ou 64x64 px</small>
                             </div>
                         </div>
                     </div>
@@ -243,6 +321,19 @@ $shadowOptions = [
                         </div>
                     </div>
                 </div>
+
+                <!-- Actions Identity -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">Sauvegarder</button>
+                </div>
+            </form>
+            <?php endif; ?>
+
+            <!-- ========== ONGLET COULEURS & STYLE ========== -->
+            <?php if ($activeTab === 'colors'): ?>
+            <form method="post" class="branding-form">
+                <?= csrfField() ?>
+                <input type="hidden" name="save_branding" value="1">
 
                 <!-- Section: Couleurs -->
                 <div class="data-card">
@@ -431,13 +522,233 @@ $shadowOptions = [
                     </div>
                 </div>
 
-                <!-- Actions -->
+                <!-- Actions Colors -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        Sauvegarder les modifications
-                    </button>
+                    <button type="submit" class="btn btn-primary btn-lg">Sauvegarder</button>
                 </div>
             </form>
+            <?php endif; ?>
+
+            <!-- ========== ONGLET TOP BAR ========== -->
+            <?php if ($activeTab === 'topbar'): ?>
+            <form method="post" class="branding-form">
+                <?= csrfField() ?>
+                <input type="hidden" name="save_topbar" value="1">
+
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Barre d'annonce (Top Bar)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="form-switch">
+                                <input type="checkbox" name="topbar_enabled" value="1"
+                                       <?= $shopSettings->get('topbar_enabled', true) ? 'checked' : '' ?>>
+                                <span class="switch-slider"></span>
+                                <span class="switch-label">Activer la top bar</span>
+                            </label>
+                            <small class="form-hint">Afficher la barre d'annonce en haut du site</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Texte de l'annonce</label>
+                            <input type="text" name="topbar_text" class="form-input"
+                                   value="<?= h($shopSettings->get('topbar_text', 'Livraison GRATUITE dès 50€ d\'achat !')) ?>"
+                                   placeholder="Ex: Livraison GRATUITE dès 50€ d'achat ! Code promo: BIENVENUE10">
+                            <small class="form-hint">Ce texte défilera dans la barre d'annonce</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Lien (optionnel)</label>
+                            <input type="url" name="topbar_link" class="form-input"
+                                   value="<?= h($shopSettings->get('topbar_link', '')) ?>"
+                                   placeholder="https://exemple.com/promo">
+                            <small class="form-hint">URL vers laquelle le texte redirige au clic</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Style de la top bar</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Couleur de fond</label>
+                                <div class="color-picker-row">
+                                    <input type="color" name="topbar_bg_color" id="topbarBgColor"
+                                           value="<?= h($shopSettings->get('topbar_bg_color', '#1a1a2e')) ?>">
+                                    <input type="text" class="form-input color-text" id="topbarBgColorText"
+                                           value="<?= h($shopSettings->get('topbar_bg_color', '#1a1a2e')) ?>">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Couleur du texte</label>
+                                <div class="color-picker-row">
+                                    <input type="color" name="topbar_text_color" id="topbarTextColor"
+                                           value="<?= h($shopSettings->get('topbar_text_color', '#ffffff')) ?>">
+                                    <input type="text" class="form-input color-text" id="topbarTextColorText"
+                                           value="<?= h($shopSettings->get('topbar_text_color', '#ffffff')) ?>">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Police d'écriture</label>
+                                <select name="topbar_font_family" class="form-input" id="topbarFontFamily">
+                                    <option value="inherit" <?= $shopSettings->get('topbar_font_family', 'inherit') === 'inherit' ? 'selected' : '' ?>>Police du site (par défaut)</option>
+                                    <option value="Arial, sans-serif" <?= $shopSettings->get('topbar_font_family') === 'Arial, sans-serif' ? 'selected' : '' ?>>Arial</option>
+                                    <option value="'Helvetica Neue', Helvetica, sans-serif" <?= $shopSettings->get('topbar_font_family') === "'Helvetica Neue', Helvetica, sans-serif" ? 'selected' : '' ?>>Helvetica</option>
+                                    <option value="Georgia, serif" <?= $shopSettings->get('topbar_font_family') === 'Georgia, serif' ? 'selected' : '' ?>>Georgia</option>
+                                    <option value="Verdana, sans-serif" <?= $shopSettings->get('topbar_font_family') === 'Verdana, sans-serif' ? 'selected' : '' ?>>Verdana</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Taille de police (px)</label>
+                                <input type="number" name="topbar_font_size" class="form-input" id="topbarFontSize"
+                                       value="<?= h($shopSettings->get('topbar_font_size', '14')) ?>"
+                                       min="10" max="24" step="1">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Vitesse de défilement (secondes)</label>
+                            <input type="number" name="topbar_scroll_speed" class="form-input" id="topbarScrollSpeed"
+                                   value="<?= h($shopSettings->get('topbar_scroll_speed', '30')) ?>"
+                                   min="5" max="120" step="5">
+                            <small class="form-hint">Durée d'un cycle complet (plus grand = plus lent)</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview TopBar -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Aperçu en temps réel</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="site-preview-box">
+                            <div id="topbarPreview" class="topbar-preview" style="background: <?= h($shopSettings->get('topbar_bg_color', '#1a1a2e')) ?>;">
+                                <span id="topbarPreviewText" style="color: <?= h($shopSettings->get('topbar_text_color', '#ffffff')) ?>; font-family: <?= h($shopSettings->get('topbar_font_family', 'inherit')) ?>; font-size: <?= h($shopSettings->get('topbar_font_size', '14')) ?>px;">
+                                    <?= h($shopSettings->get('topbar_text', 'Livraison GRATUITE dès 50€ d\'achat !')) ?>
+                                </span>
+                            </div>
+                            <div class="header-preview-placeholder">
+                                <span><?= h($shopSettings->get('site_name', 'PERSONNALY')) ?></span>
+                                <div class="preview-nav-links">
+                                    <span>Produits</span>
+                                    <span>Panier</span>
+                                </div>
+                            </div>
+                            <div class="content-preview-placeholder">Contenu de la page...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">Sauvegarder</button>
+                </div>
+            </form>
+            <?php endif; ?>
+
+            <!-- ========== ONGLET HEADER & FOOTER ========== -->
+            <?php if ($activeTab === 'appearance'): ?>
+            <form method="post" class="branding-form">
+                <?= csrfField() ?>
+                <input type="hidden" name="save_appearance" value="1">
+
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Couleurs du Header (Navigation)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Couleur de fond</label>
+                                <div class="color-picker-row">
+                                    <input type="color" name="header_bg_color" id="headerBgColor"
+                                           value="<?= h($shopSettings->get('header_bg_color', '#1a1a2e')) ?>">
+                                    <input type="text" class="form-input color-text" id="headerBgColorText"
+                                           value="<?= h($shopSettings->get('header_bg_color', '#1a1a2e')) ?>">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Couleur du texte</label>
+                                <div class="color-picker-row">
+                                    <input type="color" name="header_text_color" id="headerTextColor"
+                                           value="<?= h($shopSettings->get('header_text_color', '#ffffff')) ?>">
+                                    <input type="text" class="form-input color-text" id="headerTextColorText"
+                                           value="<?= h($shopSettings->get('header_text_color', '#ffffff')) ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Couleurs du Footer (Pied de page)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Couleur de fond</label>
+                                <div class="color-picker-row">
+                                    <input type="color" name="footer_bg_color" id="footerBgColor"
+                                           value="<?= h($shopSettings->get('footer_bg_color', '#1a1a2e')) ?>">
+                                    <input type="text" class="form-input color-text" id="footerBgColorText"
+                                           value="<?= h($shopSettings->get('footer_bg_color', '#1a1a2e')) ?>">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Couleur du texte</label>
+                                <div class="color-picker-row">
+                                    <input type="color" name="footer_text_color" id="footerTextColor"
+                                           value="<?= h($shopSettings->get('footer_text_color', '#ffffff')) ?>">
+                                    <input type="text" class="form-input color-text" id="footerTextColorText"
+                                           value="<?= h($shopSettings->get('footer_text_color', '#ffffff')) ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Header/Footer -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Aperçu en temps réel</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="site-preview-box">
+                            <div id="headerPreview" class="header-preview" style="background: <?= h($shopSettings->get('header_bg_color', '#1a1a2e')) ?>;">
+                                <span id="headerPreviewBrand" style="color: <?= h($shopSettings->get('header_text_color', '#ffffff')) ?>;"><?= h($shopSettings->get('site_name', 'PERSONNALY')) ?></span>
+                                <div id="headerPreviewNav" style="color: <?= h($shopSettings->get('header_text_color', '#ffffff')) ?>;">
+                                    <span>Produits</span>
+                                    <span>Contact</span>
+                                    <span>Panier</span>
+                                </div>
+                            </div>
+                            <div class="content-preview-placeholder" style="height: 80px;">Contenu de la page...</div>
+                            <div id="footerPreview" class="footer-preview" style="background: <?= h($shopSettings->get('footer_bg_color', '#1a1a2e')) ?>;">
+                                <span id="footerPreviewBrand" style="color: <?= h($shopSettings->get('footer_text_color', '#ffffff')) ?>;"><?= h($shopSettings->get('site_name', 'PERSONNALY')) ?></span>
+                                <span id="footerPreviewCopy" style="color: <?= h($shopSettings->get('footer_text_color', '#ffffff')) ?>;">© <?= date('Y') ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">Sauvegarder</button>
+                </div>
+            </form>
+            <?php endif; ?>
+
         </main>
     </div>
 
@@ -455,30 +766,243 @@ $shadowOptions = [
         .card-body { padding: var(--spacing-lg); }
         .header-note { font-size: 0.85rem; color: var(--gray-500); font-weight: 400; }
 
+        /* Sub-tabs */
+        .sub-tabs-wrapper { margin-bottom: var(--spacing-lg); }
+        .sub-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--gray-100);
+            padding: 4px;
+            border-radius: 12px;
+            width: fit-content;
+        }
+        .sub-tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .sub-tab:hover { color: var(--gray-800); background: rgba(255,255,255,0.5); }
+        .sub-tab.active {
+            background: #fff;
+            color: var(--purple-main);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
         .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-md); }
         .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg); }
         @media (max-width: 768px) {
             .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
         }
 
-        /* Image upload */
-        .image-upload-wrapper { display: flex; flex-direction: column; gap: 8px; }
-        .image-preview {
+        /* Modern Logo Grid */
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .logo-upload-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: all 0.3s ease;
+        }
+        .logo-upload-card:hover {
+            border-color: var(--purple-main);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1);
+            transform: translateY(-2px);
+        }
+        .logo-upload-card.dark {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-color: #334155;
+        }
+        .logo-upload-card.dark:hover {
+            border-color: var(--purple-main);
+        }
+        .logo-upload-card.favicon {
+            max-width: 200px;
+        }
+        .logo-preview-modern {
             width: 100%;
-            height: 100px;
-            border: 2px dashed var(--gray-300);
-            border-radius: var(--radius-md);
+            height: 120px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--gray-50);
+            background: #fff;
+            border: 2px dashed var(--gray-300);
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .logo-preview-modern:hover { border-color: var(--purple-main); }
+        .logo-preview-modern.dark {
+            background: #1a1a2e;
+            border-color: #475569;
+        }
+        .logo-preview-modern.favicon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+        }
+        .logo-preview-modern img {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+        .logo-placeholder {
+            color: var(--gray-400);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo-upload-card.dark .logo-placeholder { color: #64748b; }
+        .logo-info {
+            text-align: center;
+        }
+        .logo-info h4 {
+            margin: 0 0 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+        .logo-upload-card.dark .logo-info h4 { color: #e2e8f0; }
+        .logo-info p {
+            margin: 0 0 12px;
+            font-size: 0.8rem;
+            color: var(--gray-500);
+        }
+        .logo-upload-card.dark .logo-info p { color: #94a3b8; }
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: transparent;
+            border: 2px solid var(--gray-300);
+            border-radius: 8px;
+            font-weight: 500;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover {
+            border-color: var(--purple-main);
+            color: var(--purple-main);
+            background: rgba(99, 102, 241, 0.05);
+        }
+        .logo-upload-card.dark .btn-outline {
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+        .logo-upload-card.dark .btn-outline:hover {
+            border-color: var(--purple-main);
+            color: var(--purple-light);
+        }
+
+        /* Color picker row */
+        .color-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .color-picker-row input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 2px;
+        }
+        .color-picker-row .color-text { width: 100px; }
+
+        /* Form switch */
+        .form-switch {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+        .form-switch input { display: none; }
+        .switch-slider {
+            width: 48px;
+            height: 26px;
+            background: var(--gray-300);
+            border-radius: 26px;
+            position: relative;
+            transition: background 0.2s;
+        }
+        .switch-slider::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .form-switch input:checked + .switch-slider { background: var(--purple-main); }
+        .form-switch input:checked + .switch-slider::after { transform: translateX(22px); }
+        .switch-label { font-weight: 500; color: var(--gray-700); }
+
+        /* Site preview box */
+        .site-preview-box {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .topbar-preview {
+            padding: 10px 20px;
+            text-align: center;
             overflow: hidden;
         }
-        .image-preview.dark-bg { background: var(--gray-800); border-color: var(--gray-600); }
-        .image-preview.favicon-preview { width: 64px; height: 64px; }
-        .image-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .image-preview .placeholder { color: var(--gray-400); font-size: 0.85rem; }
-        .image-preview.dark-bg .placeholder { color: var(--gray-500); }
+        .topbar-preview span {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 15s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .header-preview, .footer-preview {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-preview span, .footer-preview span { font-weight: 600; }
+        .header-preview div, .footer-preview div { display: flex; gap: 15px; font-size: 13px; opacity: 0.9; }
+        .header-preview-placeholder {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-preview-placeholder span { font-weight: 600; }
+        .preview-nav-links { display: flex; gap: 15px; font-size: 13px; opacity: 0.9; }
+        .content-preview-placeholder {
+            height: 60px;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-size: 12px;
+        }
 
         /* Color inputs */
         .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg); }
@@ -573,29 +1097,7 @@ $shadowOptions = [
     </style>
 
     <script>
-        // Sync color picker avec input text
-        document.querySelectorAll('.color-hex').forEach(input => {
-            const targetId = input.dataset.target;
-            const colorInput = document.getElementById(targetId);
-
-            // Sync hex -> color
-            input.addEventListener('input', () => {
-                let val = input.value.trim();
-                if (!val.startsWith('#')) val = '#' + val;
-                if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
-                    colorInput.value = val;
-                    updatePreview();
-                }
-            });
-
-            // Sync color -> hex
-            colorInput.addEventListener('input', () => {
-                input.value = colorInput.value.toUpperCase();
-                updatePreview();
-            });
-        });
-
-        // Upload image
+        // Upload image (Identity tab)
         let currentUploadTarget = null;
         let currentPreviewTarget = null;
         const uploader = document.getElementById('imageUploader');
@@ -636,7 +1138,28 @@ $shadowOptions = [
             uploader.value = '';
         });
 
-        // Live preview
+        // Colors tab: Sync color picker avec input text
+        document.querySelectorAll('.color-hex').forEach(input => {
+            const targetId = input.dataset.target;
+            const colorInput = document.getElementById(targetId);
+            if (!colorInput) return;
+
+            input.addEventListener('input', () => {
+                let val = input.value.trim();
+                if (!val.startsWith('#')) val = '#' + val;
+                if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                    colorInput.value = val;
+                    updateColorsPreview();
+                }
+            });
+
+            colorInput.addEventListener('input', () => {
+                input.value = colorInput.value.toUpperCase();
+                updateColorsPreview();
+            });
+        });
+
+        // Colors tab: Live preview
         const radiusMap = { none: '0', small: '4px', medium: '8px', large: '12px', full: '9999px' };
         const shadowMap = {
             none: 'none',
@@ -645,35 +1168,105 @@ $shadowOptions = [
             strong: '0 10px 25px rgba(0,0,0,0.15)'
         };
 
-        function updatePreview() {
+        function updateColorsPreview() {
             const preview = document.getElementById('brandingPreview');
+            if (!preview) return;
 
-            preview.style.setProperty('--preview-primary', document.getElementById('color_primary').value);
-            preview.style.setProperty('--preview-secondary', document.getElementById('color_secondary').value);
-            preview.style.setProperty('--preview-text', document.getElementById('color_text').value);
-            preview.style.setProperty('--preview-text-light', document.getElementById('color_text_light').value);
-            preview.style.setProperty('--preview-bg', document.getElementById('color_background').value);
-            preview.style.setProperty('--preview-surface', document.getElementById('color_surface').value);
-            preview.style.setProperty('--preview-button', document.getElementById('color_button').value);
-            preview.style.setProperty('--preview-button-text', document.getElementById('color_button_text').value);
+            preview.style.setProperty('--preview-primary', document.getElementById('color_primary')?.value || '#6366F1');
+            preview.style.setProperty('--preview-secondary', document.getElementById('color_secondary')?.value || '#8B5CF6');
+            preview.style.setProperty('--preview-text', document.getElementById('color_text')?.value || '#1F2937');
+            preview.style.setProperty('--preview-text-light', document.getElementById('color_text_light')?.value || '#6B7280');
+            preview.style.setProperty('--preview-bg', document.getElementById('color_background')?.value || '#FFFFFF');
+            preview.style.setProperty('--preview-surface', document.getElementById('color_surface')?.value || '#F9FAFB');
+            preview.style.setProperty('--preview-button', document.getElementById('color_button')?.value || '#6366F1');
+            preview.style.setProperty('--preview-button-text', document.getElementById('color_button_text')?.value || '#FFFFFF');
 
-            const radius = document.querySelector('[name="border_radius"]').value;
-            preview.style.setProperty('--preview-radius', radiusMap[radius] || '8px');
+            const radiusSelect = document.querySelector('[name="border_radius"]');
+            const shadowSelect = document.querySelector('[name="shadow_intensity"]');
+            if (radiusSelect) preview.style.setProperty('--preview-radius', radiusMap[radiusSelect.value] || '8px');
+            if (shadowSelect) preview.style.setProperty('--preview-shadow', shadowMap[shadowSelect.value] || shadowMap.subtle);
 
-            const shadow = document.querySelector('[name="shadow_intensity"]').value;
-            preview.style.setProperty('--preview-shadow', shadowMap[shadow] || shadowMap.subtle);
-
-            // Fonts
-            const fontPrimary = document.querySelector('[name="font_primary"]').value || 'Poppins';
-            const fontSecondary = document.querySelector('[name="font_secondary"]').value || 'Inter';
+            const fontPrimary = document.querySelector('[name="font_primary"]')?.value || 'Poppins';
+            const fontSecondary = document.querySelector('[name="font_secondary"]')?.value || 'Inter';
             preview.style.setProperty('--preview-font-primary', `'${fontPrimary}', sans-serif`);
             preview.style.setProperty('--preview-font-secondary', `'${fontSecondary}', sans-serif`);
         }
 
-        // Initial preview + listeners
-        updatePreview();
-        document.querySelectorAll('input[type="color"], select, input[name="font_primary"], input[name="font_secondary"]')
-            .forEach(el => el.addEventListener('change', updatePreview));
+        // Init colors preview if on colors tab
+        if (document.getElementById('brandingPreview')) {
+            updateColorsPreview();
+            document.querySelectorAll('input[type="color"], select, input[name="font_primary"], input[name="font_secondary"]')
+                .forEach(el => el.addEventListener('change', updateColorsPreview));
+        }
+
+        // TopBar tab: Live preview
+        function syncColorInput(colorId, textId) {
+            const color = document.getElementById(colorId);
+            const text = document.getElementById(textId);
+            if (!color || !text) return;
+
+            color.addEventListener('input', () => { text.value = color.value; updateTopbarPreview(); });
+            text.addEventListener('input', () => { if (/^#[0-9A-Fa-f]{6}$/.test(text.value)) { color.value = text.value; updateTopbarPreview(); } });
+        }
+
+        function updateTopbarPreview() {
+            const preview = document.getElementById('topbarPreview');
+            const text = document.getElementById('topbarPreviewText');
+            if (!preview || !text) return;
+
+            preview.style.background = document.getElementById('topbarBgColor')?.value || '#1a1a2e';
+            text.style.color = document.getElementById('topbarTextColor')?.value || '#ffffff';
+            text.style.fontFamily = document.getElementById('topbarFontFamily')?.value || 'inherit';
+            text.style.fontSize = (document.getElementById('topbarFontSize')?.value || '14') + 'px';
+            text.textContent = document.querySelector('input[name="topbar_text"]')?.value || '';
+        }
+
+        // Init TopBar preview
+        syncColorInput('topbarBgColor', 'topbarBgColorText');
+        syncColorInput('topbarTextColor', 'topbarTextColorText');
+        if (document.getElementById('topbarFontFamily')) {
+            document.getElementById('topbarFontFamily').addEventListener('change', updateTopbarPreview);
+        }
+        if (document.getElementById('topbarFontSize')) {
+            document.getElementById('topbarFontSize').addEventListener('input', updateTopbarPreview);
+        }
+        const topbarTextInput = document.querySelector('input[name="topbar_text"]');
+        if (topbarTextInput) topbarTextInput.addEventListener('input', updateTopbarPreview);
+
+        // Appearance tab: Live preview
+        function updateAppearancePreview() {
+            const headerPreview = document.getElementById('headerPreview');
+            const footerPreview = document.getElementById('footerPreview');
+            if (!headerPreview || !footerPreview) return;
+
+            const headerBg = document.getElementById('headerBgColor')?.value || '#1a1a2e';
+            const headerText = document.getElementById('headerTextColor')?.value || '#ffffff';
+            const footerBg = document.getElementById('footerBgColor')?.value || '#1a1a2e';
+            const footerText = document.getElementById('footerTextColor')?.value || '#ffffff';
+
+            headerPreview.style.background = headerBg;
+            document.getElementById('headerPreviewBrand').style.color = headerText;
+            document.getElementById('headerPreviewNav').style.color = headerText;
+
+            footerPreview.style.background = footerBg;
+            document.getElementById('footerPreviewBrand').style.color = footerText;
+            document.getElementById('footerPreviewCopy').style.color = footerText;
+        }
+
+        function syncAppearanceColor(colorId, textId) {
+            const color = document.getElementById(colorId);
+            const text = document.getElementById(textId);
+            if (!color || !text) return;
+
+            color.addEventListener('input', () => { text.value = color.value; updateAppearancePreview(); });
+            text.addEventListener('input', () => { if (/^#[0-9A-Fa-f]{6}$/.test(text.value)) { color.value = text.value; updateAppearancePreview(); } });
+        }
+
+        // Init Appearance preview
+        syncAppearanceColor('headerBgColor', 'headerBgColorText');
+        syncAppearanceColor('headerTextColor', 'headerTextColorText');
+        syncAppearanceColor('footerBgColor', 'footerBgColorText');
+        syncAppearanceColor('footerTextColor', 'footerTextColorText');
     </script>
 </body>
 </html>
