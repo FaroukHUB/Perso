@@ -1205,15 +1205,14 @@ function getSubtitleStyles(array $section): string {
 
             // ===== FEATURED CATEGORY =====
             case 'featured_category':
-                if (empty($section['category']) || empty($section['category_products'])) break;
-                $cat = $section['category'];
+                $cat = $section['category'] ?? null;
                 $sectionStyles = getSectionInlineStyles($section);
     ?>
-    <section class="category-section" id="categorie-<?= h($cat['slug']) ?>" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+    <section class="category-section products-section" id="categorie-<?= h($cat['slug'] ?? 'category') ?>" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
         <div class="container">
             <div class="section-header">
                 <?php $titleStyle = getTitleStyles($section); $subtitleStyle = getSubtitleStyles($section); ?>
-                <h2<?= $titleStyle ? ' style="' . $titleStyle . '"' : '' ?>><?= h($section['title'] ?: $cat['name']) ?></h2>
+                <h2<?= $titleStyle ? ' style="' . $titleStyle . '"' : '' ?>><?= h($section['title'] ?: ($cat['name'] ?? 'Catégorie')) ?></h2>
                 <?php if ($section['subtitle']): ?>
                     <p<?= $subtitleStyle ? ' style="' . $subtitleStyle . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                 <?php elseif (!empty($cat['description'])): ?>
@@ -1221,6 +1220,13 @@ function getSubtitleStyles(array $section): string {
                 <?php endif; ?>
             </div>
 
+            <?php if (empty($section['category']) || empty($section['category_products'])): ?>
+                <div class="empty-products">
+                    <div class="empty-products-icon">📁</div>
+                    <h3>Produits bientôt disponibles</h3>
+                    <p class="text-muted">Cette catégorie est en cours de préparation.</p>
+                </div>
+            <?php else: ?>
             <div class="products-grid">
                 <?php foreach ($section['category_products'] as $product): ?>
                     <div class="product-card">
@@ -1243,6 +1249,7 @@ function getSubtitleStyles(array $section): string {
                     </div>
                 <?php endforeach; ?>
             </div>
+            <?php endif; ?>
 
             <?php if (!empty($section['cta_text']) && !empty($section['cta_url'])): ?>
                 <div class="section-cta" style="text-align: center; margin-top: 30px;">
@@ -1258,7 +1265,6 @@ function getSubtitleStyles(array $section): string {
 
             // ===== FEATURED PACKS =====
             case 'featured_packs':
-                if (empty($section['packs'])) break;
                 $typeLabels = [
                     'technique' => 'Technique',
                     'contextuel' => 'Contextuel',
@@ -1277,6 +1283,13 @@ function getSubtitleStyles(array $section): string {
                 <?php endif; ?>
             </div>
 
+            <?php if (empty($section['packs'])): ?>
+                <div class="empty-products">
+                    <div class="empty-products-icon">✨</div>
+                    <h3>Idées bientôt disponibles</h3>
+                    <p class="text-muted">Nos inspirations sont en cours de préparation.</p>
+                </div>
+            <?php else: ?>
             <div class="inspirations-grid">
                 <?php foreach ($section['packs'] as $pack):
                     if (!$pack['first_product']) continue;
@@ -1305,6 +1318,7 @@ function getSubtitleStyles(array $section): string {
                     </div>
                 <?php endforeach; ?>
             </div>
+            <?php endif; ?>
         </div>
     </section>
     <?php
@@ -1380,7 +1394,6 @@ function getSubtitleStyles(array $section): string {
 
             // ===== BLOG SLIDER =====
             case 'blog_slider':
-                if (empty($section['posts'])) break;
                 $sectionStyles = getSectionInlineStyles($section);
     ?>
     <section class="blog-section" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
@@ -1393,6 +1406,13 @@ function getSubtitleStyles(array $section): string {
                 <?php endif; ?>
             </div>
 
+            <?php if (empty($section['posts'])): ?>
+                <div class="empty-products">
+                    <div class="empty-products-icon">📝</div>
+                    <h3>Articles bientôt disponibles</h3>
+                    <p class="text-muted">Notre blog est en cours de préparation.</p>
+                </div>
+            <?php else: ?>
             <div class="blog-slider">
                 <?php foreach ($section['posts'] as $post): ?>
                     <a href="/public/article.php?slug=<?= h($post['slug']) ?>" class="blog-card">
@@ -1413,6 +1433,7 @@ function getSubtitleStyles(array $section): string {
                     </a>
                 <?php endforeach; ?>
             </div>
+            <?php endif; ?>
         </div>
     </section>
     <?php

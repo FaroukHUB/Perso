@@ -261,7 +261,7 @@ $metaDescription = $page['meta_description'] ?: '';
                     </div>
                 </section>
 
-                <?php elseif ($section['type'] === 'featured_products' && !empty($section['products'])): ?>
+                <?php elseif ($section['type'] === 'featured_products'): ?>
                 <!-- Section Produits -->
                 <section class="section section-products" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
                     <div class="container">
@@ -271,11 +271,17 @@ $metaDescription = $page['meta_description'] ?: '';
                         <?php if (!empty($section['subtitle'])): ?>
                         <p class="section-subtitle"><?= h($section['subtitle']) ?></p>
                         <?php endif; ?>
+                        <?php if (empty($section['products'])): ?>
+                        <div class="empty-state" style="text-align: center; padding: 40px;">
+                            <p style="color: #888;">Produits bientôt disponibles</p>
+                        </div>
+                        <?php else: ?>
                         <div class="products-grid">
                             <?php foreach ($section['products'] as $product): ?>
                             <?php include __DIR__ . '/../app/templates/product-card.php'; ?>
                             <?php endforeach; ?>
                         </div>
+                        <?php endif; ?>
                         <?php if (!empty($section['cta_text'])): ?>
                         <div class="section-cta">
                             <a href="<?= h($section['cta_url'] ?: '/produits') ?>" class="btn btn-primary"><?= h($section['cta_text']) ?></a>
@@ -284,7 +290,7 @@ $metaDescription = $page['meta_description'] ?: '';
                     </div>
                 </section>
 
-                <?php elseif ($section['type'] === 'featured_packs' && !empty($section['packs'])): ?>
+                <?php elseif ($section['type'] === 'featured_packs'): ?>
                 <!-- Section Packs -->
                 <section class="section section-packs" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
                     <div class="container">
@@ -294,11 +300,17 @@ $metaDescription = $page['meta_description'] ?: '';
                         <?php if (!empty($section['subtitle'])): ?>
                         <p class="section-subtitle"><?= h($section['subtitle']) ?></p>
                         <?php endif; ?>
+                        <?php if (empty($section['packs'])): ?>
+                        <div class="empty-state" style="text-align: center; padding: 40px;">
+                            <p style="color: #888;">Packs bientôt disponibles</p>
+                        </div>
+                        <?php else: ?>
                         <div class="packs-grid">
                             <?php foreach ($section['packs'] as $pack): ?>
                             <?php include __DIR__ . '/../app/templates/pack-card.php'; ?>
                             <?php endforeach; ?>
                         </div>
+                        <?php endif; ?>
                         <?php if (!empty($section['cta_text'])): ?>
                         <div class="section-cta">
                             <a href="<?= h($section['cta_url'] ?: '/packs') ?>" class="btn btn-primary"><?= h($section['cta_text']) ?></a>
