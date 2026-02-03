@@ -1073,7 +1073,7 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                             <div class="form-group">
                                 <label class="form-switch">
                                     <input type="checkbox" name="topbar_enabled" value="1"
-                                           <?= $shopSettings->get('topbar_enabled', '1') === '1' ? 'checked' : '' ?>>
+                                           <?= $shopSettings->get('topbar_enabled', true) ? 'checked' : '' ?>>
                                     <span class="switch-slider"></span>
                                     <span class="switch-label">Activer la top bar</span>
                                 </label>
