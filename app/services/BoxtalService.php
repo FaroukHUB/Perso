@@ -1,14 +1,16 @@
 <?php
 /**
  * PERSONNALY - Service Boxtal
- * Calcul des frais de livraison via l'API Boxtal v3
+ * Calcul des frais de livraison via l'API Boxtal v1 (EnvoiMoinsCher)
  */
 
 require_once __DIR__ . '/../models/Settings.php';
+require_once __DIR__ . '/../models/ShopSettings.php';
 
 class BoxtalService
 {
     private $settings;
+    private $shopSettings;
     private $apiUrl;
     private $accessKey;
     private $secretKey;
@@ -21,6 +23,7 @@ class BoxtalService
     public function __construct()
     {
         $this->settings = new Settings();
+        $this->shopSettings = new ShopSettings();
         $this->isEnabled = $this->settings->isBoxtalEnabled();
 
         if ($this->isEnabled) {
@@ -37,6 +40,22 @@ class BoxtalService
     public function isEnabled(): bool
     {
         return $this->isEnabled;
+    }
+
+    /**
+     * Vérifie si la livraison gratuite s'applique
+     */
+    private function isFreeShipping(float $cartTotal): bool
+    {
+        // Vérifier si la livraison gratuite est activée
+        if (!$this->shopSettings->isFreeShippingEnabled()) {
+            return false;
+        }
+
+        // Récupérer le seuil depuis ShopSettings
+        $threshold = (float)$this->shopSettings->get('free_shipping_threshold', 50);
+
+        return $cartTotal >= $threshold;
     }
 
     /**
@@ -170,8 +189,8 @@ class BoxtalService
             // Prix TTC
             $price = (float)$offer->price['tax-inclusive'];
 
-            // Appliquer la livraison gratuite si au-dessus du seuil
-            if ($cartTotal >= $config['free_threshold']) {
+            // Appliquer la livraison gratuite si activée et au-dessus du seuil
+            if ($this->isFreeShipping($cartTotal)) {
                 $price = 0;
             }
 
@@ -323,11 +342,12 @@ class BoxtalService
     public function getManualRates(float $cartTotal): array
     {
         $config = $this->settings->getManualShippingRates();
+        $isFree = $this->isFreeShipping($cartTotal);
 
         $rates = [];
 
         // Livraison standard
-        $standardPrice = $cartTotal >= $config['free_threshold'] ? 0 : $config['standard_price'];
+        $standardPrice = $isFree ? 0 : $config['standard_price'];
         $rates[] = [
             'id' => 'standard',
             'operator' => 'MANUAL',
