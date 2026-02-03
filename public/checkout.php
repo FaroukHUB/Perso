@@ -1265,13 +1265,24 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                     return;
                 }
 
+                // Get carrier from currently selected shipping option (more reliable)
+                const selectedShipping = document.querySelector('input[name="shipping_method"]:checked');
+                const carrier = selectedShipping ? selectedShipping.value : currentCarrier;
+
+                console.log('Search relay: carrier=' + carrier + ', postcode=' + postcode);
+
+                if (!carrier) {
+                    alert('Veuillez sélectionner un mode de livraison');
+                    return;
+                }
+
                 relayLoading.style.display = 'flex';
                 relayPointsList.innerHTML = '';
 
                 fetch('/public/checkout.php', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: 'ajax_relay_points=1&carrier=' + encodeURIComponent(currentCarrier) + '&postcode=' + encodeURIComponent(postcode)
+                    body: 'ajax_relay_points=1&carrier=' + encodeURIComponent(carrier) + '&postcode=' + encodeURIComponent(postcode)
                 })
                 .then(r => r.json())
                 .then(data => {
@@ -1280,7 +1291,7 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                     if (data.success && data.points && data.points.length > 0) {
                         renderRelayPoints(data.points);
                     } else {
-                        relayPointsList.innerHTML = '<div class="relay-empty">Aucun point relais trouvé pour ce code postal. Essayez un autre code postal.<br><small style="color:#999;">Debug: carrier=' + currentCarrier + ', postcode=' + postcode + '</small></div>';
+                        relayPointsList.innerHTML = '<div class="relay-empty">Aucun point relais trouvé pour ce code postal. Essayez un autre code postal.<br><small style="color:#999;">Debug: carrier=' + carrier + ', postcode=' + postcode + '</small></div>';
                     }
                 })
                 .catch(err => {
