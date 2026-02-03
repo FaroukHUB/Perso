@@ -457,7 +457,7 @@ class BoxtalService
                     $xml = simplexml_load_string($response);
 
                     if ($xml !== false) {
-                        $points = $this->formatRelayPoints($xml);
+                        $points = $this->formatRelayPoints($xml, $operatorCode);
                         if (!empty($points)) {
                             return $points;
                         }
@@ -478,22 +478,52 @@ class BoxtalService
     /**
      * Formate les points relais depuis la réponse XML
      * L'API EnvoiMoinsCher utilise des noms de champs en français
+     * Structure: <carriers><carrier><operator>CODE</operator><points><point>...</point></points></carrier></carriers>
      */
-    private function formatRelayPoints(SimpleXMLElement $xml): array
+    private function formatRelayPoints(SimpleXMLElement $xml, string $operatorCode = ''): array
     {
         $points = [];
+        $pointsList = [];
 
-        // L'API peut retourner les points sous différentes structures
-        $pointsList = $xml->point ?? $xml->points->point ?? [];
+        // Structure API EnvoiMoinsCher: carriers > carrier > points > point
+        if (isset($xml->carrier)) {
+            foreach ($xml->carrier as $carrier) {
+                // Si un code opérateur est spécifié, filtrer
+                if (!empty($operatorCode)) {
+                    $carrierOpe = (string)($carrier->operator ?? '');
+                    if ($carrierOpe !== $operatorCode) {
+                        continue;
+                    }
+                }
+                // Récupérer les points de ce carrier
+                if (isset($carrier->points->point)) {
+                    foreach ($carrier->points->point as $point) {
+                        $pointsList[] = $point;
+                    }
+                }
+            }
+        }
+        // Fallback: structure directe points > point
+        elseif (isset($xml->points->point)) {
+            foreach ($xml->points->point as $point) {
+                $pointsList[] = $point;
+            }
+        }
+        // Fallback: structure directe point
+        elseif (isset($xml->point)) {
+            foreach ($xml->point as $point) {
+                $pointsList[] = $point;
+            }
+        }
 
         foreach ($pointsList as $point) {
             // Essayer les noms français puis anglais
             $code = (string)($point->code ?? $point->point_code ?? '');
-            $name = (string)($point->nom ?? $point->name ?? $point->raison_sociale ?? '');
-            $address = (string)($point->adresse ?? $point->address ?? '');
-            $city = (string)($point->ville ?? $point->city ?? '');
-            $postcode = (string)($point->code_postal ?? $point->cp ?? $point->zipcode ?? '');
-            $country = (string)($point->pays ?? $point->country ?? 'FR');
+            $name = (string)($point->name ?? $point->nom ?? $point->raison_sociale ?? '');
+            $address = (string)($point->address ?? $point->adresse ?? '');
+            $city = (string)($point->city ?? $point->ville ?? '');
+            $postcode = (string)($point->zipcode ?? $point->code_postal ?? $point->cp ?? '');
+            $country = (string)($point->country ?? $point->pays ?? 'FR');
 
             // Coordonnées GPS
             $lat = (float)($point->latitude ?? $point->lat ?? 0);
