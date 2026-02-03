@@ -104,10 +104,12 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'set_shipping') {
 
     if (isset($ajaxShippingOptions[$method])) {
         $_SESSION['shipping_method'] = $method;
+        $_SESSION['shipping_cost'] = $ajaxShippingOptions[$method]['price'];
         echo json_encode(['success' => true, 'price' => $ajaxShippingOptions[$method]['price']]);
     } else {
         // Accepter quand même si c'est une méthode standard/express de fallback
         $_SESSION['shipping_method'] = $method;
+        $_SESSION['shipping_cost'] = 0;
         echo json_encode(['success' => true, 'price' => 0]);
     }
     exit;
@@ -186,6 +188,9 @@ $shippingCost = $shippingOptions[$selectedShipping]['price'];
 if ($appliedPromo && !empty($appliedPromo['free_shipping'])) {
     $shippingCost = 0;
 }
+// Sauvegarder en session pour le checkout
+$_SESSION['shipping_cost'] = $shippingCost;
+$_SESSION['shipping_label'] = $shippingOptions[$selectedShipping]['label'] ?? 'Livraison';
 
 // Récupérer les suggestions de produits (upsells)
 $upsellSuggestions = [];

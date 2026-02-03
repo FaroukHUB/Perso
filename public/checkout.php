@@ -139,9 +139,58 @@ foreach ($upsells as $upsell) {
 $success = $paymentSuccess;
 $error = '';
 
-// Récupérer les frais de livraison depuis la session
-$shippingMethod = $_SESSION['shipping_method'] ?? 'standard';
+// Charger les options de livraison disponibles
+$defaultRecipient = ['postcode' => '75001', 'city' => 'Paris', 'country' => 'FR'];
+$cartWeight = $boxtalService->calculateCartWeight($cartItems);
+$shippingRates = $boxtalService->getShippingRates($defaultRecipient, $cartWeight, $cartTotal);
+
+// Organiser par type (domicile vs point relais)
+$homeDeliveryOptions = [];
+$relayOptions = [];
+foreach ($shippingRates as $rate) {
+    if ($rate['is_relay'] ?? false) {
+        $relayOptions[] = $rate;
+    } else {
+        $homeDeliveryOptions[] = $rate;
+    }
+}
+
+// Récupérer la sélection depuis la session
+$shippingMethod = $_SESSION['shipping_method'] ?? '';
 $shippingCost = $_SESSION['shipping_cost'] ?? 0;
+$shippingLabel = $_SESSION['shipping_label'] ?? 'Livraison';
+
+// Si pas de méthode sélectionnée, prendre la première option disponible
+if (empty($shippingMethod) && !empty($shippingRates)) {
+    $shippingMethod = $shippingRates[0]['id'];
+    $shippingCost = $shippingRates[0]['price'];
+    $shippingLabel = $shippingRates[0]['label'];
+    $_SESSION['shipping_method'] = $shippingMethod;
+    $_SESSION['shipping_cost'] = $shippingCost;
+    $_SESSION['shipping_label'] = $shippingLabel;
+}
+
+// Traitement AJAX de la sélection de livraison
+if (isset($_POST['ajax_shipping']) && isset($_POST['shipping_method'])) {
+    header('Content-Type: application/json');
+    $method = $_POST['shipping_method'];
+    foreach ($shippingRates as $rate) {
+        if ($rate['id'] === $method) {
+            $_SESSION['shipping_method'] = $method;
+            $_SESSION['shipping_cost'] = $rate['price'];
+            $_SESSION['shipping_label'] = $rate['label'];
+            echo json_encode([
+                'success' => true,
+                'price' => $rate['price'],
+                'label' => $rate['label'],
+                'total' => $cartTotal + $rate['price']
+            ]);
+            exit;
+        }
+    }
+    echo json_encode(['success' => false]);
+    exit;
+}
 
 // Traitement de la commande
 if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
@@ -572,6 +621,64 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
         }
         .back-link:hover { color: var(--pink-main); }
 
+        /* Shipping Options */
+        .shipping-options { display: flex; flex-direction: column; gap: 20px; }
+        .shipping-group-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .shipping-group-title svg { color: var(--pink-main); }
+        .shipping-option {
+            display: block;
+            cursor: pointer;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .shipping-option:hover { border-color: var(--pink-light); }
+        .shipping-option.selected {
+            border-color: var(--pink-main);
+            background: rgba(255, 105, 180, 0.05);
+        }
+        .shipping-option input { display: none; }
+        .shipping-option-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .shipping-logo {
+            width: 50px;
+            height: 30px;
+            object-fit: contain;
+        }
+        .shipping-info { flex: 1; }
+        .shipping-name {
+            display: block;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--black-soft);
+        }
+        .shipping-delay {
+            display: block;
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 2px;
+        }
+        .shipping-price {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--pink-dark);
+        }
+
         /* Success Page */
         .success-page {
             max-width: 600px;
@@ -699,10 +806,88 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                                 </div>
                             </div>
 
-                            <!-- Shipping -->
-                            <div class="checkout-form-section">
+                            <!-- Shipping Method Selection -->
+                            <div class="checkout-form-section" style="margin-bottom: 25px;">
                                 <h2 class="section-title">
                                     <span class="section-number">2</span>
+                                    Mode de livraison
+                                </h2>
+
+                                <div class="shipping-options">
+                                    <?php if (!empty($homeDeliveryOptions)): ?>
+                                        <div class="shipping-group">
+                                            <h4 class="shipping-group-title">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                                    <polyline points="9 22 9 12 15 12 15 22"/>
+                                                </svg>
+                                                Livraison à domicile
+                                            </h4>
+                                            <?php foreach ($homeDeliveryOptions as $option): ?>
+                                                <label class="shipping-option <?= $shippingMethod === $option['id'] ? 'selected' : '' ?>">
+                                                    <input type="radio" name="shipping_method" value="<?= h($option['id']) ?>"
+                                                           <?= $shippingMethod === $option['id'] ? 'checked' : '' ?>
+                                                           data-price="<?= $option['price'] ?>"
+                                                           data-label="<?= h($option['label']) ?>">
+                                                    <div class="shipping-option-content">
+                                                        <?php if (!empty($option['logo'])): ?>
+                                                            <img src="<?= h($option['logo']) ?>" alt="" class="shipping-logo">
+                                                        <?php endif; ?>
+                                                        <div class="shipping-info">
+                                                            <span class="shipping-name"><?= h($option['label']) ?></span>
+                                                            <?php if (!empty($option['delay'])): ?>
+                                                                <span class="shipping-delay"><?= h($option['delay']) ?></span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <span class="shipping-price">
+                                                            <?= $option['price'] == 0 ? 'Gratuit' : formatPrice($option['price']) ?>
+                                                        </span>
+                                                    </div>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($relayOptions)): ?>
+                                        <div class="shipping-group">
+                                            <h4 class="shipping-group-title">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                                    <circle cx="12" cy="10" r="3"/>
+                                                </svg>
+                                                Point relais
+                                            </h4>
+                                            <?php foreach ($relayOptions as $option): ?>
+                                                <label class="shipping-option <?= $shippingMethod === $option['id'] ? 'selected' : '' ?>">
+                                                    <input type="radio" name="shipping_method" value="<?= h($option['id']) ?>"
+                                                           <?= $shippingMethod === $option['id'] ? 'checked' : '' ?>
+                                                           data-price="<?= $option['price'] ?>"
+                                                           data-label="<?= h($option['label']) ?>">
+                                                    <div class="shipping-option-content">
+                                                        <?php if (!empty($option['logo'])): ?>
+                                                            <img src="<?= h($option['logo']) ?>" alt="" class="shipping-logo">
+                                                        <?php endif; ?>
+                                                        <div class="shipping-info">
+                                                            <span class="shipping-name"><?= h($option['label']) ?></span>
+                                                            <?php if (!empty($option['delay'])): ?>
+                                                                <span class="shipping-delay"><?= h($option['delay']) ?></span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <span class="shipping-price">
+                                                            <?= $option['price'] == 0 ? 'Gratuit' : formatPrice($option['price']) ?>
+                                                        </span>
+                                                    </div>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- Shipping Address -->
+                            <div class="checkout-form-section">
+                                <h2 class="section-title">
+                                    <span class="section-number">3</span>
                                     Adresse de livraison
                                 </h2>
 
@@ -760,13 +945,15 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
                                     <span>Sous-total</span>
                                     <span><?= formatPrice($cartTotal) ?></span>
                                 </div>
-                                <div class="summary-row">
-                                    <span>Livraison</span>
-                                    <span style="color: var(--mint-dark);">Gratuite</span>
+                                <div class="summary-row" id="shipping-row">
+                                    <span id="shipping-label"><?= h($shippingLabel) ?></span>
+                                    <span id="shipping-price" <?= $shippingCost == 0 ? 'style="color: var(--mint-dark);"' : '' ?>>
+                                        <?= $shippingCost == 0 ? 'Gratuite' : formatPrice($shippingCost) ?>
+                                    </span>
                                 </div>
                                 <div class="summary-row total">
                                     <span>Total</span>
-                                    <span><?= formatPrice($cartTotal) ?></span>
+                                    <span id="total-price"><?= formatPrice($cartTotal + $shippingCost) ?></span>
                                 </div>
                             </div>
 
@@ -823,5 +1010,44 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
     </section>
 
     <?php include __DIR__ . '/../app/templates/footer.php'; ?>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cartTotal = <?= $cartTotal ?>;
+        const shippingOptions = document.querySelectorAll('input[name="shipping_method"]');
+
+        shippingOptions.forEach(function(option) {
+            option.addEventListener('change', function() {
+                // Update selected state
+                document.querySelectorAll('.shipping-option').forEach(el => el.classList.remove('selected'));
+                this.closest('.shipping-option').classList.add('selected');
+
+                const price = parseFloat(this.dataset.price);
+                const label = this.dataset.label;
+
+                // Update summary
+                document.getElementById('shipping-label').textContent = label;
+                const priceEl = document.getElementById('shipping-price');
+                if (price === 0) {
+                    priceEl.textContent = 'Gratuite';
+                    priceEl.style.color = 'var(--mint-dark)';
+                } else {
+                    priceEl.textContent = price.toFixed(2).replace('.', ',') + ' €';
+                    priceEl.style.color = '';
+                }
+
+                const total = cartTotal + price;
+                document.getElementById('total-price').textContent = total.toFixed(2).replace('.', ',') + ' €';
+
+                // Save to session via AJAX
+                fetch('/public/checkout.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'ajax_shipping=1&shipping_method=' + encodeURIComponent(this.value)
+                });
+            });
+        });
+    });
+    </script>
 </body>
 </html>
