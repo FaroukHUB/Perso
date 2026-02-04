@@ -81,6 +81,15 @@ if (isPost() && !empty($_POST['ajax_action'])) {
             }
             break;
 
+        case 'toggle_page_status':
+            $newStatus = $page['status'] === 'published' ? 'draft' : 'published';
+            if ($pageModel->update($pageId, ['status' => $newStatus])) {
+                echo json_encode(['success' => true, 'status' => $newStatus]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Erreur lors du changement de statut']);
+            }
+            break;
+
         case 'save':
             $sectionId = (int) ($_POST['section_id'] ?? 0);
             $isEdit = $sectionId > 0;
@@ -331,13 +340,28 @@ $typeIcons = [
             </button>
 
             <div class="sidebar-footer">
+                <button type="button" id="togglePageStatusBtn" class="toggle-status-btn <?= $page['status'] ?>">
+                    <?php if ($page['status'] === 'published'): ?>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                    <span>Dépublier</span>
+                    <?php else: ?>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <span>Publier</span>
+                    <?php endif; ?>
+                </button>
                 <a href="/<?= h($page['slug']) ?>" target="_blank" class="preview-site-btn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                         <polyline points="15 3 21 3 21 9"/>
                         <line x1="10" y1="14" x2="21" y2="3"/>
                     </svg>
-                    Voir la page
+                    <span>Voir la page</span>
                 </a>
             </div>
         </aside>
@@ -1145,6 +1169,47 @@ $typeIcons = [
     .sidebar-footer {
         padding: 12px;
         border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .toggle-status-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        width: 100%;
+    }
+
+    .toggle-status-btn.draft {
+        background: var(--gradient-mint, linear-gradient(135deg, #3dffc0, #00d9a0));
+        color: #1a1a2e;
+    }
+
+    .toggle-status-btn.published {
+        background: rgba(255, 152, 0, 0.2);
+        color: #ff9800;
+        border: 1px solid rgba(255, 152, 0, 0.3);
+    }
+
+    .toggle-status-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .toggle-status-btn.draft:hover {
+        box-shadow: 0 4px 15px rgba(61, 255, 192, 0.4);
+    }
+
+    .toggle-status-btn.published:hover {
+        background: rgba(255, 152, 0, 0.3);
     }
 
     .preview-site-btn {
@@ -2085,7 +2150,54 @@ $typeIcons = [
         initAutoSave();
         initGradientPickers();
         initGradientPresets();
+        initPageStatusToggle();
     });
+
+    // Toggle statut de la page (Publier/Dépublier)
+    function initPageStatusToggle() {
+        const btn = document.getElementById('togglePageStatusBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function() {
+            if (btn.disabled) return;
+            btn.disabled = true;
+
+            fetch('/admin/page-editor.php?id=' + pageId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `ajax_action=toggle_page_status&csrf_token=${csrf}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Mettre à jour le bouton
+                    btn.className = 'toggle-status-btn ' + data.status;
+                    if (data.status === 'published') {
+                        btn.innerHTML = `
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                            <span>Dépublier</span>`;
+                    } else {
+                        btn.innerHTML = `
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <span>Publier</span>`;
+                    }
+                    // Rafraîchir l'aperçu
+                    refreshPreview();
+                } else {
+                    alert(data.error || 'Erreur');
+                }
+            })
+            .finally(() => {
+                btn.disabled = false;
+            });
+        });
+    }
 
     // Liste des sections
     function initSectionsList() {
