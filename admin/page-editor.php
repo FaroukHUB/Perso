@@ -343,6 +343,57 @@ if (isPost() && !empty($_POST['ajax_action'])) {
             }
             break;
 
+        case 'upload_gallery_image':
+        case 'upload_logo_image':
+            $uploadDir = __DIR__ . '/../public/uploads/pages/';
+            if (!is_dir($uploadDir)) {
+                @mkdir($uploadDir, 0755, true);
+            }
+
+            $fileKey = $action === 'upload_gallery_image' ? 'gallery_image' : 'logo_image';
+
+            if (empty($_FILES[$fileKey]['tmp_name']) || $_FILES[$fileKey]['error'] !== UPLOAD_ERR_OK) {
+                $errorMessages = [
+                    UPLOAD_ERR_INI_SIZE => 'Le fichier dépasse la limite upload_max_filesize',
+                    UPLOAD_ERR_FORM_SIZE => 'Le fichier dépasse la limite MAX_FILE_SIZE',
+                    UPLOAD_ERR_PARTIAL => 'Le fichier n\'a été que partiellement uploadé',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Dossier temporaire manquant',
+                    UPLOAD_ERR_CANT_WRITE => 'Échec d\'écriture sur le disque',
+                    UPLOAD_ERR_NO_FILE => 'Aucun fichier envoyé',
+                ];
+                $errorCode = $_FILES[$fileKey]['error'] ?? UPLOAD_ERR_NO_FILE;
+                echo json_encode(['success' => false, 'error' => $errorMessages[$errorCode] ?? 'Erreur upload: ' . $errorCode]);
+                break;
+            }
+
+            $ext = strtolower(pathinfo($_FILES[$fileKey]['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+
+            if (!in_array($ext, $allowed)) {
+                echo json_encode(['success' => false, 'error' => 'Extension non autorisée: ' . $ext]);
+                break;
+            }
+
+            $prefix = $action === 'upload_gallery_image' ? 'gallery_' : 'logo_';
+            $filename = $prefix . time() . '_' . uniqid() . '.' . $ext;
+            $fullPath = $uploadDir . $filename;
+
+            if (!is_writable($uploadDir)) {
+                echo json_encode(['success' => false, 'error' => 'Le dossier uploads/pages/ n\'est pas accessible en écriture']);
+                break;
+            }
+
+            if (move_uploaded_file($_FILES[$fileKey]['tmp_name'], $fullPath)) {
+                // Convert to WebP if it's an image (not SVG)
+                if ($ext !== 'svg') {
+                    ImageHelper::convertToWebP($fullPath);
+                }
+                echo json_encode(['success' => true, 'url' => '/uploads/pages/' . $filename]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Échec du déplacement du fichier']);
+            }
+            break;
+
         default:
             echo json_encode(['success' => false, 'error' => 'Action inconnue']);
     }
@@ -4205,6 +4256,462 @@ $typeIcons = [
         document.getElementById('offsetYValue').textContent = offsetY + 'px';
         document.getElementById('offsetXValue').textContent = offsetX + 'px';
     };
+
+    // ========================================
+    // FONCTIONS POUR AJOUTER DES ITEMS DYNAMIQUES
+    // ========================================
+
+    // Variable pour suivre les items ajoutés
+    let faqItemIndex = 0;
+    let testimonialItemIndex = 0;
+    let galleryItemIndex = 0;
+    let counterItemIndex = 0;
+    let timelineItemIndex = 0;
+    let logoItemIndex = 0;
+
+    // ===== FAQ ITEMS =====
+    function addFaqItem(question = '', answer = '') {
+        const list = document.getElementById('faqItemsList');
+        const index = faqItemIndex++;
+
+        const item = document.createElement('div');
+        item.className = 'item-card';
+        item.dataset.index = index;
+        item.innerHTML = `
+            <div class="item-card-header">
+                <span class="item-card-title">Question ${list.children.length + 1}</span>
+                <div class="item-card-actions">
+                    <button type="button" class="item-card-btn danger" onclick="removeFaqItem(${index})" title="Supprimer">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <input type="text" name="faq_items[${index}][question]" placeholder="Question..." value="${escapeHtml(question)}">
+            <textarea name="faq_items[${index}][answer]" placeholder="Réponse...">${escapeHtml(answer)}</textarea>
+        `;
+        list.appendChild(item);
+        updateFaqCount();
+    }
+
+    function removeFaqItem(index) {
+        const item = document.querySelector(`#faqItemsList .item-card[data-index="${index}"]`);
+        if (item) {
+            item.remove();
+            updateFaqCount();
+            renumberItems('faqItemsList', 'Question');
+        }
+    }
+
+    function updateFaqCount() {
+        const count = document.getElementById('faqItemsList').children.length;
+        document.getElementById('faqCount').textContent = count;
+    }
+
+    // ===== TESTIMONIAL ITEMS =====
+    function addTestimonialItem(data = {}) {
+        const list = document.getElementById('testimonialsItemsList');
+        const index = testimonialItemIndex++;
+
+        const item = document.createElement('div');
+        item.className = 'item-card';
+        item.dataset.index = index;
+        item.innerHTML = `
+            <div class="item-card-header">
+                <span class="item-card-title">Témoignage ${list.children.length + 1}</span>
+                <div class="item-card-actions">
+                    <button type="button" class="item-card-btn danger" onclick="removeTestimonialItem(${index})" title="Supprimer">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <input type="text" name="testimonial_items[${index}][author]" placeholder="Nom de l'auteur..." value="${escapeHtml(data.author || '')}">
+            <input type="text" name="testimonial_items[${index}][role]" placeholder="Fonction / Entreprise..." value="${escapeHtml(data.role || '')}">
+            <textarea name="testimonial_items[${index}][content]" placeholder="Contenu du témoignage...">${escapeHtml(data.content || '')}</textarea>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                <label style="font-size: 12px; color: #666;">Note:</label>
+                <select name="testimonial_items[${index}][rating]" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd;">
+                    <option value="5" ${(data.rating || 5) == 5 ? 'selected' : ''}>★★★★★ (5)</option>
+                    <option value="4" ${data.rating == 4 ? 'selected' : ''}>★★★★☆ (4)</option>
+                    <option value="3" ${data.rating == 3 ? 'selected' : ''}>★★★☆☆ (3)</option>
+                    <option value="2" ${data.rating == 2 ? 'selected' : ''}>★★☆☆☆ (2)</option>
+                    <option value="1" ${data.rating == 1 ? 'selected' : ''}>★☆☆☆☆ (1)</option>
+                </select>
+            </div>
+        `;
+        list.appendChild(item);
+        updateTestimonialsCount();
+    }
+
+    function removeTestimonialItem(index) {
+        const item = document.querySelector(`#testimonialsItemsList .item-card[data-index="${index}"]`);
+        if (item) {
+            item.remove();
+            updateTestimonialsCount();
+            renumberItems('testimonialsItemsList', 'Témoignage');
+        }
+    }
+
+    function updateTestimonialsCount() {
+        const count = document.getElementById('testimonialsItemsList').children.length;
+        document.getElementById('testimonialsCount').textContent = count;
+    }
+
+    // ===== GALLERY ITEMS =====
+    function addGalleryItem(imageUrl = '', caption = '') {
+        const list = document.getElementById('galleryItemsList');
+        const index = galleryItemIndex++;
+
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.dataset.index = index;
+
+        if (imageUrl) {
+            item.innerHTML = `
+                <img src="${escapeHtml(imageUrl)}" alt="Gallery image">
+                <input type="hidden" name="gallery_items[${index}][url]" value="${escapeHtml(imageUrl)}">
+                <input type="hidden" name="gallery_items[${index}][caption]" value="${escapeHtml(caption)}">
+                <button type="button" class="gallery-item-remove" onclick="removeGalleryItem(${index})">×</button>
+            `;
+        } else {
+            item.innerHTML = `
+                <div class="gallery-item-add" onclick="triggerGalleryUpload(${index})">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    <span>Ajouter</span>
+                </div>
+                <input type="file" class="gallery-upload-input" data-index="${index}" accept="image/*" style="display: none;" onchange="handleGalleryUpload(this, ${index})">
+            `;
+        }
+        list.appendChild(item);
+        updateGalleryCount();
+    }
+
+    function triggerGalleryUpload(index) {
+        const input = document.querySelector(`.gallery-upload-input[data-index="${index}"]`);
+        if (input) input.click();
+    }
+
+    function handleGalleryUpload(input, index) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append('ajax_action', 'upload_gallery_image');
+            formData.append('csrf_token', csrf);
+            formData.append('gallery_image', file);
+
+            fetch('/admin/page-editor.php?id=' + pageId, {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.url) {
+                    const item = document.querySelector(`#galleryItemsList .gallery-item[data-index="${index}"]`);
+                    if (item) {
+                        item.innerHTML = `
+                            <img src="${data.url}" alt="Gallery image">
+                            <input type="hidden" name="gallery_items[${index}][url]" value="${data.url}">
+                            <input type="hidden" name="gallery_items[${index}][caption]" value="">
+                            <button type="button" class="gallery-item-remove" onclick="removeGalleryItem(${index})">×</button>
+                        `;
+                    }
+                } else {
+                    alert(data.error || 'Erreur lors de l\'upload');
+                }
+            })
+            .catch(err => {
+                alert('Erreur lors de l\'upload: ' + err.message);
+            });
+        }
+    }
+
+    function removeGalleryItem(index) {
+        const item = document.querySelector(`#galleryItemsList .gallery-item[data-index="${index}"]`);
+        if (item) {
+            item.remove();
+            updateGalleryCount();
+        }
+    }
+
+    function updateGalleryCount() {
+        const items = document.querySelectorAll('#galleryItemsList .gallery-item');
+        // Count only items with images (not empty upload slots)
+        let count = 0;
+        items.forEach(item => {
+            if (item.querySelector('img')) count++;
+        });
+        document.getElementById('galleryCount').textContent = count;
+    }
+
+    // ===== COUNTER ITEMS =====
+    function addCounterItem(data = {}) {
+        const list = document.getElementById('counterItemsList');
+        const index = counterItemIndex++;
+
+        const item = document.createElement('div');
+        item.className = 'item-card';
+        item.dataset.index = index;
+        item.innerHTML = `
+            <div class="item-card-header">
+                <span class="item-card-title">Compteur ${list.children.length + 1}</span>
+                <div class="item-card-actions">
+                    <button type="button" class="item-card-btn danger" onclick="removeCounterItem(${index})" title="Supprimer">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <input type="number" name="counter_items[${index}][value]" placeholder="Valeur (ex: 500)" value="${data.value || ''}">
+                <input type="text" name="counter_items[${index}][suffix]" placeholder="Suffixe (+, %, k)" value="${escapeHtml(data.suffix || '')}">
+            </div>
+            <input type="text" name="counter_items[${index}][label]" placeholder="Label (ex: Clients satisfaits)" value="${escapeHtml(data.label || '')}">
+            <input type="text" name="counter_items[${index}][icon]" placeholder="Icône (emoji ou nom)" value="${escapeHtml(data.icon || '')}">
+        `;
+        list.appendChild(item);
+        updateCounterCount();
+    }
+
+    function removeCounterItem(index) {
+        const item = document.querySelector(`#counterItemsList .item-card[data-index="${index}"]`);
+        if (item) {
+            item.remove();
+            updateCounterCount();
+            renumberItems('counterItemsList', 'Compteur');
+        }
+    }
+
+    function updateCounterCount() {
+        const count = document.getElementById('counterItemsList').children.length;
+        document.getElementById('counterCount').textContent = count;
+    }
+
+    // ===== TIMELINE ITEMS =====
+    function addTimelineItem(data = {}) {
+        const list = document.getElementById('timelineItemsList');
+        const index = timelineItemIndex++;
+
+        const item = document.createElement('div');
+        item.className = 'item-card';
+        item.dataset.index = index;
+        item.innerHTML = `
+            <div class="item-card-header">
+                <span class="item-card-title">Étape ${list.children.length + 1}</span>
+                <div class="item-card-actions">
+                    <button type="button" class="item-card-btn danger" onclick="removeTimelineItem(${index})" title="Supprimer">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <input type="text" name="timeline_items[${index}][title]" placeholder="Titre de l'étape..." value="${escapeHtml(data.title || '')}">
+            <textarea name="timeline_items[${index}][description]" placeholder="Description...">${escapeHtml(data.description || '')}</textarea>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <input type="text" name="timeline_items[${index}][date]" placeholder="Date (optionnel)" value="${escapeHtml(data.date || '')}">
+                <input type="text" name="timeline_items[${index}][icon]" placeholder="Icône (emoji)" value="${escapeHtml(data.icon || '')}">
+            </div>
+        `;
+        list.appendChild(item);
+        updateTimelineCount();
+    }
+
+    function removeTimelineItem(index) {
+        const item = document.querySelector(`#timelineItemsList .item-card[data-index="${index}"]`);
+        if (item) {
+            item.remove();
+            updateTimelineCount();
+            renumberItems('timelineItemsList', 'Étape');
+        }
+    }
+
+    function updateTimelineCount() {
+        const count = document.getElementById('timelineItemsList').children.length;
+        document.getElementById('timelineCount').textContent = count;
+    }
+
+    // ===== LOGO ITEMS =====
+    function addLogoItem(imageUrl = '', name = '', link = '') {
+        const list = document.getElementById('logosItemsList');
+        const index = logoItemIndex++;
+
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.dataset.index = index;
+
+        if (imageUrl) {
+            item.innerHTML = `
+                <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}">
+                <input type="hidden" name="logo_items[${index}][url]" value="${escapeHtml(imageUrl)}">
+                <input type="hidden" name="logo_items[${index}][name]" value="${escapeHtml(name)}">
+                <input type="hidden" name="logo_items[${index}][link]" value="${escapeHtml(link)}">
+                <button type="button" class="gallery-item-remove" onclick="removeLogoItem(${index})">×</button>
+            `;
+        } else {
+            item.innerHTML = `
+                <div class="gallery-item-add" onclick="triggerLogoUpload(${index})">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    <span>Logo</span>
+                </div>
+                <input type="file" class="logo-upload-input" data-index="${index}" accept="image/*" style="display: none;" onchange="handleLogoUpload(this, ${index})">
+            `;
+        }
+        list.appendChild(item);
+        updateLogosCount();
+    }
+
+    function triggerLogoUpload(index) {
+        const input = document.querySelector(`.logo-upload-input[data-index="${index}"]`);
+        if (input) input.click();
+    }
+
+    function handleLogoUpload(input, index) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append('ajax_action', 'upload_logo_image');
+            formData.append('csrf_token', csrf);
+            formData.append('logo_image', file);
+
+            fetch('/admin/page-editor.php?id=' + pageId, {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.url) {
+                    const item = document.querySelector(`#logosItemsList .gallery-item[data-index="${index}"]`);
+                    if (item) {
+                        item.innerHTML = `
+                            <img src="${data.url}" alt="Logo">
+                            <input type="hidden" name="logo_items[${index}][url]" value="${data.url}">
+                            <input type="hidden" name="logo_items[${index}][name]" value="">
+                            <input type="hidden" name="logo_items[${index}][link]" value="">
+                            <button type="button" class="gallery-item-remove" onclick="removeLogoItem(${index})">×</button>
+                        `;
+                    }
+                } else {
+                    alert(data.error || 'Erreur lors de l\'upload');
+                }
+            })
+            .catch(err => {
+                alert('Erreur lors de l\'upload: ' + err.message);
+            });
+        }
+    }
+
+    function removeLogoItem(index) {
+        const item = document.querySelector(`#logosItemsList .gallery-item[data-index="${index}"]`);
+        if (item) {
+            item.remove();
+            updateLogosCount();
+        }
+    }
+
+    function updateLogosCount() {
+        const items = document.querySelectorAll('#logosItemsList .gallery-item');
+        let count = 0;
+        items.forEach(item => {
+            if (item.querySelector('img')) count++;
+        });
+        document.getElementById('logosCount').textContent = count;
+    }
+
+    // ===== HELPERS =====
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function renumberItems(listId, prefix) {
+        const list = document.getElementById(listId);
+        const items = list.querySelectorAll('.item-card');
+        items.forEach((item, i) => {
+            const title = item.querySelector('.item-card-title');
+            if (title) title.textContent = prefix + ' ' + (i + 1);
+        });
+    }
+
+    // ===== CHARGER LES ITEMS EXISTANTS =====
+    function loadFaqItems(items) {
+        const list = document.getElementById('faqItemsList');
+        list.innerHTML = '';
+        faqItemIndex = 0;
+        if (items && Array.isArray(items)) {
+            items.forEach(item => {
+                addFaqItem(item.question || '', item.answer || '');
+            });
+        }
+    }
+
+    function loadTestimonialItems(items) {
+        const list = document.getElementById('testimonialsItemsList');
+        list.innerHTML = '';
+        testimonialItemIndex = 0;
+        if (items && Array.isArray(items)) {
+            items.forEach(item => {
+                addTestimonialItem(item);
+            });
+        }
+    }
+
+    function loadGalleryItems(items) {
+        const list = document.getElementById('galleryItemsList');
+        list.innerHTML = '';
+        galleryItemIndex = 0;
+        if (items && Array.isArray(items)) {
+            items.forEach(item => {
+                addGalleryItem(item.url || item.image_url || '', item.caption || '');
+            });
+        }
+        // Add empty slot for adding new images
+        addGalleryItem();
+    }
+
+    function loadCounterItems(items) {
+        const list = document.getElementById('counterItemsList');
+        list.innerHTML = '';
+        counterItemIndex = 0;
+        if (items && Array.isArray(items)) {
+            items.forEach(item => {
+                addCounterItem(item);
+            });
+        }
+    }
+
+    function loadTimelineItems(items) {
+        const list = document.getElementById('timelineItemsList');
+        list.innerHTML = '';
+        timelineItemIndex = 0;
+        if (items && Array.isArray(items)) {
+            items.forEach(item => {
+                addTimelineItem(item);
+            });
+        }
+    }
+
+    function loadLogoItems(items) {
+        const list = document.getElementById('logosItemsList');
+        list.innerHTML = '';
+        logoItemIndex = 0;
+        if (items && Array.isArray(items)) {
+            items.forEach(item => {
+                addLogoItem(item.url || item.image_url || '', item.name || '', item.link || '');
+            });
+        }
+        // Add empty slot for adding new logos
+        addLogoItem();
+    }
     </script>
 </body>
 </html>
