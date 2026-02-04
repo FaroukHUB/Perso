@@ -209,12 +209,40 @@ if (isPost() && !empty($_POST['ajax_action'])) {
             if ($data['type'] === 'faq') {
                 $data['config']['faq_style'] = $_POST['faq_style'] ?? 'accordion';
                 $data['config']['allow_multiple'] = isset($_POST['faq_allow_multiple']) ? true : false;
+                // Save FAQ items
+                $faqItems = [];
+                if (!empty($_POST['faq_items']) && is_array($_POST['faq_items'])) {
+                    foreach ($_POST['faq_items'] as $item) {
+                        if (!empty($item['question']) || !empty($item['answer'])) {
+                            $faqItems[] = [
+                                'question' => trim($item['question'] ?? ''),
+                                'answer' => trim($item['answer'] ?? '')
+                            ];
+                        }
+                    }
+                }
+                $data['config']['faq_items'] = $faqItems;
             }
 
             // Config Testimonials
             if ($data['type'] === 'testimonials') {
                 $data['config']['testimonials_style'] = $_POST['testimonials_style'] ?? 'carousel';
                 $data['config']['show_rating'] = isset($_POST['testimonials_show_rating']) ? true : false;
+                // Save testimonial items
+                $testimonialItems = [];
+                if (!empty($_POST['testimonial_items']) && is_array($_POST['testimonial_items'])) {
+                    foreach ($_POST['testimonial_items'] as $item) {
+                        if (!empty($item['author']) || !empty($item['content'])) {
+                            $testimonialItems[] = [
+                                'author' => trim($item['author'] ?? ''),
+                                'role' => trim($item['role'] ?? ''),
+                                'content' => trim($item['content'] ?? ''),
+                                'rating' => (int) ($item['rating'] ?? 5)
+                            ];
+                        }
+                    }
+                }
+                $data['config']['testimonial_items'] = $testimonialItems;
             }
 
             // Config Gallery
@@ -222,18 +250,61 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 $data['config']['gallery_style'] = $_POST['gallery_style'] ?? 'grid';
                 $data['config']['columns'] = (int) ($_POST['gallery_columns'] ?? 3);
                 $data['config']['lightbox'] = isset($_POST['gallery_lightbox']) ? true : false;
+                // Save gallery items
+                $galleryItems = [];
+                if (!empty($_POST['gallery_items']) && is_array($_POST['gallery_items'])) {
+                    foreach ($_POST['gallery_items'] as $item) {
+                        if (!empty($item['url'])) {
+                            $galleryItems[] = [
+                                'url' => $item['url'],
+                                'caption' => trim($item['caption'] ?? '')
+                            ];
+                        }
+                    }
+                }
+                $data['config']['gallery_items'] = $galleryItems;
             }
 
             // Config Counter
             if ($data['type'] === 'counter') {
                 $data['config']['counter_style'] = $_POST['counter_style'] ?? 'cards';
                 $data['config']['duration'] = (int) ($_POST['counter_duration'] ?? 2000);
+                // Save counter items
+                $counterItems = [];
+                if (!empty($_POST['counter_items']) && is_array($_POST['counter_items'])) {
+                    foreach ($_POST['counter_items'] as $item) {
+                        if (!empty($item['value']) || !empty($item['label'])) {
+                            $counterItems[] = [
+                                'value' => (int) ($item['value'] ?? 0),
+                                'suffix' => trim($item['suffix'] ?? ''),
+                                'label' => trim($item['label'] ?? ''),
+                                'icon' => trim($item['icon'] ?? '')
+                            ];
+                        }
+                    }
+                }
+                $data['config']['counter_items'] = $counterItems;
             }
 
             // Config Timeline
             if ($data['type'] === 'timeline') {
                 $data['config']['orientation'] = $_POST['timeline_orientation'] ?? 'vertical';
                 $data['config']['timeline_style'] = $_POST['timeline_style'] ?? 'default';
+                // Save timeline items
+                $timelineItems = [];
+                if (!empty($_POST['timeline_items']) && is_array($_POST['timeline_items'])) {
+                    foreach ($_POST['timeline_items'] as $item) {
+                        if (!empty($item['title']) || !empty($item['description'])) {
+                            $timelineItems[] = [
+                                'title' => trim($item['title'] ?? ''),
+                                'description' => trim($item['description'] ?? ''),
+                                'date' => trim($item['date'] ?? ''),
+                                'icon' => trim($item['icon'] ?? '')
+                            ];
+                        }
+                    }
+                }
+                $data['config']['timeline_items'] = $timelineItems;
             }
 
             // Config Logos
@@ -241,6 +312,20 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 $data['config']['logos_style'] = $_POST['logos_style'] ?? 'grid';
                 $data['config']['logos_size'] = $_POST['logos_size'] ?? 'medium';
                 $data['config']['grayscale'] = isset($_POST['logos_grayscale']) ? true : false;
+                // Save logo items
+                $logoItems = [];
+                if (!empty($_POST['logo_items']) && is_array($_POST['logo_items'])) {
+                    foreach ($_POST['logo_items'] as $item) {
+                        if (!empty($item['url'])) {
+                            $logoItems[] = [
+                                'url' => $item['url'],
+                                'name' => trim($item['name'] ?? ''),
+                                'link' => trim($item['link'] ?? '')
+                            ];
+                        }
+                    }
+                }
+                $data['config']['logo_items'] = $logoItems;
             }
 
             // Config Google Map
