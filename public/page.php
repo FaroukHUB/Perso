@@ -26,7 +26,22 @@ $slug = strtolower(trim($_GET['slug'] ?? ''));
 
 // DEBUG: afficher le slug reçu (à supprimer après)
 if (isset($_GET['debug'])) {
-    echo '<pre>DEBUG page.php: slug="' . htmlspecialchars($slug) . '", GET=' . print_r($_GET, true) . '</pre>';
+    $pageModel = new Page();
+    $page = $pageModel->findBySlug($slug);
+    $sectionModel = new PageSection();
+    $sections = $page ? $sectionModel->findByPage($page['id'], false) : [];
+
+    echo '<pre>DEBUG page.php:';
+    echo "\nslug reçu: \"$slug\"";
+    echo "\npage trouvée: " . ($page ? "OUI (id={$page['id']}, title={$page['title']})" : "NON");
+    echo "\nnombre de sections: " . count($sections);
+    if ($sections) {
+        foreach ($sections as $s) {
+            echo "\n  - Section #{$s['id']}: type={$s['type']}, status={$s['status']}, page_id={$s['page_id']}";
+        }
+    }
+    echo "\n\nGET: " . print_r($_GET, true);
+    echo '</pre>';
     exit;
 }
 
