@@ -21,8 +21,14 @@ $cartCount = Cart::count();
 // Branding dynamique
 $brandingService = new BrandingService();
 
-// Récupérer le slug de la page
-$slug = $_GET['slug'] ?? '';
+// Récupérer le slug de la page (normaliser en minuscules)
+$slug = strtolower(trim($_GET['slug'] ?? ''));
+
+// DEBUG: afficher le slug reçu (à supprimer après)
+if (isset($_GET['debug'])) {
+    echo '<pre>DEBUG page.php: slug="' . htmlspecialchars($slug) . '", GET=' . print_r($_GET, true) . '</pre>';
+    exit;
+}
 
 if (empty($slug)) {
     header('HTTP/1.0 404 Not Found');

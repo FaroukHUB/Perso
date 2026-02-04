@@ -22,7 +22,7 @@ RewriteRule ^politique-confidentialite$ /public/politique-confidentialite.php [L
 RewriteCond %{REQUEST_URI} !^/public/
 RewriteRule ^politique-retour$ /public/politique-retour.php [L]
 
-# Pages personnalisées (slug dynamique)
+# Pages personnalisées (slug dynamique) - insensible à la casse
 RewriteCond %{REQUEST_URI} !^/public/
 RewriteCond %{REQUEST_URI} !^/admin/
 RewriteCond %{REQUEST_URI} !^/produits
@@ -34,7 +34,7 @@ RewriteCond %{REQUEST_URI} !^/panier
 RewriteCond %{REQUEST_URI} !^/checkout
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^([a-z0-9-]+)$ /public/page.php?slug=$1 [L,QSA]
+RewriteRule ^([a-zA-Z0-9-]+)/?$ /public/page.php?slug=$1 [L,QSA,NC]
 
 # Sinon, tout envoyer vers public/index.php (accueil)
 RewriteCond %{REQUEST_URI} !^/public/
