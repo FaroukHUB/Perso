@@ -116,11 +116,16 @@ if (isPost() && !empty($_POST['ajax_action'])) {
             // Upload image si fournie
             $uploadDir = __DIR__ . '/../public/uploads/pages/';
             if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
+                if (!@mkdir($uploadDir, 0755, true)) {
+                    $uploadError = 'Impossible de créer le dossier uploads/pages/';
+                }
             }
 
-            // Debug: log des infos d'upload
+            // Vérifier si le dossier est accessible en écriture
             $uploadError = null;
+            if (is_dir($uploadDir) && !is_writable($uploadDir)) {
+                $uploadError = 'Le dossier uploads/pages/ n\'est pas accessible en écriture. Vérifiez les permissions (chmod 755 ou 777).';
+            }
 
             if (!empty($_FILES['media_file']['tmp_name']) && $_FILES['media_file']['error'] === UPLOAD_ERR_OK) {
                 $ext = strtolower(pathinfo($_FILES['media_file']['name'], PATHINFO_EXTENSION));
@@ -2872,15 +2877,25 @@ $typeIcons = [
                 typeSelect.addEventListener('change', () => updateGradientValue(picker));
             }
 
-            // Initial preview
-            updateGradientValue(picker);
+            // Initial preview - use hidden input value if available
+            const initialValue = picker.querySelector('input[type="hidden"]').value;
+            if (initialValue) {
+                setGradientPickerValue(picker, initialValue);
+            } else {
+                updateGradientValue(picker);
+            }
         });
     }
 
     function updateGradientValue(picker) {
-        const isGradient = picker.querySelector('.gradient-tab[data-mode="gradient"]').classList.contains('active');
+        const gradientTab = picker.querySelector('.gradient-tab[data-mode="gradient"]');
+        if (!gradientTab) return;
+
+        const isGradient = gradientTab.classList.contains('active');
         const preview = picker.querySelector('.gradient-preview');
         const hiddenInput = picker.querySelector('input[type="hidden"]');
+        if (!preview || !hiddenInput) return;
+
         let value;
 
         if (isGradient) {
@@ -2922,8 +2937,14 @@ $typeIcons = [
         const preview = picker.querySelector('.gradient-preview');
         const hiddenInput = picker.querySelector('input[type="hidden"]');
 
+        // Protection contre les éléments manquants
+        if (!solidSection || !gradientSection || !preview || !hiddenInput) {
+            console.warn('Gradient picker elements missing for:', picker.id);
+            return;
+        }
+
         // Check if it's a gradient
-        if (value.includes('gradient')) {
+        if (value.includes && value.includes('gradient')) {
             // Switch to gradient mode
             tabs.forEach(t => t.classList.toggle('active', t.dataset.mode === 'gradient'));
             solidSection.classList.remove('active');

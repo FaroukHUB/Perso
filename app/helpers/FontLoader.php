@@ -26,11 +26,12 @@ class FontLoader
     /**
      * Génère les balises <link> pour Google Fonts
      * Retourne le HTML à insérer dans le <head>
+     * Génère automatiquement les URLs si elles sont NULL
      */
     public static function getGoogleFontsLinks(): string
     {
         $fonts = self::getActiveFonts();
-        $googleFonts = array_filter($fonts, fn($f) => $f['source'] === 'google' && !empty($f['google_import_url']));
+        $googleFonts = array_filter($fonts, fn($f) => $f['source'] === 'google');
 
         if (empty($googleFonts)) {
             return '';
@@ -41,7 +42,15 @@ class FontLoader
         $html .= '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
 
         foreach ($googleFonts as $font) {
-            $html .= '<link href="' . htmlspecialchars($font['google_import_url']) . '" rel="stylesheet">' . "\n";
+            // Générer l'URL à la volée si elle est NULL
+            $url = $font['google_import_url'];
+            if (empty($url) && !empty($font['family'])) {
+                $weights = $font['google_weights'] ?? '400';
+                $url = self::generateGoogleUrl($font['family'], $weights);
+            }
+            if (!empty($url)) {
+                $html .= '<link href="' . htmlspecialchars($url) . '" rel="stylesheet">' . "\n";
+            }
         }
 
         return $html;
