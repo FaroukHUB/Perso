@@ -2230,8 +2230,11 @@ $typeIcons = [
             setGradientPickerValue(bgColorPicker, style.background_color || '#ffffff');
         }
 
-        // Padding
-        document.getElementById('propPaddingY').value = style.padding_y || 'medium';
+        // Padding (si l'élément existe)
+        const paddingEl = document.getElementById('propPaddingY');
+        if (paddingEl) {
+            paddingEl.value = style.padding_y || 'medium';
+        }
 
         // Typography
         setTypographyValues(section.config);
@@ -2514,8 +2517,17 @@ $typeIcons = [
         });
 
         // Toggle status
+        let isToggling = false;
         document.getElementById('toggleStatusBtn').addEventListener('click', function() {
-            if (!selectedSectionId) return;
+            if (!selectedSectionId || isToggling) return;
+
+            const saveBtn = document.getElementById('saveBtn');
+            const toggleBtn = this;
+
+            // Désactiver les boutons pendant le toggle
+            isToggling = true;
+            saveBtn.disabled = true;
+            toggleBtn.disabled = true;
 
             fetch('/admin/page-editor.php?id=' + pageId, {
                 method: 'POST',
@@ -2535,6 +2547,11 @@ $typeIcons = [
                     document.getElementById('sectionStatus').value = data.status;
                     refreshPreview();
                 }
+            })
+            .finally(() => {
+                isToggling = false;
+                saveBtn.disabled = false;
+                toggleBtn.disabled = false;
             });
         });
 
