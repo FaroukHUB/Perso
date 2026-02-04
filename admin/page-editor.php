@@ -180,15 +180,20 @@ if (isPost() && !empty($_POST['ajax_action'])) {
             ];
 
             try {
+                // Debug: log what we're creating
+                error_log("PageEditor: Creating section for page_id=$pageId, type={$data['type']}, isEdit=$isEdit");
+
                 if ($isEdit) {
                     $sectionModel->update($sectionId, $data);
                     $response = ['success' => true, 'id' => $sectionId];
                 } else {
                     $newId = $sectionModel->create($data);
-                    $response = ['success' => true, 'id' => $newId, 'isNew' => true];
+                    error_log("PageEditor: Created section with id=$newId");
+                    $response = ['success' => true, 'id' => $newId, 'isNew' => true, 'debug' => ['page_id' => $pageId]];
                 }
                 echo json_encode($response);
             } catch (Exception $e) {
+                error_log("PageEditor ERROR: " . $e->getMessage());
                 echo json_encode(['success' => false, 'error' => $e->getMessage()]);
             }
             break;
@@ -1403,12 +1408,24 @@ $typeIcons = [
             formData.append('type', selectedType);
             formData.append('status', 'draft');
 
+            console.log('Adding section:', { pageId, selectedType, url: '?id=' + pageId });
+
             // Envoyer vers l'URL avec l'ID de page explicite
             fetch('?id=' + pageId, { method: 'POST', body: formData })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) location.reload();
-                else alert('Erreur : ' + data.error);
+            .then(r => {
+                console.log('Response status:', r.status);
+                return r.text();
+            })
+            .then(text => {
+                console.log('Response text:', text);
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) location.reload();
+                    else alert('Erreur : ' + data.error);
+                } catch(e) {
+                    console.error('JSON parse error:', e);
+                    alert('Réponse invalide du serveur. Voir console.');
+                }
             })
             .catch(err => {
                 console.error('Erreur AJAX:', err);
