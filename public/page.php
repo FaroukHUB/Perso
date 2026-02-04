@@ -202,6 +202,131 @@ function getSectionInlineStyles(array $section, bool $hasBackgroundImage = false
     return empty($styles) ? '' : implode('; ', $styles);
 }
 
+/**
+ * Génère les styles inline pour le titre d'une section
+ */
+function getTitleStyles(array $section): string {
+    $styles = [];
+    $typo = $section['config']['typography'] ?? [];
+
+    // Police
+    if (!empty($typo['font_family'])) {
+        $styles[] = "font-family: '" . htmlspecialchars($typo['font_family']) . "', sans-serif";
+    }
+
+    // Taille
+    $sizeMap = [
+        'small' => '1.5rem',
+        'medium' => '2rem',
+        'large' => '2.5rem',
+        'xlarge' => '3.5rem',
+        'xxlarge' => '4.5rem'
+    ];
+    if (!empty($typo['title_size']) && isset($sizeMap[$typo['title_size']])) {
+        $styles[] = 'font-size: ' . $sizeMap[$typo['title_size']];
+    }
+
+    // Couleur (supporte les dégradés)
+    if (!empty($typo['title_color'])) {
+        $color = $typo['title_color'];
+        if (strpos($color, 'gradient') !== false) {
+            $styles[] = 'background: ' . htmlspecialchars($color);
+            $styles[] = '-webkit-background-clip: text';
+            $styles[] = '-webkit-text-fill-color: transparent';
+            $styles[] = 'background-clip: text';
+        } else {
+            $styles[] = 'color: ' . htmlspecialchars($color);
+        }
+    }
+
+    // Gras
+    if (!empty($typo['bold']) && ($typo['bold'] === '1' || $typo['bold'] === 1)) {
+        $styles[] = 'font-weight: 700';
+    }
+
+    // Italique
+    if (!empty($typo['italic']) && ($typo['italic'] === '1' || $typo['italic'] === 1)) {
+        $styles[] = 'font-style: italic';
+    }
+
+    // Souligné
+    if (!empty($typo['underline']) && ($typo['underline'] === '1' || $typo['underline'] === 1)) {
+        $styles[] = 'text-decoration: underline';
+    }
+
+    // Majuscules
+    if (!empty($typo['uppercase']) && ($typo['uppercase'] === '1' || $typo['uppercase'] === 1)) {
+        $styles[] = 'text-transform: uppercase';
+    }
+
+    // Alignement
+    if (!empty($typo['align'])) {
+        $styles[] = 'text-align: ' . htmlspecialchars($typo['align']);
+    }
+
+    // Décalages
+    $transforms = [];
+    if (!empty($typo['offset_x']) && $typo['offset_x'] != 0) {
+        $transforms[] = 'translateX(' . (int)$typo['offset_x'] . 'px)';
+    }
+    if (!empty($typo['offset_y']) && $typo['offset_y'] != 0) {
+        $transforms[] = 'translateY(' . (int)$typo['offset_y'] . 'px)';
+    }
+    if (!empty($transforms)) {
+        $styles[] = 'transform: ' . implode(' ', $transforms);
+    }
+
+    return empty($styles) ? '' : implode('; ', $styles);
+}
+
+/**
+ * Génère les styles inline pour le sous-titre d'une section
+ */
+function getSubtitleStyles(array $section): string {
+    $styles = [];
+    $typo = $section['config']['typography'] ?? [];
+
+    // Police du sous-titre
+    if (!empty($typo['subtitle_font_family'])) {
+        $styles[] = "font-family: '" . htmlspecialchars($typo['subtitle_font_family']) . "', sans-serif";
+    }
+
+    // Couleur (supporte les dégradés)
+    if (!empty($typo['subtitle_color'])) {
+        $color = $typo['subtitle_color'];
+        if (strpos($color, 'gradient') !== false) {
+            $styles[] = 'background: ' . htmlspecialchars($color);
+            $styles[] = '-webkit-background-clip: text';
+            $styles[] = '-webkit-text-fill-color: transparent';
+            $styles[] = 'background-clip: text';
+        } else {
+            $styles[] = 'color: ' . htmlspecialchars($color);
+        }
+    }
+
+    // Gras
+    if (!empty($typo['subtitle_bold']) && ($typo['subtitle_bold'] === '1' || $typo['subtitle_bold'] === 1)) {
+        $styles[] = 'font-weight: 700';
+    }
+
+    // Italique
+    if (!empty($typo['subtitle_italic']) && ($typo['subtitle_italic'] === '1' || $typo['subtitle_italic'] === 1)) {
+        $styles[] = 'font-style: italic';
+    }
+
+    // Souligné
+    if (!empty($typo['subtitle_underline']) && ($typo['subtitle_underline'] === '1' || $typo['subtitle_underline'] === 1)) {
+        $styles[] = 'text-decoration: underline';
+    }
+
+    // Alignement (hérité du titre)
+    if (!empty($typo['align'])) {
+        $styles[] = 'text-align: ' . htmlspecialchars($typo['align']);
+    }
+
+    return empty($styles) ? '' : implode('; ', $styles);
+}
+
 // Meta tags
 $metaTitle = $page['meta_title'] ?: $page['title'] . ' - PERSONNALY';
 $metaDescription = $page['meta_description'] ?: '';
@@ -237,6 +362,10 @@ $metaDescription = $page['meta_description'] ?: '';
                 ?>
 
                 <?php if ($section['type'] === 'hero'): ?>
+                <?php
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                ?>
                 <!-- Section Hero -->
                 <section class="section section-hero" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
                     <?php if (!empty($section['media_url'])): ?>
@@ -253,9 +382,9 @@ $metaDescription = $page['meta_description'] ?: '';
                         <?php if (!empty($section['config']['badge'])): ?>
                         <span class="hero-badge"><?= h($section['config']['badge']) ?></span>
                         <?php endif; ?>
-                        <h1 class="hero-title"><?= h($section['title']) ?></h1>
+                        <h1 class="hero-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h1>
                         <?php if (!empty($section['subtitle'])): ?>
-                        <p class="hero-subtitle"><?= h($section['subtitle']) ?></p>
+                        <p class="hero-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                         <?php endif; ?>
                         <?php if (!empty($section['cta_text'])): ?>
                         <div class="hero-cta">
@@ -266,14 +395,18 @@ $metaDescription = $page['meta_description'] ?: '';
                 </section>
 
                 <?php elseif ($section['type'] === 'content_block' || $section['type'] === 'text_only'): ?>
+                <?php
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                ?>
                 <!-- Section Contenu -->
                 <section class="section section-content" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
                     <div class="container">
                         <?php if (!empty($section['title'])): ?>
-                        <h2 class="section-title"><?= h($section['title']) ?></h2>
+                        <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
                         <?php endif; ?>
                         <?php if (!empty($section['subtitle'])): ?>
-                        <p class="section-subtitle"><?= h($section['subtitle']) ?></p>
+                        <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                         <?php endif; ?>
                         <div class="content-wrapper">
                             <?php if (!empty($section['media_url']) && $section['type'] === 'content_block'): ?>
@@ -302,14 +435,18 @@ $metaDescription = $page['meta_description'] ?: '';
                 </section>
 
                 <?php elseif ($section['type'] === 'featured_products'): ?>
+                <?php
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                ?>
                 <!-- Section Produits -->
                 <section class="section section-products" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
                     <div class="container">
                         <?php if (!empty($section['title'])): ?>
-                        <h2 class="section-title"><?= h($section['title']) ?></h2>
+                        <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
                         <?php endif; ?>
                         <?php if (!empty($section['subtitle'])): ?>
-                        <p class="section-subtitle"><?= h($section['subtitle']) ?></p>
+                        <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                         <?php endif; ?>
                         <?php if (empty($section['products'])): ?>
                         <div class="empty-state" style="text-align: center; padding: 40px;">
@@ -331,14 +468,18 @@ $metaDescription = $page['meta_description'] ?: '';
                 </section>
 
                 <?php elseif ($section['type'] === 'featured_packs'): ?>
+                <?php
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                ?>
                 <!-- Section Packs -->
                 <section class="section section-packs" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
                     <div class="container">
                         <?php if (!empty($section['title'])): ?>
-                        <h2 class="section-title"><?= h($section['title']) ?></h2>
+                        <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
                         <?php endif; ?>
                         <?php if (!empty($section['subtitle'])): ?>
-                        <p class="section-subtitle"><?= h($section['subtitle']) ?></p>
+                        <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                         <?php endif; ?>
                         <?php if (empty($section['packs'])): ?>
                         <div class="empty-state" style="text-align: center; padding: 40px;">
@@ -360,14 +501,18 @@ $metaDescription = $page['meta_description'] ?: '';
                 </section>
 
                 <?php elseif ($section['type'] === 'newsletter'): ?>
+                <?php
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                ?>
                 <!-- Section Newsletter -->
                 <section class="section section-newsletter" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
                     <div class="container">
                         <?php if (!empty($section['title'])): ?>
-                        <h2 class="section-title"><?= h($section['title']) ?></h2>
+                        <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
                         <?php endif; ?>
                         <?php if (!empty($section['subtitle'])): ?>
-                        <p class="section-subtitle"><?= h($section['subtitle']) ?></p>
+                        <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
                         <?php endif; ?>
                         <form class="newsletter-form" action="/newsletter" method="post">
                             <input type="email" name="email" placeholder="Votre adresse email" required>

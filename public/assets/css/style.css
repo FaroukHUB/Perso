@@ -397,3 +397,240 @@ h4 { font-size: 1.25rem; }
 .animate-pulse {
     animation: pulse 2s ease-in-out infinite;
 }
+
+/* ========================================
+   PAGES PERSONNALISÉES (PAGE BUILDER)
+   ======================================== */
+
+.custom-page {
+    min-height: 60vh;
+}
+
+/* Section de base */
+.custom-page .section {
+    position: relative;
+    padding: 4rem 0;
+}
+
+.custom-page .section-title {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.custom-page .section-subtitle {
+    font-size: 1.125rem;
+    color: var(--gray);
+    margin-bottom: 2rem;
+    max-width: 600px;
+}
+
+/* Section Hero */
+.section-hero {
+    position: relative;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--gradient-dark);
+    color: white;
+}
+
+.section-hero .hero-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+}
+
+.section-hero .hero-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+.section-hero .hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
+.section-hero .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2rem;
+    max-width: 900px;
+}
+
+.section-hero .hero-badge {
+    display: inline-block;
+    background: var(--gradient-pink);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.section-hero .hero-title {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    color: white;
+}
+
+.section-hero .hero-subtitle {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+}
+
+.section-hero .hero-cta {
+    margin-top: 2rem;
+}
+
+.section-hero .hero-cta .btn {
+    margin: 0.5rem;
+}
+
+/* Section Contenu */
+.section-content {
+    padding: 5rem 0;
+}
+
+.section-content .content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.section-content .content-media img,
+.section-content .content-media video {
+    width: 100%;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.section-content .content-text {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--gray);
+}
+
+/* Section Produits */
+.section-products {
+    padding: 5rem 0;
+    background: var(--gray-light);
+}
+
+.section-products .section-title,
+.section-packs .section-title,
+.section-newsletter .section-title {
+    text-align: center;
+}
+
+.section-products .section-subtitle,
+.section-packs .section-subtitle,
+.section-newsletter .section-subtitle {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Section Packs */
+.section-packs {
+    padding: 5rem 0;
+    background: var(--black-soft);
+    color: white;
+}
+
+.section-packs .section-subtitle {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Section Newsletter */
+.section-newsletter {
+    padding: 5rem 0;
+    background: var(--gradient-pink);
+    color: white;
+    text-align: center;
+}
+
+.section-newsletter .newsletter-form {
+    max-width: 500px;
+    margin: 2rem auto 0;
+    display: flex;
+    gap: 1rem;
+}
+
+.section-newsletter .newsletter-form input {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-full);
+    font-size: 1rem;
+}
+
+.section-newsletter .newsletter-form .btn {
+    white-space: nowrap;
+}
+
+/* Section CTA commun */
+.section-cta {
+    text-align: center;
+    margin-top: 3rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .section-hero {
+        min-height: 60vh;
+    }
+
+    .section-hero .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .section-hero .hero-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .section-content .content-wrapper {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .custom-page .section-title {
+        font-size: 2rem;
+    }
+
+    .section-newsletter .newsletter-form {
+        flex-direction: column;
+    }
+}
