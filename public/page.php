@@ -4,6 +4,10 @@
  * Affiche les pages créées via le Page Builder
  */
 
+// Afficher les erreurs PHP pour debug
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/helpers/Cart.php';
 require_once __DIR__ . '/../app/helpers/FontLoader.php';
