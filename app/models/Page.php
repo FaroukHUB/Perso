@@ -62,13 +62,16 @@ class Page
      */
     public function create(array $data): int
     {
+        // Utiliser le titre si le slug est vide
+        $slugSource = !empty($data['slug']) ? $data['slug'] : $data['title'];
+
         $stmt = $this->db->prepare(
             'INSERT INTO pages (title, slug, meta_title, meta_description, status, is_system, created_at)
              VALUES (?, ?, ?, ?, ?, ?, NOW())'
         );
         $stmt->execute([
             $data['title'],
-            $this->generateSlug($data['slug'] ?? $data['title']),
+            $this->generateSlug($slugSource),
             $data['meta_title'] ?? null,
             $data['meta_description'] ?? null,
             $data['status'] ?? 'draft',
@@ -200,6 +203,11 @@ class Page
         $slug = preg_replace('/[ç]/u', 'c', $slug);
         $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
         $slug = trim($slug, '-');
+
+        // Si le slug est vide après nettoyage, générer un slug par défaut
+        if (empty($slug)) {
+            $slug = 'page-' . time();
+        }
 
         // Vérifier l'unicité
         $originalSlug = $slug;
