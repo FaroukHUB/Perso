@@ -200,7 +200,7 @@ $metaDescription = $page['meta_description'] ?: '';
     <meta name="description" content="<?= h($metaDescription) ?>">
     <?php endif; ?>
     <?= FontLoader::renderHead() ?>
-    <?= $brandingService->renderStyleTag() ?>
+    <style><?= $brandingService->getCSSVariables() ?></style>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/homepage.css">
 </head>

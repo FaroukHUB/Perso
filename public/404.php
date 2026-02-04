@@ -18,7 +18,7 @@ $brandingService = new BrandingService();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page non trouvée - PERSONNALY</title>
     <?= FontLoader::renderHead() ?>
-    <?= $brandingService->renderStyleTag() ?>
+    <style><?= $brandingService->getCSSVariables() ?></style>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <style>
         .error-page {
