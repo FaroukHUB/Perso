@@ -535,6 +535,7 @@ $typeIcons = [
             display: flex;
             justify-content: center;
             overflow: auto;
+            min-height: 0;
         }
         .preview-frame-wrapper {
             background: white;
@@ -544,6 +545,7 @@ $typeIcons = [
             transition: width 0.3s ease;
             width: 100%;
             max-width: 100%;
+            height: 100%;
             position: relative;
         }
         .preview-frame-wrapper.tablet { width: 768px; }
