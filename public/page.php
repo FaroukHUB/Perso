@@ -169,6 +169,111 @@ foreach ($sections as &$section) {
                 }
             }
             break;
+
+        case 'faq':
+            // Map config faq_items to section level for template
+            $section['faq_items'] = [];
+            if (!empty($section['config']['faq_items'])) {
+                foreach ($section['config']['faq_items'] as $index => $item) {
+                    $section['faq_items'][] = [
+                        'id' => $index,
+                        'question' => $item['question'] ?? '',
+                        'answer' => $item['answer'] ?? '',
+                        'status' => 'active'
+                    ];
+                }
+            }
+            break;
+
+        case 'testimonials':
+            // Map config testimonial_items to section level for template
+            $section['testimonials'] = [];
+            if (!empty($section['config']['testimonial_items'])) {
+                foreach ($section['config']['testimonial_items'] as $index => $item) {
+                    $section['testimonials'][] = [
+                        'id' => $index,
+                        'author_name' => $item['author'] ?? '',
+                        'author_title' => $item['role'] ?? '',
+                        'content' => $item['content'] ?? '',
+                        'rating' => $item['rating'] ?? 5,
+                        'author_photo' => $item['photo'] ?? '',
+                        'status' => 'active'
+                    ];
+                }
+            }
+            break;
+
+        case 'image_gallery':
+            // Map config gallery_items to section level for template
+            $section['gallery_images'] = [];
+            if (!empty($section['config']['gallery_items'])) {
+                foreach ($section['config']['gallery_items'] as $index => $item) {
+                    $section['gallery_images'][] = [
+                        'id' => $index,
+                        'image_url' => $item['url'] ?? '',
+                        'thumbnail_url' => $item['url'] ?? '',
+                        'caption' => $item['caption'] ?? '',
+                        'alt_text' => $item['caption'] ?? '',
+                        'link_url' => '',
+                        'status' => 'active'
+                    ];
+                }
+            }
+            break;
+
+        case 'counter':
+            // Map config counter_items to section level for template
+            $section['counters'] = [];
+            if (!empty($section['config']['counter_items'])) {
+                foreach ($section['config']['counter_items'] as $index => $item) {
+                    $section['counters'][] = [
+                        'id' => $index,
+                        'value' => $item['value'] ?? 0,
+                        'suffix' => $item['suffix'] ?? '',
+                        'prefix' => '',
+                        'label' => $item['label'] ?? '',
+                        'icon' => $item['icon'] ?? '',
+                        'color' => '',
+                        'status' => 'active'
+                    ];
+                }
+            }
+            break;
+
+        case 'timeline':
+            // Map config timeline_items to section level for template
+            $section['timeline_steps'] = [];
+            if (!empty($section['config']['timeline_items'])) {
+                foreach ($section['config']['timeline_items'] as $index => $item) {
+                    $section['timeline_steps'][] = [
+                        'id' => $index,
+                        'step_number' => $index + 1,
+                        'title' => $item['title'] ?? '',
+                        'description' => $item['description'] ?? '',
+                        'date' => $item['date'] ?? '',
+                        'icon' => $item['icon'] ?? '',
+                        'image_url' => '',
+                        'status' => 'active'
+                    ];
+                }
+            }
+            break;
+
+        case 'logos':
+            // Map config logo_items to section level for template
+            $section['logos'] = [];
+            if (!empty($section['config']['logo_items'])) {
+                foreach ($section['config']['logo_items'] as $index => $item) {
+                    $section['logos'][] = [
+                        'id' => $index,
+                        'name' => $item['name'] ?? '',
+                        'logo_url' => $item['url'] ?? '',
+                        'website_url' => $item['link'] ?? '',
+                        'status' => 'active'
+                    ];
+                }
+            }
+            break;
     }
 }
 unset($section);
