@@ -2223,11 +2223,15 @@ $typeIcons = [
             document.getElementById('propProductsLimit').value = section.config.products_limit || 8;
         }
 
-        // Style
-        if (section.config && section.config.style) {
-            document.getElementById('propBgColor').value = section.config.style.background_color || '#ffffff';
-            document.getElementById('propTextColor').value = section.config.style.text_color || '#1a1a1a';
+        // Style - utiliser setGradientPickerValue pour mettre à jour le picker correctement
+        const style = section.config?.style || {};
+        const bgColorPicker = document.getElementById('bgColorPicker');
+        if (bgColorPicker) {
+            setGradientPickerValue(bgColorPicker, style.background_color || '#ffffff');
         }
+
+        // Padding
+        document.getElementById('propPaddingY').value = style.padding_y || 'medium';
 
         // Typography
         setTypographyValues(section.config);
@@ -2621,11 +2625,17 @@ $typeIcons = [
         // Title size
         document.getElementById('propTitleSize').value = typo.title_size || '';
 
-        // Title color
-        document.getElementById('propTitleColor').value = typo.title_color || '#1a1a1a';
+        // Title color - utiliser setGradientPickerValue
+        const titleColorPicker = document.getElementById('titleColorPicker');
+        if (titleColorPicker) {
+            setGradientPickerValue(titleColorPicker, typo.title_color || '#1a1a1a');
+        }
 
-        // Subtitle color
-        document.getElementById('propSubtitleColor').value = typo.subtitle_color || '#666666';
+        // Subtitle color - utiliser setGradientPickerValue
+        const subtitleColorPicker = document.getElementById('subtitleColorPicker');
+        if (subtitleColorPicker) {
+            setGradientPickerValue(subtitleColorPicker, typo.subtitle_color || '#666666');
+        }
 
         // Bold, Italic, Underline, Uppercase toggles (titre)
         const toggleFields = ['bold', 'italic', 'underline', 'uppercase'];
