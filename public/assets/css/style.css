@@ -1375,3 +1375,642 @@ h4 { font-size: 1.25rem; }
 .section-category {
     padding: 5rem 0;
 }
+
+/* ========================================
+   SECTION COMPTEURS ANIMÉS
+   ======================================== */
+
+.section-counter {
+    padding: 5rem 0;
+    background: var(--gradient-dark);
+    color: white;
+}
+
+.counters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.counter-item {
+    text-align: center;
+    padding: 2rem;
+    --counter-color: var(--pink-main);
+}
+
+.counter-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--counter-color);
+}
+
+.counter-value {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    color: var(--counter-color);
+}
+
+.counter-prefix,
+.counter-suffix {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.counter-number {
+    display: inline-block;
+}
+
+.counter-label {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+@media (max-width: 768px) {
+    .counter-value {
+        font-size: 2.5rem;
+    }
+
+    .counter-prefix,
+    .counter-suffix {
+        font-size: 1.5rem;
+    }
+}
+
+/* ========================================
+   SECTION TIMELINE / ÉTAPES
+   ======================================== */
+
+.section-timeline {
+    padding: 5rem 0;
+}
+
+.timeline {
+    position: relative;
+    margin-top: 3rem;
+}
+
+/* Timeline verticale */
+.timeline-vertical {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.timeline-vertical::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, var(--pink-main), var(--mint-main));
+}
+
+.timeline-vertical .timeline-item {
+    position: relative;
+    padding-bottom: 3rem;
+    width: 50%;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s, transform 0.5s;
+}
+
+.timeline-vertical .timeline-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.timeline-vertical .timeline-item:nth-child(odd) {
+    padding-right: 3rem;
+    text-align: right;
+}
+
+.timeline-vertical .timeline-item:nth-child(even) {
+    margin-left: 50%;
+    padding-left: 3rem;
+    text-align: left;
+}
+
+.timeline-marker {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--gradient-pink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    box-shadow: var(--shadow-pink);
+    z-index: 1;
+}
+
+.timeline-vertical .timeline-item:nth-child(odd) .timeline-marker {
+    right: -25px;
+}
+
+.timeline-vertical .timeline-item:nth-child(even) .timeline-marker {
+    left: -25px;
+}
+
+.timeline-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.timeline-image {
+    width: 100%;
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+}
+
+.timeline-date {
+    display: inline-block;
+    font-size: 0.8rem;
+    color: var(--pink-main);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 0.5rem;
+}
+
+.timeline-description {
+    color: var(--gray);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Timeline horizontale */
+.timeline-horizontal {
+    display: flex;
+    overflow-x: auto;
+    gap: 2rem;
+    padding-bottom: 1rem;
+    scroll-snap-type: x mandatory;
+}
+
+.timeline-horizontal::before {
+    display: none;
+}
+
+.timeline-horizontal .timeline-item {
+    flex: 0 0 300px;
+    scroll-snap-align: start;
+    padding-bottom: 0;
+    width: auto;
+    text-align: center;
+    opacity: 1;
+    transform: none;
+}
+
+.timeline-horizontal .timeline-marker {
+    position: relative;
+    margin: 0 auto 1rem;
+    left: auto;
+    right: auto;
+}
+
+@media (max-width: 768px) {
+    .timeline-vertical::before {
+        left: 25px;
+    }
+
+    .timeline-vertical .timeline-item {
+        width: 100%;
+        padding-left: 60px !important;
+        padding-right: 0 !important;
+        text-align: left !important;
+    }
+
+    .timeline-vertical .timeline-item:nth-child(even) {
+        margin-left: 0;
+    }
+
+    .timeline-vertical .timeline-item .timeline-marker {
+        left: 0 !important;
+        right: auto !important;
+    }
+}
+
+/* ========================================
+   SECTION LOGOS PARTENAIRES
+   ======================================== */
+
+.section-logos {
+    padding: 4rem 0;
+    background: var(--gray-light);
+}
+
+.logos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+    align-items: center;
+}
+
+.logos-carousel {
+    display: flex;
+    gap: 3rem;
+    margin-top: 2rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 1rem 0;
+    scrollbar-width: none;
+}
+
+.logos-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.logo-item {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    transition: transform var(--transition-normal), opacity var(--transition-normal);
+}
+
+.logo-item img {
+    max-width: 150px;
+    max-height: 60px;
+    object-fit: contain;
+    filter: grayscale(100%);
+    opacity: 0.6;
+    transition: filter var(--transition-normal), opacity var(--transition-normal);
+}
+
+.logo-item:hover img {
+    filter: grayscale(0%);
+    opacity: 1;
+}
+
+.logo-item a {
+    display: block;
+}
+
+/* ========================================
+   SECTION GOOGLE MAP
+   ======================================== */
+
+.section-map {
+    padding-top: 3rem;
+}
+
+.section-map .container {
+    padding-bottom: 2rem;
+}
+
+.map-info {
+    max-width: 700px;
+    margin: 0 auto 2rem;
+    text-align: center;
+    color: var(--gray);
+    line-height: 1.7;
+}
+
+.map-container {
+    width: 100%;
+    min-height: 400px;
+}
+
+.google-map {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+}
+
+.map-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gray-light);
+    color: var(--gray);
+}
+
+/* ========================================
+   SECTION AVIS GOOGLE
+   ======================================== */
+
+.section-google-reviews {
+    padding: 5rem 0;
+}
+
+.google-rating-summary {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.rating-score {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.score-value {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: var(--black);
+    line-height: 1;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 4px;
+}
+
+.rating-stars .star.filled {
+    color: #FBBC04;
+}
+
+.rating-stars .star:not(.filled) {
+    color: #ddd;
+}
+
+.rating-count {
+    font-size: 0.9rem;
+    color: var(--gray);
+}
+
+.google-reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.google-reviews-carousel {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 2rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1rem;
+}
+
+.google-reviews-carousel .google-review-card {
+    flex: 0 0 350px;
+    scroll-snap-align: start;
+}
+
+.google-review-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid #f0f0f0;
+}
+
+.review-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.reviewer-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.reviewer-photo-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--gradient-pink);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.reviewer-info {
+    flex: 1;
+}
+
+.reviewer-name {
+    display: block;
+    font-weight: 600;
+    color: var(--black);
+    font-size: 0.95rem;
+}
+
+.review-rating {
+    display: flex;
+    gap: 2px;
+    margin-top: 2px;
+}
+
+.review-rating .star.filled {
+    color: #FBBC04;
+}
+
+.review-rating .star:not(.filled) {
+    color: #ddd;
+}
+
+.google-logo {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.review-text {
+    color: var(--black-soft);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0 0 0.75rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.review-date {
+    font-size: 0.8rem;
+    color: var(--gray);
+}
+
+/* ========================================
+   SECTION SÉPARATEUR
+   ======================================== */
+
+.section-separator {
+    padding: 0;
+}
+
+.section-separator hr {
+    border: none;
+    margin: 0 auto;
+}
+
+/* ========================================
+   SECTION HTML PERSONNALISÉ
+   ======================================== */
+
+.section-custom-html {
+    padding: 2rem 0;
+}
+
+.section-custom-html img {
+    max-width: 100%;
+    height: auto;
+}
+
+.section-custom-html iframe {
+    max-width: 100%;
+}
+
+/* ========================================
+   PROMO BANNER (TOP BAR)
+   ======================================== */
+
+.promo-banner {
+    background: var(--gradient-pink);
+    color: white;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    position: relative;
+}
+
+.promo-banner a {
+    color: white;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.promo-banner-close {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.25rem;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity var(--transition-fast);
+}
+
+.promo-banner-close:hover {
+    opacity: 1;
+}
+
+/* ========================================
+   POPUP MODAL
+   ======================================== */
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-normal), visibility var(--transition-normal);
+}
+
+.popup-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.popup-content {
+    background: white;
+    border-radius: var(--radius-lg);
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: scale(0.9) translateY(20px);
+    transition: transform var(--transition-normal);
+}
+
+.popup-overlay.active .popup-content {
+    transform: scale(1) translateY(0);
+}
+
+.popup-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition-fast);
+    z-index: 1;
+}
+
+.popup-close:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.popup-image {
+    width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.popup-body {
+    padding: 2rem;
+}
+
+.popup-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--black);
+}
+
+.popup-text {
+    color: var(--gray);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+}
+
+.popup-cta {
+    display: inline-block;
+}

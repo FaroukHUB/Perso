@@ -1,0 +1,28 @@
+# PERSONNALY - robots.txt
+# https://personnaly.fr
+
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /app/
+Disallow: /config/
+Disallow: /sql/
+
+# Disallow cart and checkout (duplicate content)
+Disallow: /panier
+Disallow: /checkout
+Disallow: /public/cart.php
+Disallow: /public/checkout.php
+
+# Disallow search results
+Disallow: /*?*
+
+# Allow assets
+Allow: /public/assets/
+Allow: /public/uploads/
+
+# Sitemap
+Sitemap: https://personnaly.fr/sitemap.xml

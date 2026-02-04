@@ -2,6 +2,7 @@
 /**
  * PERSONNALY - Top Bar (Barre d'annonce promotionnelle)
  * Affiche un message défilant en haut du site
+ * Supporte les bannières depuis la base de données (PromoBanner) ou les paramètres (ShopSettings)
  */
 
 // Charger ShopSettings si pas déjà fait
@@ -10,21 +11,46 @@ if (!isset($shopSettings)) {
     $shopSettings = new ShopSettings();
 }
 
-// Vérifier si la top bar est activée
-$topbarEnabled = $shopSettings->get('topbar_enabled', true);
-
-if (!$topbarEnabled) {
-    return;
+// Essayer d'abord de charger une bannière promo depuis la DB
+$promoBanner = null;
+$bannerFromDb = false;
+if (class_exists('PromoBanner') || file_exists(__DIR__ . '/../models/PromoBanner.php')) {
+    if (!class_exists('PromoBanner')) {
+        require_once __DIR__ . '/../models/PromoBanner.php';
+    }
+    $bannerModel = new PromoBanner();
+    $promoBanner = $bannerModel->getActiveBanner();
 }
 
-// Récupérer les paramètres
-$topbarText = $shopSettings->get('topbar_text', 'Livraison GRATUITE dès 50€ d\'achat !');
-$topbarLink = $shopSettings->get('topbar_link', '');
-$topbarBgColor = $shopSettings->get('topbar_bg_color', '#1a1a2e');
-$topbarTextColor = $shopSettings->get('topbar_text_color', '#ffffff');
-$topbarFontFamily = $shopSettings->get('topbar_font_family', 'inherit');
-$topbarFontSize = $shopSettings->get('topbar_font_size', '14');
-$topbarScrollSpeed = $shopSettings->get('topbar_scroll_speed', '30');
+if ($promoBanner) {
+    // Utiliser les données de la bannière DB
+    $bannerFromDb = true;
+    $topbarEnabled = true;
+    $topbarText = $promoBanner['message'];
+    $topbarLink = $promoBanner['link_url'] ?? '';
+    $topbarBgColor = $promoBanner['background_color'] ?? '#1a1a2e';
+    $topbarTextColor = $promoBanner['text_color'] ?? '#ffffff';
+    $topbarFontFamily = 'inherit';
+    $topbarFontSize = '14';
+    $topbarScrollSpeed = '30';
+    $topbarDismissible = $promoBanner['is_dismissible'] ?? true;
+} else {
+    // Fallback sur ShopSettings
+    $topbarEnabled = $shopSettings->get('topbar_enabled', true);
+
+    if (!$topbarEnabled) {
+        return;
+    }
+
+    $topbarText = $shopSettings->get('topbar_text', 'Livraison GRATUITE dès 50€ d\'achat !');
+    $topbarLink = $shopSettings->get('topbar_link', '');
+    $topbarBgColor = $shopSettings->get('topbar_bg_color', '#1a1a2e');
+    $topbarTextColor = $shopSettings->get('topbar_text_color', '#ffffff');
+    $topbarFontFamily = $shopSettings->get('topbar_font_family', 'inherit');
+    $topbarFontSize = $shopSettings->get('topbar_font_size', '14');
+    $topbarScrollSpeed = $shopSettings->get('topbar_scroll_speed', '30');
+    $topbarDismissible = true;
+}
 
 // Ne pas afficher si pas de texte
 if (empty(trim($topbarText))) {
@@ -48,12 +74,14 @@ if (empty(trim($topbarText))) {
             <span class="topbar-text"><?= htmlspecialchars($topbarText) ?></span>
         <?php endif; ?>
     </div>
+    <?php if ($topbarDismissible): ?>
     <button class="topbar-close" onclick="closeTopbar()" aria-label="Fermer">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"/>
             <line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
     </button>
+    <?php endif; ?>
 </div>
 
 <style>

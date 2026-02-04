@@ -11,6 +11,7 @@ error_reporting(E_ALL);
 require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/helpers/Cart.php';
 require_once __DIR__ . '/../app/helpers/FontLoader.php';
+require_once __DIR__ . '/../app/helpers/SchemaOrg.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Page.php';
 require_once __DIR__ . '/../app/models/PageSection.php';
@@ -330,6 +331,22 @@ function getSubtitleStyles(array $section): string {
 // Meta tags
 $metaTitle = $page['meta_title'] ?: $page['title'] . ' - PERSONNALY';
 $metaDescription = $page['meta_description'] ?: '';
+
+// Schema.org configuration
+$siteUrl = 'https://personnaly.fr'; // Could be loaded from settings
+SchemaOrg::configure('PERSONNALY', $siteUrl);
+
+// Collecter les FAQ pour Schema.org
+$faqItems = [];
+foreach ($sections as $s) {
+    if ($s['type'] === 'faq' && !empty($s['faq_items'])) {
+        foreach ($s['faq_items'] as $faq) {
+            if ($faq['status'] === 'active') {
+                $faqItems[] = $faq;
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -340,7 +357,20 @@ $metaDescription = $page['meta_description'] ?: '';
     <?php if ($metaDescription): ?>
     <meta name="description" content="<?= h($metaDescription) ?>">
     <?php endif; ?>
+    <link rel="canonical" href="<?= h($siteUrl . '/' . $page['slug']) ?>">
     <?= FontLoader::renderHead() ?>
+
+    <!-- Schema.org Structured Data -->
+    <?= SchemaOrg::webPage([
+        'title' => $page['title'],
+        'slug' => $page['slug'],
+        'description' => $metaDescription,
+        'datePublished' => $page['created_at'],
+        'dateModified' => $page['updated_at'] ?? $page['created_at']
+    ]) ?>
+    <?php if (!empty($faqItems)): ?>
+    <?= SchemaOrg::faqPage($faqItems) ?>
+    <?php endif; ?>
     <style><?= $brandingService->getCSSVariables() ?></style>
     <link rel="stylesheet" href="/public/assets/css/style.css">
 </head>
@@ -848,6 +878,267 @@ $metaDescription = $page['meta_description'] ?: '';
                     </div>
                 </section>
 
+                <?php elseif ($section['type'] === 'counter'): ?>
+                <?php
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                ?>
+                <!-- Section Compteurs animés -->
+                <section class="section section-counter" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
+                    <div class="container">
+                        <?php if (!empty($section['title'])): ?>
+                        <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+                        <?php endif; ?>
+                        <?php if (!empty($section['subtitle'])): ?>
+                        <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($section['counters'])): ?>
+                        <div class="counters-grid">
+                            <?php foreach ($section['counters'] as $counter): ?>
+                            <?php if ($counter['status'] === 'active'): ?>
+                            <div class="counter-item" data-value="<?= (int)$counter['value'] ?>" <?= !empty($counter['color']) ? 'style="--counter-color: ' . h($counter['color']) . '"' : '' ?>>
+                                <?php if (!empty($counter['icon'])): ?>
+                                <div class="counter-icon"><?= $counter['icon'] ?></div>
+                                <?php endif; ?>
+                                <div class="counter-value">
+                                    <span class="counter-prefix"><?= h($counter['prefix'] ?? '') ?></span>
+                                    <span class="counter-number" data-target="<?= (int)$counter['value'] ?>">0</span>
+                                    <span class="counter-suffix"><?= h($counter['suffix'] ?? '') ?></span>
+                                </div>
+                                <div class="counter-label"><?= h($counter['label']) ?></div>
+                            </div>
+                            <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </section>
+
+                <?php elseif ($section['type'] === 'timeline'): ?>
+                <?php
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                $layout = $section['config']['layout'] ?? 'vertical';
+                ?>
+                <!-- Section Timeline/Étapes -->
+                <section class="section section-timeline" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
+                    <div class="container">
+                        <?php if (!empty($section['title'])): ?>
+                        <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+                        <?php endif; ?>
+                        <?php if (!empty($section['subtitle'])): ?>
+                        <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($section['timeline_steps'])): ?>
+                        <div class="timeline timeline-<?= h($layout) ?>">
+                            <?php foreach ($section['timeline_steps'] as $index => $step): ?>
+                            <?php if ($step['status'] === 'active'): ?>
+                            <div class="timeline-item">
+                                <div class="timeline-marker">
+                                    <?php if (!empty($step['step_number'])): ?>
+                                    <span class="timeline-number"><?= (int)$step['step_number'] ?></span>
+                                    <?php elseif (!empty($step['icon'])): ?>
+                                    <span class="timeline-icon"><?= $step['icon'] ?></span>
+                                    <?php else: ?>
+                                    <span class="timeline-number"><?= $index + 1 ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="timeline-content">
+                                    <?php if (!empty($step['image_url'])): ?>
+                                    <img class="timeline-image" src="<?= h($step['image_url']) ?>" alt="<?= h($step['title']) ?>" loading="lazy">
+                                    <?php endif; ?>
+                                    <?php if (!empty($step['date'])): ?>
+                                    <span class="timeline-date"><?= h($step['date']) ?></span>
+                                    <?php endif; ?>
+                                    <h3 class="timeline-title"><?= h($step['title']) ?></h3>
+                                    <?php if (!empty($step['description'])): ?>
+                                    <p class="timeline-description"><?= nl2br(h($step['description'])) ?></p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </section>
+
+                <?php elseif ($section['type'] === 'logos'): ?>
+                <?php
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                $layout = $section['config']['layout'] ?? 'carousel';
+                ?>
+                <!-- Section Logos partenaires -->
+                <section class="section section-logos" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
+                    <div class="container">
+                        <?php if (!empty($section['title'])): ?>
+                        <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+                        <?php endif; ?>
+                        <?php if (!empty($section['subtitle'])): ?>
+                        <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($section['logos'])): ?>
+                        <div class="logos-<?= h($layout) ?>">
+                            <?php foreach ($section['logos'] as $logo): ?>
+                            <?php if ($logo['status'] === 'active'): ?>
+                            <div class="logo-item">
+                                <?php if (!empty($logo['website_url'])): ?>
+                                <a href="<?= h($logo['website_url']) ?>" target="_blank" rel="noopener" title="<?= h($logo['name']) ?>">
+                                    <img src="<?= h($logo['logo_url']) ?>" alt="<?= h($logo['name']) ?>" loading="lazy">
+                                </a>
+                                <?php else: ?>
+                                <img src="<?= h($logo['logo_url']) ?>" alt="<?= h($logo['name']) ?>" title="<?= h($logo['name']) ?>" loading="lazy">
+                                <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </section>
+
+                <?php elseif ($section['type'] === 'google_map'): ?>
+                <?php
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                $mapHeight = $section['config']['height'] ?? '400px';
+                $mapZoom = $section['config']['zoom'] ?? 15;
+                $mapLat = $section['config']['latitude'] ?? '';
+                $mapLng = $section['config']['longitude'] ?? '';
+                $mapStyle = $section['config']['style'] ?? 'roadmap';
+                ?>
+                <!-- Section Google Map -->
+                <section class="section section-map" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
+                    <div class="container">
+                        <?php if (!empty($section['title'])): ?>
+                        <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+                        <?php endif; ?>
+                        <?php if (!empty($section['subtitle'])): ?>
+                        <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($section['content'])): ?>
+                        <div class="map-info">
+                            <?= nl2br(h($section['content'])) ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($mapLat && $mapLng): ?>
+                    <div class="map-container" style="height: <?= h($mapHeight) ?>">
+                        <div id="map-<?= $section['id'] ?>"
+                             class="google-map"
+                             data-lat="<?= h($mapLat) ?>"
+                             data-lng="<?= h($mapLng) ?>"
+                             data-zoom="<?= (int)$mapZoom ?>"
+                             data-style="<?= h($mapStyle) ?>">
+                        </div>
+                    </div>
+                    <?php else: ?>
+                    <div class="map-placeholder" style="height: <?= h($mapHeight) ?>; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                        <p style="color: #888;">Configurez les coordonnées GPS dans l'éditeur</p>
+                    </div>
+                    <?php endif; ?>
+                </section>
+
+                <?php elseif ($section['type'] === 'google_reviews'): ?>
+                <?php
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                $layout = $section['config']['layout'] ?? 'carousel';
+                ?>
+                <!-- Section Avis Google -->
+                <section class="section section-google-reviews" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
+                    <div class="container">
+                        <?php if (!empty($section['title'])): ?>
+                        <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+                        <?php endif; ?>
+                        <?php if (!empty($section['subtitle'])): ?>
+                        <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($section['google_stats']) && $section['google_stats']['total'] > 0): ?>
+                        <div class="google-rating-summary">
+                            <div class="rating-score">
+                                <span class="score-value"><?= number_format($section['google_stats']['average_rating'], 1) ?></span>
+                                <div class="rating-stars">
+                                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                                    <svg class="star <?= $i <= round($section['google_stats']['average_rating']) ? 'filled' : '' ?>" width="20" height="20" viewBox="0 0 24 24" fill="<?= $i <= round($section['google_stats']['average_rating']) ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="2">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                    </svg>
+                                    <?php endfor; ?>
+                                </div>
+                                <span class="rating-count"><?= (int)$section['google_stats']['total'] ?> avis Google</span>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (!empty($section['google_reviews'])): ?>
+                        <div class="google-reviews-<?= h($layout) ?>">
+                            <?php foreach ($section['google_reviews'] as $review): ?>
+                            <div class="google-review-card">
+                                <div class="review-header">
+                                    <?php if (!empty($review['author_photo_url'])): ?>
+                                    <img class="reviewer-photo" src="<?= h($review['author_photo_url']) ?>" alt="<?= h($review['author_name']) ?>">
+                                    <?php else: ?>
+                                    <div class="reviewer-photo-placeholder"><?= strtoupper(substr($review['author_name'], 0, 1)) ?></div>
+                                    <?php endif; ?>
+                                    <div class="reviewer-info">
+                                        <strong class="reviewer-name"><?= h($review['author_name']) ?></strong>
+                                        <div class="review-rating">
+                                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                            <svg class="star <?= $i <= $review['rating'] ? 'filled' : '' ?>" width="14" height="14" viewBox="0 0 24 24" fill="<?= $i <= $review['rating'] ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="2">
+                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                            </svg>
+                                            <?php endfor; ?>
+                                        </div>
+                                    </div>
+                                    <img class="google-logo" src="/public/assets/img/google-logo.svg" alt="Google" width="20">
+                                </div>
+                                <?php if (!empty($review['text'])): ?>
+                                <p class="review-text"><?= h($review['text']) ?></p>
+                                <?php endif; ?>
+                                <time class="review-date"><?= formatDate($review['time'], 'd/m/Y') ?></time>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php else: ?>
+                        <div class="empty-state" style="text-align: center; padding: 40px;">
+                            <p style="color: #888;">Avis Google bientôt disponibles</p>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </section>
+
+                <?php elseif ($section['type'] === 'separator'): ?>
+                <!-- Section Séparateur -->
+                <div class="section-separator" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
+                    <?php
+                    $sepStyle = $section['config']['style'] ?? 'line';
+                    $sepColor = $section['config']['color'] ?? '#e0e0e0';
+                    $sepWidth = $section['config']['width'] ?? '100%';
+                    $sepHeight = $section['config']['height'] ?? '1px';
+                    ?>
+                    <?php if ($sepStyle === 'line'): ?>
+                    <hr style="border: none; height: <?= h($sepHeight) ?>; background: <?= h($sepColor) ?>; width: <?= h($sepWidth) ?>; margin: 2rem auto;">
+                    <?php elseif ($sepStyle === 'dots'): ?>
+                    <div style="text-align: center; padding: 2rem 0;">
+                        <span style="color: <?= h($sepColor) ?>; font-size: 1.5rem; letter-spacing: 1rem;">• • •</span>
+                    </div>
+                    <?php elseif ($sepStyle === 'wave'): ?>
+                    <svg viewBox="0 0 1200 60" preserveAspectRatio="none" style="width: 100%; height: 60px; fill: <?= h($sepColor) ?>;">
+                        <path d="M0,30 C300,60 400,0 600,30 C800,60 900,0 1200,30 L1200,60 L0,60 Z"></path>
+                    </svg>
+                    <?php elseif ($sepStyle === 'space'): ?>
+                    <div style="height: <?= h($sepHeight) ?>;"></div>
+                    <?php endif; ?>
+                </div>
+
+                <?php elseif ($section['type'] === 'html_custom'): ?>
+                <!-- Section HTML personnalisé -->
+                <section class="section section-custom-html" style="<?= $sectionStyles ?>" data-section-id="<?= $section['id'] ?>">
+                    <?php if (!empty($section['content'])): ?>
+                    <?= $section['content'] ?>
+                    <?php endif; ?>
+                </section>
+
                 <?php endif; ?>
             <?php endforeach; ?>
         <?php endif; ?>
@@ -937,6 +1228,84 @@ $metaDescription = $page['meta_description'] ?: '';
             });
             document.body.appendChild(overlay);
         });
+    });
+
+    // Compteurs animés avec Intersection Observer
+    const animateCounters = () => {
+        const counters = document.querySelectorAll('.counter-number');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !entry.target.classList.contains('animated')) {
+                    entry.target.classList.add('animated');
+                    const target = parseInt(entry.target.dataset.target);
+                    const duration = 2000;
+                    const startTime = performance.now();
+
+                    const updateCounter = (currentTime) => {
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+
+                        // Easing function pour un effet plus naturel
+                        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                        const current = Math.floor(easeOutQuart * target);
+
+                        entry.target.textContent = current.toLocaleString('fr-FR');
+
+                        if (progress < 1) {
+                            requestAnimationFrame(updateCounter);
+                        } else {
+                            entry.target.textContent = target.toLocaleString('fr-FR');
+                        }
+                    };
+
+                    requestAnimationFrame(updateCounter);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        counters.forEach(counter => observer.observe(counter));
+    };
+
+    // Initialiser les compteurs
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', animateCounters);
+    } else {
+        animateCounters();
+    }
+
+    // Animation des timeline items au scroll
+    const animateTimeline = () => {
+        const items = document.querySelectorAll('.timeline-item');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.2 });
+
+        items.forEach(item => observer.observe(item));
+    };
+
+    animateTimeline();
+
+    // Logos carousel auto-scroll (si layout carousel)
+    const logoCarousels = document.querySelectorAll('.logos-carousel');
+    logoCarousels.forEach(carousel => {
+        let scrollAmount = 0;
+        const scrollSpeed = 1;
+        const scrollInterval = setInterval(() => {
+            scrollAmount += scrollSpeed;
+            if (scrollAmount >= carousel.scrollWidth - carousel.clientWidth) {
+                scrollAmount = 0;
+            }
+            carousel.scrollLeft = scrollAmount;
+        }, 30);
+
+        // Pause on hover
+        carousel.addEventListener('mouseenter', () => clearInterval(scrollInterval));
     });
     </script>
     <style>

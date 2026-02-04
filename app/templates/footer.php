@@ -78,3 +78,7 @@ $footerLogoUrl = $brandingService->getLogo(null, false); // false = fond sombre
         </div>
     </div>
 </footer>
+<?php
+// Inclure le popup si activé
+include __DIR__ . '/popup.php';
+?>

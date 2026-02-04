@@ -8,6 +8,10 @@ require_once __DIR__ . '/../core/Database.php';
 require_once __DIR__ . '/SectionFaq.php';
 require_once __DIR__ . '/SectionTestimonial.php';
 require_once __DIR__ . '/SectionGallery.php';
+require_once __DIR__ . '/SectionCounter.php';
+require_once __DIR__ . '/SectionTimeline.php';
+require_once __DIR__ . '/SectionLogo.php';
+require_once __DIR__ . '/GoogleReview.php';
 
 class PageSection
 {
@@ -27,7 +31,14 @@ class PageSection
         'video' => 'Vidéo',
         'faq' => 'FAQ / Accordéon',
         'testimonials' => 'Témoignages',
-        'contact_form' => 'Formulaire de contact'
+        'contact_form' => 'Formulaire de contact',
+        'counter' => 'Compteurs animés',
+        'timeline' => 'Timeline / Étapes',
+        'logos' => 'Logos partenaires',
+        'google_map' => 'Carte Google Maps',
+        'google_reviews' => 'Avis Google',
+        'separator' => 'Séparateur',
+        'html_custom' => 'HTML personnalisé'
     ];
 
     const STATUSES = [
@@ -83,6 +94,29 @@ class PageSection
             case 'image_gallery':
                 $galleryModel = new SectionGallery();
                 $section['gallery_images'] = $galleryModel->findBySection($section['id']);
+                break;
+
+            case 'counter':
+                $counterModel = new SectionCounter();
+                $section['counters'] = $counterModel->findBySection($section['id']);
+                break;
+
+            case 'timeline':
+                $timelineModel = new SectionTimeline();
+                $section['timeline_steps'] = $timelineModel->findBySection($section['id']);
+                break;
+
+            case 'logos':
+                $logoModel = new SectionLogo();
+                $section['logos'] = $logoModel->findBySection($section['id']);
+                break;
+
+            case 'google_reviews':
+                $reviewModel = new GoogleReview();
+                $limit = $section['config']['limit'] ?? 5;
+                $minRating = $section['config']['min_rating'] ?? 4;
+                $section['google_reviews'] = $reviewModel->getReviews($limit, $minRating);
+                $section['google_stats'] = $reviewModel->getStats();
                 break;
         }
 
