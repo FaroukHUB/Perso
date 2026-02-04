@@ -595,6 +595,7 @@ $typeIcons = [
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
         .properties-header h2 {
             font-size: 16px;
@@ -622,10 +623,18 @@ $typeIcons = [
             color: #f44336;
         }
 
+        #propertiesContent {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
         .properties-content {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
+            min-height: 0;
         }
         .properties-empty {
             flex: 1;
@@ -689,6 +698,7 @@ $typeIcons = [
         .prop-footer {
             padding: 15px 20px;
             border-top: 1px solid #e0e0e0;
+            flex-shrink: 0;
             background: #fafafa;
         }
         .prop-save-btn {
