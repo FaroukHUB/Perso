@@ -4479,8 +4479,10 @@ $typeIcons = [
         item.dataset.index = index;
 
         if (imageUrl) {
+            // Add /public prefix for admin context display if URL starts with /uploads
+            const displayUrl = imageUrl.startsWith('/uploads') ? '/public' + imageUrl : imageUrl;
             item.innerHTML = `
-                <img src="${escapeHtml(imageUrl)}" alt="Gallery image">
+                <img src="${escapeHtml(displayUrl)}" alt="Gallery image">
                 <input type="hidden" name="gallery_items[${index}][url]" value="${escapeHtml(imageUrl)}">
                 <input type="hidden" name="gallery_items[${index}][caption]" value="${escapeHtml(caption)}">
                 <button type="button" class="gallery-item-remove" onclick="removeGalleryItem(${index})">×</button>
@@ -4522,13 +4524,16 @@ $typeIcons = [
                 if (data.success && data.url) {
                     const item = document.querySelector(`#galleryItemsList .gallery-item[data-index="${index}"]`);
                     if (item) {
+                        // Display with /public prefix for admin context, but save without it
                         item.innerHTML = `
-                            <img src="${data.url}" alt="Gallery image">
+                            <img src="/public${data.url}" alt="Gallery image">
                             <input type="hidden" name="gallery_items[${index}][url]" value="${data.url}">
                             <input type="hidden" name="gallery_items[${index}][caption]" value="">
                             <button type="button" class="gallery-item-remove" onclick="removeGalleryItem(${index})">×</button>
                         `;
                     }
+                    // Add new empty slot for next image
+                    addGalleryItem();
                 } else {
                     alert(data.error || 'Erreur lors de l\'upload');
                 }
@@ -4655,8 +4660,10 @@ $typeIcons = [
         item.dataset.index = index;
 
         if (imageUrl) {
+            // Add /public prefix for admin context display if URL starts with /uploads
+            const displayUrl = imageUrl.startsWith('/uploads') ? '/public' + imageUrl : imageUrl;
             item.innerHTML = `
-                <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}">
+                <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(name)}">
                 <input type="hidden" name="logo_items[${index}][url]" value="${escapeHtml(imageUrl)}">
                 <input type="hidden" name="logo_items[${index}][name]" value="${escapeHtml(name)}">
                 <input type="hidden" name="logo_items[${index}][link]" value="${escapeHtml(link)}">
@@ -4699,14 +4706,17 @@ $typeIcons = [
                 if (data.success && data.url) {
                     const item = document.querySelector(`#logosItemsList .gallery-item[data-index="${index}"]`);
                     if (item) {
+                        // Display with /public prefix for admin context, but save without it
                         item.innerHTML = `
-                            <img src="${data.url}" alt="Logo">
+                            <img src="/public${data.url}" alt="Logo">
                             <input type="hidden" name="logo_items[${index}][url]" value="${data.url}">
                             <input type="hidden" name="logo_items[${index}][name]" value="">
                             <input type="hidden" name="logo_items[${index}][link]" value="">
                             <button type="button" class="gallery-item-remove" onclick="removeLogoItem(${index})">×</button>
                         `;
                     }
+                    // Add new empty slot for next logo
+                    addLogoItem();
                 } else {
                     alert(data.error || 'Erreur lors de l\'upload');
                 }
