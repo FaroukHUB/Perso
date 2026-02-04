@@ -3255,41 +3255,65 @@ $typeIcons = [
         }
 
         // FAQ
-        if (section.type === 'faq' && section.config) {
-            document.getElementById('propFaqStyle').value = section.config.faq_style || 'accordion';
-            document.getElementById('propFaqAllowMultiple').checked = section.config.allow_multiple || false;
+        if (section.type === 'faq') {
+            if (section.config) {
+                document.getElementById('propFaqStyle').value = section.config.faq_style || 'accordion';
+                document.getElementById('propFaqAllowMultiple').checked = section.config.allow_multiple || false;
+            }
+            // Load FAQ items
+            loadFaqItems(section.config?.faq_items || []);
         }
 
         // Testimonials
-        if (section.type === 'testimonials' && section.config) {
-            document.getElementById('propTestimonialsStyle').value = section.config.testimonials_style || 'carousel';
-            document.getElementById('propTestimonialsShowRating').checked = section.config.show_rating !== false;
+        if (section.type === 'testimonials') {
+            if (section.config) {
+                document.getElementById('propTestimonialsStyle').value = section.config.testimonials_style || 'carousel';
+                document.getElementById('propTestimonialsShowRating').checked = section.config.show_rating !== false;
+            }
+            // Load testimonial items
+            loadTestimonialItems(section.config?.testimonial_items || []);
         }
 
         // Gallery
-        if (section.type === 'image_gallery' && section.config) {
-            document.getElementById('propGalleryStyle').value = section.config.gallery_style || 'grid';
-            document.getElementById('propGalleryColumns').value = section.config.columns || '3';
-            document.getElementById('propGalleryLightbox').checked = section.config.lightbox !== false;
+        if (section.type === 'image_gallery') {
+            if (section.config) {
+                document.getElementById('propGalleryStyle').value = section.config.gallery_style || 'grid';
+                document.getElementById('propGalleryColumns').value = section.config.columns || '3';
+                document.getElementById('propGalleryLightbox').checked = section.config.lightbox !== false;
+            }
+            // Load gallery items
+            loadGalleryItems(section.config?.gallery_items || []);
         }
 
         // Counter
-        if (section.type === 'counter' && section.config) {
-            document.getElementById('propCounterStyle').value = section.config.counter_style || 'cards';
-            document.getElementById('propCounterDuration').value = section.config.duration || 2000;
+        if (section.type === 'counter') {
+            if (section.config) {
+                document.getElementById('propCounterStyle').value = section.config.counter_style || 'cards';
+                document.getElementById('propCounterDuration').value = section.config.duration || 2000;
+            }
+            // Load counter items
+            loadCounterItems(section.config?.counter_items || []);
         }
 
         // Timeline
-        if (section.type === 'timeline' && section.config) {
-            document.getElementById('propTimelineOrientation').value = section.config.orientation || 'vertical';
-            document.getElementById('propTimelineStyle').value = section.config.timeline_style || 'default';
+        if (section.type === 'timeline') {
+            if (section.config) {
+                document.getElementById('propTimelineOrientation').value = section.config.orientation || 'vertical';
+                document.getElementById('propTimelineStyle').value = section.config.timeline_style || 'default';
+            }
+            // Load timeline items
+            loadTimelineItems(section.config?.timeline_items || []);
         }
 
         // Logos
-        if (section.type === 'logos' && section.config) {
-            document.getElementById('propLogosStyle').value = section.config.logos_style || 'grid';
-            document.getElementById('propLogosSize').value = section.config.logos_size || 'medium';
-            document.getElementById('propLogosGrayscale').checked = section.config.grayscale || false;
+        if (section.type === 'logos') {
+            if (section.config) {
+                document.getElementById('propLogosStyle').value = section.config.logos_style || 'grid';
+                document.getElementById('propLogosSize').value = section.config.logos_size || 'medium';
+                document.getElementById('propLogosGrayscale').checked = section.config.grayscale || false;
+            }
+            // Load logo items
+            loadLogoItems(section.config?.logo_items || []);
         }
 
         // Google Map
