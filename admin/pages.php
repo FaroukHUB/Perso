@@ -247,7 +247,7 @@ $activeTab = $_GET['tab'] ?? 'pages';
             font-weight: 500;
         }
 
-        /* Modal */
+        /* Modal Ultra-Moderne */
         .modal {
             display: none;
             position: fixed;
@@ -255,49 +255,225 @@ $activeTab = $_GET['tab'] ?? 'pages';
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(15, 15, 35, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
         .modal.active {
             display: flex;
+            animation: modalFadeIn 0.25s ease;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         .modal-content {
-            background: white;
-            border-radius: 16px;
+            background: #ffffff;
+            border-radius: 24px;
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
             max-height: 90vh;
-            overflow: auto;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            animation: modalSlideIn 0.3s ease;
+        }
+        @keyframes modalSlideIn {
+            from { transform: translateY(20px) scale(0.97); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
         }
         .modal-header {
-            padding: 20px 25px;
-            border-bottom: 1px solid #eee;
+            padding: 28px 32px 20px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+        }
+        .modal-header-content {
+            flex: 1;
         }
         .modal-header h3 {
+            margin: 0 0 6px 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.3px;
+        }
+        .modal-header p {
             margin: 0;
-            font-size: 18px;
+            font-size: 14px;
+            color: #8b8b9e;
         }
         .modal-close {
-            background: none;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f8;
             border: none;
+            border-radius: 12px;
             cursor: pointer;
-            padding: 5px;
             color: #666;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            margin-left: 16px;
+        }
+        .modal-close:hover {
+            background: #ebebf0;
+            color: #333;
+            transform: rotate(90deg);
         }
         .modal-body {
-            padding: 25px;
+            padding: 8px 32px 28px;
+        }
+        .modal-body .form-group {
+            margin-bottom: 20px;
+        }
+        .modal-body .form-group:last-child {
+            margin-bottom: 0;
+        }
+        .modal-body label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            letter-spacing: 0.2px;
+        }
+        .modal-body .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #ebebf0;
+            border-radius: 14px;
+            font-size: 15px;
+            color: #1a1a2e;
+            background: #fafafa;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        .modal-body .form-control::placeholder {
+            color: #b0b0c0;
+        }
+        .modal-body .form-control:hover {
+            border-color: #ddd;
+            background: #fff;
+        }
+        .modal-body .form-control:focus {
+            outline: none;
+            border-color: #ff69b4;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.1);
+        }
+        .modal-body textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .modal-body .form-text {
+            display: block;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #8b8b9e;
+        }
+        .modal-body .form-text strong {
+            color: #ff69b4;
+            font-weight: 600;
+        }
+        .modal-body .url-preview {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 10px;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #f8f8fc 0%, #f0f0f8 100%);
+            border-radius: 10px;
+            font-size: 13px;
+            color: #666;
+        }
+        .modal-body .url-preview strong {
+            color: #ff69b4;
         }
         .modal-footer {
-            padding: 15px 25px;
-            border-top: 1px solid #eee;
+            padding: 20px 32px 28px;
             display: flex;
             justify-content: flex-end;
+            gap: 12px;
+            background: linear-gradient(180deg, transparent 0%, rgba(250, 250, 252, 0.8) 100%);
+        }
+        .modal-footer .btn {
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .modal-footer .btn-outline {
+            background: transparent;
+            border: 2px solid #ebebf0;
+            color: #666;
+        }
+        .modal-footer .btn-outline:hover {
+            background: #f5f5f8;
+            border-color: #ddd;
+            color: #333;
+        }
+        .modal-footer .btn-primary {
+            background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.35);
+        }
+        .modal-footer .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 105, 180, 0.45);
+        }
+        .modal-footer .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Section SEO pliable */
+        .seo-toggle {
+            display: flex;
+            align-items: center;
             gap: 10px;
+            padding: 14px 16px;
+            background: #f8f8fc;
+            border: none;
+            border-radius: 14px;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+        .seo-toggle:hover {
+            background: #f0f0f8;
+        }
+        .seo-toggle svg {
+            color: #ff69b4;
+            transition: transform 0.2s ease;
+        }
+        .seo-toggle.open svg {
+            transform: rotate(90deg);
+        }
+        .seo-toggle span {
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+        }
+        .seo-fields {
+            display: none;
+            padding-top: 4px;
+        }
+        .seo-fields.open {
+            display: block;
+            animation: slideDown 0.2s ease;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -450,9 +626,12 @@ $activeTab = $_GET['tab'] ?? 'pages';
     <div class="modal" id="createModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Nouvelle page</h3>
+                <div class="modal-header-content">
+                    <h3>Créer une page</h3>
+                    <p>Définissez les informations de base de votre nouvelle page</p>
+                </div>
                 <button type="button" class="modal-close" onclick="closeCreateModal()">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"/>
                         <line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
@@ -463,26 +642,48 @@ $activeTab = $_GET['tab'] ?? 'pages';
                 <input type="hidden" name="action" value="create">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="pageTitle">Titre de la page *</label>
-                        <input type="text" id="pageTitle" name="title" required class="form-control" placeholder="Ex: À propos">
+                        <label for="pageTitle">Titre de la page</label>
+                        <input type="text" id="pageTitle" name="title" required class="form-control" placeholder="Ex: À propos de nous">
                     </div>
                     <div class="form-group">
-                        <label for="pageSlug">URL (slug)</label>
-                        <input type="text" id="pageSlug" name="slug" class="form-control" placeholder="a-propos (généré automatiquement si vide)">
-                        <small class="form-text">L'URL sera : votresite.fr/<strong id="slugPreview">votre-slug</strong></small>
+                        <label for="pageSlug">URL personnalisée</label>
+                        <input type="text" id="pageSlug" name="slug" class="form-control" placeholder="Laissez vide pour générer automatiquement">
+                        <div class="url-preview">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                            </svg>
+                            personnaly.fr/<strong id="slugPreview">votre-page</strong>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="pageMetaTitle">Titre SEO</label>
-                        <input type="text" id="pageMetaTitle" name="meta_title" class="form-control" placeholder="Titre pour les moteurs de recherche">
-                    </div>
-                    <div class="form-group">
-                        <label for="pageMetaDesc">Description SEO</label>
-                        <textarea id="pageMetaDesc" name="meta_description" class="form-control" rows="2" placeholder="Description pour les moteurs de recherche"></textarea>
+
+                    <button type="button" class="seo-toggle" onclick="toggleSeoFields()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                        <span>Options SEO avancées</span>
+                    </button>
+
+                    <div class="seo-fields" id="seoFields">
+                        <div class="form-group">
+                            <label for="pageMetaTitle">Titre SEO</label>
+                            <input type="text" id="pageMetaTitle" name="meta_title" class="form-control" placeholder="Titre affiché dans Google">
+                        </div>
+                        <div class="form-group">
+                            <label for="pageMetaDesc">Description SEO</label>
+                            <textarea id="pageMetaDesc" name="meta_description" class="form-control" rows="3" placeholder="Description courte pour les résultats de recherche (160 caractères max)"></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeCreateModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary">Créer et modifier</button>
+                    <button type="submit" class="btn btn-primary">
+                        Créer la page
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 6px;">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </button>
                 </div>
             </form>
         </div>
@@ -531,6 +732,14 @@ $activeTab = $_GET['tab'] ?? 'pages';
             document.getElementById('pageSlug').placeholder = slug || 'votre-slug';
             document.getElementById('slugPreview').textContent = slug || 'votre-slug';
         });
+
+        // Toggle SEO fields section
+        function toggleSeoFields() {
+            const toggle = document.querySelector('.seo-toggle');
+            const fields = document.getElementById('seoFields');
+            toggle.classList.toggle('open');
+            fields.classList.toggle('open');
+        }
 
         // Fermer modal avec Escape
         document.addEventListener('keydown', function(e) {
