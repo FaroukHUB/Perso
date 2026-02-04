@@ -179,6 +179,27 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 'padding_y' => $_POST['style_padding_y'] ?? 'medium',
             ];
 
+            // Typography
+            $data['config']['typography'] = [
+                'font_family' => !empty($_POST['typo_font_family']) ? $_POST['typo_font_family'] : null,
+                'subtitle_font_family' => !empty($_POST['typo_subtitle_font_family']) ? $_POST['typo_subtitle_font_family'] : null,
+                'title_size' => !empty($_POST['typo_title_size']) ? $_POST['typo_title_size'] : null,
+                'title_color' => !empty($_POST['typo_title_color']) && $_POST['typo_title_color'] !== '#1a1a1a' ? $_POST['typo_title_color'] : null,
+                'subtitle_color' => !empty($_POST['typo_subtitle_color']) && $_POST['typo_subtitle_color'] !== '#666666' ? $_POST['typo_subtitle_color'] : null,
+                'bold' => ($_POST['typo_bold'] ?? '0') === '1' ? '1' : null,
+                'italic' => ($_POST['typo_italic'] ?? '0') === '1' ? '1' : null,
+                'underline' => ($_POST['typo_underline'] ?? '0') === '1' ? '1' : null,
+                'uppercase' => ($_POST['typo_uppercase'] ?? '0') === '1' ? '1' : null,
+                'subtitle_bold' => ($_POST['typo_subtitle_bold'] ?? '0') === '1' ? '1' : null,
+                'subtitle_italic' => ($_POST['typo_subtitle_italic'] ?? '0') === '1' ? '1' : null,
+                'subtitle_underline' => ($_POST['typo_subtitle_underline'] ?? '0') === '1' ? '1' : null,
+                'align' => !empty($_POST['typo_align']) && $_POST['typo_align'] !== 'center' ? $_POST['typo_align'] : null,
+                'offset_x' => !empty($_POST['typo_offset_x']) && $_POST['typo_offset_x'] !== '0' ? (int)$_POST['typo_offset_x'] : null,
+                'offset_y' => !empty($_POST['typo_offset_y']) && $_POST['typo_offset_y'] !== '0' ? (int)$_POST['typo_offset_y'] : null,
+            ];
+            // Nettoyer les valeurs null
+            $data['config']['typography'] = array_filter($data['config']['typography'], fn($v) => $v !== null);
+
             try {
                 // Debug: log what we're creating
                 error_log("PageEditor: Creating section for page_id=$pageId, type={$data['type']}, isEdit=$isEdit");
@@ -774,6 +795,324 @@ $typeIcons = [
             border-radius: 8px;
             font-size: 14px;
         }
+
+        /* Gradient Picker */
+        .gradient-picker {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .gradient-tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+        }
+
+        .gradient-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: #f8f8f8;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gradient-tab:first-child {
+            border-radius: 9px 0 0 0;
+        }
+
+        .gradient-tab:last-child {
+            border-radius: 0 9px 0 0;
+        }
+
+        .gradient-tab.active {
+            background: #fff;
+            color: var(--primary-color, #ff69b4);
+        }
+
+        .gradient-tab:hover:not(.active) {
+            background: #f0f0f0;
+        }
+
+        .gradient-content {
+            padding: 12px;
+        }
+
+        .gradient-solid {
+            display: none;
+        }
+
+        .gradient-solid.active {
+            display: block;
+        }
+
+        .gradient-solid input[type="color"] {
+            height: 45px;
+            border-radius: 8px;
+            width: 100%;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+
+        .gradient-options {
+            display: none;
+        }
+
+        .gradient-options.active {
+            display: block;
+        }
+
+        .gradient-colors {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .gradient-color-item label {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .gradient-color-item input[type="color"] {
+            height: 36px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .gradient-angle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .gradient-angle label {
+            font-size: 11px;
+            color: #888;
+            min-width: 40px;
+            margin: 0 !important;
+        }
+
+        .gradient-angle .angle-slider {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #ff69b4, #3dffc0, #667eea, #ff69b4);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .gradient-angle .angle-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border: 2px solid var(--primary-color, #ff69b4);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .gradient-angle .angle-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            min-width: 35px;
+            text-align: right;
+        }
+
+        .gradient-type {
+            margin-bottom: 10px;
+        }
+
+        .gradient-type-select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 12px;
+            background: #f8f8f8;
+        }
+
+        .gradient-preview {
+            height: 30px;
+            border-radius: 6px;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+            background: #f0f0f0;
+        }
+
+        /* Gradient Presets */
+        .gradient-presets {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .gradient-preset {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 3px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gradient-preset:hover {
+            transform: scale(1.1);
+            border-color: var(--primary-color, #ff69b4);
+        }
+
+        .gradient-preset.active {
+            border-color: var(--primary-color, #ff69b4);
+            box-shadow: 0 0 0 2px rgba(255, 105, 180, 0.3);
+        }
+
+        .gradient-preset span {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+        }
+
+        /* Prop group row */
+        .prop-group-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Sous-sections (Titre, Sous-titre, Positionnement) */
+        .prop-subsection {
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .prop-subsection-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Typography toggles */
+        .typo-toggles {
+            display: flex;
+            gap: 6px;
+        }
+
+        .typo-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: #f5f5f5;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .typo-toggle:hover {
+            background: #eee;
+            color: #333;
+        }
+
+        .typo-toggle.active {
+            background: linear-gradient(135deg, rgba(255,105,180,0.15), rgba(255,20,147,0.1));
+            border-color: var(--primary-color, #ff69b4);
+            color: var(--primary-color, #ff69b4);
+        }
+
+        /* Alignment toggles */
+        .align-toggles {
+            display: flex;
+            gap: 6px;
+        }
+
+        .align-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            height: 40px;
+            background: #f5f5f5;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .align-toggle:hover {
+            background: #eee;
+            color: #333;
+        }
+
+        .align-toggle.active {
+            background: linear-gradient(135deg, rgba(255,105,180,0.15), rgba(255,20,147,0.1));
+            border-color: var(--primary-color, #ff69b4);
+            color: var(--primary-color, #ff69b4);
+        }
+
+        /* Offset controls */
+        .offset-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .offset-control input[type="range"] {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .offset-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border: 2px solid var(--primary-color, #ff69b4);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .offset-control .offset-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        /* Style section title */
+        .prop-section-title svg {
+            color: var(--primary-color, #ff69b4);
+        }
     </style>
 </head>
 <body class="builder-body">
@@ -1017,13 +1356,344 @@ $typeIcons = [
                         </div>
                     </div>
 
-                    <!-- Style -->
-                    <div class="prop-section">
-                        <div class="prop-section-title">Style</div>
-                        <div class="prop-group">
-                            <label>Fond</label>
-                            <input type="color" name="style_bg_color" id="propBgColor" value="#ffffff" style="width: 100%; height: 40px;">
+                    <!-- Typographie & Style du texte -->
+                    <div class="prop-section typography-fields">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="4 7 4 4 20 4 20 7"/>
+                                <line x1="9" y1="20" x2="15" y2="20"/>
+                                <line x1="12" y1="4" x2="12" y2="20"/>
+                            </svg>
+                            Style du texte
                         </div>
+
+                        <!-- BLOC TITRE -->
+                        <div class="prop-subsection">
+                            <div class="prop-subsection-title">Titre</div>
+
+                            <div class="prop-group-row">
+                                <div class="prop-group">
+                                    <label>Police</label>
+                                    <select name="typo_font_family" id="propFontFamily">
+                                        <option value="">Par défaut</option>
+                                        <?php foreach ($fonts as $font): ?>
+                                        <option value="<?= h($font['family']) ?>" style="font-family: '<?= h($font['family']) ?>'">
+                                            <?= h($font['name']) ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="prop-group">
+                                    <label>Taille</label>
+                                    <select name="typo_title_size" id="propTitleSize">
+                                        <option value="">Par défaut</option>
+                                        <option value="small">Petit</option>
+                                        <option value="medium">Moyen</option>
+                                        <option value="large">Grand</option>
+                                        <option value="xlarge">Très grand</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="prop-group">
+                                <label>Couleur</label>
+                                <div class="gradient-picker" id="titleColorPicker" data-field="typo_title_color">
+                                    <div class="gradient-tabs">
+                                        <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
+                                        <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
+                                    </div>
+                                    <div class="gradient-content">
+                                        <div class="gradient-solid active">
+                                            <input type="color" class="color-solid" value="#1a1a1a">
+                                        </div>
+                                        <div class="gradient-options">
+                                            <div class="gradient-colors">
+                                                <div class="gradient-color-item">
+                                                    <label>Début</label>
+                                                    <input type="color" class="color-start" value="#ff69b4">
+                                                </div>
+                                                <div class="gradient-color-item">
+                                                    <label>Fin</label>
+                                                    <input type="color" class="color-end" value="#ff1493">
+                                                </div>
+                                            </div>
+                                            <div class="gradient-angle">
+                                                <label>Angle</label>
+                                                <input type="range" class="angle-slider" min="0" max="360" value="135">
+                                                <span class="angle-value">135°</span>
+                                            </div>
+                                            <div class="gradient-type">
+                                                <select class="gradient-type-select">
+                                                    <option value="linear">Linéaire</option>
+                                                    <option value="radial">Radial</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="gradient-preview"></div>
+                                    <input type="hidden" name="typo_title_color" id="propTitleColor" value="#1a1a1a">
+                                </div>
+                            </div>
+
+                            <div class="prop-group">
+                                <label>Style</label>
+                                <div class="typo-toggles">
+                                    <button type="button" class="typo-toggle" data-field="typo_bold" title="Gras">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="typo-toggle" data-field="typo_italic" title="Italique">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="19" y1="4" x2="10" y2="4"/>
+                                            <line x1="14" y1="20" x2="5" y2="20"/>
+                                            <line x1="15" y1="4" x2="9" y2="20"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="typo-toggle" data-field="typo_underline" title="Souligné">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/>
+                                            <line x1="4" y1="21" x2="20" y2="21"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="typo-toggle" data-field="typo_uppercase" title="Majuscules">
+                                        <span style="font-weight: 600; font-size: 12px;">AA</span>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="typo_bold" id="propTypoBold" value="0">
+                                <input type="hidden" name="typo_italic" id="propTypoItalic" value="0">
+                                <input type="hidden" name="typo_underline" id="propTypoUnderline" value="0">
+                                <input type="hidden" name="typo_uppercase" id="propTypoUppercase" value="0">
+                            </div>
+                        </div>
+
+                        <!-- BLOC SOUS-TITRE -->
+                        <div class="prop-subsection">
+                            <div class="prop-subsection-title">Sous-titre</div>
+
+                            <div class="prop-group">
+                                <label>Police</label>
+                                <select name="typo_subtitle_font_family" id="propSubtitleFontFamily">
+                                    <option value="">Hériter du titre</option>
+                                    <?php foreach ($fonts as $font): ?>
+                                    <option value="<?= h($font['family']) ?>" style="font-family: '<?= h($font['family']) ?>'">
+                                        <?= h($font['name']) ?>
+                                    </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="prop-group">
+                                <label>Couleur</label>
+                                <div class="gradient-picker" id="subtitleColorPicker" data-field="typo_subtitle_color">
+                                    <div class="gradient-tabs">
+                                        <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
+                                        <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
+                                    </div>
+                                    <div class="gradient-content">
+                                        <div class="gradient-solid active">
+                                            <input type="color" class="color-solid" value="#666666">
+                                        </div>
+                                        <div class="gradient-options">
+                                            <div class="gradient-colors">
+                                                <div class="gradient-color-item">
+                                                    <label>Début</label>
+                                                    <input type="color" class="color-start" value="#3dffc0">
+                                                </div>
+                                                <div class="gradient-color-item">
+                                                    <label>Fin</label>
+                                                    <input type="color" class="color-end" value="#00d9a0">
+                                                </div>
+                                            </div>
+                                            <div class="gradient-angle">
+                                                <label>Angle</label>
+                                                <input type="range" class="angle-slider" min="0" max="360" value="135">
+                                                <span class="angle-value">135°</span>
+                                            </div>
+                                            <div class="gradient-type">
+                                                <select class="gradient-type-select">
+                                                    <option value="linear">Linéaire</option>
+                                                    <option value="radial">Radial</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="gradient-preview"></div>
+                                    <input type="hidden" name="typo_subtitle_color" id="propSubtitleColor" value="#666666">
+                                </div>
+                            </div>
+
+                            <div class="prop-group">
+                                <label>Style</label>
+                                <div class="typo-toggles">
+                                    <button type="button" class="typo-toggle" data-field="typo_subtitle_bold" title="Gras">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="typo-toggle" data-field="typo_subtitle_italic" title="Italique">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="19" y1="4" x2="10" y2="4"/>
+                                            <line x1="14" y1="20" x2="5" y2="20"/>
+                                            <line x1="15" y1="4" x2="9" y2="20"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="typo-toggle" data-field="typo_subtitle_underline" title="Souligné">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/>
+                                            <line x1="4" y1="21" x2="20" y2="21"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="typo_subtitle_bold" id="propTypoSubtitleBold" value="0">
+                                <input type="hidden" name="typo_subtitle_italic" id="propTypoSubtitleItalic" value="0">
+                                <input type="hidden" name="typo_subtitle_underline" id="propTypoSubtitleUnderline" value="0">
+                            </div>
+                        </div>
+
+                        <!-- BLOC POSITIONNEMENT -->
+                        <div class="prop-subsection">
+                            <div class="prop-subsection-title">Positionnement</div>
+
+                            <div class="prop-group">
+                                <label>Alignement</label>
+                                <div class="align-toggles">
+                                    <button type="button" class="align-toggle" data-value="left" title="Gauche">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="3" y1="6" x2="21" y2="6"/>
+                                            <line x1="3" y1="12" x2="15" y2="12"/>
+                                            <line x1="3" y1="18" x2="18" y2="18"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="align-toggle active" data-value="center" title="Centre">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="3" y1="6" x2="21" y2="6"/>
+                                            <line x1="6" y1="12" x2="18" y2="12"/>
+                                            <line x1="4" y1="18" x2="20" y2="18"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="align-toggle" data-value="right" title="Droite">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="3" y1="6" x2="21" y2="6"/>
+                                            <line x1="9" y1="12" x2="21" y2="12"/>
+                                            <line x1="6" y1="18" x2="21" y2="18"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="typo_align" id="propTypoAlign" value="center">
+                            </div>
+
+                            <div class="prop-group-row">
+                                <div class="prop-group">
+                                    <label>Décalage vertical</label>
+                                    <div class="offset-control">
+                                        <input type="range" name="typo_offset_y" id="propOffsetY" min="-100" max="100" value="0">
+                                        <span class="offset-value" id="offsetYValue">0px</span>
+                                    </div>
+                                </div>
+                                <div class="prop-group">
+                                    <label>Décalage horizontal</label>
+                                    <div class="offset-control">
+                                        <input type="range" name="typo_offset_x" id="propOffsetX" min="-100" max="100" value="0">
+                                        <span class="offset-value" id="offsetXValue">0px</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Style Apparence -->
+                    <div class="prop-section style-fields">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="13.5" cy="6.5" r="2.5"/>
+                                <circle cx="17.5" cy="10.5" r="2.5"/>
+                                <circle cx="8.5" cy="7.5" r="2.5"/>
+                                <circle cx="6.5" cy="12.5" r="2.5"/>
+                                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12"/>
+                            </svg>
+                            Apparence
+                        </div>
+
+                        <div class="prop-group">
+                            <label>Couleur de fond</label>
+                            <div class="gradient-picker" id="bgColorPicker" data-field="style_bg_color">
+                                <div class="gradient-tabs">
+                                    <button type="button" class="gradient-tab active" data-mode="solid">Unie</button>
+                                    <button type="button" class="gradient-tab" data-mode="gradient">Dégradé</button>
+                                </div>
+                                <div class="gradient-content">
+                                    <div class="gradient-solid active">
+                                        <input type="color" class="color-solid" value="#ffffff">
+                                    </div>
+                                    <div class="gradient-options">
+                                        <div class="gradient-colors">
+                                            <div class="gradient-color-item">
+                                                <label>Début</label>
+                                                <input type="color" class="color-start" value="#1a1a2e">
+                                            </div>
+                                            <div class="gradient-color-item">
+                                                <label>Fin</label>
+                                                <input type="color" class="color-end" value="#252542">
+                                            </div>
+                                        </div>
+                                        <div class="gradient-angle">
+                                            <label>Angle</label>
+                                            <input type="range" class="angle-slider" min="0" max="360" value="180">
+                                            <span class="angle-value">180°</span>
+                                        </div>
+                                        <div class="gradient-type">
+                                            <select class="gradient-type-select">
+                                                <option value="linear">Linéaire</option>
+                                                <option value="radial">Radial</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="gradient-preview"></div>
+                                <input type="hidden" name="style_bg_color" id="propBgColor" value="#ffffff">
+                            </div>
+                        </div>
+
+                        <!-- Presets de dégradés populaires -->
+                        <div class="prop-group">
+                            <label>Dégradés prédéfinis</label>
+                            <div class="gradient-presets">
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #ff69b4 0%, #ff1493 100%)" title="Pink">
+                                    <span style="background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #3dffc0 0%, #00d9a0 100%)" title="Mint">
+                                    <span style="background: linear-gradient(135deg, #3dffc0 0%, #00d9a0 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" title="Purple">
+                                    <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" title="Sunset">
+                                    <span style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" title="Ocean">
+                                    <span style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" title="Nature">
+                                    <span style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)" title="Warm">
+                                    <span style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)" title="Pastel">
+                                    <span style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #0c0c0c 0%, #434343 100%)" title="Dark">
+                                    <span style="background: linear-gradient(135deg, #0c0c0c 0%, #434343 100%)"></span>
+                                </button>
+                                <button type="button" class="gradient-preset" data-gradient="linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" title="Light">
+                                    <span style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)"></span>
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="prop-group">
                             <label>Espacement</label>
                             <select name="style_padding_y" id="propPaddingY">
@@ -1261,11 +1931,8 @@ $typeIcons = [
             }
             document.getElementById('clearMedia').checked = false;
 
-            // Style
-            if (section.config && section.config.style) {
-                document.getElementById('propBgColor').value = section.config.style.background_color || '#ffffff';
-                document.getElementById('propPaddingY').value = section.config.style.padding_y || 'medium';
-            }
+            // Style & Typography
+            setTypographyValues(section.config);
 
             updateTypeFields(section.type);
 
@@ -1472,6 +2139,296 @@ $typeIcons = [
                 closePageModal();
                 closeAddModal();
             }
+        });
+
+        // ===== GRADIENT PICKERS =====
+        function initGradientPickers() {
+            document.querySelectorAll('.gradient-picker').forEach(picker => {
+                const tabs = picker.querySelectorAll('.gradient-tab');
+                const solidSection = picker.querySelector('.gradient-solid');
+                const gradientSection = picker.querySelector('.gradient-options');
+                const preview = picker.querySelector('.gradient-preview');
+                const hiddenInput = picker.querySelector('input[type="hidden"]');
+
+                // Tab switching
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        const mode = this.dataset.mode;
+                        tabs.forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+
+                        if (mode === 'solid') {
+                            solidSection.classList.add('active');
+                            gradientSection.classList.remove('active');
+                        } else {
+                            solidSection.classList.remove('active');
+                            gradientSection.classList.add('active');
+                        }
+                        updateGradientValue(picker);
+                    });
+                });
+
+                // Color inputs change
+                const colorSolid = picker.querySelector('.color-solid');
+                const colorStart = picker.querySelector('.color-start');
+                const colorEnd = picker.querySelector('.color-end');
+                const angleSlider = picker.querySelector('.angle-slider');
+                const angleValue = picker.querySelector('.angle-value');
+                const typeSelect = picker.querySelector('.gradient-type-select');
+
+                if (colorSolid) {
+                    colorSolid.addEventListener('input', () => updateGradientValue(picker));
+                }
+                if (colorStart) {
+                    colorStart.addEventListener('input', () => updateGradientValue(picker));
+                }
+                if (colorEnd) {
+                    colorEnd.addEventListener('input', () => updateGradientValue(picker));
+                }
+                if (angleSlider) {
+                    angleSlider.addEventListener('input', function() {
+                        angleValue.textContent = this.value + '°';
+                        updateGradientValue(picker);
+                    });
+                }
+                if (typeSelect) {
+                    typeSelect.addEventListener('change', () => updateGradientValue(picker));
+                }
+
+                // Initial preview
+                updateGradientValue(picker);
+            });
+        }
+
+        function updateGradientValue(picker) {
+            const isGradient = picker.querySelector('.gradient-tab[data-mode="gradient"]').classList.contains('active');
+            const preview = picker.querySelector('.gradient-preview');
+            const hiddenInput = picker.querySelector('input[type="hidden"]');
+            let value;
+
+            if (isGradient) {
+                const colorStart = picker.querySelector('.color-start').value;
+                const colorEnd = picker.querySelector('.color-end').value;
+                const angle = picker.querySelector('.angle-slider').value;
+                const type = picker.querySelector('.gradient-type-select').value;
+
+                if (type === 'radial') {
+                    value = `radial-gradient(circle, ${colorStart} 0%, ${colorEnd} 100%)`;
+                } else {
+                    value = `linear-gradient(${angle}deg, ${colorStart} 0%, ${colorEnd} 100%)`;
+                }
+            } else {
+                value = picker.querySelector('.color-solid').value;
+            }
+
+            preview.style.background = value;
+            hiddenInput.value = value;
+        }
+
+        function setGradientPickerValue(picker, value) {
+            if (!value || !picker) return;
+
+            const tabs = picker.querySelectorAll('.gradient-tab');
+            const solidSection = picker.querySelector('.gradient-solid');
+            const gradientSection = picker.querySelector('.gradient-options');
+            const colorSolid = picker.querySelector('.color-solid');
+            const colorStart = picker.querySelector('.color-start');
+            const colorEnd = picker.querySelector('.color-end');
+            const angleSlider = picker.querySelector('.angle-slider');
+            const angleValue = picker.querySelector('.angle-value');
+            const typeSelect = picker.querySelector('.gradient-type-select');
+            const preview = picker.querySelector('.gradient-preview');
+            const hiddenInput = picker.querySelector('input[type="hidden"]');
+
+            // Check if it's a gradient
+            if (value.includes('gradient')) {
+                // Switch to gradient mode
+                tabs.forEach(t => t.classList.toggle('active', t.dataset.mode === 'gradient'));
+                solidSection.classList.remove('active');
+                gradientSection.classList.add('active');
+
+                // Parse gradient
+                const isRadial = value.includes('radial');
+                typeSelect.value = isRadial ? 'radial' : 'linear';
+
+                // Extract colors
+                const colorMatches = value.match(/#[a-fA-F0-9]{6}/g);
+                if (colorMatches && colorMatches.length >= 2) {
+                    colorStart.value = colorMatches[0];
+                    colorEnd.value = colorMatches[1];
+                }
+
+                // Extract angle for linear gradient
+                if (!isRadial) {
+                    const angleMatch = value.match(/(\d+)deg/);
+                    if (angleMatch) {
+                        angleSlider.value = angleMatch[1];
+                        angleValue.textContent = angleMatch[1] + '°';
+                    }
+                }
+            } else {
+                // Solid color mode
+                tabs.forEach(t => t.classList.toggle('active', t.dataset.mode === 'solid'));
+                solidSection.classList.add('active');
+                gradientSection.classList.remove('active');
+
+                // Set color (handle hex colors)
+                if (value.startsWith('#')) {
+                    colorSolid.value = value;
+                }
+            }
+
+            preview.style.background = value;
+            hiddenInput.value = value;
+        }
+
+        // Gradient Presets
+        function initGradientPresets() {
+            document.querySelectorAll('.gradient-preset').forEach(preset => {
+                preset.addEventListener('click', function() {
+                    const gradient = this.dataset.gradient;
+
+                    // Apply to background color picker
+                    const bgPicker = document.getElementById('bgColorPicker');
+                    if (bgPicker) {
+                        setGradientPickerValue(bgPicker, gradient);
+                    }
+
+                    // Visual feedback
+                    document.querySelectorAll('.gradient-preset').forEach(p => p.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        // Typography Toggles
+        function initTypographyToggles() {
+            document.querySelectorAll('.typo-toggle').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const field = this.dataset.field;
+                    const inputId = 'propTypo' + field.replace('typo_', '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+                    const input = document.getElementById(inputId);
+                    if (input) {
+                        input.value = this.classList.contains('active') ? '1' : '0';
+                    }
+                });
+            });
+
+            // Alignment toggles
+            document.querySelectorAll('.align-toggle').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.align-toggle').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById('propTypoAlign').value = this.dataset.value;
+                });
+            });
+
+            // Offset controls
+            const offsetY = document.getElementById('propOffsetY');
+            const offsetX = document.getElementById('propOffsetX');
+            if (offsetY) {
+                offsetY.addEventListener('input', function() {
+                    document.getElementById('offsetYValue').textContent = this.value + 'px';
+                });
+            }
+            if (offsetX) {
+                offsetX.addEventListener('input', function() {
+                    document.getElementById('offsetXValue').textContent = this.value + 'px';
+                });
+            }
+        }
+
+        // Set typography values from config
+        function setTypographyValues(config) {
+            const typo = config?.typography || {};
+            const style = config?.style || {};
+
+            // Font family titre
+            const fontFamily = document.getElementById('propFontFamily');
+            if (fontFamily) fontFamily.value = typo.font_family || '';
+
+            // Font family sous-titre
+            const subtitleFontFamily = document.getElementById('propSubtitleFontFamily');
+            if (subtitleFontFamily) subtitleFontFamily.value = typo.subtitle_font_family || '';
+
+            // Title size
+            const titleSize = document.getElementById('propTitleSize');
+            if (titleSize) titleSize.value = typo.title_size || '';
+
+            // Handle gradient pickers for typography colors
+            const titleColorPicker = document.getElementById('titleColorPicker');
+            const subtitleColorPicker = document.getElementById('subtitleColorPicker');
+
+            if (titleColorPicker) {
+                setGradientPickerValue(titleColorPicker, typo.title_color || '#1a1a1a');
+            }
+            if (subtitleColorPicker) {
+                setGradientPickerValue(subtitleColorPicker, typo.subtitle_color || '#666666');
+            }
+
+            // Handle gradient picker for style background
+            const bgColorPicker = document.getElementById('bgColorPicker');
+            if (bgColorPicker) {
+                setGradientPickerValue(bgColorPicker, style.background_color || '#ffffff');
+            }
+
+            // Padding
+            const paddingY = document.getElementById('propPaddingY');
+            if (paddingY) paddingY.value = style.padding_y || 'medium';
+
+            // Bold, Italic, Underline, Uppercase toggles (titre)
+            const toggleFields = ['bold', 'italic', 'underline', 'uppercase'];
+            toggleFields.forEach(field => {
+                const btn = document.querySelector(`.typo-toggle[data-field="typo_${field}"]`);
+                const inputId = 'propTypo' + field.charAt(0).toUpperCase() + field.slice(1);
+                const input = document.getElementById(inputId);
+                const value = typo[field] === '1' || typo[field] === 1 || typo[field] === true;
+
+                if (btn) btn.classList.toggle('active', value);
+                if (input) input.value = value ? '1' : '0';
+            });
+
+            // Bold, Italic, Underline toggles (sous-titre)
+            const subtitleToggleFields = ['subtitle_bold', 'subtitle_italic', 'subtitle_underline'];
+            subtitleToggleFields.forEach(field => {
+                const btn = document.querySelector(`.typo-toggle[data-field="typo_${field}"]`);
+                const inputId = 'propTypo' + field.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+                const input = document.getElementById(inputId);
+                const value = typo[field] === '1' || typo[field] === 1 || typo[field] === true;
+
+                if (btn) btn.classList.toggle('active', value);
+                if (input) input.value = value ? '1' : '0';
+            });
+
+            // Alignment
+            const align = typo.align || 'center';
+            document.querySelectorAll('.align-toggle').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === align);
+            });
+            const alignInput = document.getElementById('propTypoAlign');
+            if (alignInput) alignInput.value = align;
+
+            // Offsets
+            const offsetY = parseInt(typo.offset_y) || 0;
+            const offsetX = parseInt(typo.offset_x) || 0;
+            const offsetYInput = document.getElementById('propOffsetY');
+            const offsetXInput = document.getElementById('propOffsetX');
+            if (offsetYInput) {
+                offsetYInput.value = offsetY;
+                document.getElementById('offsetYValue').textContent = offsetY + 'px';
+            }
+            if (offsetXInput) {
+                offsetXInput.value = offsetX;
+                document.getElementById('offsetXValue').textContent = offsetX + 'px';
+            }
+        }
+
+        // Initialize everything on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initGradientPickers();
+            initGradientPresets();
+            initTypographyToggles();
         });
     </script>
 </body>
