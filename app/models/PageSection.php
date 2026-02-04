@@ -5,6 +5,9 @@
  */
 
 require_once __DIR__ . '/../core/Database.php';
+require_once __DIR__ . '/SectionFaq.php';
+require_once __DIR__ . '/SectionTestimonial.php';
+require_once __DIR__ . '/SectionGallery.php';
 
 class PageSection
 {
@@ -55,9 +58,35 @@ class PageSection
         if ($section) {
             $section['config'] = json_decode($section['config_json'] ?? '{}', true) ?? [];
             $section['items'] = $this->getItems($id);
+            $section = $this->loadTypeSpecificData($section);
         }
 
         return $section ?: null;
+    }
+
+    /**
+     * Charge les données spécifiques selon le type de section
+     */
+    private function loadTypeSpecificData(array $section): array
+    {
+        switch ($section['type']) {
+            case 'faq':
+                $faqModel = new SectionFaq();
+                $section['faq_items'] = $faqModel->findBySection($section['id']);
+                break;
+
+            case 'testimonials':
+                $testimonialModel = new SectionTestimonial();
+                $section['testimonials'] = $testimonialModel->findBySection($section['id']);
+                break;
+
+            case 'image_gallery':
+                $galleryModel = new SectionGallery();
+                $section['gallery_images'] = $galleryModel->findBySection($section['id']);
+                break;
+        }
+
+        return $section;
     }
 
     /**
@@ -78,6 +107,7 @@ class PageSection
         foreach ($sections as &$section) {
             $section['config'] = json_decode($section['config_json'] ?? '{}', true) ?? [];
             $section['items'] = $this->getItems($section['id']);
+            $section = $this->loadTypeSpecificData($section);
         }
 
         return $sections;
