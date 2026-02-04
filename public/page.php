@@ -218,7 +218,6 @@ $metaDescription = $page['meta_description'] ?: '';
     <?= FontLoader::renderHead() ?>
     <style><?= $brandingService->getCSSVariables() ?></style>
     <link rel="stylesheet" href="/public/assets/css/style.css">
-    <link rel="stylesheet" href="/public/assets/css/homepage.css">
 </head>
 <body>
     <?php include __DIR__ . '/../app/templates/header.php'; ?>
@@ -383,7 +382,5 @@ $metaDescription = $page['meta_description'] ?: '';
     </main>
 
     <?php include __DIR__ . '/../app/templates/footer.php'; ?>
-
-    <script src="/public/assets/js/cart.js"></script>
 </body>
 </html>
