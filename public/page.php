@@ -62,6 +62,22 @@ $page = $pageModel->findBySlug($slug);
 // Mode preview builder (permet de voir les pages brouillon)
 $isBuilderPreview = isset($_GET['preview']) && $_GET['preview'] === 'builder';
 
+// DEBUG: afficher pourquoi on tombe en 404
+if (isset($_GET['debug']) && $_GET['debug'] === '2') {
+    echo "<pre>DEBUG page.php (niveau 2):\n";
+    echo "slug: $slug\n";
+    echo "page trouvée: " . ($page ? "OUI" : "NON") . "\n";
+    if ($page) {
+        echo "page id: {$page['id']}\n";
+        echo "page status: {$page['status']}\n";
+    }
+    echo "GET preview: " . ($_GET['preview'] ?? 'non défini') . "\n";
+    echo "isBuilderPreview: " . ($isBuilderPreview ? 'true' : 'false') . "\n";
+    echo "Condition 404: " . (!$isBuilderPreview && $page && $page['status'] !== 'published' ? 'OUI (404)' : 'NON (OK)') . "\n";
+    echo "</pre>";
+    exit;
+}
+
 // Vérifier que la page existe
 if (!$page) {
     header('HTTP/1.0 404 Not Found');
