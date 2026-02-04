@@ -195,6 +195,98 @@ if (isPost() && !empty($_POST['ajax_action'])) {
                 $data['config']['cta2_url'] = sanitizeUrl($_POST['hero_cta2_url'] ?? '');
             }
 
+            // Config Video
+            if ($data['type'] === 'video') {
+                $data['config']['video_url'] = trim($_POST['video_url'] ?? '');
+                $data['config']['video_type'] = $_POST['video_type'] ?? 'youtube';
+                $data['config']['autoplay'] = isset($_POST['video_autoplay']) ? true : false;
+                $data['config']['muted'] = isset($_POST['video_muted']) ? true : false;
+                $data['config']['loop'] = isset($_POST['video_loop']) ? true : false;
+                $data['config']['ratio'] = $_POST['video_ratio'] ?? '16:9';
+            }
+
+            // Config FAQ
+            if ($data['type'] === 'faq') {
+                $data['config']['faq_style'] = $_POST['faq_style'] ?? 'accordion';
+                $data['config']['allow_multiple'] = isset($_POST['faq_allow_multiple']) ? true : false;
+            }
+
+            // Config Testimonials
+            if ($data['type'] === 'testimonials') {
+                $data['config']['testimonials_style'] = $_POST['testimonials_style'] ?? 'carousel';
+                $data['config']['show_rating'] = isset($_POST['testimonials_show_rating']) ? true : false;
+            }
+
+            // Config Gallery
+            if ($data['type'] === 'image_gallery') {
+                $data['config']['gallery_style'] = $_POST['gallery_style'] ?? 'grid';
+                $data['config']['columns'] = (int) ($_POST['gallery_columns'] ?? 3);
+                $data['config']['lightbox'] = isset($_POST['gallery_lightbox']) ? true : false;
+            }
+
+            // Config Counter
+            if ($data['type'] === 'counter') {
+                $data['config']['counter_style'] = $_POST['counter_style'] ?? 'cards';
+                $data['config']['duration'] = (int) ($_POST['counter_duration'] ?? 2000);
+            }
+
+            // Config Timeline
+            if ($data['type'] === 'timeline') {
+                $data['config']['orientation'] = $_POST['timeline_orientation'] ?? 'vertical';
+                $data['config']['timeline_style'] = $_POST['timeline_style'] ?? 'default';
+            }
+
+            // Config Logos
+            if ($data['type'] === 'logos') {
+                $data['config']['logos_style'] = $_POST['logos_style'] ?? 'grid';
+                $data['config']['logos_size'] = $_POST['logos_size'] ?? 'medium';
+                $data['config']['grayscale'] = isset($_POST['logos_grayscale']) ? true : false;
+            }
+
+            // Config Google Map
+            if ($data['type'] === 'google_map') {
+                $data['config']['address'] = trim($_POST['map_address'] ?? '');
+                $data['config']['lat'] = trim($_POST['map_lat'] ?? '');
+                $data['config']['lng'] = trim($_POST['map_lng'] ?? '');
+                $data['config']['zoom'] = (int) ($_POST['map_zoom'] ?? 15);
+                $data['config']['height'] = (int) ($_POST['map_height'] ?? 400);
+                $data['config']['map_style'] = $_POST['map_style'] ?? 'default';
+            }
+
+            // Config Google Reviews
+            if ($data['type'] === 'google_reviews') {
+                $data['config']['place_id'] = trim($_POST['google_place_id'] ?? '');
+                $data['config']['reviews_count'] = (int) ($_POST['reviews_count'] ?? 5);
+                $data['config']['min_rating'] = (int) ($_POST['reviews_min_rating'] ?? 4);
+                $data['config']['reviews_style'] = $_POST['reviews_style'] ?? 'carousel';
+                $data['config']['show_badge'] = isset($_POST['reviews_show_badge']) ? true : false;
+            }
+
+            // Config Contact Form
+            if ($data['type'] === 'contact_form') {
+                $data['config']['contact_email'] = trim($_POST['contact_email'] ?? '');
+                $data['config']['contact_subject'] = trim($_POST['contact_subject'] ?? '');
+                $data['config']['success_message'] = trim($_POST['contact_success_msg'] ?? '');
+                $data['config']['fields'] = $_POST['contact_fields'] ?? ['name', 'email', 'message'];
+                $data['config']['contact_style'] = $_POST['contact_style'] ?? 'default';
+            }
+
+            // Config Separator
+            if ($data['type'] === 'separator') {
+                $data['config']['separator_type'] = $_POST['separator_type'] ?? 'line';
+                $data['config']['height'] = (int) ($_POST['separator_height'] ?? 40);
+                $data['config']['color'] = $_POST['separator_color'] ?? '#e0e0e0';
+                $data['config']['width'] = (int) ($_POST['separator_width'] ?? 100);
+            }
+
+            // Config HTML Custom
+            if ($data['type'] === 'html_custom') {
+                // Sanitize HTML - remove script tags for security
+                $htmlContent = trim($_POST['html_content'] ?? '');
+                $htmlContent = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $htmlContent);
+                $data['config']['html_content'] = $htmlContent;
+            }
+
             // Style
             $data['config']['style'] = [
                 'background_color' => !empty($_POST['style_bg_color']) ? $_POST['style_bg_color'] : null,
@@ -278,7 +370,20 @@ $typeIcons = [
     'featured_category' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
     'content_block' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>',
     'blog_slider' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-    'newsletter' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
+    'newsletter' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+    'text_only' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>',
+    'video' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+    'image_gallery' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+    'faq' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    'testimonials' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    'contact_form' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+    'counter' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>',
+    'timeline' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    'logos' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+    'google_map' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    'google_reviews' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    'separator' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/></svg>',
+    'html_custom' => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>'
 ];
 ?>
 <!DOCTYPE html>
@@ -853,6 +958,495 @@ $typeIcons = [
                         <div class="prop-group">
                             <label>Nb produits max</label>
                             <input type="number" name="products_limit" id="propProductsLimit" value="8" min="1" max="20">
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS VIDEO (YouTube, Vimeo, MP4)
+                         ======================================== -->
+                    <div class="prop-section video-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                            Paramètres vidéo
+                        </div>
+                        <div class="prop-group">
+                            <label>URL de la vidéo</label>
+                            <input type="text" name="video_url" id="propVideoUrl" placeholder="https://www.youtube.com/watch?v=... ou Vimeo">
+                            <small class="field-hint">YouTube, Vimeo ou lien direct MP4</small>
+                        </div>
+                        <div class="prop-group">
+                            <label>Type de vidéo</label>
+                            <select name="video_type" id="propVideoType">
+                                <option value="youtube">YouTube</option>
+                                <option value="vimeo">Vimeo</option>
+                                <option value="mp4">Fichier MP4</option>
+                            </select>
+                        </div>
+                        <div class="prop-group-row">
+                            <div class="prop-group">
+                                <label>
+                                    <input type="checkbox" name="video_autoplay" id="propVideoAutoplay" value="1">
+                                    Lecture auto
+                                </label>
+                            </div>
+                            <div class="prop-group">
+                                <label>
+                                    <input type="checkbox" name="video_muted" id="propVideoMuted" value="1" checked>
+                                    Muet
+                                </label>
+                            </div>
+                            <div class="prop-group">
+                                <label>
+                                    <input type="checkbox" name="video_loop" id="propVideoLoop" value="1">
+                                    Boucle
+                                </label>
+                            </div>
+                        </div>
+                        <div class="prop-group">
+                            <label>Ratio d'affichage</label>
+                            <select name="video_ratio" id="propVideoRatio">
+                                <option value="16:9">16:9 (Standard)</option>
+                                <option value="4:3">4:3</option>
+                                <option value="21:9">21:9 (Cinéma)</option>
+                                <option value="1:1">1:1 (Carré)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS FAQ (Questions/Réponses)
+                         ======================================== -->
+                    <div class="prop-section faq-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            Questions / Réponses
+                        </div>
+                        <div class="prop-group">
+                            <label>Style d'affichage</label>
+                            <select name="faq_style" id="propFaqStyle">
+                                <option value="accordion">Accordéon</option>
+                                <option value="list">Liste ouverte</option>
+                                <option value="cards">Cartes</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>
+                                <input type="checkbox" name="faq_allow_multiple" id="propFaqAllowMultiple" value="1">
+                                Permettre plusieurs ouvertes
+                            </label>
+                        </div>
+                        <div class="faq-items-container" id="faqItemsContainer">
+                            <div class="items-list-header">
+                                <span>Questions (<span id="faqCount">0</span>)</span>
+                                <button type="button" class="add-item-btn" onclick="addFaqItem()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    Ajouter
+                                </button>
+                            </div>
+                            <div class="items-list" id="faqItemsList"></div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS TESTIMONIALS (Témoignages)
+                         ======================================== -->
+                    <div class="prop-section testimonials-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            Témoignages
+                        </div>
+                        <div class="prop-group">
+                            <label>Style d'affichage</label>
+                            <select name="testimonials_style" id="propTestimonialsStyle">
+                                <option value="carousel">Carrousel</option>
+                                <option value="grid">Grille</option>
+                                <option value="masonry">Masonry</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>
+                                <input type="checkbox" name="testimonials_show_rating" id="propTestimonialsShowRating" value="1" checked>
+                                Afficher les étoiles
+                            </label>
+                        </div>
+                        <div class="testimonials-items-container" id="testimonialsItemsContainer">
+                            <div class="items-list-header">
+                                <span>Témoignages (<span id="testimonialsCount">0</span>)</span>
+                                <button type="button" class="add-item-btn" onclick="addTestimonialItem()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    Ajouter
+                                </button>
+                            </div>
+                            <div class="items-list" id="testimonialsItemsList"></div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS GALLERY (Galerie d'images)
+                         ======================================== -->
+                    <div class="prop-section gallery-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                            Galerie d'images
+                        </div>
+                        <div class="prop-group">
+                            <label>Style d'affichage</label>
+                            <select name="gallery_style" id="propGalleryStyle">
+                                <option value="grid">Grille</option>
+                                <option value="masonry">Masonry</option>
+                                <option value="carousel">Carrousel</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>Colonnes</label>
+                            <select name="gallery_columns" id="propGalleryColumns">
+                                <option value="2">2 colonnes</option>
+                                <option value="3" selected>3 colonnes</option>
+                                <option value="4">4 colonnes</option>
+                                <option value="5">5 colonnes</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>
+                                <input type="checkbox" name="gallery_lightbox" id="propGalleryLightbox" value="1" checked>
+                                Activer lightbox
+                            </label>
+                        </div>
+                        <div class="gallery-items-container" id="galleryItemsContainer">
+                            <div class="items-list-header">
+                                <span>Images (<span id="galleryCount">0</span>)</span>
+                                <button type="button" class="add-item-btn" onclick="addGalleryItem()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    Ajouter
+                                </button>
+                            </div>
+                            <div class="items-list gallery-items-list" id="galleryItemsList"></div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS COUNTER (Compteurs animés)
+                         ======================================== -->
+                    <div class="prop-section counter-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
+                            </svg>
+                            Compteurs animés
+                        </div>
+                        <div class="prop-group">
+                            <label>Style d'affichage</label>
+                            <select name="counter_style" id="propCounterStyle">
+                                <option value="cards">Cartes</option>
+                                <option value="inline">En ligne</option>
+                                <option value="circles">Cercles</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>Durée animation (ms)</label>
+                            <input type="number" name="counter_duration" id="propCounterDuration" value="2000" min="500" max="5000" step="100">
+                        </div>
+                        <div class="counter-items-container" id="counterItemsContainer">
+                            <div class="items-list-header">
+                                <span>Compteurs (<span id="counterCount">0</span>)</span>
+                                <button type="button" class="add-item-btn" onclick="addCounterItem()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    Ajouter
+                                </button>
+                            </div>
+                            <div class="items-list" id="counterItemsList"></div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS TIMELINE (Étapes/Processus)
+                         ======================================== -->
+                    <div class="prop-section timeline-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            Timeline / Étapes
+                        </div>
+                        <div class="prop-group">
+                            <label>Orientation</label>
+                            <select name="timeline_orientation" id="propTimelineOrientation">
+                                <option value="vertical">Verticale</option>
+                                <option value="horizontal">Horizontale</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>Style</label>
+                            <select name="timeline_style" id="propTimelineStyle">
+                                <option value="default">Par défaut</option>
+                                <option value="alternating">Alternée</option>
+                                <option value="cards">Cartes</option>
+                            </select>
+                        </div>
+                        <div class="timeline-items-container" id="timelineItemsContainer">
+                            <div class="items-list-header">
+                                <span>Étapes (<span id="timelineCount">0</span>)</span>
+                                <button type="button" class="add-item-btn" onclick="addTimelineItem()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    Ajouter
+                                </button>
+                            </div>
+                            <div class="items-list" id="timelineItemsList"></div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS LOGOS (Logos partenaires)
+                         ======================================== -->
+                    <div class="prop-section logos-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                            </svg>
+                            Logos partenaires
+                        </div>
+                        <div class="prop-group">
+                            <label>Style d'affichage</label>
+                            <select name="logos_style" id="propLogosStyle">
+                                <option value="grid">Grille</option>
+                                <option value="carousel">Carrousel</option>
+                                <option value="marquee">Défilement continu</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>Taille logos</label>
+                            <select name="logos_size" id="propLogosSize">
+                                <option value="small">Petit (80px)</option>
+                                <option value="medium" selected>Moyen (120px)</option>
+                                <option value="large">Grand (160px)</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>
+                                <input type="checkbox" name="logos_grayscale" id="propLogosGrayscale" value="1">
+                                Niveaux de gris (coloré au survol)
+                            </label>
+                        </div>
+                        <div class="logos-items-container" id="logosItemsContainer">
+                            <div class="items-list-header">
+                                <span>Logos (<span id="logosCount">0</span>)</span>
+                                <button type="button" class="add-item-btn" onclick="addLogoItem()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    Ajouter
+                                </button>
+                            </div>
+                            <div class="items-list gallery-items-list" id="logosItemsList"></div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS GOOGLE MAP
+                         ======================================== -->
+                    <div class="prop-section googlemap-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            Google Maps
+                        </div>
+                        <div class="prop-group">
+                            <label>Adresse</label>
+                            <input type="text" name="map_address" id="propMapAddress" placeholder="123 rue Example, Paris">
+                        </div>
+                        <div class="prop-group">
+                            <label>Latitude (optionnel)</label>
+                            <input type="text" name="map_lat" id="propMapLat" placeholder="48.8566">
+                        </div>
+                        <div class="prop-group">
+                            <label>Longitude (optionnel)</label>
+                            <input type="text" name="map_lng" id="propMapLng" placeholder="2.3522">
+                        </div>
+                        <div class="prop-group">
+                            <label>Niveau de zoom</label>
+                            <input type="range" name="map_zoom" id="propMapZoom" min="1" max="20" value="15">
+                            <span class="range-value" id="mapZoomValue">15</span>
+                        </div>
+                        <div class="prop-group">
+                            <label>Hauteur carte</label>
+                            <select name="map_height" id="propMapHeight">
+                                <option value="300">Petite (300px)</option>
+                                <option value="400" selected>Moyenne (400px)</option>
+                                <option value="500">Grande (500px)</option>
+                                <option value="600">Très grande (600px)</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>Style de carte</label>
+                            <select name="map_style" id="propMapStyle">
+                                <option value="default">Par défaut</option>
+                                <option value="silver">Argent</option>
+                                <option value="dark">Sombre</option>
+                                <option value="retro">Rétro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS GOOGLE REVIEWS
+                         ======================================== -->
+                    <div class="prop-section googlereviews-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                            Avis Google
+                        </div>
+                        <div class="prop-group">
+                            <label>Place ID Google</label>
+                            <input type="text" name="google_place_id" id="propGooglePlaceId" placeholder="ChIJ...">
+                            <small class="field-hint">Trouvez votre Place ID sur <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank">Google</a></small>
+                        </div>
+                        <div class="prop-group">
+                            <label>Nombre d'avis à afficher</label>
+                            <input type="number" name="reviews_count" id="propReviewsCount" value="5" min="1" max="10">
+                        </div>
+                        <div class="prop-group">
+                            <label>Note minimum</label>
+                            <select name="reviews_min_rating" id="propReviewsMinRating">
+                                <option value="1">1 étoile et +</option>
+                                <option value="2">2 étoiles et +</option>
+                                <option value="3">3 étoiles et +</option>
+                                <option value="4" selected>4 étoiles et +</option>
+                                <option value="5">5 étoiles uniquement</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>Style d'affichage</label>
+                            <select name="reviews_style" id="propReviewsStyle">
+                                <option value="carousel">Carrousel</option>
+                                <option value="grid">Grille</option>
+                                <option value="list">Liste</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>
+                                <input type="checkbox" name="reviews_show_badge" id="propReviewsShowBadge" value="1" checked>
+                                Afficher badge Google
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS CONTACT FORM
+                         ======================================== -->
+                    <div class="prop-section contactform-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            Formulaire de contact
+                        </div>
+                        <div class="prop-group">
+                            <label>Email de destination</label>
+                            <input type="email" name="contact_email" id="propContactEmail" placeholder="contact@example.com">
+                        </div>
+                        <div class="prop-group">
+                            <label>Sujet par défaut</label>
+                            <input type="text" name="contact_subject" id="propContactSubject" placeholder="Nouveau message de contact">
+                        </div>
+                        <div class="prop-group">
+                            <label>Message de succès</label>
+                            <input type="text" name="contact_success_msg" id="propContactSuccessMsg" value="Merci ! Votre message a été envoyé.">
+                        </div>
+                        <div class="prop-group">
+                            <label>Champs à afficher</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" name="contact_fields[]" value="name" checked> Nom</label>
+                                <label><input type="checkbox" name="contact_fields[]" value="email" checked> Email</label>
+                                <label><input type="checkbox" name="contact_fields[]" value="phone"> Téléphone</label>
+                                <label><input type="checkbox" name="contact_fields[]" value="subject"> Sujet</label>
+                                <label><input type="checkbox" name="contact_fields[]" value="message" checked> Message</label>
+                            </div>
+                        </div>
+                        <div class="prop-group">
+                            <label>Style du formulaire</label>
+                            <select name="contact_style" id="propContactStyle">
+                                <option value="default">Par défaut</option>
+                                <option value="minimal">Minimaliste</option>
+                                <option value="boxed">Encadré</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS SEPARATOR
+                         ======================================== -->
+                    <div class="prop-section separator-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"/>
+                            </svg>
+                            Séparateur
+                        </div>
+                        <div class="prop-group">
+                            <label>Type</label>
+                            <select name="separator_type" id="propSeparatorType">
+                                <option value="line">Ligne</option>
+                                <option value="dots">Points</option>
+                                <option value="wave">Vague</option>
+                                <option value="space">Espace vide</option>
+                            </select>
+                        </div>
+                        <div class="prop-group">
+                            <label>Hauteur</label>
+                            <input type="number" name="separator_height" id="propSeparatorHeight" value="40" min="10" max="200">
+                        </div>
+                        <div class="prop-group">
+                            <label>Couleur</label>
+                            <input type="color" name="separator_color" id="propSeparatorColor" value="#e0e0e0">
+                        </div>
+                        <div class="prop-group">
+                            <label>Largeur (%)</label>
+                            <input type="range" name="separator_width" id="propSeparatorWidth" min="10" max="100" value="100">
+                            <span class="range-value" id="separatorWidthValue">100%</span>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         CHAMPS HTML CUSTOM
+                         ======================================== -->
+                    <div class="prop-section htmlcustom-fields" style="display: none;">
+                        <div class="prop-section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+                            </svg>
+                            Code HTML personnalisé
+                        </div>
+                        <div class="prop-group">
+                            <label>Code HTML</label>
+                            <textarea name="html_content" id="propHtmlContent" rows="10" placeholder="<div>Votre code HTML ici...</div>" class="code-textarea"></textarea>
+                            <small class="field-hint">Attention : le JavaScript n'est pas autorisé pour des raisons de sécurité</small>
                         </div>
                     </div>
 
@@ -2129,6 +2723,243 @@ $typeIcons = [
             padding: 12px;
         }
     }
+
+    /* ========================================
+       STYLES POUR LES NOUVEAUX TYPES DE SECTIONS
+       ======================================== */
+
+    /* Field hints */
+    .field-hint {
+        display: block;
+        font-size: 11px;
+        color: #999;
+        margin-top: 4px;
+    }
+
+    .field-hint a {
+        color: var(--pink-main, #ff69b4);
+    }
+
+    /* Checkbox groups */
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .checkbox-group label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 400;
+        color: #333;
+        cursor: pointer;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--pink-main, #ff69b4);
+    }
+
+    /* Range values */
+    .range-value {
+        display: inline-block;
+        min-width: 40px;
+        text-align: right;
+        font-size: 12px;
+        color: #666;
+        margin-left: 8px;
+    }
+
+    /* Items list (FAQ, Testimonials, etc.) */
+    .items-list-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #666;
+    }
+
+    .add-item-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .add-item-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(255, 105, 180, 0.4);
+    }
+
+    .items-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .item-card {
+        background: #f9f9f9;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 12px;
+        position: relative;
+    }
+
+    .item-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .item-card-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .item-card-actions {
+        display: flex;
+        gap: 4px;
+    }
+
+    .item-card-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: transparent;
+        border: none;
+        border-radius: 4px;
+        color: #999;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .item-card-btn:hover {
+        background: #eee;
+        color: #333;
+    }
+
+    .item-card-btn.danger:hover {
+        background: #fee;
+        color: #e74c3c;
+    }
+
+    .item-card input,
+    .item-card textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .item-card textarea {
+        resize: vertical;
+        min-height: 60px;
+    }
+
+    /* Gallery items list */
+    .gallery-items-list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .gallery-item {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f5f5f5;
+        border: 2px dashed #ddd;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .gallery-item:hover {
+        border-color: var(--pink-main, #ff69b4);
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .gallery-item-remove {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 20px;
+        height: 20px;
+        background: rgba(231, 76, 60, 0.9);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        display: none;
+    }
+
+    .gallery-item:hover .gallery-item-remove {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .gallery-item-add {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: #999;
+        font-size: 11px;
+    }
+
+    /* Code textarea */
+    .code-textarea {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 12px;
+        background: #2d2d2d;
+        color: #f8f8f2;
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    /* Section icon colors for new types */
+    .section-icon.type-video { background: #e74c3c; color: white; }
+    .section-icon.type-faq { background: #9b59b6; color: white; }
+    .section-icon.type-testimonials { background: #f39c12; color: white; }
+    .section-icon.type-image_gallery { background: #1abc9c; color: white; }
+    .section-icon.type-counter { background: #3498db; color: white; }
+    .section-icon.type-timeline { background: #e67e22; color: white; }
+    .section-icon.type-logos { background: #95a5a6; color: white; }
+    .section-icon.type-google_map { background: #27ae60; color: white; }
+    .section-icon.type-google_reviews { background: #f1c40f; color: #333; }
+    .section-icon.type-contact_form { background: #2980b9; color: white; }
+    .section-icon.type-separator { background: #bdc3c7; color: #333; }
+    .section-icon.type-html_custom { background: #34495e; color: white; }
+    .section-icon.type-text_only { background: #7f8c8d; color: white; }
     </style>
 
     <script>
@@ -2151,7 +2982,29 @@ $typeIcons = [
         initGradientPickers();
         initGradientPresets();
         initPageStatusToggle();
+        initRangeSliders();
     });
+
+    // Initialiser les sliders avec affichage de valeur
+    function initRangeSliders() {
+        // Map Zoom slider
+        const mapZoom = document.getElementById('propMapZoom');
+        const mapZoomValue = document.getElementById('mapZoomValue');
+        if (mapZoom && mapZoomValue) {
+            mapZoom.addEventListener('input', function() {
+                mapZoomValue.textContent = this.value;
+            });
+        }
+
+        // Separator Width slider
+        const sepWidth = document.getElementById('propSeparatorWidth');
+        const sepWidthValue = document.getElementById('separatorWidthValue');
+        if (sepWidth && sepWidthValue) {
+            sepWidth.addEventListener('input', function() {
+                sepWidthValue.textContent = this.value + '%';
+            });
+        }
+    }
 
     // Toggle statut de la page (Publier/Dépublier)
     function initPageStatusToggle() {
@@ -2340,6 +3193,109 @@ $typeIcons = [
             document.getElementById('propProductsLimit').value = section.config.products_limit || 8;
         }
 
+        // Video
+        if (section.type === 'video' && section.config) {
+            document.getElementById('propVideoUrl').value = section.config.video_url || '';
+            document.getElementById('propVideoType').value = section.config.video_type || 'youtube';
+            document.getElementById('propVideoAutoplay').checked = section.config.autoplay || false;
+            document.getElementById('propVideoMuted').checked = section.config.muted !== false;
+            document.getElementById('propVideoLoop').checked = section.config.loop || false;
+            document.getElementById('propVideoRatio').value = section.config.ratio || '16:9';
+        }
+
+        // FAQ
+        if (section.type === 'faq' && section.config) {
+            document.getElementById('propFaqStyle').value = section.config.faq_style || 'accordion';
+            document.getElementById('propFaqAllowMultiple').checked = section.config.allow_multiple || false;
+        }
+
+        // Testimonials
+        if (section.type === 'testimonials' && section.config) {
+            document.getElementById('propTestimonialsStyle').value = section.config.testimonials_style || 'carousel';
+            document.getElementById('propTestimonialsShowRating').checked = section.config.show_rating !== false;
+        }
+
+        // Gallery
+        if (section.type === 'image_gallery' && section.config) {
+            document.getElementById('propGalleryStyle').value = section.config.gallery_style || 'grid';
+            document.getElementById('propGalleryColumns').value = section.config.columns || '3';
+            document.getElementById('propGalleryLightbox').checked = section.config.lightbox !== false;
+        }
+
+        // Counter
+        if (section.type === 'counter' && section.config) {
+            document.getElementById('propCounterStyle').value = section.config.counter_style || 'cards';
+            document.getElementById('propCounterDuration').value = section.config.duration || 2000;
+        }
+
+        // Timeline
+        if (section.type === 'timeline' && section.config) {
+            document.getElementById('propTimelineOrientation').value = section.config.orientation || 'vertical';
+            document.getElementById('propTimelineStyle').value = section.config.timeline_style || 'default';
+        }
+
+        // Logos
+        if (section.type === 'logos' && section.config) {
+            document.getElementById('propLogosStyle').value = section.config.logos_style || 'grid';
+            document.getElementById('propLogosSize').value = section.config.logos_size || 'medium';
+            document.getElementById('propLogosGrayscale').checked = section.config.grayscale || false;
+        }
+
+        // Google Map
+        if (section.type === 'google_map' && section.config) {
+            document.getElementById('propMapAddress').value = section.config.address || '';
+            document.getElementById('propMapLat').value = section.config.lat || '';
+            document.getElementById('propMapLng').value = section.config.lng || '';
+            document.getElementById('propMapZoom').value = section.config.zoom || 15;
+            document.getElementById('mapZoomValue').textContent = (section.config.zoom || 15);
+            document.getElementById('propMapHeight').value = section.config.height || '400';
+            document.getElementById('propMapStyle').value = section.config.map_style || 'default';
+        }
+
+        // Google Reviews
+        if (section.type === 'google_reviews' && section.config) {
+            document.getElementById('propGooglePlaceId').value = section.config.place_id || '';
+            document.getElementById('propReviewsCount').value = section.config.reviews_count || 5;
+            document.getElementById('propReviewsMinRating').value = section.config.min_rating || '4';
+            document.getElementById('propReviewsStyle').value = section.config.reviews_style || 'carousel';
+            document.getElementById('propReviewsShowBadge').checked = section.config.show_badge !== false;
+        }
+
+        // Contact Form
+        if (section.type === 'contact_form' && section.config) {
+            document.getElementById('propContactEmail').value = section.config.contact_email || '';
+            document.getElementById('propContactSubject').value = section.config.contact_subject || '';
+            document.getElementById('propContactSuccessMsg').value = section.config.success_message || '';
+            document.getElementById('propContactStyle').value = section.config.contact_style || 'default';
+            // Reset all checkboxes first
+            document.querySelectorAll('input[name="contact_fields[]"]').forEach(cb => cb.checked = false);
+            // Check the ones from config
+            const fields = section.config.fields || ['name', 'email', 'message'];
+            fields.forEach(field => {
+                const cb = document.querySelector(`input[name="contact_fields[]"][value="${field}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+
+        // Separator
+        if (section.type === 'separator' && section.config) {
+            document.getElementById('propSeparatorType').value = section.config.separator_type || 'line';
+            document.getElementById('propSeparatorHeight').value = section.config.height || 40;
+            document.getElementById('propSeparatorColor').value = section.config.color || '#e0e0e0';
+            document.getElementById('propSeparatorWidth').value = section.config.width || 100;
+            document.getElementById('separatorWidthValue').textContent = (section.config.width || 100) + '%';
+        }
+
+        // HTML Custom
+        if (section.type === 'html_custom' && section.config) {
+            document.getElementById('propHtmlContent').value = section.config.html_content || '';
+        }
+
+        // Text only
+        if (section.type === 'text_only') {
+            document.getElementById('propContent').value = section.content || '';
+        }
+
         // Style - utiliser setGradientPickerValue pour mettre à jour le picker correctement
         const style = section.config?.style || {};
         const bgColorPicker = document.getElementById('bgColorPicker');
@@ -2378,7 +3334,7 @@ $typeIcons = [
 
     function showFieldsForType(type) {
         // Cacher tous les champs conditionnels
-        document.querySelectorAll('.hero-fields, .hero-cta2-fields, .content-fields, .products-fields, .packs-fields, .blog-fields, .category-fields').forEach(el => {
+        document.querySelectorAll('.hero-fields, .hero-cta2-fields, .content-fields, .products-fields, .packs-fields, .blog-fields, .category-fields, .video-fields, .faq-fields, .testimonials-fields, .gallery-fields, .counter-fields, .timeline-fields, .logos-fields, .googlemap-fields, .googlereviews-fields, .contactform-fields, .separator-fields, .htmlcustom-fields').forEach(el => {
             el.style.display = 'none';
         });
 
@@ -2389,6 +3345,7 @@ $typeIcons = [
                 document.querySelector('.hero-cta2-fields').style.display = 'block';
                 break;
             case 'content_block':
+            case 'text_only':
                 document.querySelector('.content-fields').style.display = 'block';
                 break;
             case 'featured_products':
@@ -2403,6 +3360,42 @@ $typeIcons = [
             case 'featured_category':
                 document.querySelector('.category-fields').style.display = 'block';
                 break;
+            case 'video':
+                document.querySelector('.video-fields').style.display = 'block';
+                break;
+            case 'faq':
+                document.querySelector('.faq-fields').style.display = 'block';
+                break;
+            case 'testimonials':
+                document.querySelector('.testimonials-fields').style.display = 'block';
+                break;
+            case 'image_gallery':
+                document.querySelector('.gallery-fields').style.display = 'block';
+                break;
+            case 'counter':
+                document.querySelector('.counter-fields').style.display = 'block';
+                break;
+            case 'timeline':
+                document.querySelector('.timeline-fields').style.display = 'block';
+                break;
+            case 'logos':
+                document.querySelector('.logos-fields').style.display = 'block';
+                break;
+            case 'google_map':
+                document.querySelector('.googlemap-fields').style.display = 'block';
+                break;
+            case 'google_reviews':
+                document.querySelector('.googlereviews-fields').style.display = 'block';
+                break;
+            case 'contact_form':
+                document.querySelector('.contactform-fields').style.display = 'block';
+                break;
+            case 'separator':
+                document.querySelector('.separator-fields').style.display = 'block';
+                break;
+            case 'html_custom':
+                document.querySelector('.htmlcustom-fields').style.display = 'block';
+                break;
         }
     }
 
@@ -2414,7 +3407,20 @@ $typeIcons = [
             featured_category: '#e74c3c',
             content_block: '#3498db',
             blog_slider: '#e67e22',
-            newsletter: '#1abc9c'
+            newsletter: '#1abc9c',
+            video: '#e74c3c',
+            faq: '#9b59b6',
+            testimonials: '#f39c12',
+            image_gallery: '#1abc9c',
+            counter: '#3498db',
+            timeline: '#e67e22',
+            logos: '#95a5a6',
+            google_map: '#27ae60',
+            google_reviews: '#f1c40f',
+            contact_form: '#2980b9',
+            separator: '#bdc3c7',
+            html_custom: '#34495e',
+            text_only: '#7f8c8d'
         };
         return colors[type] || '#666';
     }
