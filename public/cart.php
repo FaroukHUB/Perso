@@ -236,10 +236,12 @@ if (!Cart::isEmpty()) {
         }
 
         /* ============ NAVBAR ============ */
-        .navbar {
+        .site-header {
             position: sticky;
             top: 0;
             z-index: 1000;
+        }
+        .navbar {
             background: rgba(13, 13, 13, 0.95);
             backdrop-filter: blur(20px);
             padding: 15px 0;

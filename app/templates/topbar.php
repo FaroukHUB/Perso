@@ -90,7 +90,6 @@ if (empty(trim($topbarText))) {
     width: 100%;
     padding: 8px 40px;
     overflow: hidden;
-    z-index: 1001;
     text-align: center;
 }
 

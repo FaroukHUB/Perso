@@ -442,10 +442,12 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
         body { background: var(--gray-light); min-height: 100vh; }
 
         /* Navbar */
-        .navbar {
+        .site-header {
             position: sticky;
             top: 0;
             z-index: 1000;
+        }
+        .navbar {
             background: rgba(13, 13, 13, 0.98);
             backdrop-filter: blur(10px);
             padding: 15px 0;

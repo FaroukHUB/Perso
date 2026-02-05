@@ -103,13 +103,17 @@ h4 { font-size: 1.25rem; }
    NAVBAR / HEADER
    ======================================== */
 
-.navbar {
+/* Site header wrapper: topbar + navbar */
+.site-header {
     position: sticky;
     top: 0;
     z-index: 1000;
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar {
     background: var(--black-soft);
     padding: 15px 0;
-    box-shadow: var(--shadow-sm);
 }
 
 .navbar .container {

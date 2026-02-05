@@ -349,10 +349,12 @@ $cartCount = Cart::count();
         body { background: var(--gray-light); }
 
         /* Navbar */
-        .navbar {
+        .site-header {
             position: sticky;
             top: 0;
             z-index: 1000;
+        }
+        .navbar {
             background: rgba(13, 13, 13, 0.98);
             backdrop-filter: blur(10px);
             padding: 15px 0;

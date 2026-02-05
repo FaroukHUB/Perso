@@ -53,12 +53,14 @@ if (!$article || $article['status'] !== 'published') {
     <?= $brandingService->getStyleBlock() ?>
     <style>
         /* Navbar */
-        .navbar {
+        .site-header {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
+        }
+        .navbar {
             background: rgba(13, 13, 13, 0.95);
             backdrop-filter: blur(10px);
             padding: 15px 0;

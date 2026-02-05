@@ -387,12 +387,14 @@ function getSubtitleStyles(array $section): string {
     <?= $brandingService->getStyleBlock() ?>
     <style>
         /* ===== NAVBAR ===== */
-        .navbar {
+        .site-header {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
+        }
+        .navbar {
             background: rgba(13, 13, 13, 0.95);
             backdrop-filter: blur(10px);
             padding: 15px 0;

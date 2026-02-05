@@ -56,7 +56,10 @@ if (!isset($menuItems) || empty($menuItems)) {
 // Charger les réseaux sociaux
 $socialLinks = $settings->getSocialLinks();
 
-// Inclure la top bar si activée
+?>
+<!-- Site Header (topbar + navbar) -->
+<div class="site-header">
+<?php // Inclure la top bar si activée
 include __DIR__ . '/topbar.php';
 ?>
 <!-- Navbar -->
@@ -135,6 +138,7 @@ include __DIR__ . '/topbar.php';
         <div class="mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
     </div>
 </nav>
+</div><!-- /.site-header -->
 <script>
 function toggleMobileMenu() {
     const nav = document.querySelector('.navbar-nav');
