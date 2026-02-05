@@ -610,20 +610,25 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 20px;
-            background: #25D366;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
             color: white;
             border: none;
-            border-radius: var(--radius-full);
+            border-radius: 50px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+            letter-spacing: 0.3px;
         }
         .whatsapp-status-btn:hover {
-            background: #1da851;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+            background: linear-gradient(135deg, #1ebe5d 0%, #0e7a6b 100%);
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 8px 25px rgba(37, 211, 102, 0.5);
+        }
+        .whatsapp-status-btn:active {
+            transform: translateY(-1px) scale(0.98);
         }
 
         /* WhatsApp Modal */
