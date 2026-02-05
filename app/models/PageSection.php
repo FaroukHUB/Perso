@@ -321,6 +321,54 @@ class PageSection
         }
     }
 
+    /**
+     * Compte les items d'une section
+     */
+    public function countItems(int $sectionId): int
+    {
+        $stmt = $this->db->prepare('SELECT COUNT(*) FROM page_section_items WHERE section_id = ?');
+        $stmt->execute([$sectionId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * Ajoute un item à une section
+     */
+    public function addItem(int $sectionId, string $itemType, int $itemId, int $sortOrder = 0): bool
+    {
+        $stmt = $this->db->prepare(
+            'INSERT IGNORE INTO page_section_items (section_id, item_type, item_id, sort_order) VALUES (?, ?, ?, ?)'
+        );
+        return $stmt->execute([$sectionId, $itemType, $itemId, $sortOrder]);
+    }
+
+    /**
+     * Retire un item d'une section
+     */
+    public function removeItem(int $sectionId, string $itemType, int $itemId): bool
+    {
+        $stmt = $this->db->prepare(
+            'DELETE FROM page_section_items WHERE section_id = ? AND item_type = ? AND item_id = ?'
+        );
+        return $stmt->execute([$sectionId, $itemType, $itemId]);
+    }
+
+    /**
+     * Récupère les sections d'une page par type
+     */
+    public function findByType(int $pageId, string $type, bool $activeOnly = true): array
+    {
+        $sql = 'SELECT * FROM page_sections WHERE page_id = ? AND type = ?';
+        if ($activeOnly) {
+            $sql .= ' AND status = "active"';
+        }
+        $sql .= ' ORDER BY sort_order ASC';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$pageId, $type]);
+        return $stmt->fetchAll();
+    }
+
     // ========== HELPERS ==========
 
     /**

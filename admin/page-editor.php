@@ -29,12 +29,6 @@ if (!$page) {
     exit;
 }
 
-// Rediriger vers homepage-builder si c'est la page d'accueil
-if ($page['is_system'] && $page['slug'] === 'home') {
-    header('Location: /admin/homepage-builder.php');
-    exit;
-}
-
 $sectionModel = new PageSection();
 $productModel = new Product();
 $packModel = new Pack();

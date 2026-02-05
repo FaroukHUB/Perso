@@ -112,6 +112,86 @@ foreach ($sections as &$section) {
                 }
             }
             break;
+
+        case 'faq':
+            $section['faq_items'] = [];
+            if (!empty($section['config']['faq_items'])) {
+                foreach ($section['config']['faq_items'] as $index => $item) {
+                    $section['faq_items'][] = [
+                        'id' => $index, 'question' => $item['question'] ?? '',
+                        'answer' => $item['answer'] ?? '', 'status' => 'active'
+                    ];
+                }
+            }
+            break;
+
+        case 'testimonials':
+            $section['testimonials'] = [];
+            if (!empty($section['config']['testimonial_items'])) {
+                foreach ($section['config']['testimonial_items'] as $index => $item) {
+                    $section['testimonials'][] = [
+                        'id' => $index, 'author_name' => $item['author'] ?? '',
+                        'author_title' => $item['role'] ?? '', 'content' => $item['content'] ?? '',
+                        'rating' => $item['rating'] ?? 5, 'author_photo' => $item['photo'] ?? '',
+                        'status' => 'active'
+                    ];
+                }
+            }
+            break;
+
+        case 'image_gallery':
+            $section['gallery_images'] = [];
+            if (!empty($section['config']['gallery_items'])) {
+                foreach ($section['config']['gallery_items'] as $index => $item) {
+                    $section['gallery_images'][] = [
+                        'id' => $index, 'image_url' => $item['url'] ?? '',
+                        'thumbnail_url' => $item['url'] ?? '', 'caption' => $item['caption'] ?? '',
+                        'alt_text' => $item['caption'] ?? '', 'link_url' => '', 'status' => 'active'
+                    ];
+                }
+            }
+            break;
+
+        case 'counter':
+            $section['counters'] = [];
+            if (!empty($section['config']['counter_items'])) {
+                foreach ($section['config']['counter_items'] as $index => $item) {
+                    $section['counters'][] = [
+                        'id' => $index, 'value' => $item['value'] ?? 0,
+                        'suffix' => $item['suffix'] ?? '', 'prefix' => '',
+                        'label' => $item['label'] ?? '', 'icon' => $item['icon'] ?? '',
+                        'color' => '', 'status' => 'active'
+                    ];
+                }
+            }
+            break;
+
+        case 'timeline':
+            $section['timeline_steps'] = [];
+            if (!empty($section['config']['timeline_items'])) {
+                foreach ($section['config']['timeline_items'] as $index => $item) {
+                    $section['timeline_steps'][] = [
+                        'id' => $index, 'step_number' => $index + 1,
+                        'title' => $item['title'] ?? '', 'description' => $item['description'] ?? '',
+                        'date' => $item['date'] ?? '', 'icon' => $item['icon'] ?? '',
+                        'image_url' => '', 'status' => 'active'
+                    ];
+                }
+            }
+            break;
+
+        case 'logos':
+            $section['logos'] = [];
+            if (!empty($section['config']['logo_items'])) {
+                foreach ($section['config']['logo_items'] as $index => $item) {
+                    $section['logos'][] = [
+                        'id' => $index, 'name' => $item['name'] ?? '',
+                        'logo_url' => $item['url'] ?? '', 'website_url' => $item['link'] ?? '',
+                        'status' => 'active'
+                    ];
+                }
+            }
+            break;
     }
 }
 unset($section);
@@ -1521,6 +1601,502 @@ function getSubtitleStyles(array $section): string {
                 </p>
             </div>
         </div>
+    </section>
+    <?php
+            break;
+
+        case 'text_only':
+        case 'content_block_extra':
+                $sectionStyles = getSectionInlineStyles($section);
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+    ?>
+    <section class="section section-content" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <div class="container">
+            <?php if (!empty($section['title'])): ?>
+            <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($section['subtitle'])): ?>
+            <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($section['content'])): ?>
+            <div class="content-text"><?= nl2br(h($section['content'])) ?></div>
+            <?php endif; ?>
+            <?php if (!empty($section['cta_text'])): ?>
+            <div class="section-cta" style="margin-top: 2rem;">
+                <a href="<?= h($section['cta_url'] ?: '#') ?>" class="btn btn-primary"><?= h($section['cta_text']) ?></a>
+            </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php
+            break;
+
+        case 'video':
+                $sectionStyles = getSectionInlineStyles($section);
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+    ?>
+    <section class="section section-video" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <div class="container">
+            <?php if (!empty($section['title'])): ?>
+            <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($section['subtitle'])): ?>
+            <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($section['media_url'])): ?>
+            <div class="video-wrapper">
+                <?php
+                $videoUrl = $section['media_url'];
+                if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $videoUrl, $matches)):
+                ?>
+                <iframe src="https://www.youtube.com/embed/<?= h($matches[1]) ?>" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                <?php elseif (preg_match('/vimeo\.com\/(\d+)/', $videoUrl, $matches)): ?>
+                <iframe src="https://player.vimeo.com/video/<?= h($matches[1]) ?>" frameborder="0" allowfullscreen></iframe>
+                <?php else: ?>
+                <video controls><source src="<?= h($videoUrl) ?>" type="video/mp4"></video>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            <?php if (!empty($section['content'])): ?>
+            <div class="video-description" style="margin-top: 1.5rem;"><?= nl2br(h($section['content'])) ?></div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php
+            break;
+
+        case 'image_gallery':
+                $sectionStyles = getSectionInlineStyles($section);
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                $columns = $section['config']['columns'] ?? 3;
+    ?>
+    <section class="section section-gallery" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <div class="container">
+            <?php if (!empty($section['title'])): ?>
+            <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($section['subtitle'])): ?>
+            <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($section['gallery_images'])): ?>
+            <div class="gallery-grid gallery-cols-<?= (int)$columns ?>">
+                <?php foreach ($section['gallery_images'] as $image): ?>
+                <?php if ($image['status'] === 'active'): ?>
+                <div class="gallery-item">
+                    <a href="<?= h($image['image_url']) ?>" class="gallery-lightbox" data-caption="<?= h($image['caption'] ?? '') ?>">
+                        <img src="<?= h($image['thumbnail_url'] ?: $image['image_url']) ?>" alt="<?= h($image['alt_text'] ?? '') ?>" loading="lazy">
+                        <?php if (!empty($image['caption'])): ?>
+                        <span class="gallery-caption"><?= h($image['caption']) ?></span>
+                        <?php endif; ?>
+                    </a>
+                </div>
+                <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php
+            break;
+
+        case 'faq':
+                $sectionStyles = getSectionInlineStyles($section);
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+    ?>
+    <section class="section section-faq" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <div class="container">
+            <?php if (!empty($section['title'])): ?>
+            <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($section['subtitle'])): ?>
+            <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($section['faq_items'])): ?>
+            <div class="faq-list">
+                <?php foreach ($section['faq_items'] as $faq): ?>
+                <?php if ($faq['status'] === 'active'): ?>
+                <div class="faq-item" data-faq-id="<?= $faq['id'] ?>">
+                    <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-<?= $faq['id'] ?>">
+                        <span><?= h($faq['question']) ?></span>
+                        <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="faq-answer" id="faq-answer-<?= $faq['id'] ?>">
+                        <div class="faq-answer-content"><?= nl2br(h($faq['answer'])) ?></div>
+                    </div>
+                </div>
+                <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php
+            break;
+
+        case 'testimonials':
+                $sectionStyles = getSectionInlineStyles($section);
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                $layout = $section['config']['layout'] ?? 'carousel';
+    ?>
+    <section class="section section-testimonials" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <div class="container">
+            <?php if (!empty($section['title'])): ?>
+            <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($section['subtitle'])): ?>
+            <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($section['testimonials'])): ?>
+            <div class="testimonials-<?= h($layout) ?>">
+                <?php foreach ($section['testimonials'] as $testimonial): ?>
+                <?php if ($testimonial['status'] === 'active'): ?>
+                <div class="testimonial-card">
+                    <?php if (!empty($testimonial['rating'])): ?>
+                    <div class="testimonial-rating">
+                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                        <svg class="star <?= $i <= $testimonial['rating'] ? 'filled' : '' ?>" width="16" height="16" viewBox="0 0 24 24" fill="<?= $i <= $testimonial['rating'] ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        <?php endfor; ?>
+                    </div>
+                    <?php endif; ?>
+                    <blockquote class="testimonial-content"><?= nl2br(h($testimonial['content'])) ?></blockquote>
+                    <div class="testimonial-author">
+                        <?php if (!empty($testimonial['author_photo'])): ?>
+                        <img class="author-photo" src="<?= h($testimonial['author_photo']) ?>" alt="<?= h($testimonial['author_name']) ?>">
+                        <?php else: ?>
+                        <div class="author-photo-placeholder"><?= strtoupper(mb_substr($testimonial['author_name'], 0, 1)) ?></div>
+                        <?php endif; ?>
+                        <div class="author-info">
+                            <strong class="author-name"><?= h($testimonial['author_name']) ?></strong>
+                            <?php if (!empty($testimonial['author_title'])): ?>
+                            <span class="author-title"><?= h($testimonial['author_title']) ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php
+            break;
+
+        case 'contact_form':
+                $sectionStyles = getSectionInlineStyles($section);
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                $showPhone = ($section['config']['show_phone'] ?? true) !== false;
+                $showSubject = ($section['config']['show_subject'] ?? true) !== false;
+    ?>
+    <section class="section section-contact-form" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <div class="container">
+            <?php if (!empty($section['title'])): ?>
+            <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($section['subtitle'])): ?>
+            <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+            <?php endif; ?>
+            <form class="contact-form" action="/api/contact/submit.php" method="post" data-section-id="<?= $section['id'] ?>">
+                <input type="hidden" name="section_id" value="<?= $section['id'] ?>">
+                <input type="hidden" name="page_slug" value="home">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contact-name-<?= $section['id'] ?>">Nom *</label>
+                        <input type="text" id="contact-name-<?= $section['id'] ?>" name="name" required placeholder="Votre nom">
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-email-<?= $section['id'] ?>">Email *</label>
+                        <input type="email" id="contact-email-<?= $section['id'] ?>" name="email" required placeholder="votre@email.com">
+                    </div>
+                </div>
+                <?php if ($showPhone || $showSubject): ?>
+                <div class="form-row">
+                    <?php if ($showPhone): ?>
+                    <div class="form-group">
+                        <label for="contact-phone-<?= $section['id'] ?>">Telephone</label>
+                        <input type="tel" id="contact-phone-<?= $section['id'] ?>" name="phone" placeholder="06 12 34 56 78">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($showSubject): ?>
+                    <div class="form-group">
+                        <label for="contact-subject-<?= $section['id'] ?>">Sujet</label>
+                        <input type="text" id="contact-subject-<?= $section['id'] ?>" name="subject" placeholder="Objet de votre message">
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+                <div class="form-group">
+                    <label for="contact-message-<?= $section['id'] ?>">Message *</label>
+                    <textarea id="contact-message-<?= $section['id'] ?>" name="message" rows="5" required placeholder="Votre message..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"><?= h($section['cta_text'] ?: 'Envoyer') ?></button>
+                </div>
+                <div class="form-message" style="display: none;"></div>
+            </form>
+        </div>
+    </section>
+    <?php
+            break;
+
+        case 'counter':
+                $sectionStyles = getSectionInlineStyles($section);
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+    ?>
+    <section class="section section-counter" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <div class="container">
+            <?php if (!empty($section['title'])): ?>
+            <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($section['subtitle'])): ?>
+            <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($section['counters'])): ?>
+            <div class="counters-grid">
+                <?php foreach ($section['counters'] as $counter): ?>
+                <?php if ($counter['status'] === 'active'): ?>
+                <div class="counter-item" data-value="<?= (int)$counter['value'] ?>">
+                    <?php if (!empty($counter['icon'])): ?>
+                    <div class="counter-icon"><?= $counter['icon'] ?></div>
+                    <?php endif; ?>
+                    <div class="counter-value">
+                        <span class="counter-prefix"><?= h($counter['prefix'] ?? '') ?></span>
+                        <span class="counter-number" data-target="<?= (int)$counter['value'] ?>">0</span>
+                        <span class="counter-suffix"><?= h($counter['suffix'] ?? '') ?></span>
+                    </div>
+                    <div class="counter-label"><?= h($counter['label']) ?></div>
+                </div>
+                <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php
+            break;
+
+        case 'timeline':
+                $sectionStyles = getSectionInlineStyles($section);
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                $layout = $section['config']['layout'] ?? 'vertical';
+    ?>
+    <section class="section section-timeline" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <div class="container">
+            <?php if (!empty($section['title'])): ?>
+            <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($section['subtitle'])): ?>
+            <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($section['timeline_steps'])): ?>
+            <div class="timeline timeline-<?= h($layout) ?>">
+                <?php foreach ($section['timeline_steps'] as $index => $step): ?>
+                <?php if ($step['status'] === 'active'): ?>
+                <div class="timeline-item">
+                    <div class="timeline-marker">
+                        <?php if (!empty($step['icon'])): ?>
+                        <span class="timeline-icon"><?= $step['icon'] ?></span>
+                        <?php else: ?>
+                        <span class="timeline-number"><?= (int)($step['step_number'] ?: $index + 1) ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="timeline-content">
+                        <?php if (!empty($step['date'])): ?>
+                        <span class="timeline-date"><?= h($step['date']) ?></span>
+                        <?php endif; ?>
+                        <h3 class="timeline-title"><?= h($step['title']) ?></h3>
+                        <?php if (!empty($step['description'])): ?>
+                        <p class="timeline-description"><?= nl2br(h($step['description'])) ?></p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php
+            break;
+
+        case 'logos':
+                $sectionStyles = getSectionInlineStyles($section);
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                $layout = $section['config']['layout'] ?? 'carousel';
+    ?>
+    <section class="section section-logos" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <div class="container">
+            <?php if (!empty($section['title'])): ?>
+            <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($section['subtitle'])): ?>
+            <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($section['logos'])): ?>
+            <div class="logos-<?= h($layout) ?>">
+                <?php foreach ($section['logos'] as $logo): ?>
+                <?php if ($logo['status'] === 'active'): ?>
+                <div class="logo-item">
+                    <?php if (!empty($logo['website_url'])): ?>
+                    <a href="<?= h($logo['website_url']) ?>" target="_blank" rel="noopener" title="<?= h($logo['name']) ?>">
+                        <img src="<?= h($logo['logo_url']) ?>" alt="<?= h($logo['name']) ?>" loading="lazy">
+                    </a>
+                    <?php else: ?>
+                    <img src="<?= h($logo['logo_url']) ?>" alt="<?= h($logo['name']) ?>" title="<?= h($logo['name']) ?>" loading="lazy">
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php
+            break;
+
+        case 'google_map':
+                $sectionStyles = getSectionInlineStyles($section);
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                $mapHeight = $section['config']['height'] ?? '400px';
+                $mapLat = $section['config']['latitude'] ?? '';
+                $mapLng = $section['config']['longitude'] ?? '';
+                $mapZoom = $section['config']['zoom'] ?? 15;
+                $mapStyle = $section['config']['style'] ?? 'roadmap';
+    ?>
+    <section class="section section-map" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <div class="container">
+            <?php if (!empty($section['title'])): ?>
+            <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($section['subtitle'])): ?>
+            <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($section['content'])): ?>
+            <div class="map-info"><?= nl2br(h($section['content'])) ?></div>
+            <?php endif; ?>
+        </div>
+        <?php if ($mapLat && $mapLng): ?>
+        <div class="map-container" style="height: <?= h($mapHeight) ?>">
+            <div id="map-<?= $section['id'] ?>" class="google-map" data-lat="<?= h($mapLat) ?>" data-lng="<?= h($mapLng) ?>" data-zoom="<?= (int)$mapZoom ?>" data-style="<?= h($mapStyle) ?>"></div>
+        </div>
+        <?php else: ?>
+        <div class="map-placeholder" style="height: <?= h($mapHeight) ?>; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+            <p style="color: #888;">Configurez les coordonnees GPS dans l'editeur</p>
+        </div>
+        <?php endif; ?>
+    </section>
+    <?php
+            break;
+
+        case 'google_reviews':
+                $sectionStyles = getSectionInlineStyles($section);
+                $titleStyles = getTitleStyles($section);
+                $subtitleStyles = getSubtitleStyles($section);
+                $layout = $section['config']['layout'] ?? 'carousel';
+    ?>
+    <section class="section section-google-reviews" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <div class="container">
+            <?php if (!empty($section['title'])): ?>
+            <h2 class="section-title" <?= $titleStyles ? 'style="' . $titleStyles . '"' : '' ?>><?= h($section['title']) ?></h2>
+            <?php endif; ?>
+            <?php if (!empty($section['subtitle'])): ?>
+            <p class="section-subtitle" <?= $subtitleStyles ? 'style="' . $subtitleStyles . '"' : '' ?>><?= h($section['subtitle']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($section['google_stats']) && $section['google_stats']['total'] > 0): ?>
+            <div class="google-rating-summary">
+                <div class="rating-score">
+                    <span class="score-value"><?= number_format($section['google_stats']['average_rating'], 1) ?></span>
+                    <div class="rating-stars">
+                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                        <svg class="star <?= $i <= round($section['google_stats']['average_rating']) ? 'filled' : '' ?>" width="20" height="20" viewBox="0 0 24 24" fill="<?= $i <= round($section['google_stats']['average_rating']) ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        <?php endfor; ?>
+                    </div>
+                    <span class="rating-count"><?= (int)$section['google_stats']['total'] ?> avis Google</span>
+                </div>
+            </div>
+            <?php endif; ?>
+            <?php if (!empty($section['google_reviews'])): ?>
+            <div class="google-reviews-<?= h($layout) ?>">
+                <?php foreach ($section['google_reviews'] as $review): ?>
+                <div class="google-review-card">
+                    <div class="review-header">
+                        <?php if (!empty($review['author_photo_url'])): ?>
+                        <img class="reviewer-photo" src="<?= h($review['author_photo_url']) ?>" alt="<?= h($review['author_name']) ?>">
+                        <?php else: ?>
+                        <div class="reviewer-photo-placeholder"><?= strtoupper(mb_substr($review['author_name'], 0, 1)) ?></div>
+                        <?php endif; ?>
+                        <div class="reviewer-info">
+                            <strong class="reviewer-name"><?= h($review['author_name']) ?></strong>
+                            <div class="review-rating">
+                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                <svg class="star <?= $i <= $review['rating'] ? 'filled' : '' ?>" width="14" height="14" viewBox="0 0 24 24" fill="<?= $i <= $review['rating'] ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                </svg>
+                                <?php endfor; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php if (!empty($review['text'])): ?>
+                    <p class="review-text"><?= h($review['text']) ?></p>
+                    <?php endif; ?>
+                    <?php if (!empty($review['time'])): ?>
+                    <time class="review-date"><?= formatDate($review['time'], 'd/m/Y') ?></time>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php
+            break;
+
+        case 'separator':
+                $sectionStyles = getSectionInlineStyles($section);
+                $sepStyle = $section['config']['style'] ?? 'line';
+                $sepColor = $section['config']['color'] ?? '#e0e0e0';
+                $sepWidth = $section['config']['width'] ?? '100%';
+                $sepHeight = $section['config']['height'] ?? '1px';
+    ?>
+    <div class="section-separator" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <?php if ($sepStyle === 'line'): ?>
+        <hr style="border: none; height: <?= h($sepHeight) ?>; background: <?= h($sepColor) ?>; width: <?= h($sepWidth) ?>; margin: 2rem auto;">
+        <?php elseif ($sepStyle === 'dots'): ?>
+        <div style="text-align: center; padding: 2rem 0;">
+            <span style="color: <?= h($sepColor) ?>; font-size: 1.5rem; letter-spacing: 1rem;">&bull; &bull; &bull;</span>
+        </div>
+        <?php elseif ($sepStyle === 'wave'): ?>
+        <svg viewBox="0 0 1200 60" preserveAspectRatio="none" style="width: 100%; height: 60px; fill: <?= h($sepColor) ?>;">
+            <path d="M0,30 C300,60 400,0 600,30 C800,60 900,0 1200,30 L1200,60 L0,60 Z"></path>
+        </svg>
+        <?php elseif ($sepStyle === 'space'): ?>
+        <div style="height: <?= h($sepHeight) ?>;"></div>
+        <?php endif; ?>
+    </div>
+    <?php
+            break;
+
+        case 'html_custom':
+                $sectionStyles = getSectionInlineStyles($section);
+    ?>
+    <section class="section section-custom-html" data-section-id="<?= $section['id'] ?>" <?= $sectionStyles ? 'style="' . $sectionStyles . '"' : '' ?>>
+        <?php if (!empty($section['content'])): ?>
+        <?= $section['content'] ?>
+        <?php endif; ?>
     </section>
     <?php
             break;
