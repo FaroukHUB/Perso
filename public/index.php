@@ -1177,9 +1177,20 @@ function getSubtitleStyles(array $section): string {
                 </div>
             <?php else: ?>
                 <div class="products-grid">
-                    <?php foreach ($section['products'] as $product): ?>
+                    <?php foreach ($section['products'] as $product):
+                        $hasSale = !empty($product['sale_price']) && $product['sale_price'] > 0 && $product['sale_price'] < $product['base_price'];
+                        $badge = $product['badge'] ?? '';
+                        $badgeColor = $product['badge_color'] ?? '#FF1493';
+                        if ($hasSale && empty($badge)) { $badge = 'Soldé'; $badgeColor = '#FF1493'; }
+                        $presetColors = ['Soldé'=>'#FF1493','Nouveau'=>'#3DFFC0','Populaire'=>'#8B5CF6','Limité'=>'#F59E0B'];
+                        if (isset($presetColors[$badge]) && $badgeColor === '#FF1493') $badgeColor = $presetColors[$badge];
+                        $badgeTxtColor = ($badge === 'Nouveau') ? '#1a1a2e' : '#fff';
+                    ?>
                         <div class="product-card">
                             <div class="product-image">
+                                <?php if (!empty($badge)): ?>
+                                    <span class="product-badge" style="background:<?= h($badgeColor) ?>;color:<?= $badgeTxtColor ?>;"><?= h($badge) ?></span>
+                                <?php endif; ?>
                                 <?php if (!empty($product['category_names'])): ?>
                                     <span class="product-category badge badge-mint">
                                         <?= h($product['category_names'][0]) ?>
@@ -1193,7 +1204,14 @@ function getSubtitleStyles(array $section): string {
                                 <h3><?= h($product['name']) ?></h3>
                                 <p><?= h($product['description'] ?? 'Personnalisable avec votre design') ?></p>
                                 <div class="product-footer">
-                                    <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
+                                    <?php if ($hasSale): ?>
+                                        <div class="product-price-group">
+                                            <span class="product-price-old"><?= formatPrice($product['base_price']) ?></span>
+                                            <span class="product-price product-price-sale"><?= formatPrice($product['sale_price']) ?></span>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
+                                    <?php endif; ?>
                                     <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
                                 </div>
                             </div>
@@ -1231,9 +1249,20 @@ function getSubtitleStyles(array $section): string {
                 </div>
             <?php else: ?>
             <div class="products-grid">
-                <?php foreach ($section['category_products'] as $product): ?>
+                <?php foreach ($section['category_products'] as $product):
+                    $hasSale = !empty($product['sale_price']) && $product['sale_price'] > 0 && $product['sale_price'] < $product['base_price'];
+                    $badge = $product['badge'] ?? '';
+                    $badgeColor = $product['badge_color'] ?? '#FF1493';
+                    if ($hasSale && empty($badge)) { $badge = 'Soldé'; $badgeColor = '#FF1493'; }
+                    $presetColors = ['Soldé'=>'#FF1493','Nouveau'=>'#3DFFC0','Populaire'=>'#8B5CF6','Limité'=>'#F59E0B'];
+                    if (isset($presetColors[$badge]) && $badgeColor === '#FF1493') $badgeColor = $presetColors[$badge];
+                    $badgeTxtColor = ($badge === 'Nouveau') ? '#1a1a2e' : '#fff';
+                ?>
                     <div class="product-card">
                         <div class="product-image">
+                            <?php if (!empty($badge)): ?>
+                                <span class="product-badge" style="background:<?= h($badgeColor) ?>;color:<?= $badgeTxtColor ?>;"><?= h($badge) ?></span>
+                            <?php endif; ?>
                             <span class="product-category badge badge-mint">
                                 <?= h($cat['name']) ?>
                             </span>
@@ -1245,7 +1274,14 @@ function getSubtitleStyles(array $section): string {
                             <h3><?= h($product['name']) ?></h3>
                             <p><?= h($product['description'] ?? 'Personnalisable avec votre design') ?></p>
                             <div class="product-footer">
-                                <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
+                                <?php if ($hasSale): ?>
+                                    <div class="product-price-group">
+                                        <span class="product-price-old"><?= formatPrice($product['base_price']) ?></span>
+                                        <span class="product-price product-price-sale"><?= formatPrice($product['sale_price']) ?></span>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
+                                <?php endif; ?>
                                 <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
                             </div>
                         </div>
