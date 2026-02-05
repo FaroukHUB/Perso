@@ -83,6 +83,9 @@ $formData = [
     'name' => $product['name'] ?? '',
     'description' => $product['description'] ?? '',
     'base_price' => $product['base_price'] ?? '',
+    'sale_price' => $product['sale_price'] ?? '',
+    'badge' => $product['badge'] ?? '',
+    'badge_color' => $product['badge_color'] ?? '#FF1493',
     'weight' => $product['weight'] ?? '',
     'category' => $product['category'] ?? '',
     'active' => $product['active'] ?? 1,
@@ -168,10 +171,14 @@ if (isPost()) {
         $selectedSizes = post('available_sizes', []);
         $availableSizesJson = !empty($selectedSizes) ? json_encode($selectedSizes) : null;
 
+        $salePriceRaw = post('sale_price', '');
         $formData = [
             'name' => trim(post('name', '')),
             'description' => trim(post('description', '')),
             'base_price' => (float)post('base_price', 0),
+            'sale_price' => $salePriceRaw !== '' ? (float)$salePriceRaw : null,
+            'badge' => trim(post('badge', '')),
+            'badge_color' => trim(post('badge_color', '#FF1493')),
             'weight' => (int)post('weight', 0) ?: null,
             'category' => trim(post('category', '')),
             'active' => post('active') ? 1 : 0,
@@ -989,6 +996,60 @@ if (isPost()) {
         .variants-hint ul {
             margin: 10px 0 0 20px;
         }
+
+        /* === Badge Selector === */
+        .badge-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .badge-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .badge-option {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 14px;
+            background: var(--gray-light);
+            border: 2px solid transparent;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .badge-option:hover {
+            border-color: var(--pink-light);
+        }
+        .badge-option.active {
+            border-color: var(--pink-main);
+            background: rgba(255, 105, 180, 0.08);
+        }
+        .badge-option input {
+            display: none;
+        }
+        .badge-preview {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        .badge-custom-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .badge-color-picker {
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            padding: 2px;
+        }
     </style>
 </head>
 <body>
@@ -1043,6 +1104,55 @@ if (isPost()) {
                                            step="0.01" min="0"
                                            placeholder="19.90"
                                            value="<?= h($formData['base_price']) ?>" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="sale_price">Prix soldé (€)</label>
+                                    <input type="number" id="sale_price" name="sale_price" class="form-input"
+                                           step="0.01" min="0"
+                                           placeholder="Laisser vide si pas de solde"
+                                           value="<?= h($formData['sale_price']) ?>">
+                                    <small class="form-hint">Si renseigné, le prix de base apparaîtra barré</small>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Badge produit</label>
+                                    <div class="badge-selector">
+                                        <div class="badge-options">
+                                            <label class="badge-option <?= empty($formData['badge']) ? 'active' : '' ?>">
+                                                <input type="radio" name="badge" value="" <?= empty($formData['badge']) ? 'checked' : '' ?>>
+                                                <span>Aucun</span>
+                                            </label>
+                                            <label class="badge-option <?= $formData['badge'] === 'Soldé' ? 'active' : '' ?>">
+                                                <input type="radio" name="badge" value="Soldé" <?= $formData['badge'] === 'Soldé' ? 'checked' : '' ?>>
+                                                <span class="badge-preview" style="background:#FF1493;color:white">Soldé</span>
+                                            </label>
+                                            <label class="badge-option <?= $formData['badge'] === 'Nouveau' ? 'active' : '' ?>">
+                                                <input type="radio" name="badge" value="Nouveau" <?= $formData['badge'] === 'Nouveau' ? 'checked' : '' ?>>
+                                                <span class="badge-preview" style="background:#3DFFC0;color:#1a1a2e">Nouveau</span>
+                                            </label>
+                                            <label class="badge-option <?= $formData['badge'] === 'Populaire' ? 'active' : '' ?>">
+                                                <input type="radio" name="badge" value="Populaire" <?= $formData['badge'] === 'Populaire' ? 'checked' : '' ?>>
+                                                <span class="badge-preview" style="background:#8B5CF6;color:white">Populaire</span>
+                                            </label>
+                                            <label class="badge-option <?= $formData['badge'] === 'Limité' ? 'active' : '' ?>">
+                                                <input type="radio" name="badge" value="Limité" <?= $formData['badge'] === 'Limité' ? 'checked' : '' ?>>
+                                                <span class="badge-preview" style="background:#F59E0B;color:white">Limité</span>
+                                            </label>
+                                            <label class="badge-option <?= (!empty($formData['badge']) && !in_array($formData['badge'], ['Soldé','Nouveau','Populaire','Limité'])) ? 'active' : '' ?>">
+                                                <input type="radio" name="badge" value="custom" <?= (!empty($formData['badge']) && !in_array($formData['badge'], ['Soldé','Nouveau','Populaire','Limité'])) ? 'checked' : '' ?>>
+                                                <span>Personnalisé</span>
+                                            </label>
+                                        </div>
+                                        <div class="badge-custom-row" id="badgeCustomRow" style="<?= (!empty($formData['badge']) && !in_array($formData['badge'], ['Soldé','Nouveau','Populaire','Limité'])) ? '' : 'display:none;' ?>">
+                                            <input type="text" id="badge_custom" class="form-input" placeholder="Texte du badge"
+                                                   value="<?= (!empty($formData['badge']) && !in_array($formData['badge'], ['Soldé','Nouveau','Populaire','Limité'])) ? h($formData['badge']) : '' ?>"
+                                                   style="flex:1;">
+                                            <input type="color" name="badge_color" value="<?= h($formData['badge_color']) ?>" class="badge-color-picker">
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="form-group">
@@ -1534,6 +1644,37 @@ if (isPost()) {
             };
             reader.readAsDataURL(file);
         }
+
+        // === Badge Selection ===
+        document.querySelectorAll('.badge-option input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Update active state
+                document.querySelectorAll('.badge-option').forEach(opt => opt.classList.remove('active'));
+                this.closest('.badge-option').classList.add('active');
+
+                // Show/hide custom input
+                const customRow = document.getElementById('badgeCustomRow');
+                if (this.value === 'custom') {
+                    customRow.style.display = 'flex';
+                    document.getElementById('badge_custom').focus();
+                } else {
+                    customRow.style.display = 'none';
+                }
+            });
+        });
+
+        // Before form submission, set badge value from custom input if "custom" is selected
+        document.querySelector('.product-form').addEventListener('submit', function(e) {
+            const checkedBadge = document.querySelector('input[name="badge"]:checked');
+            if (checkedBadge && checkedBadge.value === 'custom') {
+                const customVal = document.getElementById('badge_custom').value.trim();
+                if (customVal) {
+                    checkedBadge.value = customVal;
+                } else {
+                    checkedBadge.value = '';
+                }
+            }
+        });
     </script>
 </body>
 </html>

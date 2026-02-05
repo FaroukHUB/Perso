@@ -49,6 +49,40 @@ $shippingAddress = $order['shipping_address']
 $success = '';
 $error = '';
 
+// AJAX: Upload de fichier WhatsApp
+if (isPost() && post('action') === 'upload_wa_file') {
+    header('Content-Type: application/json');
+    if (!verifyCsrf(post('csrf_token', ''))) {
+        echo json_encode(['success' => false, 'error' => 'CSRF invalide']);
+        exit;
+    }
+    if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = __DIR__ . '/../public/uploads/whatsapp/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        $ext = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg','jpeg','png','gif','webp','mp4','mov','avi','webm'];
+        if (!in_array($ext, $allowed)) {
+            echo json_encode(['success' => false, 'error' => 'Format non supporté']);
+            exit;
+        }
+        if ($_FILES['file']['size'] > 50 * 1024 * 1024) {
+            echo json_encode(['success' => false, 'error' => 'Fichier trop volumineux (max 50 Mo)']);
+            exit;
+        }
+        $filename = 'wa_' . $orderId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+        if (move_uploaded_file($_FILES['file']['tmp_name'], $uploadDir . $filename)) {
+            echo json_encode(['success' => true, 'url' => '/public/uploads/whatsapp/' . $filename]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Erreur upload']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Aucun fichier']);
+    }
+    exit;
+}
+
 if (isPost() && isset($_POST['update_status'])) {
     if (verifyCsrf($_POST['csrf_token'] ?? '')) {
         $newStatus = post('status', '');
@@ -396,19 +430,41 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
                         <span class="status-dot" style="background-color: <?= $currentStatus['color'] ?>"></span>
                         <span class="status-label"><?= $currentStatus['label'] ?></span>
                     </div>
-                    <form method="post" class="status-form">
-                        <?= csrfField() ?>
-                        <select name="status" class="status-select">
-                            <?php foreach ($statusLabels as $key => $status): ?>
-                                <option value="<?= $key ?>" <?= $order['status'] === $key ? 'selected' : '' ?>>
-                                    <?= $status['label'] ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <button type="submit" name="update_status" value="1" class="btn btn-secondary" style="padding: 10px 20px;">
-                            Mettre à jour
-                        </button>
-                    </form>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <form method="post" class="status-form" id="statusForm">
+                            <?= csrfField() ?>
+                            <select name="status" class="status-select" id="statusSelect">
+                                <?php foreach ($statusLabels as $key => $status): ?>
+                                    <option value="<?= $key ?>" <?= $order['status'] === $key ? 'selected' : '' ?>>
+                                        <?= $status['label'] ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button type="submit" name="update_status" value="1" class="btn btn-secondary" style="padding: 10px 20px;">
+                                Mettre à jour
+                            </button>
+                        </form>
+                        <?php
+                            $customerPhone = '';
+                            if ($customer && !empty($customer['phone'])) {
+                                $customerPhone = preg_replace('/\s+/', '', $customer['phone']);
+                                if (strpos($customerPhone, '0') === 0) {
+                                    $customerPhone = '33' . substr($customerPhone, 1);
+                                }
+                            } elseif ($shippingAddress && !empty($shippingAddress['phone'])) {
+                                $customerPhone = preg_replace('/\s+/', '', $shippingAddress['phone']);
+                                if (strpos($customerPhone, '0') === 0) {
+                                    $customerPhone = '33' . substr($customerPhone, 1);
+                                }
+                            }
+                        ?>
+                        <?php if ($customerPhone): ?>
+                            <button type="button" class="whatsapp-status-btn" onclick="sendWhatsAppStatus()" title="Envoyer un WhatsApp au client">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.387 0-4.594-.768-6.398-2.07l-.446-.334-3.177 1.065 1.065-3.177-.334-.446A9.935 9.935 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                                WhatsApp
+                            </button>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
 
@@ -549,6 +605,220 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
         </main>
     </div>
 
+    <style>
+        .whatsapp-status-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #25D366;
+            color: white;
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .whatsapp-status-btn:hover {
+            background: #1da851;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+        }
+
+        /* WhatsApp Modal */
+        .wa-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .wa-modal-overlay.active { display: flex; }
+        .wa-modal {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 520px;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.25);
+            animation: waSlideIn 0.3s ease;
+        }
+        @keyframes waSlideIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .wa-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            background: #25D366;
+            color: white;
+        }
+        .wa-modal-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .wa-modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .wa-modal-close:hover { background: rgba(255,255,255,0.3); }
+        .wa-modal-body { padding: 24px; }
+        .wa-form-group {
+            margin-bottom: 16px;
+        }
+        .wa-form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--black-soft);
+            margin-bottom: 6px;
+        }
+        .wa-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px 16px;
+            border: 2px solid #e5e5e5;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        .wa-textarea:focus {
+            outline: none;
+            border-color: #25D366;
+        }
+        .wa-file-upload {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .wa-file-btn {
+            padding: 8px 16px;
+            background: var(--gray-light);
+            border: 2px dashed rgba(0,0,0,0.1);
+            border-radius: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            color: var(--gray);
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .wa-file-btn:hover {
+            border-color: #25D366;
+            background: rgba(37, 211, 102, 0.05);
+            color: #1da851;
+        }
+        .wa-file-name {
+            font-size: 13px;
+            color: var(--gray);
+        }
+        .wa-hint {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 6px;
+        }
+        .wa-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .wa-send-btn {
+            flex: 1;
+            padding: 12px 20px;
+            background: #25D366;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .wa-send-btn:hover {
+            background: #1da851;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+        }
+        .wa-cancel-btn {
+            padding: 12px 20px;
+            background: var(--gray-light);
+            border: none;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.2s;
+        }
+        .wa-cancel-btn:hover { background: #e5e5e5; }
+    </style>
+
+    <!-- WhatsApp Message Modal -->
+    <?php if (!empty($customerPhone)): ?>
+    <div class="wa-modal-overlay" id="waModal" onclick="if(event.target===this)closeWaModal()">
+        <div class="wa-modal">
+            <div class="wa-modal-header">
+                <h3>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.387 0-4.594-.768-6.398-2.07l-.446-.334-3.177 1.065 1.065-3.177-.334-.446A9.935 9.935 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                    Envoyer un WhatsApp
+                </h3>
+                <button class="wa-modal-close" onclick="closeWaModal()">&times;</button>
+            </div>
+            <div class="wa-modal-body">
+                <div class="wa-form-group">
+                    <label>Message</label>
+                    <textarea class="wa-textarea" id="waMessage">Bonjour ! Concernant votre commande #<?= $orderId ?> chez PERSONNALY, le statut est maintenant : <?= $currentStatus['label'] ?>.
+Merci pour votre confiance !</textarea>
+                </div>
+                <div class="wa-form-group">
+                    <label>Joindre un fichier (optionnel)</label>
+                    <div class="wa-file-upload">
+                        <label class="wa-file-btn" for="waFile">
+                            Choisir un fichier
+                        </label>
+                        <input type="file" id="waFile" accept="image/*,video/*" style="display:none" onchange="updateWaFileName(this)">
+                        <span class="wa-file-name" id="waFileName">Aucun fichier</span>
+                    </div>
+                    <p class="wa-hint">Le fichier sera uploadé et un lien sera ajouté au message. Formats: image, vidéo.</p>
+                </div>
+                <div class="wa-actions">
+                    <button class="wa-cancel-btn" onclick="closeWaModal()">Annuler</button>
+                    <button class="wa-send-btn" onclick="submitWhatsApp()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                        Envoyer via WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Lightbox Component -->
     <script src="/public/assets/js/lightbox.js"></script>
     <script>
@@ -570,6 +840,77 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
                 technique: el.dataset.technique || 'flex'
             });
         }
+
+        // === WhatsApp Functions ===
+        const customerPhone = '<?= $customerPhone ?? '' ?>';
+        const statusLabelsJs = <?= json_encode(array_map(function($s) { return $s['label']; }, $statusLabels)) ?>;
+
+        function sendWhatsAppStatus() {
+            const modal = document.getElementById('waModal');
+            if (!modal) return;
+
+            // Update message with current status selection
+            const select = document.getElementById('statusSelect');
+            const selectedStatus = select.value;
+            const statusLabel = statusLabelsJs[selectedStatus] || selectedStatus;
+
+            document.getElementById('waMessage').value =
+                'Bonjour ! Concernant votre commande #<?= $orderId ?> chez PERSONNALY, ' +
+                'le statut est maintenant : ' + statusLabel + '.\n' +
+                'Merci pour votre confiance !';
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeWaModal() {
+            const modal = document.getElementById('waModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function updateWaFileName(input) {
+            const nameEl = document.getElementById('waFileName');
+            nameEl.textContent = input.files[0] ? input.files[0].name : 'Aucun fichier';
+        }
+
+        async function submitWhatsApp() {
+            const message = document.getElementById('waMessage').value;
+            const fileInput = document.getElementById('waFile');
+            let finalMessage = message;
+
+            // If a file is selected, upload it first
+            if (fileInput && fileInput.files[0]) {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('csrf_token', '<?= generateCsrf() ?>');
+                formData.append('action', 'upload_wa_file');
+
+                try {
+                    const resp = await fetch('/admin/order.php?id=<?= $orderId ?>', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await resp.json();
+                    if (result.success && result.url) {
+                        finalMessage += '\n\nFichier joint : ' + window.location.origin + result.url;
+                    }
+                } catch (e) {
+                    // Continue without file
+                }
+            }
+
+            // Open WhatsApp
+            const waUrl = 'https://wa.me/' + customerPhone + '?text=' + encodeURIComponent(finalMessage);
+            window.open(waUrl, '_blank');
+            closeWaModal();
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeWaModal();
+        });
     </script>
 </body>
 </html>

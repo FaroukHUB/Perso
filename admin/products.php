@@ -132,7 +132,15 @@ $pendingOrders = $orderModel->countNew();
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <strong style="color: var(--pink-dark);"><?= formatPrice($product['base_price']) ?></strong>
+                                        <?php if (!empty($product['sale_price']) && $product['sale_price'] > 0 && $product['sale_price'] < $product['base_price']): ?>
+                                            <span style="text-decoration:line-through;color:var(--gray);font-size:12px;"><?= formatPrice($product['base_price']) ?></span>
+                                            <strong style="color: var(--pink-dark);"><?= formatPrice($product['sale_price']) ?></strong>
+                                        <?php else: ?>
+                                            <strong style="color: var(--pink-dark);"><?= formatPrice($product['base_price']) ?></strong>
+                                        <?php endif; ?>
+                                        <?php if (!empty($product['badge'])): ?>
+                                            <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;background:<?= h($product['badge_color'] ?? '#FF1493') ?>;color:white;margin-left:6px;"><?= h($product['badge']) ?></span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <?php if ($product['active']): ?>

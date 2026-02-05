@@ -315,7 +315,10 @@ if (isPost() && isset($_POST['add_to_cart'])) {
         $quantity = $customization['quantity'];
         unset($customization['quantity']);
 
-        Cart::add($productId, $customization, (float) $product['base_price'], $quantity);
+        $cartPrice = (!empty($product['sale_price']) && $product['sale_price'] > 0 && $product['sale_price'] < $product['base_price'])
+            ? (float) $product['sale_price']
+            : (float) $product['base_price'];
+        Cart::add($productId, $customization, $cartPrice, $quantity);
         $success = 'Produit ajouté au panier !';
     } else {
         $error = 'Session expirée. Veuillez réessayer.';
@@ -431,7 +434,7 @@ $cartCount = Cart::count();
         window.__PRODUCT_DATA = {
             id: <?= $product['id'] ?>,
             name: "<?= addslashes(h($product['name'])) ?>",
-            basePrice: <?= $product['base_price'] ?>
+            basePrice: <?= (!empty($product['sale_price']) && $product['sale_price'] > 0 && $product['sale_price'] < $product['base_price']) ? $product['sale_price'] : $product['base_price'] ?>
         };
         window.__FONTS_DATA = <?= json_encode($fonts) ?>;
         window.__TEXT_COLORS_DATA = <?= json_encode($textColors) ?>;
@@ -832,7 +835,14 @@ $cartCount = Cart::count();
                 <div class="cfg-product-actions cfg-product-actions-right">
                     <div class="cfg-product-info">
                         <h1 class="cfg-product-title"><?= h($product['name']) ?></h1>
-                        <div class="cfg-product-price" id="cfgProductPrice"><?= formatPrice($product['base_price']) ?></div>
+                        <?php if (!empty($product['sale_price']) && $product['sale_price'] > 0 && $product['sale_price'] < $product['base_price']): ?>
+                            <div class="cfg-product-price" id="cfgProductPrice">
+                                <span style="text-decoration:line-through;color:var(--gray);font-size:0.8em;font-weight:400;margin-right:8px;"><?= formatPrice($product['base_price']) ?></span>
+                                <?= formatPrice($product['sale_price']) ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="cfg-product-price" id="cfgProductPrice"><?= formatPrice($product['base_price']) ?></div>
+                        <?php endif; ?>
                     </div>
                     <button type="submit" class="cfg-add-cart-btn cfg-add-cart-btn-full">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -901,7 +911,7 @@ $cartCount = Cart::count();
                 <div class="cfg-mobile-cta">
                     <div class="cfg-mobile-price">
                         <span class="cfg-mobile-price-label">Total</span>
-                        <span class="cfg-mobile-price-value" id="cfgMobilePrice"><?= formatPrice($product['base_price']) ?></span>
+                        <span class="cfg-mobile-price-value" id="cfgMobilePrice"><?= formatPrice((!empty($product['sale_price']) && $product['sale_price'] > 0 && $product['sale_price'] < $product['base_price']) ? $product['sale_price'] : $product['base_price']) ?></span>
                     </div>
                     <button type="submit" class="cfg-mobile-cart-btn">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

@@ -4,9 +4,33 @@
  * Utilisé dans les sections featured_products et featured_category
  * Variable disponible: $product (tableau avec les données du produit)
  */
+$hasSalePrice = !empty($product['sale_price']) && $product['sale_price'] > 0 && $product['sale_price'] < $product['base_price'];
+$badgeText = $product['badge'] ?? '';
+$badgeColor = $product['badge_color'] ?? '#FF1493';
+// Auto-badge "Soldé" si prix soldé et pas de badge défini
+if ($hasSalePrice && empty($badgeText)) {
+    $badgeText = 'Soldé';
+    $badgeColor = '#FF1493';
+}
+// Preset badge colors
+$badgePresetColors = [
+    'Soldé' => '#FF1493',
+    'Nouveau' => '#3DFFC0',
+    'Populaire' => '#8B5CF6',
+    'Limité' => '#F59E0B',
+];
+if (isset($badgePresetColors[$badgeText]) && $badgeColor === '#FF1493') {
+    $badgeColor = $badgePresetColors[$badgeText];
+}
+$badgeTextColor = in_array($badgeText, ['Nouveau']) ? '#1a1a2e' : '#ffffff';
 ?>
 <div class="product-card">
     <div class="product-image">
+        <?php if (!empty($badgeText)): ?>
+            <span class="product-badge" style="background:<?= h($badgeColor) ?>;color:<?= $badgeTextColor ?>;">
+                <?= h($badgeText) ?>
+            </span>
+        <?php endif; ?>
         <?php if (!empty($product['category_names'])): ?>
             <span class="product-category badge badge-mint">
                 <?= h($product['category_names'][0]) ?>
@@ -28,7 +52,14 @@
         <h3><?= h($product['name']) ?></h3>
         <p><?= h($product['description'] ?? 'Personnalisable avec votre design') ?></p>
         <div class="product-footer">
-            <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
+            <?php if ($hasSalePrice): ?>
+                <div class="product-price-group">
+                    <span class="product-price-old"><?= formatPrice($product['base_price']) ?></span>
+                    <span class="product-price product-price-sale"><?= formatPrice($product['sale_price']) ?></span>
+                </div>
+            <?php else: ?>
+                <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
+            <?php endif; ?>
             <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
         </div>
     </div>

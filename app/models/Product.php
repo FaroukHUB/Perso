@@ -54,13 +54,16 @@ class Product
     public function create(array $data): int
     {
         $stmt = $this->db->prepare(
-            'INSERT INTO products (name, description, base_price, weight, category, image_front_url, image_back_url, available_sizes, active, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())'
+            'INSERT INTO products (name, description, base_price, sale_price, badge, badge_color, weight, category, image_front_url, image_back_url, available_sizes, active, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())'
         );
         $stmt->execute([
             $data['name'],
             $data['description'] ?? '',
             $data['base_price'],
+            !empty($data['sale_price']) ? $data['sale_price'] : null,
+            !empty($data['badge']) ? $data['badge'] : null,
+            !empty($data['badge_color']) ? $data['badge_color'] : '#FF1493',
             $data['weight'] ?? null,
             $data['category'] ?? null,
             $data['image_front_url'] ?? null,
