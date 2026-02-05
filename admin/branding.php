@@ -10,6 +10,7 @@ require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/Branding.php';
 require_once __DIR__ . '/../app/models/ShopSettings.php';
+require_once __DIR__ . '/../app/models/Font.php';
 
 Auth::requireAdmin();
 
@@ -17,12 +18,13 @@ $orderModel = new Order();
 $pendingOrders = $orderModel->countNew();
 $brandingModel = new Branding();
 $shopSettings = new ShopSettings();
+$fontModel = new Font();
 
 $success = '';
 $error = '';
 $tableExists = $brandingModel->tableExists();
 
-// Onglet actif (identity, colors, topbar, appearance)
+// Onglet actif (identity, colors, typography, topbar, appearance)
 $activeTab = $_GET['tab'] ?? 'identity';
 
 // Client ID (null = global config)
@@ -36,6 +38,7 @@ $successMessages = [
     'branding' => 'Configuration sauvegardée avec succès.',
     'topbar' => 'Paramètres de la top bar enregistrés.',
     'appearance' => 'Couleurs enregistrées.',
+    'typography' => 'Typographie enregistrée avec succès.',
 ];
 $successKey = $_GET['success'] ?? '';
 if (isset($successMessages[$successKey])) {
@@ -116,6 +119,118 @@ if (isPost()) {
         ]);
         $shopSettings->clearCache();
         redirect('/admin/branding.php?tab=appearance&success=appearance');
+    } elseif (isset($_POST['save_typography'])) {
+        // Sauvegarde Typographie
+        if (!$tableExists) {
+            $error = 'La table branding_settings n\'existe pas. Exécutez la migration SQL d\'abord.';
+        } else {
+            // Construire typography_scale JSON
+            $typographyScale = [];
+            $levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body', 'small', 'lead'];
+            foreach ($levels as $level) {
+                $typographyScale[$level] = [
+                    'font' => post("typo_{$level}_font", 'primary'),
+                    'size' => post("typo_{$level}_size", '1rem'),
+                    'weight' => post("typo_{$level}_weight", '400'),
+                    'line_height' => post("typo_{$level}_line_height", '1.5')
+                ];
+            }
+
+            // Construire button_styles JSON
+            $buttonStyles = [];
+            $buttonTypes = ['primary', 'secondary', 'danger', 'success', 'outline'];
+            foreach ($buttonTypes as $type) {
+                $buttonStyles[$type] = [
+                    'bg_color' => post("btn_{$type}_bg", '#6366F1'),
+                    'text_color' => post("btn_{$type}_text", '#FFFFFF'),
+                    'hover_bg' => post("btn_{$type}_hover_bg", '#4F46E5'),
+                    'hover_text' => post("btn_{$type}_hover_text", '#FFFFFF'),
+                    'border_color' => post("btn_{$type}_border", 'transparent'),
+                    'border_width' => post("btn_{$type}_border_width", '0px')
+                ];
+            }
+
+            // Construire color_system JSON
+            $colorSystem = [
+                'primary' => [
+                    'base' => post('color_primary_base', '#6366F1'),
+                    'hover' => post('color_primary_hover', '#4F46E5'),
+                    'active' => post('color_primary_active', '#4338CA'),
+                    'disabled' => post('color_primary_disabled', '#A5B4FC'),
+                    'text_on' => post('color_primary_text_on', '#FFFFFF')
+                ],
+                'secondary' => [
+                    'base' => post('color_secondary_base', '#8B5CF6'),
+                    'hover' => post('color_secondary_hover', '#7C3AED'),
+                    'active' => post('color_secondary_active', '#6D28D9'),
+                    'disabled' => post('color_secondary_disabled', '#C4B5FD'),
+                    'text_on' => post('color_secondary_text_on', '#FFFFFF')
+                ],
+                'accent' => [
+                    'base' => post('color_accent_base', '#F59E0B'),
+                    'hover' => post('color_accent_hover', '#D97706'),
+                    'active' => post('color_accent_active', '#B45309'),
+                    'disabled' => post('color_accent_disabled', '#FCD34D'),
+                    'text_on' => post('color_accent_text_on', '#FFFFFF')
+                ],
+                'text' => [
+                    'primary' => post('color_text_primary', '#1F2937'),
+                    'secondary' => post('color_text_secondary', '#6B7280'),
+                    'tertiary' => post('color_text_tertiary', '#9CA3AF'),
+                    'disabled' => post('color_text_disabled', '#D1D5DB'),
+                    'on_dark' => post('color_text_on_dark', '#FFFFFF')
+                ],
+                'background' => [
+                    'primary' => post('color_bg_primary', '#FFFFFF'),
+                    'secondary' => post('color_bg_secondary', '#F9FAFB'),
+                    'tertiary' => post('color_bg_tertiary', '#F3F4F6'),
+                    'inverse' => post('color_bg_inverse', '#1F2937')
+                ],
+                'border' => [
+                    'primary' => post('color_border_primary', '#E5E7EB'),
+                    'secondary' => post('color_border_secondary', '#D1D5DB'),
+                    'focus' => post('color_border_focus', '#6366F1')
+                ],
+                'status' => [
+                    'success' => post('color_status_success', '#10B981'),
+                    'success_bg' => post('color_status_success_bg', '#D1FAE5'),
+                    'warning' => post('color_status_warning', '#F59E0B'),
+                    'warning_bg' => post('color_status_warning_bg', '#FEF3C7'),
+                    'error' => post('color_status_error', '#EF4444'),
+                    'error_bg' => post('color_status_error_bg', '#FEE2E2'),
+                    'info' => post('color_status_info', '#3B82F6'),
+                    'info_bg' => post('color_status_info_bg', '#DBEAFE')
+                ]
+            ];
+
+            $data = [
+                'font_primary_id' => post('font_primary_id', null),
+                'font_secondary_id' => post('font_secondary_id', null),
+                'typography_scale' => json_encode($typographyScale),
+                'button_styles' => json_encode($buttonStyles),
+                'color_system' => json_encode($colorSystem)
+            ];
+
+            // Nettoyer les valeurs vides
+            foreach ($data as $key => $value) {
+                if ($value === '' || $value === 'null') {
+                    $data[$key] = null;
+                }
+            }
+
+            try {
+                if ($clientId === null) {
+                    $brandingModel->upsertGlobal($data);
+                } else {
+                    $brandingModel->upsertForClient($clientId, $data);
+                }
+                $redirectUrl = '/admin/branding.php?tab=typography&success=typography';
+                if ($clientId) $redirectUrl .= '&client_id=' . $clientId;
+                redirect($redirectUrl);
+            } catch (Exception $e) {
+                $error = 'Erreur lors de la sauvegarde : ' . $e->getMessage();
+            }
+        }
     }
 }
 
@@ -168,6 +283,7 @@ $shadowOptions = [
                 <div class="sub-tabs">
                     <a href="?tab=identity" class="sub-tab <?= $activeTab === 'identity' ? 'active' : '' ?>">Identité & Logos</a>
                     <a href="?tab=colors" class="sub-tab <?= $activeTab === 'colors' ? 'active' : '' ?>">Couleurs & Style</a>
+                    <a href="?tab=typography" class="sub-tab <?= $activeTab === 'typography' ? 'active' : '' ?>">Typographie</a>
                     <a href="?tab=topbar" class="sub-tab <?= $activeTab === 'topbar' ? 'active' : '' ?>">Top Bar</a>
                     <a href="?tab=appearance" class="sub-tab <?= $activeTab === 'appearance' ? 'active' : '' ?>">Header & Footer</a>
                 </div>
@@ -754,6 +870,344 @@ $shadowOptions = [
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary btn-lg">Sauvegarder</button>
+                </div>
+            </form>
+            <?php endif; ?>
+
+            <!-- ========== ONGLET TYPOGRAPHIE ========== -->
+            <?php if ($activeTab === 'typography'): ?>
+            <?php
+            // Charger les fonts actives
+            $fonts = $fontModel->findActive();
+
+            // Récupérer les valeurs actuelles
+            $typographyScale = !empty($config['typography_scale']) ? (is_string($config['typography_scale']) ? json_decode($config['typography_scale'], true) : $config['typography_scale']) : [];
+            $buttonStyles = !empty($config['button_styles']) ? (is_string($config['button_styles']) ? json_decode($config['button_styles'], true) : $config['button_styles']) : [];
+            $colorSystem = !empty($config['color_system']) ? (is_string($config['color_system']) ? json_decode($config['color_system'], true) : $config['color_system']) : [];
+
+            // Valeurs par défaut si vides
+            $typographyDefaults = [
+                'h1' => ['font' => 'primary', 'size' => '3rem', 'weight' => '700', 'line_height' => '1.2'],
+                'h2' => ['font' => 'primary', 'size' => '2.5rem', 'weight' => '600', 'line_height' => '1.3'],
+                'h3' => ['font' => 'primary', 'size' => '2rem', 'weight' => '600', 'line_height' => '1.4'],
+                'h4' => ['font' => 'primary', 'size' => '1.5rem', 'weight' => '500', 'line_height' => '1.4'],
+                'h5' => ['font' => 'secondary', 'size' => '1.25rem', 'weight' => '500', 'line_height' => '1.5'],
+                'h6' => ['font' => 'secondary', 'size' => '1rem', 'weight' => '500', 'line_height' => '1.5'],
+                'body' => ['font' => 'secondary', 'size' => '1rem', 'weight' => '400', 'line_height' => '1.6'],
+                'small' => ['font' => 'secondary', 'size' => '0.875rem', 'weight' => '400', 'line_height' => '1.5'],
+                'lead' => ['font' => 'secondary', 'size' => '1.125rem', 'weight' => '400', 'line_height' => '1.7']
+            ];
+
+            $buttonDefaults = [
+                'primary' => ['bg_color' => '#6366F1', 'text_color' => '#FFFFFF', 'hover_bg' => '#4F46E5', 'hover_text' => '#FFFFFF', 'border_color' => 'transparent', 'border_width' => '0px'],
+                'secondary' => ['bg_color' => '#E5E7EB', 'text_color' => '#1F2937', 'hover_bg' => '#D1D5DB', 'hover_text' => '#111827', 'border_color' => 'transparent', 'border_width' => '0px'],
+                'danger' => ['bg_color' => '#EF4444', 'text_color' => '#FFFFFF', 'hover_bg' => '#DC2626', 'hover_text' => '#FFFFFF', 'border_color' => 'transparent', 'border_width' => '0px'],
+                'success' => ['bg_color' => '#10B981', 'text_color' => '#FFFFFF', 'hover_bg' => '#059669', 'hover_text' => '#FFFFFF', 'border_color' => 'transparent', 'border_width' => '0px'],
+                'outline' => ['bg_color' => 'transparent', 'text_color' => '#6366F1', 'hover_bg' => '#6366F1', 'hover_text' => '#FFFFFF', 'border_color' => '#6366F1', 'border_width' => '2px']
+            ];
+
+            $colorDefaults = [
+                'primary' => ['base' => '#6366F1', 'hover' => '#4F46E5', 'active' => '#4338CA', 'disabled' => '#A5B4FC', 'text_on' => '#FFFFFF'],
+                'secondary' => ['base' => '#8B5CF6', 'hover' => '#7C3AED', 'active' => '#6D28D9', 'disabled' => '#C4B5FD', 'text_on' => '#FFFFFF'],
+                'accent' => ['base' => '#F59E0B', 'hover' => '#D97706', 'active' => '#B45309', 'disabled' => '#FCD34D', 'text_on' => '#FFFFFF'],
+                'text' => ['primary' => '#1F2937', 'secondary' => '#6B7280', 'tertiary' => '#9CA3AF', 'disabled' => '#D1D5DB', 'on_dark' => '#FFFFFF'],
+                'background' => ['primary' => '#FFFFFF', 'secondary' => '#F9FAFB', 'tertiary' => '#F3F4F6', 'inverse' => '#1F2937'],
+                'border' => ['primary' => '#E5E7EB', 'secondary' => '#D1D5DB', 'focus' => '#6366F1'],
+                'status' => ['success' => '#10B981', 'success_bg' => '#D1FAE5', 'warning' => '#F59E0B', 'warning_bg' => '#FEF3C7', 'error' => '#EF4444', 'error_bg' => '#FEE2E2', 'info' => '#3B82F6', 'info_bg' => '#DBEAFE']
+            ];
+            ?>
+            <form method="post" class="branding-form">
+                <?= csrfField() ?>
+                <input type="hidden" name="save_typography" value="1">
+
+                <!-- Section: Polices de base -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Polices de base</h3>
+                        <span class="header-note">Polices principales utilisées sur tout le site</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Police principale (titres)</label>
+                                <select name="font_primary_id" class="form-input">
+                                    <option value="">-- Sélectionner --</option>
+                                    <?php foreach ($fonts as $font): ?>
+                                        <option value="<?= $font['id'] ?>" <?= ($config['font_primary_id'] ?? 0) == $font['id'] ? 'selected' : '' ?>>
+                                            <?= h($font['name']) ?> (<?= h($font['category']) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Police secondaire (texte)</label>
+                                <select name="font_secondary_id" class="form-input">
+                                    <option value="">-- Sélectionner --</option>
+                                    <?php foreach ($fonts as $font): ?>
+                                        <option value="<?= $font['id'] ?>" <?= ($config['font_secondary_id'] ?? 0) == $font['id'] ? 'selected' : '' ?>>
+                                            <?= h($font['name']) ?> (<?= h($font['category']) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Échelle typographique -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Échelle typographique</h3>
+                        <span class="header-note">Configuration des styles de texte (H1-H6, body, small, lead)</span>
+                    </div>
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                        <?php foreach ($typographyDefaults as $level => $defaults):
+                            $current = $typographyScale[$level] ?? $defaults;
+                        ?>
+                        <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+                            <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--gray-700); margin-bottom: 15px; text-transform: uppercase;"><?= strtoupper($level) ?></h4>
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Police</label>
+                                    <select name="typo_<?= $level ?>_font" class="form-input">
+                                        <option value="primary" <?= ($current['font'] ?? '') === 'primary' ? 'selected' : '' ?>>Principale</option>
+                                        <option value="secondary" <?= ($current['font'] ?? '') === 'secondary' ? 'selected' : '' ?>>Secondaire</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Taille</label>
+                                    <input type="text" name="typo_<?= $level ?>_size" class="form-input"
+                                           value="<?= h($current['size'] ?? '') ?>" placeholder="ex: 1rem, 16px">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Graisse (weight)</label>
+                                    <select name="typo_<?= $level ?>_weight" class="form-input">
+                                        <option value="300" <?= ($current['weight'] ?? '') == '300' ? 'selected' : '' ?>>300 (Light)</option>
+                                        <option value="400" <?= ($current['weight'] ?? '') == '400' ? 'selected' : '' ?>>400 (Normal)</option>
+                                        <option value="500" <?= ($current['weight'] ?? '') == '500' ? 'selected' : '' ?>>500 (Medium)</option>
+                                        <option value="600" <?= ($current['weight'] ?? '') == '600' ? 'selected' : '' ?>>600 (Semi-Bold)</option>
+                                        <option value="700" <?= ($current['weight'] ?? '') == '700' ? 'selected' : '' ?>>700 (Bold)</option>
+                                        <option value="800" <?= ($current['weight'] ?? '') == '800' ? 'selected' : '' ?>>800 (Extra-Bold)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Hauteur de ligne</label>
+                                    <input type="text" name="typo_<?= $level ?>_line_height" class="form-input"
+                                           value="<?= h($current['line_height'] ?? '') ?>" placeholder="ex: 1.5">
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <!-- Section: Styles des boutons -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Styles des boutons</h3>
+                        <span class="header-note">Configuration des variantes de boutons</span>
+                    </div>
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                        <?php foreach ($buttonDefaults as $type => $defaults):
+                            $current = $buttonStyles[$type] ?? $defaults;
+                        ?>
+                        <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+                            <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--gray-700); margin-bottom: 15px; text-transform: capitalize;"><?= ucfirst($type) ?></h4>
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Couleur fond</label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="btn_<?= $type ?>_bg" id="btn_<?= $type ?>_bg"
+                                               value="<?= h($current['bg_color'] ?? '#6366F1') ?>">
+                                        <input type="text" class="color-hex"
+                                               value="<?= h($current['bg_color'] ?? '#6366F1') ?>"
+                                               data-target="btn_<?= $type ?>_bg">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Couleur texte</label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="btn_<?= $type ?>_text" id="btn_<?= $type ?>_text"
+                                               value="<?= h($current['text_color'] ?? '#FFFFFF') ?>">
+                                        <input type="text" class="color-hex"
+                                               value="<?= h($current['text_color'] ?? '#FFFFFF') ?>"
+                                               data-target="btn_<?= $type ?>_text">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Fond au survol</label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="btn_<?= $type ?>_hover_bg" id="btn_<?= $type ?>_hover_bg"
+                                               value="<?= h($current['hover_bg'] ?? '#4F46E5') ?>">
+                                        <input type="text" class="color-hex"
+                                               value="<?= h($current['hover_bg'] ?? '#4F46E5') ?>"
+                                               data-target="btn_<?= $type ?>_hover_bg">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Texte au survol</label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="btn_<?= $type ?>_hover_text" id="btn_<?= $type ?>_hover_text"
+                                               value="<?= h($current['hover_text'] ?? '#FFFFFF') ?>">
+                                        <input type="text" class="color-hex"
+                                               value="<?= h($current['hover_text'] ?? '#FFFFFF') ?>"
+                                               data-target="btn_<?= $type ?>_hover_text">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Couleur bordure</label>
+                                    <input type="text" name="btn_<?= $type ?>_border" class="form-input"
+                                           value="<?= h($current['border_color'] ?? 'transparent') ?>" placeholder="transparent, #color">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Épaisseur bordure</label>
+                                    <input type="text" name="btn_<?= $type ?>_border_width" class="form-input"
+                                           value="<?= h($current['border_width'] ?? '0px') ?>" placeholder="0px, 1px, 2px">
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <!-- Section: Système de couleurs -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Système de couleurs avancé</h3>
+                        <span class="header-note">Couleurs avec variantes (base, hover, active, disabled)</span>
+                    </div>
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                        <!-- Primary -->
+                        <div style="margin-bottom: 25px;">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Primaire</h4>
+                            <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
+                                <?php foreach (['base' => 'Base', 'hover' => 'Survol', 'active' => 'Actif', 'disabled' => 'Désactivé', 'text_on' => 'Texte sur'] as $variant => $label):
+                                    $current = $colorSystem['primary'][$variant] ?? $colorDefaults['primary'][$variant];
+                                ?>
+                                <div class="form-group">
+                                    <label class="form-label"><?= $label ?></label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="color_primary_<?= $variant ?>" value="<?= h($current) ?>">
+                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Secondary -->
+                        <div style="margin-bottom: 25px;">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Secondaire</h4>
+                            <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
+                                <?php foreach (['base' => 'Base', 'hover' => 'Survol', 'active' => 'Actif', 'disabled' => 'Désactivé', 'text_on' => 'Texte sur'] as $variant => $label):
+                                    $current = $colorSystem['secondary'][$variant] ?? $colorDefaults['secondary'][$variant];
+                                ?>
+                                <div class="form-group">
+                                    <label class="form-label"><?= $label ?></label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="color_secondary_<?= $variant ?>" value="<?= h($current) ?>">
+                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Accent -->
+                        <div style="margin-bottom: 25px;">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Accent</h4>
+                            <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
+                                <?php foreach (['base' => 'Base', 'hover' => 'Survol', 'active' => 'Actif', 'disabled' => 'Désactivé', 'text_on' => 'Texte sur'] as $variant => $label):
+                                    $current = $colorSystem['accent'][$variant] ?? $colorDefaults['accent'][$variant];
+                                ?>
+                                <div class="form-group">
+                                    <label class="form-label"><?= $label ?></label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="color_accent_<?= $variant ?>" value="<?= h($current) ?>">
+                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Text Colors -->
+                        <div style="margin-bottom: 25px;">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Couleurs de texte</h4>
+                            <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
+                                <?php foreach (['primary' => 'Principal', 'secondary' => 'Secondaire', 'tertiary' => 'Tertiaire', 'disabled' => 'Désactivé', 'on_dark' => 'Sur fond sombre'] as $variant => $label):
+                                    $current = $colorSystem['text'][$variant] ?? $colorDefaults['text'][$variant];
+                                ?>
+                                <div class="form-group">
+                                    <label class="form-label"><?= $label ?></label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="color_text_<?= $variant ?>" value="<?= h($current) ?>">
+                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Background Colors -->
+                        <div style="margin-bottom: 25px;">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Couleurs de fond</h4>
+                            <div class="form-grid-2" style="grid-template-columns: repeat(2, 1fr);">
+                                <?php foreach (['primary' => 'Principal', 'secondary' => 'Secondaire', 'tertiary' => 'Tertiaire', 'inverse' => 'Inverse'] as $variant => $label):
+                                    $current = $colorSystem['background'][$variant] ?? $colorDefaults['background'][$variant];
+                                ?>
+                                <div class="form-group">
+                                    <label class="form-label"><?= $label ?></label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="color_bg_<?= $variant ?>" value="<?= h($current) ?>">
+                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Border Colors -->
+                        <div style="margin-bottom: 25px;">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Couleurs de bordure</h4>
+                            <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
+                                <?php foreach (['primary' => 'Principal', 'secondary' => 'Secondaire', 'focus' => 'Focus'] as $variant => $label):
+                                    $current = $colorSystem['border'][$variant] ?? $colorDefaults['border'][$variant];
+                                ?>
+                                <div class="form-group">
+                                    <label class="form-label"><?= $label ?></label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="color_border_<?= $variant ?>" value="<?= h($current) ?>">
+                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Status Colors -->
+                        <div style="margin-bottom: 25px;">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Couleurs de statut</h4>
+                            <div class="form-grid-2" style="grid-template-columns: repeat(2, 1fr);">
+                                <?php foreach (['success' => 'Succès', 'success_bg' => 'Fond succès', 'warning' => 'Avertissement', 'warning_bg' => 'Fond avertissement', 'error' => 'Erreur', 'error_bg' => 'Fond erreur', 'info' => 'Info', 'info_bg' => 'Fond info'] as $variant => $label):
+                                    $current = $colorSystem['status'][$variant] ?? $colorDefaults['status'][$variant];
+                                ?>
+                                <div class="form-group">
+                                    <label class="form-label"><?= $label ?></label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="color_status_<?= $variant ?>" value="<?= h($current) ?>">
+                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions Typography -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">Sauvegarder la typographie</button>
                 </div>
             </form>
             <?php endif; ?>
