@@ -714,6 +714,98 @@ if ($customer && !empty($customer['phone'])) {
                 </div>
             </div>
 
+            <!-- JavaScript loaded BEFORE items grid to ensure WhatsApp works even if items section has a PHP error -->
+            <script src="/public/assets/js/lightbox.js"></script>
+            <script>
+                const customerPhone = '<?= $customerPhone ?>';
+                const statusLabelsJs = <?= json_encode(array_map(function($s) { return $s['label']; }, $statusLabels)) ?>;
+
+                function openOrderLightbox(el) {
+                    if (!window.PersonnalyLightbox) return;
+                    const imgSrc = el.dataset.img;
+                    if (!imgSrc) return;
+                    PersonnalyLightbox.open({
+                        imageSrc: imgSrc,
+                        imageAlt: el.dataset.name || 'Produit',
+                        text: el.dataset.text || null,
+                        font: (el.dataset.font || 'Poppins') + ', sans-serif',
+                        fontSize: '2rem',
+                        textX: 50,
+                        textY: 50,
+                        textColor: el.dataset.textColor || '#FF1493',
+                        technique: el.dataset.technique || 'flex'
+                    });
+                }
+
+                function sendWhatsAppStatus() {
+                    const modal = document.getElementById('waModal');
+                    const select = document.getElementById('statusSelect');
+                    const statusLabel = select ? (statusLabelsJs[select.value] || select.value) : '';
+
+                    if (!modal) {
+                        // Fallback: ouvrir WhatsApp directement
+                        const msg = 'Bonjour ! Concernant votre commande #<?= $orderId ?>, le statut est : ' + statusLabel + '. Merci !';
+                        window.open('https://wa.me/' + customerPhone + '?text=' + encodeURIComponent(msg), '_blank');
+                        return;
+                    }
+
+                    document.getElementById('waMessage').value =
+                        'Bonjour ! Concernant votre commande #<?= $orderId ?> chez PERSONNALY, ' +
+                        'le statut est maintenant : ' + statusLabel + '.\n' +
+                        'Merci pour votre confiance !';
+
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+
+                function closeWaModal() {
+                    const modal = document.getElementById('waModal');
+                    if (modal) {
+                        modal.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                }
+
+                function updateWaFileName(input) {
+                    const nameEl = document.getElementById('waFileName');
+                    nameEl.textContent = input.files[0] ? input.files[0].name : 'Aucun fichier';
+                }
+
+                async function submitWhatsApp() {
+                    const message = document.getElementById('waMessage').value;
+                    const fileInput = document.getElementById('waFile');
+                    let finalMessage = message;
+
+                    if (fileInput && fileInput.files[0]) {
+                        const formData = new FormData();
+                        formData.append('file', fileInput.files[0]);
+                        formData.append('csrf_token', '<?= generateCsrf() ?>');
+                        formData.append('action', 'upload_wa_file');
+
+                        try {
+                            const resp = await fetch('/admin/order.php?id=<?= $orderId ?>', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            const result = await resp.json();
+                            if (result.success && result.url) {
+                                finalMessage += '\n\nFichier joint : ' + window.location.origin + result.url;
+                            }
+                        } catch (e) {
+                            // Continue without file
+                        }
+                    }
+
+                    const waUrl = 'https://wa.me/' + customerPhone + '?text=' + encodeURIComponent(finalMessage);
+                    window.open(waUrl, '_blank');
+                    closeWaModal();
+                }
+
+                document.addEventListener('keydown', e => {
+                    if (e.key === 'Escape') closeWaModal();
+                });
+            </script>
+
             <div class="order-grid">
                 <!-- Items -->
                 <div class="items-card">
@@ -730,29 +822,31 @@ if ($customer && !empty($customer['phone'])) {
                             <p>Aucun article dans cette commande</p>
                         </div>
                     <?php else: ?>
-                        <?php foreach ($items as $item):
-                            $customization = null;
+                        <?php try { foreach ($items as $item):
+                            $customization = [];
                             if (!empty($item['data_json'])) {
-                                $customization = is_string($item['data_json'])
+                                $decoded = is_string($item['data_json'])
                                     ? json_decode($item['data_json'], true)
                                     : $item['data_json'];
+                                if (is_array($decoded)) $customization = $decoded;
                             }
-                            if (!is_array($customization)) $customization = [];
-                            $qty = (int)($item['quantity'] ?? 1);
-                            $unitPrice = (float)($item['unit_price'] ?? 0);
+                            $qty = isset($item['quantity']) ? (int)$item['quantity'] : 1;
+                            $unitPrice = isset($item['unit_price']) ? (float)$item['unit_price'] : 0;
+                            $productName = isset($item['product_name']) ? (string)$item['product_name'] : 'Produit supprimé';
+                            $productImage = isset($item['product_image']) ? (string)$item['product_image'] : '';
                         ?>
                             <div class="order-item">
                                 <div class="item-image" onclick="openOrderLightbox(this)"
-                                     data-img="<?= !empty($item['product_image']) ? '/public' . h($item['product_image']) : '' ?>"
-                                     data-text="<?= h($customization['text'] ?? '') ?>"
-                                     data-font="<?= h($customization['font'] ?? 'Poppins') ?>"
-                                     data-text-color="<?= h($customization['text_color'] ?? '#FF1493') ?>"
-                                     data-technique="<?= h($customization['technique'] ?? 'flex') ?>"
-                                     data-name="<?= h($item['product_name'] ?? 'Produit') ?>">
-                                    <?php if (!empty($item['product_image'])): ?>
-                                        <img src="/public<?= h($item['product_image']) ?>" alt="<?= h($item['product_name'] ?? '') ?>">
+                                     data-img="<?= $productImage ? '/public' . h($productImage) : '' ?>"
+                                     data-text="<?= h((string)($customization['text'] ?? '')) ?>"
+                                     data-font="<?= h((string)($customization['font'] ?? 'Poppins')) ?>"
+                                     data-text-color="<?= h((string)($customization['text_color'] ?? '#FF1493')) ?>"
+                                     data-technique="<?= h((string)($customization['technique'] ?? 'flex')) ?>"
+                                     data-name="<?= h($productName) ?>">
+                                    <?php if ($productImage): ?>
+                                        <img src="/public<?= h($productImage) ?>" alt="<?= h($productName) ?>">
                                     <?php else: ?>
-                                        <span style="font-size:2rem;">👕</span>
+                                        <span style="font-size:2rem;">&#128085;</span>
                                     <?php endif; ?>
                                     <div class="zoom-overlay">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -764,31 +858,31 @@ if ($customer && !empty($customer['phone'])) {
                                     </div>
                                 </div>
                                 <div class="item-details">
-                                    <h3><?= h($item['product_name'] ?? 'Produit supprimé') ?></h3>
+                                    <h3><?= h($productName) ?></h3>
                                     <div class="item-customization">
                                         <?php if (!empty($customization['size'])): ?>
                                             <span class="custom-tag">
-                                                Taille: <strong><?= h($customization['size']) ?></strong>
+                                                Taille: <strong><?= h((string)$customization['size']) ?></strong>
                                             </span>
                                         <?php endif; ?>
                                         <?php if (!empty($customization['color'])): ?>
                                             <span class="custom-tag">
-                                                Couleur: <strong><?= ucfirst(h($customization['color'])) ?></strong>
+                                                Couleur: <strong><?= ucfirst(h((string)$customization['color'])) ?></strong>
                                             </span>
                                         <?php endif; ?>
                                         <?php if (!empty($customization['position'])): ?>
                                             <span class="custom-tag">
-                                                Position: <strong><?= ucfirst(h($customization['position'])) ?></strong>
+                                                Position: <strong><?= ucfirst(h((string)$customization['position'])) ?></strong>
                                             </span>
                                         <?php endif; ?>
                                         <?php if (!empty($customization['technique'])): ?>
                                             <span class="custom-tag">
-                                                Technique: <strong><?= ucfirst(h($customization['technique'])) ?></strong>
+                                                Technique: <strong><?= ucfirst(h((string)$customization['technique'])) ?></strong>
                                             </span>
                                         <?php endif; ?>
                                         <?php if (!empty($customization['text'])): ?>
                                             <span class="custom-tag custom-text-tag">
-                                                Texte: <strong>"<?= h($customization['text']) ?>"</strong>
+                                                Texte: <strong>"<?= h((string)$customization['text']) ?>"</strong>
                                             </span>
                                         <?php endif; ?>
                                         <?php if ($qty > 0): ?>
@@ -800,12 +894,17 @@ if ($customer && !empty($customer['phone'])) {
                                 </div>
                                 <div class="item-price">
                                     <?php if ($qty > 1): ?>
-                                        <div class="item-qty"><?= $qty ?> × <?= formatPrice($unitPrice) ?></div>
+                                        <div class="item-qty"><?= $qty ?> &times; <?= formatPrice($unitPrice) ?></div>
                                     <?php endif; ?>
                                     <div class="item-subtotal"><?= formatPrice($qty * $unitPrice) ?></div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        <?php endforeach; } catch (\Throwable $e) { ?>
+                            <div style="padding: 20px 25px; color: #EF4444; background: #FEF2F2; border-radius: 8px; margin: 10px;">
+                                <strong>Erreur d'affichage :</strong> <?= h($e->getMessage()) ?>
+                                <br><small><?= h($e->getFile()) ?>:<?= $e->getLine() ?></small>
+                            </div>
+                        <?php } ?>
                     <?php endif; ?>
 
                     <div class="order-totals">
@@ -924,105 +1023,6 @@ Merci pour votre confiance !</textarea>
     </div>
     <?php endif; ?>
 
-    <!-- Lightbox Component -->
-    <script src="/public/assets/js/lightbox.js"></script>
-    <script>
-        function openOrderLightbox(el) {
-            if (!window.PersonnalyLightbox) return;
-
-            const imgSrc = el.dataset.img;
-            if (!imgSrc) return;
-
-            PersonnalyLightbox.open({
-                imageSrc: imgSrc,
-                imageAlt: el.dataset.name || 'Produit',
-                text: el.dataset.text || null,
-                font: (el.dataset.font || 'Poppins') + ', sans-serif',
-                fontSize: '2rem',
-                textX: 50,
-                textY: 50,
-                textColor: el.dataset.textColor || '#FF1493',
-                technique: el.dataset.technique || 'flex'
-            });
-        }
-
-        // === WhatsApp Functions ===
-        const customerPhone = '<?= $customerPhone ?>';
-        const statusLabelsJs = <?= json_encode(array_map(function($s) { return $s['label']; }, $statusLabels)) ?>;
-
-        function sendWhatsAppStatus() {
-            const modal = document.getElementById('waModal');
-            if (!modal) {
-                // Fallback : ouvrir WhatsApp directement sans modal
-                const select = document.getElementById('statusSelect');
-                const statusLabel = statusLabelsJs[select.value] || select.value;
-                const msg = 'Bonjour ! Concernant votre commande #<?= $orderId ?>, le statut est : ' + statusLabel + '. Merci !';
-                window.open('https://wa.me/' + customerPhone + '?text=' + encodeURIComponent(msg), '_blank');
-                return;
-            }
-
-            // Update message with current status selection
-            const select = document.getElementById('statusSelect');
-            const selectedStatus = select.value;
-            const statusLabel = statusLabelsJs[selectedStatus] || selectedStatus;
-
-            document.getElementById('waMessage').value =
-                'Bonjour ! Concernant votre commande #<?= $orderId ?> chez PERSONNALY, ' +
-                'le statut est maintenant : ' + statusLabel + '.\n' +
-                'Merci pour votre confiance !';
-
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeWaModal() {
-            const modal = document.getElementById('waModal');
-            if (modal) {
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        }
-
-        function updateWaFileName(input) {
-            const nameEl = document.getElementById('waFileName');
-            nameEl.textContent = input.files[0] ? input.files[0].name : 'Aucun fichier';
-        }
-
-        async function submitWhatsApp() {
-            const message = document.getElementById('waMessage').value;
-            const fileInput = document.getElementById('waFile');
-            let finalMessage = message;
-
-            // If a file is selected, upload it first
-            if (fileInput && fileInput.files[0]) {
-                const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-                formData.append('csrf_token', '<?= generateCsrf() ?>');
-                formData.append('action', 'upload_wa_file');
-
-                try {
-                    const resp = await fetch('/admin/order.php?id=<?= $orderId ?>', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await resp.json();
-                    if (result.success && result.url) {
-                        finalMessage += '\n\nFichier joint : ' + window.location.origin + result.url;
-                    }
-                } catch (e) {
-                    // Continue without file
-                }
-            }
-
-            // Open WhatsApp
-            const waUrl = 'https://wa.me/' + customerPhone + '?text=' + encodeURIComponent(finalMessage);
-            window.open(waUrl, '_blank');
-            closeWaModal();
-        }
-
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') closeWaModal();
-        });
-    </script>
+    <!-- JS already loaded in the page body before items grid -->
 </body>
 </html>
