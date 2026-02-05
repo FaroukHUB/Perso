@@ -162,12 +162,19 @@ function isActive($pages, $current) {
         <!-- MARKETING -->
         <div class="nav-group-label">Marketing</div>
 
-        <a href="/admin/marketing.php" class="nav-item <?= isActive('marketing.php', $currentPage) ?>">
+        <a href="/admin/campaigns.php" class="nav-item <?= isActive('campaigns.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                 <polyline points="22,6 12,13 2,6"/>
             </svg>
             <span>Campagnes</span>
+        </a>
+
+        <a href="/admin/marketing.php" class="nav-item <?= isActive('marketing.php', $currentPage) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+            <span>Tests & Stats</span>
         </a>
 
         <!-- CONFIGURATION -->
