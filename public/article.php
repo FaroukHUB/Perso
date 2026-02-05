@@ -241,7 +241,6 @@ if (!$article || $article['status'] !== 'published') {
         }
 
         @media (max-width: 768px) {
-            .navbar-nav a:not(.cart-nav-link) { display: none; }
             .article-title { font-size: 1.8rem; }
             .article-content { padding: 24px; }
         }

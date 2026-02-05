@@ -1129,7 +1129,6 @@ function getSubtitleStyles(array $section): string {
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .hero h1 { font-size: 2.5rem; }
-            .navbar-nav { display: none; }
             .hero-categories { flex-direction: column; align-items: center; }
             .content-block-inner {
                 grid-template-columns: 1fr;

@@ -69,6 +69,12 @@ include __DIR__ . '/topbar.php';
         <?php else: ?>
             <a href="/" class="navbar-brand"><?= htmlspecialchars($settings->getSiteName()) ?></a>
         <?php endif; ?>
+        <!-- Hamburger button (mobile only) -->
+        <button class="navbar-toggle" onclick="toggleMobileMenu()" aria-label="Menu" aria-expanded="false">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
         <div class="navbar-nav">
             <?php if (!empty($menuItems)): ?>
                 <?php foreach ($menuItems as $item): ?>
@@ -113,5 +119,34 @@ include __DIR__ . '/topbar.php';
                 <?php if ($cartCount > 0): ?><span class="cart-badge"><?= $cartCount ?></span><?php endif; ?>
             </a>
         </div>
+        <!-- Mobile menu overlay -->
+        <div class="mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
     </div>
 </nav>
+<script>
+function toggleMobileMenu() {
+    const nav = document.querySelector('.navbar-nav');
+    const btn = document.querySelector('.navbar-toggle');
+    const overlay = document.querySelector('.mobile-menu-overlay');
+    const isOpen = nav.classList.toggle('mobile-open');
+    btn.classList.toggle('active', isOpen);
+    btn.setAttribute('aria-expanded', isOpen);
+    overlay.classList.toggle('active', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+// Close mobile menu on resize to desktop
+window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) {
+        const nav = document.querySelector('.navbar-nav');
+        const btn = document.querySelector('.navbar-toggle');
+        const overlay = document.querySelector('.mobile-menu-overlay');
+        if (nav.classList.contains('mobile-open')) {
+            nav.classList.remove('mobile-open');
+            btn.classList.remove('active');
+            btn.setAttribute('aria-expanded', 'false');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+});
+</script>

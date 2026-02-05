@@ -235,26 +235,133 @@ h4 { font-size: 1.25rem; }
     opacity: 1 !important;
 }
 
-/* Mobile menu adjustments */
+/* ========================================
+   HAMBURGER BUTTON
+   ======================================== */
+.navbar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    z-index: 1002;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+}
+
+.hamburger-line {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--header-text-color, #fff);
+    border-radius: 2px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Hamburger → X animation */
+.navbar-toggle.active .hamburger-line:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+.navbar-toggle.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+.navbar-toggle.active .hamburger-line:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile overlay */
+.mobile-menu-overlay {
+    display: none;
+}
+
+/* ========================================
+   MOBILE MENU (max-width: 768px)
+   ======================================== */
 @media (max-width: 768px) {
+    .navbar-toggle {
+        display: flex;
+    }
+
+    .navbar-nav {
+        display: none !important;
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 280px;
+        height: 100vh;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 80px 20px 30px;
+        background: inherit;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
+        overflow-y: auto;
+        z-index: 1001;
+    }
+
+    .navbar-nav.mobile-open {
+        display: flex !important;
+    }
+
+    .navbar-nav a {
+        display: block;
+        padding: 14px 16px;
+        font-size: 16px;
+        border-radius: 8px;
+        transition: background 0.2s ease;
+    }
+
+    .navbar-nav a:hover {
+        background: rgba(255, 255, 255, 0.1);
+        opacity: 1;
+    }
+
+    /* Dropdown in mobile */
     .nav-dropdown-menu {
         position: static;
         transform: none;
         box-shadow: none;
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.08);
         border-radius: 8px;
-        margin-top: 8px;
+        margin-top: 4px;
+        margin-bottom: 4px;
+        padding: 4px 0;
         opacity: 1;
         visibility: visible;
     }
 
     .nav-dropdown-menu a {
         color: inherit !important;
-        padding: 8px 16px;
+        padding: 10px 24px;
+        font-size: 14px;
     }
 
     .nav-dropdown-menu a:hover {
         background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Cart link in mobile */
+    .navbar-nav .cart-nav-link {
+        margin-top: 12px;
+        justify-content: center;
+    }
+
+    /* Overlay */
+    .mobile-menu-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+
+    .mobile-menu-overlay.active {
+        display: block;
     }
 }
 
