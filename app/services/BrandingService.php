@@ -10,6 +10,8 @@
  */
 
 require_once __DIR__ . '/../models/Branding.php';
+require_once __DIR__ . '/../models/Font.php';
+require_once __DIR__ . '/../helpers/FontLoader.php';
 
 class BrandingService
 {
@@ -22,6 +24,7 @@ class BrandingService
 
     /**
      * Genere les CSS custom properties depuis la config branding
+     * Comprend : polices, couleurs, typographie, boutons, système de couleurs
      *
      * @param int|null $clientId ID client ou null pour global
      * @return string CSS :root { ... } block
@@ -35,26 +38,144 @@ class BrandingService
 
         $vars = [];
 
-        // Polices
-        $vars['--font-primary'] = $config['font_primary'] . ', sans-serif';
-        $vars['--font-secondary'] = $config['font_secondary'] . ', sans-serif';
+        // ========================================
+        // POLICES DE BASE
+        // ========================================
+        $fontPrimary = $this->brandingModel->getFontPrimary($clientId);
+        $fontSecondary = $this->brandingModel->getFontSecondary($clientId);
 
-        // Couleurs
-        $vars['--color-primary'] = $config['color_primary'];
-        $vars['--color-secondary'] = $config['color_secondary'];
-        $vars['--color-accent'] = $config['color_accent'];
-        $vars['--color-text'] = $config['color_text'];
-        $vars['--color-text-light'] = $config['color_text_light'];
-        $vars['--color-background'] = $config['color_background'];
-        $vars['--color-surface'] = $config['color_surface'];
-        $vars['--color-button'] = $config['color_button'];
-        $vars['--color-button-text'] = $config['color_button_text'];
+        if ($fontPrimary) {
+            $vars['--font-primary'] = $fontPrimary['family'] . ', sans-serif';
+        } else {
+            // Fallback rétrocompatibilité
+            $vars['--font-primary'] = ($config['font_primary'] ?? 'sans-serif') . ', sans-serif';
+        }
 
-        // UI Style
-        $vars['--border-radius'] = $radiusMap[$config['border_radius']] ?? '8px';
-        $vars['--shadow'] = $shadowMap[$config['shadow_intensity']] ?? '0 1px 3px rgba(0,0,0,0.1)';
+        if ($fontSecondary) {
+            $vars['--font-secondary'] = $fontSecondary['family'] . ', sans-serif';
+        } else {
+            // Fallback rétrocompatibilité
+            $vars['--font-secondary'] = ($config['font_secondary'] ?? 'sans-serif') . ', sans-serif';
+        }
 
-        // Construire le CSS
+        // ========================================
+        // ÉCHELLE TYPOGRAPHIQUE
+        // ========================================
+        $typographyScale = $config['typography_scale'] ?? [];
+
+        foreach ($typographyScale as $element => $styles) {
+            $fontVar = ($styles['font'] === 'primary') ? 'var(--font-primary)' : 'var(--font-secondary)';
+            $vars["--font-{$element}"] = $fontVar;
+            $vars["--font-size-{$element}"] = $styles['size'] ?? '1rem';
+            $vars["--font-weight-{$element}"] = $styles['weight'] ?? '400';
+            $vars["--line-height-{$element}"] = $styles['line_height'] ?? '1.5';
+        }
+
+        // ========================================
+        // COULEURS DE BASE (rétrocompatibilité)
+        // ========================================
+        $vars['--color-primary'] = $config['color_primary'] ?? '#6366F1';
+        $vars['--color-secondary'] = $config['color_secondary'] ?? '#8B5CF6';
+        $vars['--color-accent'] = $config['color_accent'] ?? '#F59E0B';
+        $vars['--color-text'] = $config['color_text'] ?? '#1F2937';
+        $vars['--color-text-light'] = $config['color_text_light'] ?? '#6B7280';
+        $vars['--color-background'] = $config['color_background'] ?? '#FFFFFF';
+        $vars['--color-surface'] = $config['color_surface'] ?? '#F9FAFB';
+        $vars['--color-button'] = $config['color_button'] ?? '#6366F1';
+        $vars['--color-button-text'] = $config['color_button_text'] ?? '#FFFFFF';
+
+        // ========================================
+        // SYSTÈME DE COULEURS AVANCÉ
+        // ========================================
+        $colorSystem = $config['color_system'] ?? [];
+
+        // Couleurs primary avec variants
+        if (!empty($colorSystem['primary'])) {
+            $vars['--color-primary-base'] = $colorSystem['primary']['base'] ?? $vars['--color-primary'];
+            $vars['--color-primary-hover'] = $colorSystem['primary']['hover'] ?? $vars['--color-primary'];
+            $vars['--color-primary-active'] = $colorSystem['primary']['active'] ?? $vars['--color-primary'];
+            $vars['--color-primary-disabled'] = $colorSystem['primary']['disabled'] ?? '#D1D5DB';
+            $vars['--color-primary-text'] = $colorSystem['primary']['text_on'] ?? '#FFFFFF';
+        }
+
+        // Couleurs secondary avec variants
+        if (!empty($colorSystem['secondary'])) {
+            $vars['--color-secondary-base'] = $colorSystem['secondary']['base'] ?? $vars['--color-secondary'];
+            $vars['--color-secondary-hover'] = $colorSystem['secondary']['hover'] ?? $vars['--color-secondary'];
+            $vars['--color-secondary-active'] = $colorSystem['secondary']['active'] ?? $vars['--color-secondary'];
+            $vars['--color-secondary-disabled'] = $colorSystem['secondary']['disabled'] ?? '#D1D5DB';
+            $vars['--color-secondary-text'] = $colorSystem['secondary']['text_on'] ?? '#FFFFFF';
+        }
+
+        // Couleurs accent avec variants
+        if (!empty($colorSystem['accent'])) {
+            $vars['--color-accent-base'] = $colorSystem['accent']['base'] ?? $vars['--color-accent'];
+            $vars['--color-accent-hover'] = $colorSystem['accent']['hover'] ?? $vars['--color-accent'];
+            $vars['--color-accent-active'] = $colorSystem['accent']['active'] ?? $vars['--color-accent'];
+            $vars['--color-accent-disabled'] = $colorSystem['accent']['disabled'] ?? '#FCD34D';
+            $vars['--color-accent-text'] = $colorSystem['accent']['text_on'] ?? '#FFFFFF';
+        }
+
+        // Couleurs de texte
+        if (!empty($colorSystem['text'])) {
+            $vars['--color-text-primary'] = $colorSystem['text']['primary'] ?? $vars['--color-text'];
+            $vars['--color-text-secondary'] = $colorSystem['text']['secondary'] ?? $vars['--color-text-light'];
+            $vars['--color-text-tertiary'] = $colorSystem['text']['tertiary'] ?? '#9CA3AF';
+            $vars['--color-text-disabled'] = $colorSystem['text']['disabled'] ?? '#D1D5DB';
+            $vars['--color-text-on-dark'] = $colorSystem['text']['on_dark'] ?? '#FFFFFF';
+        }
+
+        // Backgrounds
+        if (!empty($colorSystem['background'])) {
+            $vars['--color-bg-primary'] = $colorSystem['background']['primary'] ?? $vars['--color-background'];
+            $vars['--color-bg-secondary'] = $colorSystem['background']['secondary'] ?? $vars['--color-surface'];
+            $vars['--color-bg-tertiary'] = $colorSystem['background']['tertiary'] ?? '#F3F4F6';
+            $vars['--color-bg-inverse'] = $colorSystem['background']['inverse'] ?? '#1F2937';
+        }
+
+        // Borders
+        if (!empty($colorSystem['border'])) {
+            $vars['--color-border-primary'] = $colorSystem['border']['primary'] ?? '#E5E7EB';
+            $vars['--color-border-secondary'] = $colorSystem['border']['secondary'] ?? '#D1D5DB';
+            $vars['--color-border-focus'] = $colorSystem['border']['focus'] ?? $vars['--color-primary'];
+        }
+
+        // Status colors
+        if (!empty($colorSystem['status'])) {
+            $vars['--color-success'] = $colorSystem['status']['success'] ?? '#10B981';
+            $vars['--color-success-bg'] = $colorSystem['status']['success_bg'] ?? '#D1FAE5';
+            $vars['--color-warning'] = $colorSystem['status']['warning'] ?? '#F59E0B';
+            $vars['--color-warning-bg'] = $colorSystem['status']['warning_bg'] ?? '#FEF3C7';
+            $vars['--color-error'] = $colorSystem['status']['error'] ?? '#EF4444';
+            $vars['--color-error-bg'] = $colorSystem['status']['error_bg'] ?? '#FEE2E2';
+            $vars['--color-info'] = $colorSystem['status']['info'] ?? '#3B82F6';
+            $vars['--color-info-bg'] = $colorSystem['status']['info_bg'] ?? '#DBEAFE';
+        }
+
+        // ========================================
+        // STYLES DE BOUTONS
+        // ========================================
+        $buttonStyles = $config['button_styles'] ?? [];
+
+        foreach ($buttonStyles as $type => $styles) {
+            $prefix = "--btn-{$type}";
+            $vars["{$prefix}-bg"] = $styles['bg_color'] ?? 'transparent';
+            $vars["{$prefix}-text"] = $styles['text_color'] ?? '#000000';
+            $vars["{$prefix}-hover-bg"] = $styles['hover_bg'] ?? $styles['bg_color'] ?? 'transparent';
+            $vars["{$prefix}-hover-text"] = $styles['hover_text'] ?? $styles['text_color'] ?? '#000000';
+            $vars["{$prefix}-border"] = $styles['border_color'] ?? 'transparent';
+            $vars["{$prefix}-border-width"] = $styles['border_width'] ?? '0px';
+        }
+
+        // ========================================
+        // UI STYLE
+        // ========================================
+        $vars['--border-radius'] = $radiusMap[$config['border_radius'] ?? 'medium'] ?? '8px';
+        $vars['--shadow'] = $shadowMap[$config['shadow_intensity'] ?? 'subtle'] ?? '0 1px 3px rgba(0,0,0,0.1)';
+
+        // ========================================
+        // CONSTRUIRE LE CSS
+        // ========================================
         $css = ":root {\n";
         foreach ($vars as $name => $value) {
             $css .= "  {$name}: {$value};\n";
@@ -65,27 +186,47 @@ class BrandingService
     }
 
     /**
-     * Genere les <link> tags pour charger les Google Fonts
+     * Genere les <link> tags pour charger les fonts (Google ou Custom)
+     * Utilise FontLoader pour générer automatiquement les imports
      *
      * @param int|null $clientId ID client ou null pour global
-     * @return string HTML link tags
+     * @return string HTML link/style tags
      */
     public function getFontLinks(?int $clientId = null): string
     {
-        $config = $this->brandingModel->resolveBranding($clientId);
-        $links = '';
+        $fontPrimary = $this->brandingModel->getFontPrimary($clientId);
+        $fontSecondary = $this->brandingModel->getFontSecondary($clientId);
 
-        if (!empty($config['font_primary_url'])) {
-            $links .= '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
-            $links .= '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
-            $links .= '<link rel="stylesheet" href="' . htmlspecialchars($config['font_primary_url']) . '">' . "\n";
+        $fontIds = [];
+
+        if ($fontPrimary) {
+            $fontIds[] = $fontPrimary['id'];
         }
 
-        if (!empty($config['font_secondary_url']) && $config['font_secondary_url'] !== $config['font_primary_url']) {
-            $links .= '<link rel="stylesheet" href="' . htmlspecialchars($config['font_secondary_url']) . '">' . "\n";
+        if ($fontSecondary && $fontSecondary['id'] !== ($fontPrimary['id'] ?? null)) {
+            $fontIds[] = $fontSecondary['id'];
         }
 
-        return $links;
+        if (empty($fontIds)) {
+            // Fallback rétrocompatibilité avec les anciennes colonnes
+            $config = $this->brandingModel->resolveBranding($clientId);
+            $links = '';
+
+            if (!empty($config['font_primary_url'])) {
+                $links .= '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
+                $links .= '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
+                $links .= '<link rel="stylesheet" href="' . htmlspecialchars($config['font_primary_url']) . '">' . "\n";
+            }
+
+            if (!empty($config['font_secondary_url']) && $config['font_secondary_url'] !== $config['font_primary_url']) {
+                $links .= '<link rel="stylesheet" href="' . htmlspecialchars($config['font_secondary_url']) . '">' . "\n";
+            }
+
+            return $links;
+        }
+
+        // Utiliser FontLoader pour générer les imports automatiquement
+        return FontLoader::renderHead($fontIds);
     }
 
     /**
@@ -180,6 +321,7 @@ class BrandingService
 
     /**
      * Recupere la config branding complete (pour API/JS)
+     * Inclut : fonts, typography scale, colors, button styles, sections, logos
      *
      * @param int|null $clientId ID client ou null pour global
      * @return array Configuration complete
@@ -189,36 +331,52 @@ class BrandingService
         $config = $this->brandingModel->resolveBranding($clientId);
         $sections = $this->brandingModel->getSectionStyles($clientId);
 
+        $fontPrimary = $this->brandingModel->getFontPrimary($clientId);
+        $fontSecondary = $this->brandingModel->getFontSecondary($clientId);
+
         return [
             'fonts' => [
-                'primary' => [
-                    'family' => $config['font_primary'],
-                    'url' => $config['font_primary_url'],
+                'primary' => $fontPrimary ? [
+                    'id' => $fontPrimary['id'],
+                    'name' => $fontPrimary['name'],
+                    'family' => $fontPrimary['family'],
+                    'source' => $fontPrimary['source'],
+                ] : [
+                    'family' => $config['font_primary'] ?? 'sans-serif',
+                    'url' => $config['font_primary_url'] ?? null,
                 ],
-                'secondary' => [
-                    'family' => $config['font_secondary'],
-                    'url' => $config['font_secondary_url'],
+                'secondary' => $fontSecondary ? [
+                    'id' => $fontSecondary['id'],
+                    'name' => $fontSecondary['name'],
+                    'family' => $fontSecondary['family'],
+                    'source' => $fontSecondary['source'],
+                ] : [
+                    'family' => $config['font_secondary'] ?? 'sans-serif',
+                    'url' => $config['font_secondary_url'] ?? null,
                 ],
             ],
+            'typographyScale' => $config['typography_scale'] ?? [],
             'colors' => [
-                'primary' => $config['color_primary'],
-                'secondary' => $config['color_secondary'],
-                'accent' => $config['color_accent'],
-                'text' => $config['color_text'],
-                'textLight' => $config['color_text_light'],
-                'background' => $config['color_background'],
-                'surface' => $config['color_surface'],
-                'button' => $config['color_button'],
-                'buttonText' => $config['color_button_text'],
+                'primary' => $config['color_primary'] ?? '#6366F1',
+                'secondary' => $config['color_secondary'] ?? '#8B5CF6',
+                'accent' => $config['color_accent'] ?? '#F59E0B',
+                'text' => $config['color_text'] ?? '#1F2937',
+                'textLight' => $config['color_text_light'] ?? '#6B7280',
+                'background' => $config['color_background'] ?? '#FFFFFF',
+                'surface' => $config['color_surface'] ?? '#F9FAFB',
+                'button' => $config['color_button'] ?? '#6366F1',
+                'buttonText' => $config['color_button_text'] ?? '#FFFFFF',
             ],
+            'colorSystem' => $config['color_system'] ?? [],
+            'buttonStyles' => $config['button_styles'] ?? [],
             'ui' => [
-                'borderRadius' => $config['border_radius'],
-                'shadowIntensity' => $config['shadow_intensity'],
+                'borderRadius' => $config['border_radius'] ?? 'medium',
+                'shadowIntensity' => $config['shadow_intensity'] ?? 'subtle',
             ],
             'logos' => [
-                'main' => $config['logo_url'],
-                'light' => $config['logo_light_url'],
-                'favicon' => $config['favicon_url'],
+                'main' => $config['logo_url'] ?? null,
+                'light' => $config['logo_light_url'] ?? null,
+                'favicon' => $config['favicon_url'] ?? null,
             ],
             'sections' => array_map(function ($section) {
                 return [

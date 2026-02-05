@@ -14,28 +14,10 @@ class Branding
     private static ?bool $tableExistsCache = null;
 
     // =========================================
-    // CONSTANTES PAR DEFAUT (fallback ultime)
+    // NOTE: Plus de constantes hardcodées !
+    // La DB est la seule source de vérité.
+    // Les valeurs par défaut sont insérées en DB via migrate_typography_system.sql
     // =========================================
-    public const DEFAULTS = [
-        'font_primary' => 'Poppins',
-        'font_primary_url' => 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap',
-        'font_secondary' => 'Inter',
-        'font_secondary_url' => 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap',
-        'color_primary' => '#6366F1',
-        'color_secondary' => '#8B5CF6',
-        'color_accent' => '#F59E0B',
-        'color_text' => '#1F2937',
-        'color_text_light' => '#6B7280',
-        'color_background' => '#FFFFFF',
-        'color_surface' => '#F9FAFB',
-        'color_button' => '#6366F1',
-        'color_button_text' => '#FFFFFF',
-        'border_radius' => 'medium',
-        'shadow_intensity' => 'subtle',
-        'logo_url' => null,
-        'logo_light_url' => null,
-        'favicon_url' => null,
-    ];
 
     public function __construct()
     {
@@ -110,47 +92,54 @@ class Branding
     /**
      * Resolution complete du branding avec cascade:
      * 1. Config client specifique (si clientId fourni)
-     * 2. Config globale (client_id = NULL)
-     * 3. Constantes PHP par defaut
+     * 2. Config globale (client_id = NULL) - REQUIS en DB
+     *
+     * Note: Plus de fallback hardcodé. La DB est la source de vérité.
+     * Si la config globale n'existe pas, une exception est levée.
      *
      * @param int|null $clientId ID client ou null pour global
      * @return array Configuration complete avec toutes les valeurs
+     * @throws Exception Si aucune config globale n'existe en DB
      */
     public function resolveBranding(?int $clientId = null): array
     {
-        $clientConfig = null;
-        $globalConfig = null;
-
-        // 1. Chercher config client si ID fourni
-        if ($clientId !== null) {
-            $clientConfig = $this->findByClientId($clientId);
-        }
-
-        // 2. Chercher config globale
+        // 1. Chercher config globale (REQUIS)
         $globalConfig = $this->findGlobal();
 
-        // 3. Merger avec priorite: client > global > defaults
-        $resolved = self::DEFAULTS;
+        if (!$globalConfig) {
+            throw new Exception(
+                'Branding: Configuration globale manquante en DB. ' .
+                'Veuillez exécuter la migration migrate_typography_system.sql'
+            );
+        }
 
-        // Appliquer config globale
-        if ($globalConfig) {
-            foreach ($resolved as $key => $default) {
-                if (isset($globalConfig[$key]) && $globalConfig[$key] !== null) {
-                    $resolved[$key] = $globalConfig[$key];
+        // 2. Si un client est spécifié, chercher sa config et merger
+        if ($clientId !== null) {
+            $clientConfig = $this->findByClientId($clientId);
+
+            if ($clientConfig) {
+                // Merger: client override global
+                // On garde toutes les clés de global, et on override avec les valeurs client non-null
+                foreach ($clientConfig as $key => $value) {
+                    if ($value !== null && $key !== 'id' && $key !== 'created_at' && $key !== 'updated_at') {
+                        $globalConfig[$key] = $value;
+                    }
                 }
             }
         }
 
-        // Appliquer config client (override global)
-        if ($clientConfig) {
-            foreach ($resolved as $key => $default) {
-                if (isset($clientConfig[$key]) && $clientConfig[$key] !== null) {
-                    $resolved[$key] = $clientConfig[$key];
-                }
-            }
+        // Décoder les JSON si présents
+        if (!empty($globalConfig['typography_scale']) && is_string($globalConfig['typography_scale'])) {
+            $globalConfig['typography_scale'] = json_decode($globalConfig['typography_scale'], true);
+        }
+        if (!empty($globalConfig['button_styles']) && is_string($globalConfig['button_styles'])) {
+            $globalConfig['button_styles'] = json_decode($globalConfig['button_styles'], true);
+        }
+        if (!empty($globalConfig['color_system']) && is_string($globalConfig['color_system'])) {
+            $globalConfig['color_system'] = json_decode($globalConfig['color_system'], true);
         }
 
-        return $resolved;
+        return $globalConfig;
     }
 
     // =========================================
@@ -190,25 +179,44 @@ class Branding
      */
     public function create(array $data): bool
     {
+        // Encoder les JSON si nécessaire
+        $typographyScale = isset($data['typography_scale']) && is_array($data['typography_scale'])
+            ? json_encode($data['typography_scale'])
+            : ($data['typography_scale'] ?? null);
+
+        $buttonStyles = isset($data['button_styles']) && is_array($data['button_styles'])
+            ? json_encode($data['button_styles'])
+            : ($data['button_styles'] ?? null);
+
+        $colorSystem = isset($data['color_system']) && is_array($data['color_system'])
+            ? json_encode($data['color_system'])
+            : ($data['color_system'] ?? null);
+
         $stmt = $this->db->prepare(
             'INSERT INTO branding_settings (
                 client_id,
+                font_primary_id, font_secondary_id,
                 font_primary, font_primary_url, font_secondary, font_secondary_url,
+                typography_scale,
                 color_primary, color_secondary, color_accent,
                 color_text, color_text_light,
                 color_background, color_surface,
                 color_button, color_button_text,
                 border_radius, shadow_intensity,
+                button_styles, color_system,
                 logo_url, logo_light_url, favicon_url
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
 
         return $stmt->execute([
             $data['client_id'] ?? null,
+            $data['font_primary_id'] ?? null,
+            $data['font_secondary_id'] ?? null,
             $data['font_primary'] ?? null,
             $data['font_primary_url'] ?? null,
             $data['font_secondary'] ?? null,
             $data['font_secondary_url'] ?? null,
+            $typographyScale,
             $data['color_primary'] ?? null,
             $data['color_secondary'] ?? null,
             $data['color_accent'] ?? null,
@@ -220,6 +228,8 @@ class Branding
             $data['color_button_text'] ?? null,
             $data['border_radius'] ?? 'medium',
             $data['shadow_intensity'] ?? 'subtle',
+            $buttonStyles,
+            $colorSystem,
             $data['logo_url'] ?? null,
             $data['logo_light_url'] ?? null,
             $data['favicon_url'] ?? null,
@@ -235,7 +245,9 @@ class Branding
         $values = [];
 
         $allowedFields = [
+            'font_primary_id', 'font_secondary_id',
             'font_primary', 'font_primary_url', 'font_secondary', 'font_secondary_url',
+            'typography_scale', 'button_styles', 'color_system',
             'color_primary', 'color_secondary', 'color_accent',
             'color_text', 'color_text_light',
             'color_background', 'color_surface',
@@ -246,8 +258,15 @@ class Branding
 
         foreach ($allowedFields as $field) {
             if (array_key_exists($field, $data)) {
+                $value = $data[$field];
+
+                // Encoder les JSON si nécessaire
+                if (in_array($field, ['typography_scale', 'button_styles', 'color_system']) && is_array($value)) {
+                    $value = json_encode($value);
+                }
+
                 $fields[] = "$field = ?";
-                $values[] = $data[$field];
+                $values[] = $value;
             }
         }
 
@@ -420,6 +439,86 @@ class Branding
             $data['sort_order'] ?? 0,
             $data['active'] ?? 1,
         ]);
+    }
+
+    // =========================================
+    // MÉTHODES D'ACCÈS AUX DONNÉES JSON
+    // =========================================
+
+    /**
+     * Récupère l'échelle typographique (décodée)
+     *
+     * @param int|null $clientId
+     * @return array Typography scale (h1, h2, h3, etc.)
+     */
+    public function getTypographyScale(?int $clientId = null): array
+    {
+        $config = $this->resolveBranding($clientId);
+        return $config['typography_scale'] ?? [];
+    }
+
+    /**
+     * Récupère les styles de boutons (décodés)
+     *
+     * @param int|null $clientId
+     * @return array Button styles (primary, secondary, danger, success)
+     */
+    public function getButtonStyles(?int $clientId = null): array
+    {
+        $config = $this->resolveBranding($clientId);
+        return $config['button_styles'] ?? [];
+    }
+
+    /**
+     * Récupère le système de couleurs (décodé)
+     *
+     * @param int|null $clientId
+     * @return array Color system (variants, hover, disabled, etc.)
+     */
+    public function getColorSystem(?int $clientId = null): array
+    {
+        $config = $this->resolveBranding($clientId);
+        return $config['color_system'] ?? [];
+    }
+
+    /**
+     * Récupère la police principale (objet Font)
+     *
+     * @param int|null $clientId
+     * @return array|null Font data or null
+     */
+    public function getFontPrimary(?int $clientId = null): ?array
+    {
+        $config = $this->resolveBranding($clientId);
+        $fontId = $config['font_primary_id'] ?? null;
+
+        if (!$fontId) {
+            return null;
+        }
+
+        require_once __DIR__ . '/Font.php';
+        $fontModel = new Font();
+        return $fontModel->findById($fontId);
+    }
+
+    /**
+     * Récupère la police secondaire (objet Font)
+     *
+     * @param int|null $clientId
+     * @return array|null Font data or null
+     */
+    public function getFontSecondary(?int $clientId = null): ?array
+    {
+        $config = $this->resolveBranding($clientId);
+        $fontId = $config['font_secondary_id'] ?? null;
+
+        if (!$fontId) {
+            return null;
+        }
+
+        require_once __DIR__ . '/Font.php';
+        $fontModel = new Font();
+        return $fontModel->findById($fontId);
     }
 
     // =========================================
