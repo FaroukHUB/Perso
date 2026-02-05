@@ -11,6 +11,7 @@ require_once __DIR__ . '/../core/Database.php';
 class Branding
 {
     private PDO $db;
+    private static ?bool $tableExistsCache = null;
 
     // =========================================
     // CONSTANTES PAR DEFAUT (fallback ultime)
@@ -50,10 +51,15 @@ class Branding
      */
     public function tableExists(): bool
     {
+        if (self::$tableExistsCache !== null) {
+            return self::$tableExistsCache;
+        }
         try {
             $stmt = $this->db->query("SHOW TABLES LIKE 'branding_settings'");
-            return $stmt->rowCount() > 0;
+            self::$tableExistsCache = $stmt->rowCount() > 0;
+            return self::$tableExistsCache;
         } catch (Exception $e) {
+            self::$tableExistsCache = false;
             return false;
         }
     }

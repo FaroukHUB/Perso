@@ -31,6 +31,17 @@ $clientId = isset($_GET['client_id']) ? (int)$_GET['client_id'] : null;
 // Charger la config actuelle (utilise defaults si table n'existe pas)
 $config = $brandingModel->resolveBranding($clientId);
 
+// Messages de succès via GET (après redirect POST)
+$successMessages = [
+    'branding' => 'Configuration sauvegardée avec succès.',
+    'topbar' => 'Paramètres de la top bar enregistrés.',
+    'appearance' => 'Couleurs enregistrées.',
+];
+$successKey = $_GET['success'] ?? '';
+if (isset($successMessages[$successKey])) {
+    $success = $successMessages[$successKey];
+}
+
 // Traitement du formulaire
 if (isPost()) {
     if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
@@ -74,9 +85,9 @@ if (isPost()) {
                 } else {
                     $brandingModel->upsertForClient($clientId, $data);
                 }
-                $success = 'Configuration sauvegardée avec succès.';
-                // Recharger la config
-                $config = $brandingModel->resolveBranding($clientId);
+                $redirectUrl = '/admin/branding.php?tab=' . $activeTab . '&success=branding';
+                if ($clientId) $redirectUrl .= '&client_id=' . $clientId;
+                redirect($redirectUrl);
             } catch (Exception $e) {
                 $error = 'Erreur lors de la sauvegarde : ' . $e->getMessage();
             }
@@ -94,8 +105,7 @@ if (isPost()) {
             'topbar_scroll_speed' => post('topbar_scroll_speed', '30')
         ]);
         $shopSettings->clearCache();
-        $success = 'Paramètres de la top bar enregistrés.';
-        $activeTab = 'topbar';
+        redirect('/admin/branding.php?tab=topbar&success=topbar');
     } elseif (isset($_POST['save_appearance'])) {
         // Sauvegarde Apparence header/footer
         $shopSettings->setMultiple([
@@ -105,8 +115,7 @@ if (isPost()) {
             'footer_text_color' => post('footer_text_color', '#ffffff')
         ]);
         $shopSettings->clearCache();
-        $success = 'Couleurs enregistrées.';
-        $activeTab = 'appearance';
+        redirect('/admin/branding.php?tab=appearance&success=appearance');
     }
 }
 
@@ -812,7 +821,7 @@ $shadowOptions = [
             display: flex;
             flex-direction: column;
             gap: 16px;
-            transition: all 0.3s ease;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
         }
         .logo-upload-card:hover {
             border-color: var(--purple-main);
@@ -839,7 +848,7 @@ $shadowOptions = [
             background: #fff;
             border: 2px dashed var(--gray-300);
             overflow: hidden;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s ease;
         }
         .logo-preview-modern:hover { border-color: var(--purple-main); }
         .logo-preview-modern.dark {
@@ -1097,6 +1106,13 @@ $shadowOptions = [
     </style>
 
     <script>
+        // === Debounce utility (évite les freeze lors du drag des color pickers) ===
+        let _rafIds = {};
+        function debounceRAF(key, fn) {
+            if (_rafIds[key]) cancelAnimationFrame(_rafIds[key]);
+            _rafIds[key] = requestAnimationFrame(fn);
+        }
+
         // Upload image (Identity tab)
         let currentUploadTarget = null;
         let currentPreviewTarget = null;
@@ -1138,7 +1154,7 @@ $shadowOptions = [
             uploader.value = '';
         });
 
-        // Colors tab: Sync color picker avec input text
+        // Colors tab: Sync color picker avec input text (debounced)
         document.querySelectorAll('.color-hex').forEach(input => {
             const targetId = input.dataset.target;
             const colorInput = document.getElementById(targetId);
@@ -1149,13 +1165,13 @@ $shadowOptions = [
                 if (!val.startsWith('#')) val = '#' + val;
                 if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
                     colorInput.value = val;
-                    updateColorsPreview();
+                    debounceRAF('colors', updateColorsPreview);
                 }
             });
 
             colorInput.addEventListener('input', () => {
                 input.value = colorInput.value.toUpperCase();
-                updateColorsPreview();
+                debounceRAF('colors', updateColorsPreview);
             });
         });
 
@@ -1196,17 +1212,17 @@ $shadowOptions = [
         if (document.getElementById('brandingPreview')) {
             updateColorsPreview();
             document.querySelectorAll('input[type="color"], select, input[name="font_primary"], input[name="font_secondary"]')
-                .forEach(el => el.addEventListener('change', updateColorsPreview));
+                .forEach(el => el.addEventListener('change', () => debounceRAF('colors', updateColorsPreview)));
         }
 
-        // TopBar tab: Live preview
+        // TopBar tab: Live preview (debounced)
         function syncColorInput(colorId, textId) {
             const color = document.getElementById(colorId);
             const text = document.getElementById(textId);
             if (!color || !text) return;
 
-            color.addEventListener('input', () => { text.value = color.value; updateTopbarPreview(); });
-            text.addEventListener('input', () => { if (/^#[0-9A-Fa-f]{6}$/.test(text.value)) { color.value = text.value; updateTopbarPreview(); } });
+            color.addEventListener('input', () => { text.value = color.value; debounceRAF('topbar', updateTopbarPreview); });
+            text.addEventListener('input', () => { if (/^#[0-9A-Fa-f]{6}$/.test(text.value)) { color.value = text.value; debounceRAF('topbar', updateTopbarPreview); } });
         }
 
         function updateTopbarPreview() {
@@ -1225,15 +1241,15 @@ $shadowOptions = [
         syncColorInput('topbarBgColor', 'topbarBgColorText');
         syncColorInput('topbarTextColor', 'topbarTextColorText');
         if (document.getElementById('topbarFontFamily')) {
-            document.getElementById('topbarFontFamily').addEventListener('change', updateTopbarPreview);
+            document.getElementById('topbarFontFamily').addEventListener('change', () => debounceRAF('topbar', updateTopbarPreview));
         }
         if (document.getElementById('topbarFontSize')) {
-            document.getElementById('topbarFontSize').addEventListener('input', updateTopbarPreview);
+            document.getElementById('topbarFontSize').addEventListener('input', () => debounceRAF('topbar', updateTopbarPreview));
         }
         const topbarTextInput = document.querySelector('input[name="topbar_text"]');
-        if (topbarTextInput) topbarTextInput.addEventListener('input', updateTopbarPreview);
+        if (topbarTextInput) topbarTextInput.addEventListener('input', () => debounceRAF('topbar', updateTopbarPreview));
 
-        // Appearance tab: Live preview
+        // Appearance tab: Live preview (debounced)
         function updateAppearancePreview() {
             const headerPreview = document.getElementById('headerPreview');
             const footerPreview = document.getElementById('footerPreview');
@@ -1258,8 +1274,8 @@ $shadowOptions = [
             const text = document.getElementById(textId);
             if (!color || !text) return;
 
-            color.addEventListener('input', () => { text.value = color.value; updateAppearancePreview(); });
-            text.addEventListener('input', () => { if (/^#[0-9A-Fa-f]{6}$/.test(text.value)) { color.value = text.value; updateAppearancePreview(); } });
+            color.addEventListener('input', () => { text.value = color.value; debounceRAF('appearance', updateAppearancePreview); });
+            text.addEventListener('input', () => { if (/^#[0-9A-Fa-f]{6}$/.test(text.value)) { color.value = text.value; debounceRAF('appearance', updateAppearancePreview); } });
         }
 
         // Init Appearance preview
