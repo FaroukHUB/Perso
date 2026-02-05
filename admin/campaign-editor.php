@@ -10,6 +10,7 @@ require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/User.php';
 require_once __DIR__ . '/../app/models/Settings.php';
+require_once __DIR__ . '/../app/models/ShopSettings.php';
 require_once __DIR__ . '/../app/services/BrevoService.php';
 
 Auth::requireAdmin();
@@ -21,6 +22,9 @@ $db = Database::getInstance();
 $brevoService = new BrevoService();
 $brevoStats = $brevoService->getStats();
 $userModel = new User();
+$shopSettings = new ShopSettings();
+$siteName = $shopSettings->getSiteName();
+$siteUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'personnaly.fr');
 
 // Charger ou créer une campagne
 $campaignId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -286,7 +290,11 @@ if ($campaignId && !$campaign) {
 }
 
 function buildCampaignEmail(array $campaign): string {
+    global $siteName, $siteUrl;
     $content = $campaign['content'] ?? '';
+    $brandName = $siteName ?: 'PERSONNALY';
+    $brandUrl = $siteUrl ?: 'https://personnaly.fr';
+    $brandDomain = parse_url($brandUrl, PHP_URL_HOST) ?: 'personnaly.fr';
     return '<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -311,12 +319,12 @@ body { margin: 0; padding: 0; background-color: #f4f4f7; font-family: -apple-sys
 <div class="email-wrapper">
 <div class="email-container">
 <div class="email-header">
-<h1>PERSONNALY</h1>
+<h1>' . htmlspecialchars($brandName) . '</h1>
 </div>
 <div class="email-body">' . $content . '</div>
 <div class="email-footer">
-<p>&copy; ' . date('Y') . ' PERSONNALY - Tous droits réservés</p>
-<p><a href="https://personnaly.fr">personnaly.fr</a></p>
+<p>&copy; ' . date('Y') . ' ' . htmlspecialchars($brandName) . ' - Tous droits réservés</p>
+<p><a href="' . htmlspecialchars($brandUrl) . '">' . htmlspecialchars($brandDomain) . '</a></p>
 </div>
 </div>
 </div>
@@ -337,8 +345,8 @@ $currentPage = 'campaigns.php';
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/admin.css">
-    <!-- TinyMCE CDN -->
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <!-- TinyMCE (open-source GPL via jsDelivr) -->
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.4/tinymce.min.js"></script>
 </head>
 <body>
     <div class="admin-wrapper">
@@ -984,13 +992,10 @@ $currentPage = 'campaigns.php';
     document.addEventListener('DOMContentLoaded', () => {
         tinymce.init({
             selector: '#campaignContent',
+            license_key: 'gpl',
             height: 500,
             menubar: 'file edit view insert format tools table',
-            plugins: [
-                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'help', 'wordcount', 'emoticons'
-            ],
+            plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount emoticons',
             toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media emoticons | removeformat code fullscreen',
             content_style: `
                 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 15px; line-height: 1.7; color: #333; padding: 16px; max-width: 600px; margin: 0 auto; }
@@ -1036,9 +1041,13 @@ $currentPage = 'campaigns.php';
                     .catch(err => reject('Upload échoué'));
                 });
             },
-            language: 'fr_FR',
             promotion: false,
             branding: false,
+            setup: function(editor) {
+                editor.on('init', function() {
+                    console.log('TinyMCE initialisé avec succès');
+                });
+            }
         });
     });
 
@@ -1216,6 +1225,10 @@ $currentPage = 'campaigns.php';
         document.body.style.overflow = 'hidden';
     }
 
+    const brandName = <?= json_encode($siteName ?: 'PERSONNALY') ?>;
+    const brandUrl = <?= json_encode($siteUrl ?: 'https://personnaly.fr') ?>;
+    const brandDomain = <?= json_encode(parse_url($siteUrl ?: 'https://personnaly.fr', PHP_URL_HOST) ?: 'personnaly.fr') ?>;
+
     function buildPreviewHtml(subject, content) {
         return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
         <style>
@@ -1232,9 +1245,9 @@ $currentPage = 'campaigns.php';
         .ef a{color:#FF1493;text-decoration:none;}
         </style></head><body>
         <div class="ew"><div class="ec">
-        <div class="eh"><h1>PERSONNALY</h1></div>
+        <div class="eh"><h1>${esc(brandName)}</h1></div>
         <div class="eb">${content}</div>
-        <div class="ef"><p>&copy; ${new Date().getFullYear()} PERSONNALY - Tous droits réservés</p><p><a href="#">personnaly.fr</a></p></div>
+        <div class="ef"><p>&copy; ${new Date().getFullYear()} ${esc(brandName)} - Tous droits réservés</p><p><a href="${esc(brandUrl)}">${esc(brandDomain)}</a></p></div>
         </div></div></body></html>`;
     }
 
@@ -1250,7 +1263,7 @@ $currentPage = 'campaigns.php';
         document.getElementById('reviewSubject').textContent = document.getElementById('campaignSubject').value || '-';
         const senderName = document.getElementById('campaignSenderName').value;
         const senderEmail = document.getElementById('campaignSenderEmail').value;
-        document.getElementById('reviewSender').textContent = (senderName || 'PERSONNALY') + ' <' + (senderEmail || '...') + '>';
+        document.getElementById('reviewSender').textContent = (senderName || brandName) + ' <' + (senderEmail || '...') + '>';
 
         const type = document.querySelector('input[name="recipients_type"]:checked')?.value || 'all_clients';
         const typeLabels = { all_clients: 'Tous les clients', newsletter: 'Abonnés newsletter', custom: 'Sélection personnalisée' };
