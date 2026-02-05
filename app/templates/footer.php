@@ -27,6 +27,7 @@ $footerTextColor = $settings->get('footer_text_color', '#ffffff');
 $siteName = $settings->getSiteName();
 $contactEmail = $settings->getContactEmail();
 $footerContent = $settings->getFooterContent();
+$socialLinks = $settings->getSocialLinks();
 
 // Récupérer le logo pour fond sombre
 $brandingService = new BrandingService();
@@ -50,6 +51,15 @@ $footerLogoUrl = $brandingService->getLogo(null, false); // false = fond sombre
                     <h3><?= htmlspecialchars($siteName) ?></h3>
                 <?php endif; ?>
                 <p><?= htmlspecialchars($footerContent['description'] ?: 'Personnalisation textile de qualité pour toute la famille.') ?></p>
+                <?php if (!empty($socialLinks)): ?>
+                <div class="footer-social-links">
+                    <?php foreach ($socialLinks as $social): ?>
+                        <a href="<?= htmlspecialchars($social['url']) ?>" target="_blank" rel="noopener" class="social-icon" title="<?= htmlspecialchars($social['label']) ?>">
+                            <?php include __DIR__ . '/social-icons/' . $social['icon'] . '.svg.php'; ?>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
             </div>
 
             <div class="footer-links">

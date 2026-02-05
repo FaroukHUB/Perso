@@ -416,6 +416,41 @@ class ShopSettings
     }
 
     /**
+     * Récupère les réseaux sociaux activés
+     */
+    public function getSocialLinks(): array
+    {
+        $networks = [
+            'facebook'  => ['label' => 'Facebook',    'icon' => 'facebook'],
+            'instagram' => ['label' => 'Instagram',   'icon' => 'instagram'],
+            'tiktok'    => ['label' => 'TikTok',      'icon' => 'tiktok'],
+            'youtube'   => ['label' => 'YouTube',     'icon' => 'youtube'],
+            'twitter'   => ['label' => 'X (Twitter)', 'icon' => 'twitter'],
+            'pinterest' => ['label' => 'Pinterest',   'icon' => 'pinterest'],
+            'linkedin'  => ['label' => 'LinkedIn',    'icon' => 'linkedin'],
+            'snapchat'  => ['label' => 'Snapchat',    'icon' => 'snapchat'],
+            'whatsapp'  => ['label' => 'WhatsApp',    'icon' => 'whatsapp'],
+            'telegram'  => ['label' => 'Telegram',    'icon' => 'telegram'],
+        ];
+
+        $links = [];
+        foreach ($networks as $key => $info) {
+            if ($this->get("social_{$key}_enabled", '0') === '1') {
+                $url = $this->get("social_{$key}_url", '');
+                if (!empty($url)) {
+                    $links[] = [
+                        'key'   => $key,
+                        'label' => $info['label'],
+                        'icon'  => $info['icon'],
+                        'url'   => $url,
+                    ];
+                }
+            }
+        }
+        return $links;
+    }
+
+    /**
      * Vérifie si les pages légales sont configurées
      */
     public function areLegalPagesConfigured(): bool

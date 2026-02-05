@@ -336,6 +336,20 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
         $success = 'Politique de retour enregistrée.';
         $activeTab = 'shop_return_policy';
     }
+
+    // Paramètres Réseaux sociaux
+    if (isset($_POST['save_shop_social'])) {
+        $socialNetworks = ['facebook', 'instagram', 'tiktok', 'youtube', 'twitter', 'pinterest', 'linkedin', 'snapchat', 'whatsapp', 'telegram'];
+        $data = [];
+        foreach ($socialNetworks as $network) {
+            $data["social_{$network}_enabled"] = isset($_POST["social_{$network}_enabled"]) ? '1' : '0';
+            $data["social_{$network}_url"] = post("social_{$network}_url", '');
+        }
+        $shopSettings->setMultiple($data);
+        $shopSettings->clearCache();
+        $success = 'Réseaux sociaux enregistrés.';
+        $activeTab = 'shop_social';
+    }
 }
 
 // Récupérer les paramètres actuels
@@ -970,6 +984,7 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                     <a href="?tab=shop_legal" class="sub-tab <?= $activeTab === 'shop_legal' ? 'active' : '' ?>">📄 Entreprise</a>
                     <a href="?tab=shop_cgv" class="sub-tab <?= $activeTab === 'shop_cgv' ? 'active' : '' ?>">📋 CGV</a>
                     <a href="?tab=shop_return_policy" class="sub-tab <?= $activeTab === 'shop_return_policy' ? 'active' : '' ?>">↩️ Politique retour</a>
+                    <a href="?tab=shop_social" class="sub-tab <?= $activeTab === 'shop_social' ? 'active' : '' ?>">Réseaux sociaux</a>
                 </div>
 
                 <!-- GENERAL -->
@@ -2058,6 +2073,66 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                 </form>
                 <?php endif; ?>
 
+                <!-- SOCIAL NETWORKS -->
+                <?php if ($activeTab === 'shop_social'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_shop_social" value="1">
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #E1306C;">
+                                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                                </svg>
+                                Réseaux sociaux
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-box info-box-blue">
+                                Activez vos réseaux sociaux et renseignez l'URL de votre profil. Ils seront affichés dans le menu mobile et le footer du site.
+                            </div>
+
+                            <?php
+                            $socialNetworks = [
+                                'facebook'  => ['label' => 'Facebook',  'placeholder' => 'https://facebook.com/votre-page',    'color' => '#1877F2'],
+                                'instagram' => ['label' => 'Instagram', 'placeholder' => 'https://instagram.com/votre-compte', 'color' => '#E1306C'],
+                                'tiktok'    => ['label' => 'TikTok',    'placeholder' => 'https://tiktok.com/@votre-compte',   'color' => '#000000'],
+                                'youtube'   => ['label' => 'YouTube',   'placeholder' => 'https://youtube.com/@votre-chaine',  'color' => '#FF0000'],
+                                'twitter'   => ['label' => 'X (Twitter)', 'placeholder' => 'https://x.com/votre-compte',      'color' => '#000000'],
+                                'pinterest' => ['label' => 'Pinterest', 'placeholder' => 'https://pinterest.com/votre-profil', 'color' => '#E60023'],
+                                'linkedin'  => ['label' => 'LinkedIn',  'placeholder' => 'https://linkedin.com/company/votre-page', 'color' => '#0A66C2'],
+                                'snapchat'  => ['label' => 'Snapchat',  'placeholder' => 'https://snapchat.com/add/votre-pseudo', 'color' => '#FFFC00'],
+                                'whatsapp'  => ['label' => 'WhatsApp',  'placeholder' => 'https://wa.me/33612345678',         'color' => '#25D366'],
+                                'telegram'  => ['label' => 'Telegram',  'placeholder' => 'https://t.me/votre-pseudo',         'color' => '#0088CC'],
+                            ];
+                            foreach ($socialNetworks as $key => $info):
+                            ?>
+                            <div class="social-config-row">
+                                <label class="form-label toggle-label" style="min-width: 200px;">
+                                    <input type="checkbox" name="social_<?= $key ?>_enabled" value="1"
+                                        <?= $shopSettings->get("social_{$key}_enabled", '0') === '1' ? 'checked' : '' ?>>
+                                    <span class="toggle-switch"></span>
+                                    <span class="social-label" style="color: <?= $info['color'] ?>; font-weight: 600;"><?= $info['label'] ?></span>
+                                </label>
+                                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                    <input type="url" name="social_<?= $key ?>_url" class="form-input"
+                                           value="<?= h($shopSettings->get("social_{$key}_url", '')) ?>"
+                                           placeholder="<?= $info['placeholder'] ?>">
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <div class="form-actions" style="margin-top: 24px;">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Enregistrer les réseaux sociaux
+                        </button>
+                    </div>
+                </form>
+                <?php endif; ?>
+
                 <?php endif; ?>
 
             </div>
@@ -2427,6 +2502,23 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
             .badge-config-row .form-group {
                 flex: 1 !important;
             }
+            .social-config-row {
+                flex-direction: column;
+            }
+        }
+
+        /* Social config rows */
+        .social-config-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            background: var(--gray-lighter);
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+        }
+        .social-config-row:hover {
+            background: rgba(0,0,0,0.04);
         }
     </style>
 </body>

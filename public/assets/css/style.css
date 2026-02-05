@@ -236,6 +236,46 @@ h4 { font-size: 1.25rem; }
 }
 
 /* ========================================
+   SOCIAL LINKS IN NAVBAR (hidden on desktop, shown in mobile menu)
+   ======================================== */
+.nav-social-links {
+    display: none;
+}
+
+/* ========================================
+   SOCIAL LINKS IN FOOTER
+   ======================================== */
+.footer-social-links {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.footer-social-links .social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.footer-social-links .social-icon:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+    opacity: 1 !important;
+}
+
+.footer-social-links .social-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+/* ========================================
    HAMBURGER BUTTON
    ======================================== */
 .navbar-toggle {
@@ -340,6 +380,38 @@ h4 { font-size: 1.25rem; }
 
     .nav-dropdown-menu a:hover {
         background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Social links in mobile menu */
+    .nav-social-links {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+
+    .nav-social-links .social-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0 !important;
+        transition: background 0.2s ease;
+    }
+
+    .nav-social-links .social-icon:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-social-links .social-icon svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
     }
 
     /* Cart link in mobile */

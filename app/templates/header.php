@@ -53,6 +53,9 @@ if (!isset($menuItems) || empty($menuItems)) {
     }
 }
 
+// Charger les réseaux sociaux
+$socialLinks = $settings->getSocialLinks();
+
 // Inclure la top bar si activée
 include __DIR__ . '/topbar.php';
 ?>
@@ -108,6 +111,15 @@ include __DIR__ . '/topbar.php';
                 <?php if ($hasPacks): ?><a href="/#inspirations">Idées</a><?php endif; ?>
                 <a href="/#categories">Catégories</a>
                 <a href="/#contact">Contact</a>
+            <?php endif; ?>
+            <?php if (!empty($socialLinks)): ?>
+            <div class="nav-social-links">
+                <?php foreach ($socialLinks as $social): ?>
+                    <a href="<?= htmlspecialchars($social['url']) ?>" target="_blank" rel="noopener" class="social-icon social-icon-<?= $social['key'] ?>" title="<?= htmlspecialchars($social['label']) ?>">
+                        <?php include __DIR__ . '/social-icons/' . $social['icon'] . '.svg.php'; ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
             <?php endif; ?>
             <a href="/public/cart.php" class="cart-nav-link">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
