@@ -124,29 +124,22 @@ if (isPost()) {
         if (!$tableExists) {
             $error = 'La table branding_settings n\'existe pas. Exécutez la migration SQL d\'abord.';
         } else {
-            // Construire typography_scale JSON
+            // Construire typography_scale JSON (simplifié: 3 niveaux, juste font + weight)
             $typographyScale = [];
-            $levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body', 'small', 'lead'];
+            $levels = ['h1', 'h2', 'paragraph'];
             foreach ($levels as $level) {
                 $typographyScale[$level] = [
                     'font' => post("typo_{$level}_font", 'primary'),
-                    'size' => post("typo_{$level}_size", '1rem'),
-                    'weight' => post("typo_{$level}_weight", '400'),
-                    'line_height' => post("typo_{$level}_line_height", '1.5')
+                    'weight' => post("typo_{$level}_weight", '400')
                 ];
             }
 
-            // Construire button_styles JSON
+            // Construire button_styles JSON (simplifié: juste bg_color)
             $buttonStyles = [];
             $buttonTypes = ['primary', 'secondary', 'danger', 'success', 'outline'];
             foreach ($buttonTypes as $type) {
                 $buttonStyles[$type] = [
-                    'bg_color' => post("btn_{$type}_bg", '#6366F1'),
-                    'text_color' => post("btn_{$type}_text", '#FFFFFF'),
-                    'hover_bg' => post("btn_{$type}_hover_bg", '#4F46E5'),
-                    'hover_text' => post("btn_{$type}_hover_text", '#FFFFFF'),
-                    'border_color' => post("btn_{$type}_border", 'transparent'),
-                    'border_width' => post("btn_{$type}_border_width", '0px')
+                    'bg_color' => post("btn_{$type}_bg", '#6366F1')
                 ];
             }
 
@@ -206,6 +199,7 @@ if (isPost()) {
             $data = [
                 'font_primary_id' => post('font_primary_id', null),
                 'font_secondary_id' => post('font_secondary_id', null),
+                'font_tertiary_id' => post('font_tertiary_id', null),
                 'typography_scale' => json_encode($typographyScale),
                 'button_styles' => json_encode($buttonStyles),
                 'color_system' => json_encode($colorSystem)
@@ -887,23 +881,17 @@ $shadowOptions = [
 
             // Valeurs par défaut si vides
             $typographyDefaults = [
-                'h1' => ['font' => 'primary', 'size' => '3rem', 'weight' => '700', 'line_height' => '1.2'],
-                'h2' => ['font' => 'primary', 'size' => '2.5rem', 'weight' => '600', 'line_height' => '1.3'],
-                'h3' => ['font' => 'primary', 'size' => '2rem', 'weight' => '600', 'line_height' => '1.4'],
-                'h4' => ['font' => 'primary', 'size' => '1.5rem', 'weight' => '500', 'line_height' => '1.4'],
-                'h5' => ['font' => 'secondary', 'size' => '1.25rem', 'weight' => '500', 'line_height' => '1.5'],
-                'h6' => ['font' => 'secondary', 'size' => '1rem', 'weight' => '500', 'line_height' => '1.5'],
-                'body' => ['font' => 'secondary', 'size' => '1rem', 'weight' => '400', 'line_height' => '1.6'],
-                'small' => ['font' => 'secondary', 'size' => '0.875rem', 'weight' => '400', 'line_height' => '1.5'],
-                'lead' => ['font' => 'secondary', 'size' => '1.125rem', 'weight' => '400', 'line_height' => '1.7']
+                'h1' => ['font' => 'primary', 'weight' => '700'],
+                'h2' => ['font' => 'primary', 'weight' => '600'],
+                'paragraph' => ['font' => 'tertiary', 'weight' => '400']
             ];
 
             $buttonDefaults = [
-                'primary' => ['bg_color' => '#6366F1', 'text_color' => '#FFFFFF', 'hover_bg' => '#4F46E5', 'hover_text' => '#FFFFFF', 'border_color' => 'transparent', 'border_width' => '0px'],
-                'secondary' => ['bg_color' => '#E5E7EB', 'text_color' => '#1F2937', 'hover_bg' => '#D1D5DB', 'hover_text' => '#111827', 'border_color' => 'transparent', 'border_width' => '0px'],
-                'danger' => ['bg_color' => '#EF4444', 'text_color' => '#FFFFFF', 'hover_bg' => '#DC2626', 'hover_text' => '#FFFFFF', 'border_color' => 'transparent', 'border_width' => '0px'],
-                'success' => ['bg_color' => '#10B981', 'text_color' => '#FFFFFF', 'hover_bg' => '#059669', 'hover_text' => '#FFFFFF', 'border_color' => 'transparent', 'border_width' => '0px'],
-                'outline' => ['bg_color' => 'transparent', 'text_color' => '#6366F1', 'hover_bg' => '#6366F1', 'hover_text' => '#FFFFFF', 'border_color' => '#6366F1', 'border_width' => '2px']
+                'primary' => ['bg_color' => '#6366F1'],
+                'secondary' => ['bg_color' => '#8B5CF6'],
+                'danger' => ['bg_color' => '#EF4444'],
+                'success' => ['bg_color' => '#10B981'],
+                'outline' => ['bg_color' => 'transparent']
             ];
 
             $colorDefaults = [
@@ -927,9 +915,9 @@ $shadowOptions = [
                         <span class="header-note">Polices principales utilisées sur tout le site</span>
                     </div>
                     <div class="card-body">
-                        <div class="form-grid-2">
+                        <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
                             <div class="form-group">
-                                <label class="form-label">Police principale (titres)</label>
+                                <label class="form-label">Police principale (H1, H2)</label>
                                 <select name="font_primary_id" class="form-input">
                                     <option value="">-- Sélectionner --</option>
                                     <?php foreach ($fonts as $font): ?>
@@ -940,11 +928,22 @@ $shadowOptions = [
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Police secondaire (texte)</label>
+                                <label class="form-label">Police secondaire</label>
                                 <select name="font_secondary_id" class="form-input">
                                     <option value="">-- Sélectionner --</option>
                                     <?php foreach ($fonts as $font): ?>
                                         <option value="<?= $font['id'] ?>" <?= ($config['font_secondary_id'] ?? 0) == $font['id'] ? 'selected' : '' ?>>
+                                            <?= h($font['name']) ?> (<?= h($font['category']) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Police tertiaire (Paragraphes)</label>
+                                <select name="font_tertiary_id" class="form-input">
+                                    <option value="">-- Sélectionner --</option>
+                                    <?php foreach ($fonts as $font): ?>
+                                        <option value="<?= $font['id'] ?>" <?= ($config['font_tertiary_id'] ?? 0) == $font['id'] ? 'selected' : '' ?>>
                                             <?= h($font['name']) ?> (<?= h($font['category']) ?>)
                                         </option>
                                     <?php endforeach; ?>
@@ -957,27 +956,24 @@ $shadowOptions = [
                 <!-- Section: Échelle typographique -->
                 <div class="data-card">
                     <div class="data-card-header">
-                        <h3 class="data-card-title">Échelle typographique</h3>
-                        <span class="header-note">Configuration des styles de texte (H1-H6, body, small, lead)</span>
+                        <h3 class="data-card-title">Styles de texte</h3>
+                        <span class="header-note">Configuration simple : H1, H2, Paragraphes (police + graisse uniquement)</span>
                     </div>
-                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                    <div class="card-body">
                         <?php foreach ($typographyDefaults as $level => $defaults):
                             $current = $typographyScale[$level] ?? $defaults;
+                            $levelLabel = $level === 'paragraph' ? 'Paragraphe' : strtoupper($level);
                         ?>
-                        <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
-                            <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--gray-700); margin-bottom: 15px; text-transform: uppercase;"><?= strtoupper($level) ?></h4>
+                        <div style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+                            <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--gray-700); margin-bottom: 15px;"><?= $levelLabel ?></h4>
                             <div class="form-grid-2">
                                 <div class="form-group">
                                     <label class="form-label">Police</label>
                                     <select name="typo_<?= $level ?>_font" class="form-input">
                                         <option value="primary" <?= ($current['font'] ?? '') === 'primary' ? 'selected' : '' ?>>Principale</option>
                                         <option value="secondary" <?= ($current['font'] ?? '') === 'secondary' ? 'selected' : '' ?>>Secondaire</option>
+                                        <option value="tertiary" <?= ($current['font'] ?? '') === 'tertiary' ? 'selected' : '' ?>>Tertiaire</option>
                                     </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Taille</label>
-                                    <input type="text" name="typo_<?= $level ?>_size" class="form-input"
-                                           value="<?= h($current['size'] ?? '') ?>" placeholder="ex: 1rem, 16px">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Graisse (weight)</label>
@@ -990,11 +986,6 @@ $shadowOptions = [
                                         <option value="800" <?= ($current['weight'] ?? '') == '800' ? 'selected' : '' ?>>800 (Extra-Bold)</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">Hauteur de ligne</label>
-                                    <input type="text" name="typo_<?= $level ?>_line_height" class="form-input"
-                                           value="<?= h($current['line_height'] ?? '') ?>" placeholder="ex: 1.5">
-                                </div>
                             </div>
                         </div>
                         <?php endforeach; ?>
@@ -1004,69 +995,26 @@ $shadowOptions = [
                 <!-- Section: Styles des boutons -->
                 <div class="data-card">
                     <div class="data-card-header">
-                        <h3 class="data-card-title">Styles des boutons</h3>
-                        <span class="header-note">Configuration des variantes de boutons</span>
+                        <h3 class="data-card-title">Couleurs des boutons</h3>
+                        <span class="header-note">Simple : juste la couleur de fond (le texte s'adapte automatiquement)</span>
                     </div>
-                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
-                        <?php foreach ($buttonDefaults as $type => $defaults):
-                            $current = $buttonStyles[$type] ?? $defaults;
-                        ?>
-                        <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
-                            <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--gray-700); margin-bottom: 15px; text-transform: capitalize;"><?= ucfirst($type) ?></h4>
-                            <div class="form-grid-2">
-                                <div class="form-group">
-                                    <label class="form-label">Couleur fond</label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="btn_<?= $type ?>_bg" id="btn_<?= $type ?>_bg"
-                                               value="<?= h($current['bg_color'] ?? '#6366F1') ?>">
-                                        <input type="text" class="color-hex"
-                                               value="<?= h($current['bg_color'] ?? '#6366F1') ?>"
-                                               data-target="btn_<?= $type ?>_bg">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Couleur texte</label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="btn_<?= $type ?>_text" id="btn_<?= $type ?>_text"
-                                               value="<?= h($current['text_color'] ?? '#FFFFFF') ?>">
-                                        <input type="text" class="color-hex"
-                                               value="<?= h($current['text_color'] ?? '#FFFFFF') ?>"
-                                               data-target="btn_<?= $type ?>_text">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Fond au survol</label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="btn_<?= $type ?>_hover_bg" id="btn_<?= $type ?>_hover_bg"
-                                               value="<?= h($current['hover_bg'] ?? '#4F46E5') ?>">
-                                        <input type="text" class="color-hex"
-                                               value="<?= h($current['hover_bg'] ?? '#4F46E5') ?>"
-                                               data-target="btn_<?= $type ?>_hover_bg">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Texte au survol</label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="btn_<?= $type ?>_hover_text" id="btn_<?= $type ?>_hover_text"
-                                               value="<?= h($current['hover_text'] ?? '#FFFFFF') ?>">
-                                        <input type="text" class="color-hex"
-                                               value="<?= h($current['hover_text'] ?? '#FFFFFF') ?>"
-                                               data-target="btn_<?= $type ?>_hover_text">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Couleur bordure</label>
-                                    <input type="text" name="btn_<?= $type ?>_border" class="form-input"
-                                           value="<?= h($current['border_color'] ?? 'transparent') ?>" placeholder="transparent, #color">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Épaisseur bordure</label>
-                                    <input type="text" name="btn_<?= $type ?>_border_width" class="form-input"
-                                           value="<?= h($current['border_width'] ?? '0px') ?>" placeholder="0px, 1px, 2px">
+                    <div class="card-body">
+                        <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
+                            <?php foreach ($buttonDefaults as $type => $defaults):
+                                $current = $buttonStyles[$type] ?? $defaults;
+                            ?>
+                            <div class="form-group">
+                                <label class="form-label"><?= ucfirst($type) ?></label>
+                                <div class="color-input-row">
+                                    <input type="color" name="btn_<?= $type ?>_bg" id="btn_<?= $type ?>_bg"
+                                           value="<?= h($current['bg_color'] ?? '#6366F1') ?>">
+                                    <input type="text" class="color-hex"
+                                           value="<?= h($current['bg_color'] ?? '#6366F1') ?>"
+                                           data-target="btn_<?= $type ?>_bg">
                                 </div>
                             </div>
+                            <?php endforeach; ?>
                         </div>
-                        <?php endforeach; ?>
                     </div>
                 </div>
 
