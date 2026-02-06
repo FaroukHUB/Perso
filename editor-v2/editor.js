@@ -262,6 +262,32 @@ function renderProductInfo() {
   }
 }
 
+function renderProductColors() {
+  const container = document.getElementById('productColorSelector');
+  if (!container || state.colors.length === 0) return;
+
+  container.innerHTML = '';
+
+  state.colors.forEach(color => {
+    const colorBtn = document.createElement('div');
+    colorBtn.className = 'ps-product-color';
+    if (color.id === state.currentColorId) {
+      colorBtn.classList.add('active');
+    }
+    colorBtn.style.backgroundColor = color.hex;
+    colorBtn.title = color.name;
+    colorBtn.dataset.colorId = color.id;
+
+    colorBtn.addEventListener('click', () => {
+      state.currentColorId = color.id;
+      renderProductColors(); // Re-render pour mettre à jour l'actif
+      renderProductInfo(); // Mettre à jour l'image du produit
+    });
+
+    container.appendChild(colorBtn);
+  });
+}
+
 function loadFontCSS() {
   // Injecter les <link> CSS des polices depuis l'API admin (sans attendre)
   state.fonts.forEach(font => {
@@ -2776,6 +2802,7 @@ async function init() {
 
   // Render UI depuis les données API
   renderProductInfo();
+  renderProductColors();
   renderPrintZone();
 
   // Initialiser les interactions
