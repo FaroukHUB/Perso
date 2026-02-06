@@ -999,156 +999,91 @@ $shadowOptions = [
                         <span class="header-note">Simple : juste la couleur de fond (le texte s'adapte automatiquement)</span>
                     </div>
                     <div class="card-body">
-                        <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
+                        <?php
+                        $buttonLegends = [
+                            'primary' => '🎯 Actions principales (ex: "Finaliser ma commande", badge panier)',
+                            'secondary' => '🔵 Actions secondaires (ex: icônes paiement Visa, PayPal, CB)',
+                            'danger' => '🔴 Actions de suppression (ex: "Supprimer article", "Vider le panier")',
+                            'success' => '✅ Actions de validation (ex: confirmations, succès) - Actuellement non utilisé',
+                            'outline' => '⚪ Boutons transparents avec bordure - Actuellement non utilisé'
+                        ];
+                        ?>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
                             <?php foreach ($buttonDefaults as $type => $defaults):
                                 $current = $buttonStyles[$type] ?? $defaults;
                             ?>
-                            <div class="form-group">
-                                <label class="form-label"><?= ucfirst($type) ?></label>
-                                <div class="color-input-row">
-                                    <input type="color" name="btn_<?= $type ?>_bg" id="btn_<?= $type ?>_bg"
-                                           value="<?= h($current['bg_color'] ?? '#6366F1') ?>">
-                                    <input type="text" class="color-hex"
-                                           value="<?= h($current['bg_color'] ?? '#6366F1') ?>"
-                                           data-target="btn_<?= $type ?>_bg">
+                            <div style="padding: 15px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                <div class="form-group" style="margin-bottom: 8px;">
+                                    <label class="form-label" style="font-weight: 700; font-size: 0.95rem;"><?= ucfirst($type) ?></label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="btn_<?= $type ?>_bg" id="btn_<?= $type ?>_bg"
+                                               value="<?= h($current['bg_color'] ?? '#6366F1') ?>">
+                                        <input type="text" class="color-hex"
+                                               value="<?= h($current['bg_color'] ?? '#6366F1') ?>"
+                                               data-target="btn_<?= $type ?>_bg">
+                                    </div>
                                 </div>
+                                <small style="display: block; color: #6b7280; font-size: 0.85rem; line-height: 1.4;">
+                                    <?= $buttonLegends[$type] ?>
+                                </small>
                             </div>
                             <?php endforeach; ?>
+                        </div>
+
+                        <div style="margin-top: 20px; padding: 12px 16px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px;">
+                            <p style="margin: 0; font-size: 0.9rem; color: #1e40af;">
+                                💡 <strong>Astuce :</strong> Les couleurs Primary et Accent sont également utilisées pour les dégradés du site (backgrounds, badges, cartes produits).
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section: Système de couleurs -->
+                <!-- Section: À propos des couleurs -->
                 <div class="data-card">
                     <div class="data-card-header">
-                        <h3 class="data-card-title">Système de couleurs avancé</h3>
-                        <span class="header-note">Couleurs avec variantes (base, hover, active, disabled)</span>
+                        <h3 class="data-card-title">📍 Où modifier les autres couleurs ?</h3>
                     </div>
-                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
-                        <!-- Primary -->
-                        <div style="margin-bottom: 25px;">
-                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Primaire</h4>
-                            <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
-                                <?php foreach (['base' => 'Base', 'hover' => 'Survol', 'active' => 'Actif', 'disabled' => 'Désactivé', 'text_on' => 'Texte sur'] as $variant => $label):
-                                    $current = $colorSystem['primary'][$variant] ?? $colorDefaults['primary'][$variant];
-                                ?>
-                                <div class="form-group">
-                                    <label class="form-label"><?= $label ?></label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="color_primary_<?= $variant ?>" value="<?= h($current) ?>">
-                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                            <div style="padding: 20px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 8px;">
+                                <h4 style="margin: 0 0 8px 0; font-size: 1rem; font-weight: 700; color: #065f46;">
+                                    🎨 Onglet "Couleurs & Style"
+                                </h4>
+                                <p style="margin: 0 0 12px 0; font-size: 0.9rem; color: #047857; line-height: 1.5;">
+                                    Pour modifier les couleurs principales du site :
+                                </p>
+                                <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #065f46;">
+                                    <li>Couleurs principales (Primaire, Secondaire, Accent)</li>
+                                    <li>Couleurs de texte</li>
+                                    <li>Couleurs de fond</li>
+                                    <li>Border radius et ombres</li>
+                                </ul>
+                            </div>
+
+                            <div style="padding: 20px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
+                                <h4 style="margin: 0 0 8px 0; font-size: 1rem; font-weight: 700; color: #78350f;">
+                                    🎭 Onglet "Apparence"
+                                </h4>
+                                <p style="margin: 0 0 12px 0; font-size: 0.9rem; color: #92400e; line-height: 1.5;">
+                                    Pour modifier les couleurs du header et footer :
+                                </p>
+                                <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #78350f;">
+                                    <li>Couleur de fond du header</li>
+                                    <li>Couleur du texte de navigation</li>
+                                    <li>Couleur du footer</li>
+                                </ul>
                             </div>
                         </div>
 
-                        <!-- Secondary -->
-                        <div style="margin-bottom: 25px;">
-                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Secondaire</h4>
-                            <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
-                                <?php foreach (['base' => 'Base', 'hover' => 'Survol', 'active' => 'Actif', 'disabled' => 'Désactivé', 'text_on' => 'Texte sur'] as $variant => $label):
-                                    $current = $colorSystem['secondary'][$variant] ?? $colorDefaults['secondary'][$variant];
-                                ?>
-                                <div class="form-group">
-                                    <label class="form-label"><?= $label ?></label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="color_secondary_<?= $variant ?>" value="<?= h($current) ?>">
-                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                        <!-- Accent -->
-                        <div style="margin-bottom: 25px;">
-                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Accent</h4>
-                            <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
-                                <?php foreach (['base' => 'Base', 'hover' => 'Survol', 'active' => 'Actif', 'disabled' => 'Désactivé', 'text_on' => 'Texte sur'] as $variant => $label):
-                                    $current = $colorSystem['accent'][$variant] ?? $colorDefaults['accent'][$variant];
-                                ?>
-                                <div class="form-group">
-                                    <label class="form-label"><?= $label ?></label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="color_accent_<?= $variant ?>" value="<?= h($current) ?>">
-                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                        <!-- Text Colors -->
-                        <div style="margin-bottom: 25px;">
-                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Couleurs de texte</h4>
-                            <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
-                                <?php foreach (['primary' => 'Principal', 'secondary' => 'Secondaire', 'tertiary' => 'Tertiaire', 'disabled' => 'Désactivé', 'on_dark' => 'Sur fond sombre'] as $variant => $label):
-                                    $current = $colorSystem['text'][$variant] ?? $colorDefaults['text'][$variant];
-                                ?>
-                                <div class="form-group">
-                                    <label class="form-label"><?= $label ?></label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="color_text_<?= $variant ?>" value="<?= h($current) ?>">
-                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                        <!-- Background Colors -->
-                        <div style="margin-bottom: 25px;">
-                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Couleurs de fond</h4>
-                            <div class="form-grid-2" style="grid-template-columns: repeat(2, 1fr);">
-                                <?php foreach (['primary' => 'Principal', 'secondary' => 'Secondaire', 'tertiary' => 'Tertiaire', 'inverse' => 'Inverse'] as $variant => $label):
-                                    $current = $colorSystem['background'][$variant] ?? $colorDefaults['background'][$variant];
-                                ?>
-                                <div class="form-group">
-                                    <label class="form-label"><?= $label ?></label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="color_bg_<?= $variant ?>" value="<?= h($current) ?>">
-                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                        <!-- Border Colors -->
-                        <div style="margin-bottom: 25px;">
-                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Couleurs de bordure</h4>
-                            <div class="form-grid-2" style="grid-template-columns: repeat(3, 1fr);">
-                                <?php foreach (['primary' => 'Principal', 'secondary' => 'Secondaire', 'focus' => 'Focus'] as $variant => $label):
-                                    $current = $colorSystem['border'][$variant] ?? $colorDefaults['border'][$variant];
-                                ?>
-                                <div class="form-group">
-                                    <label class="form-label"><?= $label ?></label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="color_border_<?= $variant ?>" value="<?= h($current) ?>">
-                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                        <!-- Status Colors -->
-                        <div style="margin-bottom: 25px;">
-                            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">Couleurs de statut</h4>
-                            <div class="form-grid-2" style="grid-template-columns: repeat(2, 1fr);">
-                                <?php foreach (['success' => 'Succès', 'success_bg' => 'Fond succès', 'warning' => 'Avertissement', 'warning_bg' => 'Fond avertissement', 'error' => 'Erreur', 'error_bg' => 'Fond erreur', 'info' => 'Info', 'info_bg' => 'Fond info'] as $variant => $label):
-                                    $current = $colorSystem['status'][$variant] ?? $colorDefaults['status'][$variant];
-                                ?>
-                                <div class="form-group">
-                                    <label class="form-label"><?= $label ?></label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="color_status_<?= $variant ?>" value="<?= h($current) ?>">
-                                        <input type="text" class="color-hex" value="<?= h($current) ?>">
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
+                        <div style="margin-top: 20px; padding: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 0.95rem; font-weight: 700; color: #1e40af;">
+                                ⚡ Comment ça marche ?
+                            </h4>
+                            <p style="margin: 0; font-size: 0.9rem; color: #1e3a8a; line-height: 1.6;">
+                                <strong>Les variantes sont automatiques !</strong> Quand vous changez une couleur (ex: Primaire),
+                                le système génère automatiquement les variantes (survol, actif, désactivé) via CSS.
+                                Vous n'avez besoin de définir que les <strong>couleurs de base</strong>.
+                            </p>
                         </div>
                     </div>
                 </div>
