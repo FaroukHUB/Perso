@@ -521,6 +521,23 @@ class Branding
         return $fontModel->findById($fontId);
     }
 
+    /**
+     * Récupère la police tertiaire (paragraphes)
+     */
+    public function getFontTertiary(?int $clientId = null): ?array
+    {
+        $config = $this->resolveBranding($clientId);
+        $fontId = $config['font_tertiary_id'] ?? null;
+
+        if (!$fontId) {
+            return null;
+        }
+
+        require_once __DIR__ . '/Font.php';
+        $fontModel = new Font();
+        return $fontModel->findById($fontId);
+    }
+
     // =========================================
     // UTILITAIRES
     // =========================================

@@ -43,6 +43,7 @@ class BrandingService
         // ========================================
         $fontPrimary = $this->brandingModel->getFontPrimary($clientId);
         $fontSecondary = $this->brandingModel->getFontSecondary($clientId);
+        $fontTertiary = $this->brandingModel->getFontTertiary($clientId);
 
         if ($fontPrimary) {
             $vars['--font-primary'] = $fontPrimary['family'] . ', sans-serif';
@@ -58,17 +59,31 @@ class BrandingService
             $vars['--font-secondary'] = ($config['font_secondary'] ?? 'sans-serif') . ', sans-serif';
         }
 
+        if ($fontTertiary) {
+            $vars['--font-tertiary'] = $fontTertiary['family'] . ', sans-serif';
+        } else {
+            // Fallback sur secondary si tertiary non défini
+            $vars['--font-tertiary'] = $vars['--font-secondary'];
+        }
+
         // ========================================
-        // ÉCHELLE TYPOGRAPHIQUE
+        // ÉCHELLE TYPOGRAPHIQUE (Simplifiée: H1, H2, Paragraphe)
         // ========================================
         $typographyScale = $config['typography_scale'] ?? [];
 
         foreach ($typographyScale as $element => $styles) {
-            $fontVar = ($styles['font'] === 'primary') ? 'var(--font-primary)' : 'var(--font-secondary)';
+            // Support de 3 polices: primary, secondary, tertiary
+            $fontChoice = $styles['font'] ?? 'primary';
+            if ($fontChoice === 'primary') {
+                $fontVar = 'var(--font-primary)';
+            } elseif ($fontChoice === 'tertiary') {
+                $fontVar = 'var(--font-tertiary)';
+            } else {
+                $fontVar = 'var(--font-secondary)';
+            }
+
             $vars["--font-{$element}"] = $fontVar;
-            $vars["--font-size-{$element}"] = $styles['size'] ?? '1rem';
             $vars["--font-weight-{$element}"] = $styles['weight'] ?? '400';
-            $vars["--line-height-{$element}"] = $styles['line_height'] ?? '1.5';
         }
 
         // ========================================
@@ -153,18 +168,24 @@ class BrandingService
         }
 
         // ========================================
-        // STYLES DE BOUTONS
+        // STYLES DE BOUTONS (Simplifiés: juste bg_color)
         // ========================================
         $buttonStyles = $config['button_styles'] ?? [];
 
         foreach ($buttonStyles as $type => $styles) {
             $prefix = "--btn-{$type}";
-            $vars["{$prefix}-bg"] = $styles['bg_color'] ?? 'transparent';
-            $vars["{$prefix}-text"] = $styles['text_color'] ?? '#000000';
-            $vars["{$prefix}-hover-bg"] = $styles['hover_bg'] ?? $styles['bg_color'] ?? 'transparent';
-            $vars["{$prefix}-hover-text"] = $styles['hover_text'] ?? $styles['text_color'] ?? '#000000';
-            $vars["{$prefix}-border"] = $styles['border_color'] ?? 'transparent';
-            $vars["{$prefix}-border-width"] = $styles['border_width'] ?? '0px';
+            $bgColor = $styles['bg_color'] ?? '#6366F1';
+
+            // Couleur de fond
+            $vars["{$prefix}-bg"] = $bgColor;
+
+            // Générer automatiquement le texte (blanc sur fond foncé, noir sur fond clair)
+            // Pour simplifier, on met blanc par défaut (la plupart des boutons sont foncés)
+            $vars["{$prefix}-text"] = ($bgColor === 'transparent') ? '#6366F1' : '#FFFFFF';
+
+            // Hover: version légèrement plus foncée (simulation, sera géré par CSS filter)
+            $vars["{$prefix}-hover-bg"] = $bgColor;
+            $vars["{$prefix}-hover-text"] = $vars["{$prefix}-text"];
         }
 
         // ========================================
