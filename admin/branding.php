@@ -54,6 +54,15 @@ if (isPost()) {
         if (!$tableExists) {
             $error = 'La table branding_settings n\'existe pas. Exécutez la migration SQL d\'abord.';
         } else {
+            // Construire button_styles JSON (simplifié: juste bg_color)
+            $buttonTypes = ['primary', 'secondary', 'danger', 'success', 'outline'];
+            $buttonStyles = [];
+            foreach ($buttonTypes as $type) {
+                $buttonStyles[$type] = [
+                    'bg_color' => post("btn_{$type}_bg", '#6366F1')
+                ];
+            }
+
             $data = [
                 'font_primary' => post('font_primary', ''),
                 'font_primary_url' => post('font_primary_url', ''),
@@ -73,6 +82,7 @@ if (isPost()) {
                 'logo_url' => post('logo_url', ''),
                 'logo_light_url' => post('logo_light_url', ''),
                 'favicon_url' => post('favicon_url', ''),
+                'button_styles' => json_encode($buttonStyles),
             ];
 
             // Nettoyer les valeurs vides
@@ -641,11 +651,129 @@ $shadowOptions = [
                     </div>
                 </div>
 
+                <!-- Section: Couleurs des boutons -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Couleurs des boutons</h3>
+                        <span class="header-note">Simple : juste la couleur de fond (le texte s'adapte automatiquement)</span>
+                    </div>
+                    <div class="card-body">
+                        <?php
+                        // Charger button_styles depuis config
+                        $buttonStyles = !empty($config['button_styles']) ? (is_string($config['button_styles']) ? json_decode($config['button_styles'], true) : $config['button_styles']) : [];
+                        $buttonDefaults = [
+                            'primary' => ['bg_color' => '#6366F1'],
+                            'secondary' => ['bg_color' => '#8B5CF6'],
+                            'danger' => ['bg_color' => '#EF4444'],
+                            'success' => ['bg_color' => '#10B981'],
+                            'outline' => ['bg_color' => 'transparent']
+                        ];
+                        $buttonLegends = [
+                            'primary' => '🎯 Actions principales (ex: "Finaliser ma commande", badge panier)',
+                            'secondary' => '🔵 Actions secondaires (ex: icônes paiement Visa, PayPal, CB)',
+                            'danger' => '🔴 Actions de suppression (ex: "Supprimer article", "Vider le panier")',
+                            'success' => '✅ Actions de validation (ex: confirmations, succès)',
+                            'outline' => '⚪ Boutons transparents avec bordure'
+                        ];
+                        ?>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                            <?php foreach ($buttonDefaults as $type => $defaults):
+                                $current = $buttonStyles[$type] ?? $defaults;
+                            ?>
+                            <div style="padding: 15px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                <div class="form-group" style="margin-bottom: 8px;">
+                                    <label class="form-label" style="font-weight: 700; font-size: 0.95rem;"><?= ucfirst($type) ?></label>
+                                    <div class="color-input-row">
+                                        <input type="color" name="btn_<?= $type ?>_bg" id="btn_<?= $type ?>_bg"
+                                               value="<?= h($current['bg_color'] ?? $defaults['bg_color']) ?>">
+                                        <input type="text" class="color-hex"
+                                               value="<?= h($current['bg_color'] ?? $defaults['bg_color']) ?>"
+                                               data-target="btn_<?= $type ?>_bg">
+                                    </div>
+                                </div>
+                                <small style="display: block; color: #6b7280; font-size: 0.85rem; line-height: 1.4;">
+                                    <?= $buttonLegends[$type] ?>
+                                </small>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Actions Colors -->
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary btn-lg">Sauvegarder</button>
                 </div>
             </form>
+
+            <?php
+            // Contenu d'aide pour le chatbot
+            $helpContent = [
+                [
+                    'icon' => '🎨',
+                    'title' => '1. 🎯 PRIMAIRE (Primary)',
+                    'description' => 'C\'est LA couleur de ton identité de marque (ton "rose" dans Personnaly)',
+                    'items' => [
+                        '✅ Bouton "Finaliser ma commande"',
+                        '✅ Badge panier dans la navbar',
+                        '✅ Compteur d\'articles',
+                        '✅ Prix des produits (texte dégradé)',
+                        '✅ Bordures des cartes produits',
+                        '✅ Texte de personnalisation dans le panier',
+                        '✅ Tous les gradients roses sur le site',
+                        '✅ Background du body (version très claire, 5%)',
+                        '✅ Survol des liens importants'
+                    ],
+                    'note' => 'En gros : Tout ce qui est rose/principal sur ton site = couleur primaire'
+                ],
+                [
+                    'icon' => '💜',
+                    'title' => '2. 💜 SECONDAIRE (Secondary)',
+                    'description' => 'Couleur complémentaire (souvent violet/bleu dans Personnaly)',
+                    'items' => [
+                        '🔵 Icônes de paiement (Visa, Amex, CB, PayPal, Google Pay)',
+                        '🔵 Dégradés mixés avec la primaire',
+                        '🔵 Éléments secondaires de navigation',
+                        '🔵 Accents sur les cartes'
+                    ],
+                    'note' => 'En gros : Couleur d\'accompagnement qui s\'accorde avec la primaire'
+                ],
+                [
+                    'icon' => '🌿',
+                    'title' => '3. 🌿 ACCENT (Accent)',
+                    'description' => 'Couleur pour attirer l\'attention (ton "vert menthe" dans Personnaly)',
+                    'items' => [
+                        '✅ Bouton "Appliquer" (code promo)',
+                        '✅ Badge "Livraison gratuite"',
+                        '✅ Icônes des badges de confiance (cadenas, check, etc.)',
+                        '✅ Messages de succès',
+                        '✅ Promotions actives',
+                        '✅ Éléments "positifs" (validation, confirmation)'
+                    ],
+                    'note' => 'En gros : Tout ce qui est vert/positif = couleur accent'
+                ],
+                [
+                    'icon' => '🔘',
+                    'title' => 'Couleurs des boutons',
+                    'description' => 'Chaque type de bouton a sa propre couleur :',
+                    'items' => [
+                        '<strong>Primary</strong> : Boutons principaux (ex: "Finaliser commande")',
+                        '<strong>Secondary</strong> : Boutons secondaires (ex: icônes paiement)',
+                        '<strong>Danger</strong> : Boutons de suppression (ex: "Supprimer", "Vider")',
+                        '<strong>Success</strong> : Boutons de validation (ex: confirmations)',
+                        '<strong>Outline</strong> : Boutons transparents avec bordure'
+                    ],
+                    'note' => '💡 Le texte du bouton s\'adapte automatiquement (blanc ou noir selon la couleur de fond)'
+                ],
+                [
+                    'icon' => '⚡',
+                    'title' => 'Comment ça marche ?',
+                    'description' => 'Quand tu changes une couleur ici, TOUT le site se met à jour automatiquement ! Le système génère des variables CSS dynamiques qui sont appliquées partout.',
+                    'note' => '🎨 Si tu changes la couleur PRIMAIRE → Tout le site change de couleur principale instantanément !'
+                ]
+            ];
+            include __DIR__ . '/includes/help-chatbot.php';
+            ?>
             <?php endif; ?>
 
             <!-- ========== ONGLET TOP BAR ========== -->
