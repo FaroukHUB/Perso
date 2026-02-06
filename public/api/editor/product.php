@@ -82,8 +82,23 @@ try {
 
     $colorsData = [];
 
+    // TOUJOURS ajouter le produit de base en premier (même si des variantes existent)
+    if (!empty($product['image_front_url']) || !empty($product['image_back_url'])) {
+        $colorsData[] = [
+            'id' => 0,
+            'name' => 'Standard',
+            'hex' => '#FFFFFF',
+            'is_default' => empty($colorImages), // Par défaut seulement si pas de variantes
+            'sizes' => [],
+            'images' => [
+                'front' => $product['image_front_url'] ?: '/editor-v2/tshirt-front.svg',
+                'back' => $product['image_back_url'] ?: null
+            ]
+        ];
+    }
+
+    // Ajouter les variantes couleur si elles existent
     if (!empty($colorImages)) {
-        // Produit avec variantes couleur définies
         foreach ($colorImages as $colorImage) {
             // Récupérer les tailles disponibles
             $sizes = [];
@@ -106,17 +121,19 @@ try {
                 ]
             ];
         }
-    } else {
-        // Produit sans variantes - utiliser images par défaut
+    }
+
+    // Si aucune couleur définie, ajouter fallback
+    if (empty($colorsData)) {
         $colorsData[] = [
             'id' => 0,
             'name' => 'Standard',
             'hex' => '#FFFFFF',
             'is_default' => true,
-            'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+            'sizes' => [],
             'images' => [
-                'front' => $product['image_front_url'] ?? '/editor-v2/tshirt-front.svg',
-                'back' => $product['image_back_url'] ?? null
+                'front' => '/editor-v2/tshirt-front.svg',
+                'back' => null
             ]
         ];
     }
