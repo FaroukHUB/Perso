@@ -1285,6 +1285,9 @@ $isElementType = $currentType === 'element';
     </div>
 
     <script>
+        console.log('🚀 JavaScript started');
+        console.time('Total script execution');
+
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }));
 
@@ -1346,11 +1349,13 @@ $isElementType = $currentType === 'element';
         // Au lieu de centaines de forms, on utilise 1 form par type + event delegation
         // Améliore les performances de 95% sur de gros datasets
 
+        console.log('📝 Setting up event delegation...');
         const sizeActionForm = document.getElementById('sizeActionForm');
         const designActionForm = document.getElementById('designActionForm');
         const elementActionForm = document.getElementById('elementActionForm');
 
         // ============ TAILLES ============
+        console.log('🔧 Adding size event listeners...');
         document.addEventListener('click', function(e) {
             const toggleBtn = e.target.closest('.size-toggle-btn');
             const editBtn = e.target.closest('.size-edit-btn');
@@ -1418,6 +1423,9 @@ $isElementType = $currentType === 'element';
                 elementActionForm.submit();
             }
         });
+
+        console.timeEnd('Total script execution');
+        console.log('✅ JavaScript completed successfully');
     </script>
 </body>
 </html>
