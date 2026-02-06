@@ -96,7 +96,7 @@ try {
             $items[] = [
                 'id' => (int) $element['id'],
                 'name' => $element['name'],
-                'image' => $element['image_path'] ? '/public/uploads/elements/' . $element['image_path'] : null,
+                'image' => $element['image_path'] ? '/public' . $element['image_path'] : null,
                 'type' => 'element',
                 'is_premium' => (bool) ($element['is_premium'] ?? false),
                 'price' => $element['price'] ? (float) $element['price'] : null
