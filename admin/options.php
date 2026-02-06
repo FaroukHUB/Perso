@@ -538,26 +538,8 @@ if ($currentType === 'technique') {
     $techniqueImages = $optionModel->getAllImagesForType('technique');
 }
 if ($currentType === 'size') {
-    echo "<!-- DEBUG: Début chargement tailles à " . date('H:i:s') . " -->";
-    flush();
-    $startTime = microtime(true);
-
     $sizes = $sizeModel->findAllGrouped();
-    $timeGrouped = microtime(true) - $startTime;
-    echo "<!-- DEBUG: findAllGrouped() terminé en " . round($timeGrouped * 1000, 2) . "ms -->";
-    flush();
-
-    $startGroups = microtime(true);
     $sizeGroups = $sizeGroupModel->findAllActive();
-    $timeGroups = microtime(true) - $startGroups;
-    echo "<!-- DEBUG: findAllActive() terminé en " . round($timeGroups * 1000, 2) . "ms -->";
-    flush();
-
-    echo "<!-- DEBUG: Total " . count($sizes) . " groupes chargés -->";
-    flush();
-
-    // STOP ICI POUR TESTER
-    die("<!-- DEBUG: PHP TERMINÉ - SI TU VOIS CE MESSAGE, LE PROBLÈME EST DANS LE HTML/JS -->");
 }
 if ($currentType === 'design') {
     $designs = $designModel->findAllGrouped();
