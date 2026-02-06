@@ -180,16 +180,38 @@ if (isPost()) {
         $textFixedX = (int)post('text_fixed_position_x', 50);
         $textFixedY = (int)post('text_fixed_position_y', 40);
 
-        // Zones prédéfinies par défaut si mode preset
+        // Récupérer les zones prédéfinies personnalisées
         $textPresetZones = null;
         if ($textPositioningMode === 'preset') {
-            $textPresetZones = json_encode([
-                ['id' => 'center', 'label' => 'Centré', 'x' => 50, 'y' => 50],
-                ['id' => 'top_left', 'label' => 'Haut gauche', 'x' => 15, 'y' => 15],
-                ['id' => 'top_right', 'label' => 'Haut droite', 'x' => 85, 'y' => 15],
-                ['id' => 'bottom_left', 'label' => 'Bas gauche', 'x' => 15, 'y' => 85],
-                ['id' => 'bottom_right', 'label' => 'Bas droite', 'x' => 85, 'y' => 85]
-            ]);
+            $zoneIds = post('preset_zone_id', []);
+            $zoneLabels = post('preset_zone_label', []);
+            $zoneXs = post('preset_zone_x', []);
+            $zoneYs = post('preset_zone_y', []);
+
+            $zones = [];
+            for ($i = 0; $i < count($zoneIds); $i++) {
+                if (!empty($zoneIds[$i]) && !empty($zoneLabels[$i])) {
+                    $zones[] = [
+                        'id' => $zoneIds[$i],
+                        'label' => $zoneLabels[$i],
+                        'x' => (int)($zoneXs[$i] ?? 50),
+                        'y' => (int)($zoneYs[$i] ?? 50)
+                    ];
+                }
+            }
+
+            // Si aucune zone définie, utiliser les zones par défaut
+            if (empty($zones)) {
+                $zones = [
+                    ['id' => 'center', 'label' => 'Centré', 'x' => 50, 'y' => 50],
+                    ['id' => 'top_left', 'label' => 'Haut gauche', 'x' => 15, 'y' => 15],
+                    ['id' => 'top_right', 'label' => 'Haut droite', 'x' => 85, 'y' => 15],
+                    ['id' => 'bottom_left', 'label' => 'Bas gauche', 'x' => 15, 'y' => 85],
+                    ['id' => 'bottom_right', 'label' => 'Bas droite', 'x' => 85, 'y' => 85]
+                ];
+            }
+
+            $textPresetZones = json_encode($zones);
         }
 
         $salePriceRaw = post('sale_price', '');
@@ -1494,6 +1516,41 @@ if (isPost()) {
                             </label>
                         </div>
 
+                        <!-- Options pour mode PRESET -->
+                        <div id="presetPositionOptions" style="<?= $formData['text_positioning_mode'] === 'preset' ? '' : 'display:none;' ?> margin-top: 20px; padding: 20px; background: rgba(99, 102, 241, 0.08); border-radius: var(--radius-md);">
+                            <div style="font-weight: 600; font-size: 14px; color: var(--black-soft); margin-bottom: 10px;">📍 Définir les 5 zones prédéfinies</div>
+                            <small style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 15px;">
+                                Le client pourra choisir parmi ces 5 emplacements dans le configurateur
+                            </small>
+
+                            <?php
+                            $defaultZones = [
+                                ['id' => 'center', 'label' => 'Centré', 'x' => 50, 'y' => 50],
+                                ['id' => 'top_left', 'label' => 'Haut gauche', 'x' => 15, 'y' => 15],
+                                ['id' => 'top_right', 'label' => 'Haut droite', 'x' => 85, 'y' => 15],
+                                ['id' => 'bottom_left', 'label' => 'Bas gauche', 'x' => 15, 'y' => 85],
+                                ['id' => 'bottom_right', 'label' => 'Bas droite', 'x' => 85, 'y' => 85]
+                            ];
+                            $presetZones = !empty($formData['text_preset_zones']) ? json_decode($formData['text_preset_zones'], true) : $defaultZones;
+                            if (!is_array($presetZones)) $presetZones = $defaultZones;
+                            ?>
+
+                            <div style="display: grid; gap: 12px;">
+                                <?php foreach ($presetZones as $idx => $zone): ?>
+                                <div style="display: grid; grid-template-columns: 140px 1fr 80px 80px; gap: 10px; align-items: center; padding: 12px; background: white; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08);">
+                                    <input type="text" name="preset_zone_label[]" value="<?= h($zone['label']) ?>" placeholder="Label" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px;">
+                                    <input type="hidden" name="preset_zone_id[]" value="<?= h($zone['id']) ?>">
+                                    <div style="flex: 1; color: var(--gray); font-size: 12px;">Position:</div>
+                                    <input type="number" name="preset_zone_x[]" value="<?= h($zone['x']) ?>" min="0" max="100" placeholder="X%" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; text-align: center;">
+                                    <input type="number" name="preset_zone_y[]" value="<?= h($zone['y']) ?>" min="0" max="100" placeholder="Y%" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; text-align: center;">
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <small style="display: block; color: var(--gray); font-size: 12px; margin-top: 10px;">
+                                💡 Coordonnées en % : X (0=gauche, 100=droite), Y (0=haut, 100=bas)
+                            </small>
+                        </div>
+
                         <!-- Options pour mode FIXED -->
                         <div id="fixedPositionOptions" style="<?= $formData['text_positioning_mode'] === 'fixed' ? '' : 'display:none;' ?> margin-top: 20px; padding: 20px; background: rgba(139, 92, 246, 0.08); border-radius: var(--radius-md);">
                             <div style="font-weight: 600; font-size: 14px; color: var(--black-soft); margin-bottom: 15px;">📐 Position fixe (en pourcentage)</div>
@@ -1795,12 +1852,18 @@ if (isPost()) {
         // === Positionnement du texte ===
         function togglePositioningOptions() {
             const selectedMode = document.querySelector('input[name="text_positioning_mode"]:checked').value;
+            const presetOptions = document.getElementById('presetPositionOptions');
             const fixedOptions = document.getElementById('fixedPositionOptions');
 
-            if (selectedMode === 'fixed') {
+            // Cacher toutes les options
+            presetOptions.style.display = 'none';
+            fixedOptions.style.display = 'none';
+
+            // Afficher les options du mode sélectionné
+            if (selectedMode === 'preset') {
+                presetOptions.style.display = 'block';
+            } else if (selectedMode === 'fixed') {
                 fixedOptions.style.display = 'block';
-            } else {
-                fixedOptions.style.display = 'none';
             }
         }
 
