@@ -230,60 +230,6 @@ body {
 }
 
 /* ========================================
-   PRODUCT CONFIGURATION
-   ======================================== */
-.ps-product-config {
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(255, 105, 180, 0.03), rgba(61, 255, 192, 0.03));
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-}
-
-.ps-config-section {
-  margin-bottom: 0;
-}
-
-.ps-product-colors {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-.ps-product-color {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 3px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.ps-product-color:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.ps-product-color.active {
-  border-color: var(--pink);
-  box-shadow: 0 0 0 2px rgba(255, 105, 180, 0.2);
-  transform: scale(1.05);
-}
-
-.ps-product-color::after {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-}
-
-.ps-product-color.active::after {
-  border-color: var(--pink);
-}
-
-/* ========================================
    TABS NAVIGATION - Ultra Modern 2026
    ======================================== */
 .ps-tabs {

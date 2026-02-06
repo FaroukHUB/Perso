@@ -75,16 +75,6 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
     <!-- CONTROLS -->
     <div class="ps-controls">
 
-        <!-- CONFIGURATION PRODUIT (masqué par défaut, affiché par JS si plusieurs couleurs) -->
-        <div class="ps-product-config" style="display: none;">
-            <div class="ps-config-section">
-                <label class="ps-label">Couleur du produit</label>
-                <div class="ps-product-colors" id="productColorSelector">
-                    <!-- Couleurs générées dynamiquement depuis l'API -->
-                </div>
-            </div>
-        </div>
-
         <!-- TABS -->
         <nav class="ps-tabs">
             <button class="ps-tab active" data-tab="text">
