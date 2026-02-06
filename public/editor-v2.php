@@ -121,6 +121,11 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
         <!-- TAB CONTENT -->
         <div class="ps-tab-content">
 
+            <!-- PRODUCT COLORS (always visible at top) -->
+            <div class="ps-product-colors-wrapper" id="productColorsWrapper" style="display: none;">
+                <div class="ps-product-colors" id="productColorSelector"></div>
+            </div>
+
             <!-- TAB: TEXTE -->
             <div class="ps-panel active" id="panel-text">
 
