@@ -646,9 +646,9 @@ $isElementType = $currentType === 'element';
         .size-group-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 25px; background: linear-gradient(135deg, rgba(255, 105, 180, 0.08), rgba(61, 255, 192, 0.08)); border-bottom: 1px solid rgba(0,0,0,0.06); }
         .size-group-name { font-weight: 700; font-size: 14px; color: var(--pink-dark); }
         .size-group-count { font-size: 12px; color: var(--gray); }
-        .size-group-items { display: flex; flex-wrap: wrap; gap: 10px; padding: 15px 25px; border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .size-group-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, auto)); gap: 10px; padding: 15px 25px; border-bottom: 1px solid rgba(0,0,0,0.04); }
         .size-item { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: white; border: 2px solid rgba(0,0,0,0.08); border-radius: var(--radius-full); /* transition: all 0.2s; */ }
-        .size-item:hover { border-color: var(--pink-light); box-shadow: var(--shadow-sm); }
+        .size-item:hover { border-color: var(--pink-light); /* box-shadow: var(--shadow-sm); */ }
         .size-item.inactive { opacity: 0.5; background: var(--gray-light); }
         .size-value { font-weight: 600; font-size: 14px; color: var(--black-soft); }
         .size-actions { display: flex; gap: 4px; }
