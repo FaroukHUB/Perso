@@ -61,6 +61,10 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
 
         <!-- Preview Actions - SOUS le cadre, centré -->
         <div class="ps-preview-actions">
+            <div class="ps-view-toggle">
+                <button class="ps-view-btn active" data-view="front">Face</button>
+                <button class="ps-view-btn" data-view="back">Dos</button>
+            </div>
             <button class="ps-btn ps-btn-secondary ps-btn-sm" id="btnPreview">
                 Voir le rendu réel
             </button>

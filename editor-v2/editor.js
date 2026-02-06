@@ -295,6 +295,25 @@ function renderProductColors() {
   });
 }
 
+function initViewToggle() {
+  const viewBtns = document.querySelectorAll('.ps-view-btn');
+
+  viewBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = btn.dataset.view;
+      state.currentView = view;
+
+      // Update active button
+      viewBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Update product image and print zone
+      renderProductInfo();
+      renderPrintZone();
+    });
+  });
+}
+
 function loadFontCSS() {
   // Injecter les <link> CSS des polices depuis l'API admin (sans attendre)
   state.fonts.forEach(font => {
@@ -2826,6 +2845,7 @@ async function init() {
 
   // Initialiser les interactions
   initTabs();
+  initViewToggle();
   initPreview();
   initAddToCart();
 

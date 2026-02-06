@@ -150,6 +150,42 @@ body {
   margin-top: 16px;
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.ps-view-toggle {
+  display: flex;
+  gap: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.ps-view-btn {
+  padding: 8px 20px;
+  border: none;
+  background: white;
+  color: var(--gray);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-right: 1px solid rgba(0,0,0,0.1);
+}
+
+.ps-view-btn:last-child {
+  border-right: none;
+}
+
+.ps-view-btn:hover {
+  background: var(--gray-light);
+}
+
+.ps-view-btn.active {
+  background: var(--pink);
+  color: white;
 }
 
 /* ========================================
