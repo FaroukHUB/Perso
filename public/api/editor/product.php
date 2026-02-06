@@ -71,7 +71,12 @@ try {
         'id' => (int) $product['id'],
         'name' => $product['name'],
         'base_price' => (float) $product['base_price'],
-        'description' => $product['description'] ?? null
+        'description' => $product['description'] ?? null,
+        'text_positioning' => [
+            'mode' => $product['text_positioning_mode'] ?? 'free',
+            'fixed_x' => (float) ($product['text_fixed_position_x'] ?? 50),
+            'fixed_y' => (float) ($product['text_fixed_position_y'] ?? 40)
+        ]
     ];
 
     // =========================================

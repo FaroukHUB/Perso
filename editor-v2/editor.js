@@ -1975,6 +1975,18 @@ function addElementLayer(element) {
 function addTextLayer() {
   const text = state.textSettings.text || 'Votre texte';
 
+  // Utiliser la position configurée du produit si mode fixe, sinon centrer
+  let initialX = 50;
+  let initialY = 50;
+
+  if (state.product && state.product.text_positioning) {
+    const positioning = state.product.text_positioning;
+    if (positioning.mode === 'fixed') {
+      initialX = positioning.fixed_x || 50;
+      initialY = positioning.fixed_y || 50;
+    }
+  }
+
   const layer = {
     id: generateId(),
     type: 'text',
@@ -1989,8 +2001,8 @@ function addTextLayer() {
     fontStyle: 'normal',
     rotation: 0,
     scale: 1,
-    x: 50,
-    y: 50
+    x: initialX,
+    y: initialY
   };
 
   state.layers.push(layer);
