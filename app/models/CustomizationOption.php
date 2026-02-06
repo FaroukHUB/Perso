@@ -136,6 +136,29 @@ class CustomizationOption
     }
 
     /**
+     * Récupère toutes les images de toutes les techniques d'un type
+     * Optimisé pour éviter les requêtes N+1
+     *
+     * @return array Tableau associatif [technique_id => [images]]
+     */
+    public function getAllImagesForType(string $type): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT id, images_json FROM customization_options WHERE type = ?'
+        );
+        $stmt->execute([$type]);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $imagesMap = [];
+        foreach ($results as $row) {
+            $images = !empty($row['images_json']) ? json_decode($row['images_json'], true) : [];
+            $imagesMap[$row['id']] = is_array($images) ? $images : [];
+        }
+
+        return $imagesMap;
+    }
+
+    /**
      * Ajoute une image à une technique
      */
     public function addImage(int $id, string $imageUrl): bool

@@ -518,6 +518,7 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
 
 // Recuperer les donnees selon le type
 $techniques = [];
+$techniqueImages = []; // Pour éviter N+1 queries
 $sizes = [];
 $sizeGroups = [];
 $designs = [];
@@ -527,6 +528,8 @@ $elementCategories = [];
 
 if ($currentType === 'technique') {
     $techniques = $optionModel->findAllByType('technique');
+    // Charger TOUTES les images en UNE seule requête (optimisation N+1)
+    $techniqueImages = $optionModel->getAllImagesForType('technique');
 }
 if ($currentType === 'size') {
     $sizes = $sizeModel->findAllGrouped();
@@ -750,14 +753,14 @@ $isElementType = $currentType === 'element';
                                         </form>
                                     </div>
                                 </div>
-                                <?php $techniqueImages = $optionModel->getImages($option['id']); ?>
+                                <?php $images = $techniqueImages[$option['id']] ?? []; ?>
                                 <div class="technique-images-section">
                                     <div class="technique-images-header">
                                         <h4>📸 Photos de rendu reel</h4>
-                                        <span><?= count($techniqueImages) ?>/3</span>
+                                        <span><?= count($images) ?>/3</span>
                                     </div>
                                     <div class="technique-images-grid">
-                                        <?php foreach ($techniqueImages as $idx => $imgUrl): ?>
+                                        <?php foreach ($images as $idx => $imgUrl): ?>
                                             <div class="technique-image-item">
                                                 <img src="/public<?= h($imgUrl) ?>" alt="">
                                                 <form method="post" style="display: contents;">
@@ -768,7 +771,7 @@ $isElementType = $currentType === 'element';
                                                 </form>
                                             </div>
                                         <?php endforeach; ?>
-                                        <?php if (count($techniqueImages) < 3): ?>
+                                        <?php if (count($images) < 3): ?>
                                             <label class="technique-image-add">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                                 <span>Ajouter</span>
@@ -781,7 +784,7 @@ $isElementType = $currentType === 'element';
                                                 <input type="file" style="display: none;" accept="image/*" onchange="document.getElementById('uploadForm_<?= $option['id'] ?>').querySelector('input[type=file]').files = this.files; document.getElementById('uploadForm_<?= $option['id'] ?>').submit();">
                                             </label>
                                         <?php endif; ?>
-                                        <?php if (empty($techniqueImages)): ?>
+                                        <?php if (empty($images)): ?>
                                             <span class="technique-images-empty">Ajoutez des photos macro</span>
                                         <?php endif; ?>
                                     </div>
