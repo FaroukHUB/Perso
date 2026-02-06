@@ -60,7 +60,7 @@ try {
             $items[] = [
                 'id' => (int) $design['id'],
                 'name' => $design['name'],
-                'image' => $design['image_path'] ? '/public/uploads/designs/' . $design['image_path'] : null,
+                'image' => $design['image_path'] ? '/public' . $design['image_path'] : null,
                 'type' => 'design'
             ];
         }
