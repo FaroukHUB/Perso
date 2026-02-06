@@ -17,6 +17,7 @@ $categoryModel = new Category();
 $orderModel = new Order();
 $pendingOrders = $orderModel->countNew();
 $statuses = $categoryModel->getStatuses();
+$availableSizeGroups = $categoryModel->getAvailableSizeGroups();
 
 // Mode édition ou création
 $editMode = false;
@@ -41,7 +42,8 @@ if (isPost()) {
             'name' => trim($_POST['name'] ?? ''),
             'description' => trim($_POST['description'] ?? ''),
             'status' => $_POST['status'] ?? 'active',
-            'sort_order' => (int)($_POST['sort_order'] ?? 0)
+            'sort_order' => (int)($_POST['sort_order'] ?? 0),
+            'allowed_size_groups' => $_POST['allowed_size_groups'] ?? []
         ];
 
         // Générer ou utiliser le slug personnalisé
@@ -362,6 +364,35 @@ $csrf = csrfToken();
                                     <label for="description">Description</label>
                                     <textarea id="description" name="description" rows="4"
                                               placeholder="Description optionnelle de la catégorie..."><?= h($category['description'] ?? '') ?></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>📏 Groupes de tailles autorisés</label>
+                                    <small class="form-text" style="margin-bottom: 10px; display: block;">
+                                        Sélectionnez les groupes de tailles compatibles avec cette catégorie.
+                                        <br><strong>Exemple:</strong> Catégorie "Bébé" → Uniquement "Enfants"
+                                    </small>
+                                    <?php
+                                    $selectedGroups = [];
+                                    if ($editMode && !empty($category['allowed_size_groups'])) {
+                                        $selectedGroups = json_decode($category['allowed_size_groups'], true) ?: [];
+                                    }
+                                    ?>
+                                    <div class="categories-checkboxes">
+                                        <?php foreach ($availableSizeGroups as $groupKey => $groupLabel): ?>
+                                            <label class="checkbox-label">
+                                                <input type="checkbox"
+                                                       name="allowed_size_groups[]"
+                                                       value="<?= h($groupKey) ?>"
+                                                       <?= in_array($groupKey, $selectedGroups) ? 'checked' : '' ?>>
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text"><?= h($groupLabel) ?></span>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <small class="form-text">
+                                        Si aucun groupe n'est sélectionné, toutes les tailles seront disponibles.
+                                    </small>
                                 </div>
                             </div>
                         </div>

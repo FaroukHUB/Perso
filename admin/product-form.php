@@ -92,6 +92,10 @@ $formData = [
     'image_front_url' => $product['image_front_url'] ?? '',
     'image_back_url' => $product['image_back_url'] ?? '',
     'available_sizes' => $product['available_sizes'] ?? null,
+    'text_positioning_mode' => $product['text_positioning_mode'] ?? 'free',
+    'text_fixed_position_x' => $product['text_fixed_position_x'] ?? 50,
+    'text_fixed_position_y' => $product['text_fixed_position_y'] ?? 40,
+    'text_preset_zones' => $product['text_preset_zones'] ?? null,
 ];
 
 // Décoder les tailles disponibles (JSON -> array)
@@ -171,6 +175,23 @@ if (isPost()) {
         $selectedSizes = post('available_sizes', []);
         $availableSizesJson = !empty($selectedSizes) ? json_encode($selectedSizes) : null;
 
+        // Récupérer le positionnement du texte
+        $textPositioningMode = trim(post('text_positioning_mode', 'free'));
+        $textFixedX = (int)post('text_fixed_position_x', 50);
+        $textFixedY = (int)post('text_fixed_position_y', 40);
+
+        // Zones prédéfinies par défaut si mode preset
+        $textPresetZones = null;
+        if ($textPositioningMode === 'preset') {
+            $textPresetZones = json_encode([
+                ['id' => 'center', 'label' => 'Centré', 'x' => 50, 'y' => 50],
+                ['id' => 'top_left', 'label' => 'Haut gauche', 'x' => 15, 'y' => 15],
+                ['id' => 'top_right', 'label' => 'Haut droite', 'x' => 85, 'y' => 15],
+                ['id' => 'bottom_left', 'label' => 'Bas gauche', 'x' => 15, 'y' => 85],
+                ['id' => 'bottom_right', 'label' => 'Bas droite', 'x' => 85, 'y' => 85]
+            ]);
+        }
+
         $salePriceRaw = post('sale_price', '');
         $formData = [
             'name' => trim(post('name', '')),
@@ -185,6 +206,10 @@ if (isPost()) {
             'image_front_url' => $formData['image_front_url'],
             'image_back_url' => $formData['image_back_url'],
             'available_sizes' => $availableSizesJson,
+            'text_positioning_mode' => $textPositioningMode,
+            'text_fixed_position_x' => $textFixedX,
+            'text_fixed_position_y' => $textFixedY,
+            'text_preset_zones' => $textPresetZones,
         ];
 
         try {
@@ -1050,6 +1075,23 @@ if (isPost()) {
             cursor: pointer;
             padding: 2px;
         }
+
+        /* Positioning mode cards */
+        .positioning-mode-card:hover {
+            border-color: rgba(139, 92, 246, 0.3) !important;
+            background: rgba(139, 92, 246, 0.02) !important;
+        }
+        .positioning-mode-card:has(input:checked) {
+            border-color: #8B5CF6 !important;
+            background: rgba(139, 92, 246, 0.08) !important;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+        }
+
+        @media (max-width: 1024px) {
+            .positioning-modes {
+                grid-template-columns: 1fr !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1414,6 +1456,68 @@ if (isPost()) {
                         </div>
                     </div>
 
+                    <!-- Section Positionnement du texte -->
+                    <div class="positioning-section" style="margin-top: 40px; padding: 30px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(99, 102, 241, 0.05)); border-radius: var(--radius-lg); border: 1px solid rgba(0,0,0,0.06);">
+                        <div class="positioning-header" style="margin-bottom: 25px;">
+                            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--black-soft); display: flex; align-items: center; gap: 10px; margin: 0;">
+                                <span style="width: 4px; height: 24px; background: linear-gradient(135deg, #8B5CF6, #6366F1); border-radius: 2px;"></span>
+                                ✏️ Positionnement de la personnalisation
+                            </h3>
+                            <p style="margin: 8px 0 0 0; font-size: 13px; color: var(--gray);">
+                                Contrôlez comment le client peut placer le texte sur ce produit
+                            </p>
+                        </div>
+
+                        <div class="positioning-modes" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                            <!-- Mode FREE -->
+                            <label class="positioning-mode-card" style="background: white; padding: 20px; border-radius: var(--radius-md); border: 2px solid transparent; cursor: pointer; transition: all 0.2s;">
+                                <input type="radio" name="text_positioning_mode" value="free" <?= $formData['text_positioning_mode'] === 'free' ? 'checked' : '' ?> style="display: none;" onchange="togglePositioningOptions()">
+                                <div style="font-size: 2rem; margin-bottom: 10px;">🆓</div>
+                                <div style="font-weight: 700; font-size: 15px; color: var(--black-soft); margin-bottom: 6px;">Liberté totale</div>
+                                <div style="font-size: 13px; color: var(--gray); line-height: 1.4;">Le client peut déplacer le texte où il veut sur le produit</div>
+                            </label>
+
+                            <!-- Mode PRESET -->
+                            <label class="positioning-mode-card" style="background: white; padding: 20px; border-radius: var(--radius-md); border: 2px solid transparent; cursor: pointer; transition: all 0.2s;">
+                                <input type="radio" name="text_positioning_mode" value="preset" <?= $formData['text_positioning_mode'] === 'preset' ? 'checked' : '' ?> style="display: none;" onchange="togglePositioningOptions()">
+                                <div style="font-size: 2rem; margin-bottom: 10px;">📍</div>
+                                <div style="font-weight: 700; font-size: 15px; color: var(--black-soft); margin-bottom: 6px;">Emplacements prédéfinis</div>
+                                <div style="font-size: 13px; color: var(--gray); line-height: 1.4;">Le client choisit parmi 5 zones prédéfinies</div>
+                            </label>
+
+                            <!-- Mode FIXED -->
+                            <label class="positioning-mode-card" style="background: white; padding: 20px; border-radius: var(--radius-md); border: 2px solid transparent; cursor: pointer; transition: all 0.2s;">
+                                <input type="radio" name="text_positioning_mode" value="fixed" <?= $formData['text_positioning_mode'] === 'fixed' ? 'checked' : '' ?> style="display: none;" onchange="togglePositioningOptions()">
+                                <div style="font-size: 2rem; margin-bottom: 10px;">🔒</div>
+                                <div style="font-weight: 700; font-size: 15px; color: var(--black-soft); margin-bottom: 6px;">Position fixe</div>
+                                <div style="font-size: 13px; color: var(--gray); line-height: 1.4;">Emplacement imposé, le client ne peut pas choisir</div>
+                            </label>
+                        </div>
+
+                        <!-- Options pour mode FIXED -->
+                        <div id="fixedPositionOptions" style="<?= $formData['text_positioning_mode'] === 'fixed' ? '' : 'display:none;' ?> margin-top: 20px; padding: 20px; background: rgba(139, 92, 246, 0.08); border-radius: var(--radius-md);">
+                            <div style="font-weight: 600; font-size: 14px; color: var(--black-soft); margin-bottom: 15px;">📐 Position fixe (en pourcentage)</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group" style="margin: 0;">
+                                    <label class="form-label" for="text_fixed_position_x" style="font-size: 13px;">Position X (horizontal) %</label>
+                                    <input type="number" id="text_fixed_position_x" name="text_fixed_position_x" class="form-input" min="0" max="100" value="<?= h($formData['text_fixed_position_x']) ?>" style="padding: 10px 14px;">
+                                    <small style="color: var(--gray); font-size: 12px;">0 = gauche, 50 = centre, 100 = droite</small>
+                                </div>
+                                <div class="form-group" style="margin: 0;">
+                                    <label class="form-label" for="text_fixed_position_y" style="font-size: 13px;">Position Y (vertical) %</label>
+                                    <input type="number" id="text_fixed_position_y" name="text_fixed_position_y" class="form-input" min="0" max="100" value="<?= h($formData['text_fixed_position_y']) ?>" style="padding: 10px 14px;">
+                                    <small style="color: var(--gray); font-size: 12px;">0 = haut, 50 = centre, 100 = bas</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="positioning-hint" style="margin-top: 20px; padding: 15px 20px; background: white; border-left: 3px solid #8B5CF6; border-radius: var(--radius-md); font-size: 13px; color: var(--gray); line-height: 1.6;">
+                            <strong style="color: #8B5CF6;">💡 Conseil :</strong>
+                            <strong>Liberté totale</strong> offre la meilleure expérience client mais peut compliquer la production.
+                            <strong>Position fixe</strong> simplifie votre travail mais limite la créativité du client.
+                        </div>
+                    </div>
+
                     <div class="form-actions">
                         <a href="/admin/products.php" class="btn btn-dark">Annuler</a>
                         <button type="submit" class="btn btn-primary">
@@ -1675,6 +1779,76 @@ if (isPost()) {
                 }
             }
         });
+
+        // === Positionnement du texte ===
+        function togglePositioningOptions() {
+            const selectedMode = document.querySelector('input[name="text_positioning_mode"]:checked').value;
+            const fixedOptions = document.getElementById('fixedPositionOptions');
+
+            if (selectedMode === 'fixed') {
+                fixedOptions.style.display = 'block';
+            } else {
+                fixedOptions.style.display = 'none';
+            }
+        }
+
+        // === Filtrage intelligent des tailles selon catégories ===
+        const sizesGrouped = <?= $sizesJson ?>;
+        const categoryAllowedGroups = <?= json_encode(array_map(function($cat) use ($categoryModel) {
+            return [
+                'id' => $cat['id'],
+                'groups' => !empty($cat['allowed_size_groups']) ? json_decode($cat['allowed_size_groups'], true) : []
+            ];
+        }, $allCategories)) ?>;
+
+        function filterSizesByCategories() {
+            const selectedCats = Array.from(document.querySelectorAll('input[name="product_categories[]"]:checked'))
+                .map(cb => parseInt(cb.value));
+
+            // Trouver les groupes autorisés pour les catégories sélectionnées
+            let allowedGroups = [];
+            selectedCats.forEach(catId => {
+                const cat = categoryAllowedGroups.find(c => c.id === catId);
+                if (cat && cat.groups.length > 0) {
+                    allowedGroups = allowedGroups.concat(cat.groups);
+                }
+            });
+
+            // Si aucune catégorie ou aucune restriction, tout afficher
+            if (selectedCats.length === 0 || allowedGroups.length === 0) {
+                document.querySelectorAll('.size-group').forEach(group => {
+                    group.style.display = 'block';
+                });
+                return;
+            }
+
+            // Sinon, n'afficher que les groupes autorisés
+            allowedGroups = [...new Set(allowedGroups)]; // unique
+            document.querySelectorAll('.size-group').forEach(group => {
+                const groupName = group.querySelector('.size-toggles').dataset.group;
+                if (allowedGroups.includes(groupName)) {
+                    group.style.display = 'block';
+                } else {
+                    group.style.display = 'none';
+                    // Décocher les tailles de ce groupe
+                    group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                        cb.checked = false;
+                    });
+                }
+            });
+
+            updateSizeToggleClasses();
+        }
+
+        // Écouter les changements de catégories
+        document.querySelectorAll('input[name="product_categories[]"]').forEach(checkbox => {
+            checkbox.addEventListener('change', filterSizesByCategories);
+        });
+
+        // Appliquer le filtre au chargement si en mode édition
+        <?php if ($isEdit && !empty($productCategoryIds)): ?>
+        filterSizesByCategories();
+        <?php endif; ?>
     </script>
 </body>
 </html>

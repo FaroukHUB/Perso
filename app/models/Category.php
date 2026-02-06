@@ -67,15 +67,23 @@ class Category
      */
     public function create(array $data): int
     {
+        $allowedSizeGroups = null;
+        if (isset($data['allowed_size_groups'])) {
+            $allowedSizeGroups = is_array($data['allowed_size_groups'])
+                ? json_encode($data['allowed_size_groups'])
+                : $data['allowed_size_groups'];
+        }
+
         $stmt = $this->db->prepare("
-            INSERT INTO categories (name, slug, description, image_url, sort_order, status)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO categories (name, slug, description, image_url, allowed_size_groups, sort_order, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $data['name'],
             $data['slug'],
             $data['description'] ?? null,
             $data['image_url'] ?? null,
+            $allowedSizeGroups,
             $data['sort_order'] ?? 0,
             $data['status'] ?? 'active'
         ]);
@@ -87,9 +95,16 @@ class Category
      */
     public function update(int $id, array $data): bool
     {
+        $allowedSizeGroups = null;
+        if (isset($data['allowed_size_groups'])) {
+            $allowedSizeGroups = is_array($data['allowed_size_groups'])
+                ? json_encode($data['allowed_size_groups'])
+                : $data['allowed_size_groups'];
+        }
+
         $stmt = $this->db->prepare("
             UPDATE categories
-            SET name = ?, slug = ?, description = ?, image_url = ?, sort_order = ?, status = ?
+            SET name = ?, slug = ?, description = ?, image_url = ?, allowed_size_groups = ?, sort_order = ?, status = ?
             WHERE id = ?
         ");
         return $stmt->execute([
@@ -97,6 +112,7 @@ class Category
             $data['slug'],
             $data['description'] ?? null,
             $data['image_url'] ?? null,
+            $allowedSizeGroups,
             $data['sort_order'] ?? 0,
             $data['status'] ?? 'active',
             $id
@@ -276,6 +292,67 @@ class Category
     }
 
     /**
+     * Récupère les groupes de tailles autorisés pour un produit
+     * Basé sur toutes les catégories auxquelles appartient le produit
+     */
+    public function getAllowedSizeGroupsForProduct(int $productId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT DISTINCT c.allowed_size_groups
+            FROM categories c
+            INNER JOIN product_categories pc ON c.id = pc.category_id
+            WHERE pc.product_id = ? AND c.status = 'active'
+        ");
+        $stmt->execute([$productId]);
+        $results = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        // Union de tous les groupes autorisés
+        $allGroups = [];
+        foreach ($results as $json) {
+            if (!empty($json)) {
+                $groups = json_decode($json, true);
+                if (is_array($groups)) {
+                    $allGroups = array_merge($allGroups, $groups);
+                }
+            }
+        }
+
+        return array_unique($allGroups);
+    }
+
+    /**
+     * Récupère les groupes de tailles autorisés pour des catégories données
+     */
+    public function getAllowedSizeGroupsByCategories(array $categoryIds): array
+    {
+        if (empty($categoryIds)) {
+            return []; // Pas de catégories = tous les groupes
+        }
+
+        $placeholders = str_repeat('?,', count($categoryIds) - 1) . '?';
+        $stmt = $this->db->prepare("
+            SELECT DISTINCT allowed_size_groups
+            FROM categories
+            WHERE id IN ($placeholders) AND status = 'active'
+        ");
+        $stmt->execute($categoryIds);
+        $results = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        // Union de tous les groupes autorisés
+        $allGroups = [];
+        foreach ($results as $json) {
+            if (!empty($json)) {
+                $groups = json_decode($json, true);
+                if (is_array($groups)) {
+                    $allGroups = array_merge($allGroups, $groups);
+                }
+            }
+        }
+
+        return array_unique($allGroups);
+    }
+
+    /**
      * Statuts disponibles
      */
     public function getStatuses(): array
@@ -283,6 +360,18 @@ class Category
         return [
             'active' => 'Active',
             'inactive' => 'Inactive'
+        ];
+    }
+
+    /**
+     * Groupes de tailles disponibles
+     */
+    public function getAvailableSizeGroups(): array
+    {
+        return [
+            'Lettres' => 'Lettres (XS, S, M, L, XL...)',
+            'Chiffres' => 'Chiffres (36, 38, 40...)',
+            'Enfants' => 'Enfants (2 ans, 4 ans, 6 ans...)'
         ];
     }
 }

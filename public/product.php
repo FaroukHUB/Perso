@@ -932,20 +932,20 @@ $cartCount = Cart::count();
     <!-- Configurator Scripts -->
     <script src="/public/assets/js/real-render-modal.js?v=<?= time() ?>"></script>
     <script>
-        // Configuration du positionnement du texte
+        // Configuration du positionnement du texte (PAR PRODUIT)
         window.__POSITIONING_CONFIG = {
-            mode: "<?= h($shopSettings->get('text_positioning_mode', 'free')) ?>",
+            mode: "<?= h($product['text_positioning_mode'] ?? 'free') ?>",
             fixedPosition: {
-                x: <?= (int)$shopSettings->get('text_fixed_position_x', 50) ?>,
-                y: <?= (int)$shopSettings->get('text_fixed_position_y', 40) ?>
+                x: <?= (int)($product['text_fixed_position_x'] ?? 50) ?>,
+                y: <?= (int)($product['text_fixed_position_y'] ?? 40) ?>
             },
-            presetZones: <?= json_encode($shopSettings->get('text_preset_zones', [
+            presetZones: <?= !empty($product['text_preset_zones']) ? $product['text_preset_zones'] : json_encode([
                 ['id' => 'center', 'label' => 'Centré', 'x' => 50, 'y' => 50],
                 ['id' => 'top_left', 'label' => 'Haut gauche', 'x' => 15, 'y' => 15],
                 ['id' => 'top_right', 'label' => 'Haut droite', 'x' => 85, 'y' => 15],
                 ['id' => 'bottom_left', 'label' => 'Bas gauche', 'x' => 15, 'y' => 85],
                 ['id' => 'bottom_right', 'label' => 'Bas droite', 'x' => 85, 'y' => 85]
-            ])) ?>
+            ]) ?>
         };
     </script>
     <script src="/public/assets/js/configurator.js?v=<?= time() ?>"></script>
