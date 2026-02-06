@@ -43,7 +43,13 @@
         ]
     };
 
-    console.log('[Configurator] Positioning mode:', POSITIONING.mode);
+    console.log('[Configurator] 📍 POSITIONNEMENT CONFIG:', POSITIONING);
+    console.log('  → Mode:', POSITIONING.mode);
+    if (POSITIONING.mode === 'preset') {
+        console.log('  → Zones prédéfinies:', POSITIONING.presetZones);
+    } else if (POSITIONING.mode === 'fixed') {
+        console.log('  → Position fixe:', POSITIONING.fixedPosition);
+    }
 
     // ===========================================
     // FONT LOADING
