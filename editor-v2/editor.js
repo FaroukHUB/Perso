@@ -2293,13 +2293,35 @@ function renderLayer(layer) {
   if (layer.type === 'design' || layer.type === 'element') {
     div.classList.add('ps-layer-image');
     if (layer.image) {
-      div.innerHTML = `<img src="${layer.image}" alt="${layer.name}" draggable="false">`;
+      div.innerHTML = `
+        <img src="${layer.image}" alt="${layer.name}" draggable="false">
+        <button class="ps-layer-delete-btn" data-layer-id="${layer.id}" title="Supprimer">×</button>
+      `;
     } else if (layer.svg) {
-      div.innerHTML = layer.svg;
+      div.innerHTML = `
+        ${layer.svg}
+        <button class="ps-layer-delete-btn" data-layer-id="${layer.id}" title="Supprimer">×</button>
+      `;
+    }
+
+    // Ajouter l'event listener pour le bouton de suppression
+    const deleteBtn = div.querySelector('.ps-layer-delete-btn');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        removeLayer(layer.id);
+      });
     }
   }
 
   els.printArea.appendChild(div);
+
+  // Définir le z-index basé sur la position dans le tableau
+  const layerIndex = state.layers.findIndex(l => l.id === layer.id);
+  if (layerIndex !== -1) {
+    div.style.zIndex = layerIndex + 1;
+  }
 
   interact(div)
     .draggable({
@@ -2548,9 +2570,12 @@ function moveLayerDown(layerId) {
 }
 
 function reorderLayersDom() {
-  state.layers.forEach(layer => {
+  state.layers.forEach((layer, index) => {
     const el = $(`[data-layer-id="${layer.id}"]`);
     if (el) {
+      // Définir le z-index basé sur la position dans le tableau
+      // Plus l'index est élevé, plus le layer est au-dessus
+      el.style.zIndex = index + 1;
       els.printArea.appendChild(el);
     }
   });
