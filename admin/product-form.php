@@ -1552,20 +1552,75 @@ if (isPost()) {
                         </div>
 
                         <!-- Options pour mode FIXED -->
-                        <div id="fixedPositionOptions" style="<?= $formData['text_positioning_mode'] === 'fixed' ? '' : 'display:none;' ?> margin-top: 20px; padding: 20px; background: rgba(139, 92, 246, 0.08); border-radius: var(--radius-md);">
-                            <div style="font-weight: 600; font-size: 14px; color: var(--black-soft); margin-bottom: 15px;">📐 Position fixe (en pourcentage)</div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                                <div class="form-group" style="margin: 0;">
-                                    <label class="form-label" for="text_fixed_position_x" style="font-size: 13px;">Position X (horizontal) %</label>
-                                    <input type="number" id="text_fixed_position_x" name="text_fixed_position_x" class="form-input" min="0" max="100" value="<?= h($formData['text_fixed_position_x']) ?>" style="padding: 10px 14px;">
-                                    <small style="color: var(--gray); font-size: 12px;">0 = gauche, 50 = centre, 100 = droite</small>
-                                </div>
-                                <div class="form-group" style="margin: 0;">
-                                    <label class="form-label" for="text_fixed_position_y" style="font-size: 13px;">Position Y (vertical) %</label>
-                                    <input type="number" id="text_fixed_position_y" name="text_fixed_position_y" class="form-input" min="0" max="100" value="<?= h($formData['text_fixed_position_y']) ?>" style="padding: 10px 14px;">
-                                    <small style="color: var(--gray); font-size: 12px;">0 = haut, 50 = centre, 100 = bas</small>
-                                </div>
+                        <div id="fixedPositionOptions" style="<?= $formData['text_positioning_mode'] === 'fixed' ? '' : 'display:none;' ?> margin-top: 20px; padding: 25px; background: rgba(139, 92, 246, 0.08); border-radius: var(--radius-md);">
+                            <div style="font-weight: 600; font-size: 14px; color: var(--black-soft); margin-bottom: 10px;">📍 Où voulez-vous placer le texte ?</div>
+                            <small style="display: block; color: var(--gray); font-size: 12px; margin-bottom: 20px;">
+                                Choisissez l'emplacement où le texte apparaîtra sur le produit
+                            </small>
+
+                            <?php
+                            // Positions prédéfinies humaines
+                            $fixedPositions = [
+                                ['id' => 'top_left', 'label' => '↖️ Haut gauche', 'x' => 15, 'y' => 15],
+                                ['id' => 'top_center', 'label' => '⬆️ Haut centre', 'x' => 50, 'y' => 15],
+                                ['id' => 'top_right', 'label' => '↗️ Haut droite', 'x' => 85, 'y' => 15],
+                                ['id' => 'center_left', 'label' => '⬅️ Centre gauche', 'x' => 15, 'y' => 50],
+                                ['id' => 'center', 'label' => '🎯 Centré', 'x' => 50, 'y' => 50],
+                                ['id' => 'center_right', 'label' => '➡️ Centre droite', 'x' => 85, 'y' => 50],
+                                ['id' => 'bottom_left', 'label' => '↙️ Bas gauche', 'x' => 15, 'y' => 85],
+                                ['id' => 'bottom_center', 'label' => '⬇️ Bas centre', 'x' => 50, 'y' => 85],
+                                ['id' => 'bottom_right', 'label' => '↘️ Bas droite', 'x' => 85, 'y' => 85]
+                            ];
+
+                            // Déterminer quelle position est actuellement sélectionnée
+                            $currentX = (int)$formData['text_fixed_position_x'];
+                            $currentY = (int)$formData['text_fixed_position_y'];
+                            $selectedPosition = 'center'; // défaut
+                            foreach ($fixedPositions as $pos) {
+                                if (abs($pos['x'] - $currentX) < 10 && abs($pos['y'] - $currentY) < 10) {
+                                    $selectedPosition = $pos['id'];
+                                    break;
+                                }
+                            }
+                            ?>
+
+                            <!-- Champs cachés pour stocker X et Y -->
+                            <input type="hidden" id="text_fixed_position_x" name="text_fixed_position_x" value="<?= h($formData['text_fixed_position_x']) ?>">
+                            <input type="hidden" id="text_fixed_position_y" name="text_fixed_position_y" value="<?= h($formData['text_fixed_position_y']) ?>">
+
+                            <!-- Grille visuelle 3x3 -->
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 500px; margin: 0 auto;">
+                                <?php foreach ($fixedPositions as $pos): ?>
+                                <button type="button"
+                                        class="fixed-position-btn <?= $selectedPosition === $pos['id'] ? 'active' : '' ?>"
+                                        data-position="<?= h($pos['id']) ?>"
+                                        data-x="<?= h($pos['x']) ?>"
+                                        data-y="<?= h($pos['y']) ?>"
+                                        style="padding: 18px 12px; background: white; border: 2px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 600; color: #374151; text-align: center;">
+                                    <?= $pos['label'] ?>
+                                </button>
+                                <?php endforeach; ?>
                             </div>
+
+                            <div style="margin-top: 15px; padding: 12px 16px; background: rgba(99, 102, 241, 0.1); border-radius: 8px; text-align: center;">
+                                <span style="font-size: 12px; color: #6366F1; font-weight: 500;">
+                                    💡 Le client ne pourra pas déplacer le texte, il sera toujours à cet emplacement
+                                </span>
+                            </div>
+
+                            <style>
+                                .fixed-position-btn:hover {
+                                    background: rgba(139, 92, 246, 0.1);
+                                    border-color: #8B5CF6;
+                                    transform: scale(1.03);
+                                }
+                                .fixed-position-btn.active {
+                                    background: linear-gradient(135deg, #8B5CF6, #6366F1);
+                                    border-color: #8B5CF6;
+                                    color: white;
+                                    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+                                }
+                            </style>
                         </div>
 
                         <div class="positioning-hint" style="margin-top: 20px; padding: 15px 20px; background: white; border-left: 3px solid #8B5CF6; border-radius: var(--radius-md); font-size: 13px; color: var(--gray); line-height: 1.6;">
@@ -1866,6 +1921,23 @@ if (isPost()) {
                 fixedOptions.style.display = 'block';
             }
         }
+
+        // Gérer les clics sur les boutons de position fixe
+        document.querySelectorAll('.fixed-position-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Retirer la classe active de tous les boutons
+                document.querySelectorAll('.fixed-position-btn').forEach(b => b.classList.remove('active'));
+
+                // Activer le bouton cliqué
+                this.classList.add('active');
+
+                // Mettre à jour les champs cachés
+                document.getElementById('text_fixed_position_x').value = this.dataset.x;
+                document.getElementById('text_fixed_position_y').value = this.dataset.y;
+
+                console.log('[Position fixe] Sélectionné:', this.dataset.position, `(${this.dataset.x}%, ${this.dataset.y}%)`);
+            });
+        });
 
         // === Filtrage intelligent des tailles selon catégories ===
         function filterSizesByCategories() {
