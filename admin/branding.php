@@ -651,55 +651,6 @@ $shadowOptions = [
                     </div>
                 </div>
 
-                <!-- Section: Couleurs des boutons -->
-                <div class="data-card">
-                    <div class="data-card-header">
-                        <h3 class="data-card-title">Couleurs des boutons</h3>
-                        <span class="header-note">Simple : juste la couleur de fond (le texte s'adapte automatiquement)</span>
-                    </div>
-                    <div class="card-body">
-                        <?php
-                        // Charger button_styles depuis config
-                        $buttonStyles = !empty($config['button_styles']) ? (is_string($config['button_styles']) ? json_decode($config['button_styles'], true) : $config['button_styles']) : [];
-                        $buttonDefaults = [
-                            'primary' => ['bg_color' => '#6366F1'],
-                            'secondary' => ['bg_color' => '#8B5CF6'],
-                            'danger' => ['bg_color' => '#EF4444'],
-                            'success' => ['bg_color' => '#10B981'],
-                            'outline' => ['bg_color' => 'transparent']
-                        ];
-                        $buttonLegends = [
-                            'primary' => '🎯 Actions principales (ex: "Finaliser ma commande", badge panier)',
-                            'secondary' => '🔵 Actions secondaires (ex: icônes paiement Visa, PayPal, CB)',
-                            'danger' => '🔴 Actions de suppression (ex: "Supprimer article", "Vider le panier")',
-                            'success' => '✅ Actions de validation (ex: confirmations, succès)',
-                            'outline' => '⚪ Boutons transparents avec bordure'
-                        ];
-                        ?>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                            <?php foreach ($buttonDefaults as $type => $defaults):
-                                $current = $buttonStyles[$type] ?? $defaults;
-                            ?>
-                            <div style="padding: 15px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
-                                <div class="form-group" style="margin-bottom: 8px;">
-                                    <label class="form-label" style="font-weight: 700; font-size: 0.95rem;"><?= ucfirst($type) ?></label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="btn_<?= $type ?>_bg" id="btn_<?= $type ?>_bg"
-                                               value="<?= h($current['bg_color'] ?? $defaults['bg_color']) ?>">
-                                        <input type="text" class="color-hex"
-                                               value="<?= h($current['bg_color'] ?? $defaults['bg_color']) ?>"
-                                               data-target="btn_<?= $type ?>_bg">
-                                    </div>
-                                </div>
-                                <small style="display: block; color: #6b7280; font-size: 0.85rem; line-height: 1.4;">
-                                    <?= $buttonLegends[$type] ?>
-                                </small>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Actions Colors -->
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary btn-lg">Sauvegarder</button>
@@ -751,19 +702,6 @@ $shadowOptions = [
                         '✅ Éléments "positifs" (validation, confirmation)'
                     ],
                     'note' => 'En gros : Tout ce qui est vert/positif = couleur accent'
-                ],
-                [
-                    'icon' => '🔘',
-                    'title' => 'Couleurs des boutons',
-                    'description' => 'Chaque type de bouton a sa propre couleur :',
-                    'items' => [
-                        '<strong>Primary</strong> : Boutons principaux (ex: "Finaliser commande")',
-                        '<strong>Secondary</strong> : Boutons secondaires (ex: icônes paiement)',
-                        '<strong>Danger</strong> : Boutons de suppression (ex: "Supprimer", "Vider")',
-                        '<strong>Success</strong> : Boutons de validation (ex: confirmations)',
-                        '<strong>Outline</strong> : Boutons transparents avec bordure'
-                    ],
-                    'note' => '💡 Le texte du bouton s\'adapte automatiquement (blanc ou noir selon la couleur de fond)'
                 ],
                 [
                     'icon' => '⚡',
@@ -1117,52 +1055,6 @@ $shadowOptions = [
                             </div>
                         </div>
                         <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <!-- Section: Styles des boutons -->
-                <div class="data-card">
-                    <div class="data-card-header">
-                        <h3 class="data-card-title">Couleurs des boutons</h3>
-                        <span class="header-note">Simple : juste la couleur de fond (le texte s'adapte automatiquement)</span>
-                    </div>
-                    <div class="card-body">
-                        <?php
-                        $buttonLegends = [
-                            'primary' => '🎯 Actions principales (ex: "Finaliser ma commande", badge panier)',
-                            'secondary' => '🔵 Actions secondaires (ex: icônes paiement Visa, PayPal, CB)',
-                            'danger' => '🔴 Actions de suppression (ex: "Supprimer article", "Vider le panier")',
-                            'success' => '✅ Actions de validation (ex: confirmations, succès) - Actuellement non utilisé',
-                            'outline' => '⚪ Boutons transparents avec bordure - Actuellement non utilisé'
-                        ];
-                        ?>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                            <?php foreach ($buttonDefaults as $type => $defaults):
-                                $current = $buttonStyles[$type] ?? $defaults;
-                            ?>
-                            <div style="padding: 15px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
-                                <div class="form-group" style="margin-bottom: 8px;">
-                                    <label class="form-label" style="font-weight: 700; font-size: 0.95rem;"><?= ucfirst($type) ?></label>
-                                    <div class="color-input-row">
-                                        <input type="color" name="btn_<?= $type ?>_bg" id="btn_<?= $type ?>_bg"
-                                               value="<?= h($current['bg_color'] ?? '#6366F1') ?>">
-                                        <input type="text" class="color-hex"
-                                               value="<?= h($current['bg_color'] ?? '#6366F1') ?>"
-                                               data-target="btn_<?= $type ?>_bg">
-                                    </div>
-                                </div>
-                                <small style="display: block; color: #6b7280; font-size: 0.85rem; line-height: 1.4;">
-                                    <?= $buttonLegends[$type] ?>
-                                </small>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-
-                        <div style="margin-top: 20px; padding: 12px 16px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px;">
-                            <p style="margin: 0; font-size: 0.9rem; color: #1e40af;">
-                                💡 <strong>Astuce :</strong> Les couleurs Primary et Accent sont également utilisées pour les dégradés du site (backgrounds, badges, cartes produits).
-                            </p>
-                        </div>
                     </div>
                 </div>
 
