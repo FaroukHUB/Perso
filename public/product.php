@@ -572,6 +572,14 @@ $cartCount = Cart::count();
                                 </button>
                             </div>
 
+                            <!-- Sélecteur Position du texte (mode preset uniquement) -->
+                            <div class="cfg-section" id="cfgZoneSelectorSection" style="display: none;">
+                                <h4 class="cfg-section-title">📍 Position du texte</h4>
+                                <div class="cfg-zone-buttons" id="cfgZoneButtons">
+                                    <!-- Les zones seront générées dynamiquement par JS -->
+                                </div>
+                            </div>
+
                             <!-- Sélecteur Police Ultra-Moderne 2026 -->
                             <div class="cfg-section">
                                 <h4 class="cfg-section-title">Police d'écriture</h4>

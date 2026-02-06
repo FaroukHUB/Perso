@@ -2846,6 +2846,51 @@
     box-shadow: 0 0 0 3px white, 0 0 0 5px #FF69B4;
 }
 
+/* Zone selector buttons (preset positioning) */
+.cfg-zone-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.cfg-zone-btn {
+    flex: 1 1 calc(50% - 5px);
+    min-width: 120px;
+    padding: 12px 16px;
+    border: 2px solid var(--cfg-border);
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.cfg-zone-btn:hover {
+    border-color: #FF69B4;
+    background: #fff5f9;
+    transform: translateY(-1px);
+}
+
+.cfg-zone-btn.active {
+    border-color: #FF69B4;
+    background: linear-gradient(135deg, #FF69B4 0%, #FF1493 100%);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
+}
+
+.cfg-zone-btn .zone-icon {
+    font-size: 16px;
+}
+
 .cfg-upload-zone {
     padding: 40px 20px;
     border: 2px dashed var(--cfg-border);

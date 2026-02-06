@@ -115,6 +115,7 @@
         selectedTechnique: null,
         selectedFont: null,
         selectedTextColor: '#000000',
+        selectedZone: null, // Pour le mode 'preset' - zone sélectionnée par l'utilisateur
         basePrice: 0,
         nextZIndex: 1,
     };
@@ -152,6 +153,71 @@
         window.addEventListener('orientationchange', calculateViewportHeight);
 
         console.log('[Configurator] Init complete');
+
+        // Initialize zone selector if mode is 'preset'
+        initZoneSelector();
+    }
+
+    // ===========================================
+    // ZONE SELECTOR (MODE PRESET)
+    // ===========================================
+    function initZoneSelector() {
+        if (POSITIONING.mode !== 'preset') {
+            console.log('[Configurator] Zone selector not needed (mode:', POSITIONING.mode, ')');
+            return;
+        }
+
+        const section = document.getElementById('cfgZoneSelectorSection');
+        const buttonsContainer = document.getElementById('cfgZoneButtons');
+
+        if (!section || !buttonsContainer) {
+            console.warn('[Configurator] Zone selector elements not found');
+            return;
+        }
+
+        // Afficher la section
+        section.style.display = 'block';
+
+        // Générer les boutons pour chaque zone
+        POSITIONING.presetZones.forEach((zone, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'cfg-zone-btn';
+            btn.dataset.zoneId = zone.id;
+            btn.dataset.x = zone.x;
+            btn.dataset.y = zone.y;
+
+            // Icône selon la position
+            let icon = '📍';
+            if (zone.id.includes('center')) icon = '🎯';
+            else if (zone.id.includes('top_left')) icon = '↖️';
+            else if (zone.id.includes('top_right')) icon = '↗️';
+            else if (zone.id.includes('bottom_left')) icon = '↙️';
+            else if (zone.id.includes('bottom_right')) icon = '↘️';
+
+            btn.innerHTML = `<span class="zone-icon">${icon}</span> ${zone.label}`;
+
+            // Sélectionner la première zone par défaut
+            if (index === 0) {
+                btn.classList.add('active');
+                state.selectedZone = zone;
+            }
+
+            // Événement click
+            btn.addEventListener('click', () => {
+                // Retirer l'active des autres
+                buttonsContainer.querySelectorAll('.cfg-zone-btn').forEach(b => b.classList.remove('active'));
+                // Activer celui-ci
+                btn.classList.add('active');
+                // Stocker dans le state
+                state.selectedZone = zone;
+                console.log('[Configurator] Zone sélectionnée:', zone.label, zone);
+            });
+
+            buttonsContainer.appendChild(btn);
+        });
+
+        console.log('[Configurator] ✅ Zone selector initialized with', POSITIONING.presetZones.length, 'zones');
     }
 
     // ===========================================
@@ -292,10 +358,11 @@
             initialX = POSITIONING.fixedPosition.x;
             initialY = POSITIONING.fixedPosition.y;
         } else if (POSITIONING.mode === 'preset') {
-            // Prendre la première zone (centré) par défaut
-            const defaultZone = POSITIONING.presetZones[0] || { x: 50, y: 50 };
-            initialX = defaultZone.x;
-            initialY = defaultZone.y;
+            // Utiliser la zone sélectionnée par l'utilisateur
+            const selectedZone = state.selectedZone || POSITIONING.presetZones[0] || { x: 50, y: 50 };
+            initialX = selectedZone.x;
+            initialY = selectedZone.y;
+            console.log('[Configurator] Texte ajouté en mode PRESET - Zone:', selectedZone.label || selectedZone.id, `(${initialX}%, ${initialY}%)`);
         } else {
             // Mode free: position par défaut
             initialX = 50;
