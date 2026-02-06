@@ -264,7 +264,18 @@ function renderProductInfo() {
 
 function renderProductColors() {
   const container = document.getElementById('productColorSelector');
-  if (!container || state.colors.length === 0) return;
+  const section = document.querySelector('.ps-product-config');
+
+  // Si pas de couleurs OU une seule couleur, masquer la section
+  if (!state.colors || state.colors.length <= 1) {
+    if (section) section.style.display = 'none';
+    return;
+  }
+
+  // Afficher la section
+  if (section) section.style.display = 'block';
+
+  if (!container) return;
 
   container.innerHTML = '';
 
