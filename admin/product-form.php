@@ -1616,6 +1616,18 @@ if (isPost()) {
         let deletedVariants = [];
         const sizesGrouped = <?= $sizesJson ?>;
 
+        // Configuration pour le filtrage des tailles par catégorie
+        const categoryAllowedGroups = <?= json_encode(array_map(function($cat) use ($categoryModel) {
+            return [
+                'id' => $cat['id'],
+                'name' => $cat['name'],
+                'slug' => $cat['slug'],
+                'groups' => !empty($cat['allowed_size_groups']) ? json_decode($cat['allowed_size_groups'], true) : []
+            ];
+        }, $allCategories)) ?>;
+
+        console.log('🔍 [FILTRAGE TAILLES] Catégories disponibles:', categoryAllowedGroups);
+
         function generateSizeToggles(idx) {
             let html = '';
             for (const [groupName, sizes] of Object.entries(sizesGrouped)) {
@@ -1793,18 +1805,6 @@ if (isPost()) {
         }
 
         // === Filtrage intelligent des tailles selon catégories ===
-        const sizesGrouped = <?= $sizesJson ?>;
-        const categoryAllowedGroups = <?= json_encode(array_map(function($cat) use ($categoryModel) {
-            return [
-                'id' => $cat['id'],
-                'name' => $cat['name'],
-                'slug' => $cat['slug'],
-                'groups' => !empty($cat['allowed_size_groups']) ? json_decode($cat['allowed_size_groups'], true) : []
-            ];
-        }, $allCategories)) ?>;
-
-        console.log('🔍 [FILTRAGE TAILLES] Catégories disponibles:', categoryAllowedGroups);
-
         function filterSizesByCategories() {
             const selectedCats = Array.from(document.querySelectorAll('input[name="product_categories[]"]:checked'))
                 .map(cb => parseInt(cb.value));
