@@ -1811,45 +1811,66 @@ if (isPost()) {
 
             console.log('✅ [FILTRAGE TAILLES] Catégories sélectionnées (IDs):', selectedCats);
 
-            // Trouver les groupes autorisés pour les catégories sélectionnées
-            let allowedGroups = [];
+            // Trouver les TAILLES (values) autorisées pour les catégories sélectionnées
+            let allowedSizes = [];
             selectedCats.forEach(catId => {
                 const cat = categoryAllowedGroups.find(c => c.id === catId);
                 console.log(`   → Catégorie ID ${catId}:`, cat);
                 if (cat && cat.groups && cat.groups.length > 0) {
-                    console.log(`   ✓ Groupes autorisés pour "${cat.name}":`, cat.groups);
-                    allowedGroups = allowedGroups.concat(cat.groups);
+                    console.log(`   ✓ Tailles autorisées pour "${cat.name}":`, cat.groups);
+                    allowedSizes = allowedSizes.concat(cat.groups);
                 } else {
-                    console.log(`   ✗ Aucun groupe défini pour "${cat ? cat.name : 'inconnue'}"`);
+                    console.log(`   ✗ Aucune taille définie pour "${cat ? cat.name : 'inconnue'}"`);
                 }
             });
 
-            console.log('📏 [FILTRAGE TAILLES] Groupes autorisés au total:', allowedGroups);
+            console.log('📏 [FILTRAGE TAILLES] Tailles autorisées au total:', allowedSizes);
 
             // Si aucune catégorie ou aucune restriction, tout afficher
-            if (selectedCats.length === 0 || allowedGroups.length === 0) {
+            if (selectedCats.length === 0 || allowedSizes.length === 0) {
+                document.querySelectorAll('.size-toggle').forEach(toggle => {
+                    toggle.style.display = 'inline-flex';
+                });
                 document.querySelectorAll('.size-group').forEach(group => {
                     group.style.display = 'block';
                 });
                 return;
             }
 
-            // Sinon, n'afficher que les groupes autorisés
-            allowedGroups = [...new Set(allowedGroups)]; // unique
+            // Sinon, filtrer les tailles individuelles
+            allowedSizes = [...new Set(allowedSizes)]; // unique
+
+            // Parcourir chaque groupe
             document.querySelectorAll('.size-group').forEach(group => {
-                const groupName = group.querySelector('.size-toggles').dataset.group;
-                if (allowedGroups.includes(groupName)) {
-                    group.style.display = 'block';
-                } else {
+                const toggles = group.querySelectorAll('.size-toggle');
+                let visibleCount = 0;
+
+                // Filtrer chaque taille individuelle
+                toggles.forEach(toggle => {
+                    const checkbox = toggle.querySelector('input[type="checkbox"]');
+                    const sizeValue = checkbox ? checkbox.value : '';
+
+                    if (allowedSizes.includes(sizeValue)) {
+                        toggle.style.display = 'inline-flex';
+                        visibleCount++;
+                    } else {
+                        toggle.style.display = 'none';
+                        // Décocher si masqué
+                        if (checkbox) checkbox.checked = false;
+                    }
+                });
+
+                // Si aucune taille visible dans ce groupe, cacher le groupe entier
+                if (visibleCount === 0) {
                     group.style.display = 'none';
-                    // Décocher les tailles de ce groupe
-                    group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                        cb.checked = false;
-                    });
+                } else {
+                    group.style.display = 'block';
                 }
             });
 
             updateSizeToggleClasses();
+
+            console.log('✨ [FILTRAGE TAILLES] Filtrage terminé - Tailles visibles:', allowedSizes.length);
         }
 
         // Écouter les changements de catégories

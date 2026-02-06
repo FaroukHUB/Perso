@@ -13,11 +13,16 @@ require_once __DIR__ . '/../app/models/Order.php';
 
 Auth::requireAdmin();
 
+require_once __DIR__ . '/../app/models/CustomizationOption.php';
+
 $categoryModel = new Category();
 $orderModel = new Order();
+$customizationModel = new CustomizationOption();
 $pendingOrders = $orderModel->countNew();
 $statuses = $categoryModel->getStatuses();
-$availableSizeGroups = $categoryModel->getAvailableSizeGroups();
+
+// Récupérer toutes les tailles disponibles (groupées pour l'affichage)
+$allSizesGrouped = $customizationModel->getSizesGrouped();
 
 // Mode édition ou création
 $editMode = false;
@@ -43,7 +48,7 @@ if (isPost()) {
             'description' => trim($_POST['description'] ?? ''),
             'status' => $_POST['status'] ?? 'active',
             'sort_order' => (int)($_POST['sort_order'] ?? 0),
-            'allowed_size_groups' => $_POST['allowed_size_groups'] ?? []
+            'allowed_size_groups' => $_POST['allowed_sizes'] ?? [] // Stocke les IDs de tailles
         ];
 
         // Générer ou utiliser le slug personnalisé
@@ -367,33 +372,76 @@ $csrf = csrfToken();
                                 </div>
 
                                 <div class="form-group">
-                                    <label>📏 Groupes de tailles autorisés</label>
-                                    <small class="form-text" style="margin-bottom: 10px; display: block;">
-                                        Sélectionnez les groupes de tailles compatibles avec cette catégorie.
-                                        <br><strong>Exemple:</strong> Catégorie "Bébé" → Uniquement "Enfants"
+                                    <label>📏 Tailles autorisées pour cette catégorie</label>
+                                    <small class="form-text" style="margin-bottom: 15px; display: block;">
+                                        Sélectionnez les tailles qui seront disponibles pour les produits de cette catégorie.
+                                        <br><strong>Exemple:</strong> Catégorie "Bébé" → Cocher 3 mois, 6 mois, 12 mois, 18 mois, 24 mois
                                     </small>
                                     <?php
-                                    $selectedGroups = [];
+                                    $selectedSizes = [];
                                     if ($editMode && !empty($category['allowed_size_groups'])) {
-                                        $selectedGroups = json_decode($category['allowed_size_groups'], true) ?: [];
+                                        $decoded = json_decode($category['allowed_size_groups'], true);
+                                        $selectedSizes = is_array($decoded) ? $decoded : [];
                                     }
                                     ?>
-                                    <div class="categories-checkboxes">
-                                        <?php foreach ($availableSizeGroups as $groupKey => $groupLabel): ?>
-                                            <label class="checkbox-label">
-                                                <input type="checkbox"
-                                                       name="allowed_size_groups[]"
-                                                       value="<?= h($groupKey) ?>"
-                                                       <?= in_array($groupKey, $selectedGroups) ? 'checked' : '' ?>>
-                                                <span class="checkbox-custom"></span>
-                                                <span class="checkbox-text"><?= h($groupLabel) ?></span>
-                                            </label>
-                                        <?php endforeach; ?>
-                                    </div>
-                                    <small class="form-text">
-                                        Si aucun groupe n'est sélectionné, toutes les tailles seront disponibles.
-                                    </small>
+
+                                    <?php if (empty($allSizesGrouped)): ?>
+                                        <div style="padding: 15px; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px;">
+                                            <p style="margin: 0; color: #92400e;">
+                                                ⚠️ Aucune taille disponible.
+                                                <a href="/admin/customization-options.php?type=size" style="color: #92400e; text-decoration: underline;">
+                                                    Créer des tailles d'abord
+                                                </a>
+                                            </p>
+                                        </div>
+                                    <?php else: ?>
+                                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                                            <?php foreach ($allSizesGrouped as $groupName => $sizes): ?>
+                                                <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                                        <h4 style="margin: 0; font-size: 13px; font-weight: 700; color: #6b7280; text-transform: uppercase;">
+                                                            <?= h($groupName) ?>
+                                                        </h4>
+                                                        <button type="button"
+                                                                class="toggle-group-btn"
+                                                                data-group="<?= h($groupName) ?>"
+                                                                style="padding: 4px 12px; font-size: 11px; background: #e5e7eb; border: none; border-radius: 12px; cursor: pointer; color: #6b7280; font-weight: 600;">
+                                                            Tout sélectionner
+                                                        </button>
+                                                    </div>
+                                                    <div class="sizes-grid" data-group="<?= h($groupName) ?>" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
+                                                        <?php foreach ($sizes as $size): ?>
+                                                            <label style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                                                <input type="checkbox"
+                                                                       name="allowed_sizes[]"
+                                                                       value="<?= h($size['value']) ?>"
+                                                                       <?= in_array($size['value'], $selectedSizes) ? 'checked' : '' ?>
+                                                                       style="margin: 0;">
+                                                                <span style="font-size: 13px; font-weight: 500; color: #374151;">
+                                                                    <?= h($size['label']) ?>
+                                                                </span>
+                                                            </label>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <small class="form-text" style="margin-top: 10px;">
+                                            💡 Si aucune taille n'est sélectionnée, <strong>toutes les tailles</strong> seront disponibles pour cette catégorie.
+                                        </small>
+                                    <?php endif; ?>
                                 </div>
+
+                                <style>
+                                    .sizes-grid label:has(input:checked) {
+                                        background: rgba(139, 92, 246, 0.1) !important;
+                                        border-color: #8B5CF6 !important;
+                                    }
+                                    .sizes-grid label:hover {
+                                        border-color: #8B5CF6;
+                                        background: rgba(139, 92, 246, 0.05);
+                                    }
+                                </style>
                             </div>
                         </div>
                     </div>
@@ -500,6 +548,24 @@ $csrf = csrfToken();
                 .replace(/[\s-]+/g, '-')
                 .replace(/^-+|-+$/g, '');
         }
+    });
+
+    // Toggle "Tout sélectionner" pour un groupe de tailles
+    document.querySelectorAll('.toggle-group-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const groupName = this.dataset.group;
+            const container = document.querySelector(`.sizes-grid[data-group="${groupName}"]`);
+            if (!container) return;
+
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            const allChecked = [...checkboxes].every(cb => cb.checked);
+
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+            });
+
+            this.textContent = allChecked ? 'Tout sélectionner' : 'Tout désélectionner';
+        });
     });
     </script>
 </body>
