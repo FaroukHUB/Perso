@@ -1787,7 +1787,9 @@ function addDesignLayer(design) {
     designId: design.id,
     image: design.image,
     x: 50,
-    y: 50
+    y: 50,
+    scale: 1,
+    rotation: 0
   };
 
   state.layers.push(layer);
@@ -1985,7 +1987,9 @@ function addElementLayer(element) {
     isPremium: element.is_premium,
     price: element.price,
     x: 50,
-    y: 50
+    y: 50,
+    scale: 1,
+    rotation: 0
   };
 
   state.layers.push(layer);
@@ -2285,7 +2289,9 @@ function renderLayer(layer) {
     });
 
   } else if (layer.type === 'design' || layer.type === 'element') {
-    div.style.transform = 'translate(-50%, -50%)';
+    const rotation = layer.rotation || 0;
+    const scale = layer.scale || 1;
+    div.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
   } else {
     div.style.transform = 'translate(-50%, -50%)';
   }
@@ -2297,6 +2303,13 @@ function renderLayer(layer) {
         <img src="${layer.image}" alt="${layer.name}" draggable="false">
         <button class="ps-layer-delete-btn" data-layer-id="${layer.id}" title="Supprimer">×</button>
       `;
+
+      // Appliquer les dimensions si définies
+      const img = div.querySelector('img');
+      if (img && layer.width && layer.height) {
+        img.style.width = layer.width + 'px';
+        img.style.height = layer.height + 'px';
+      }
     } else if (layer.svg) {
       div.innerHTML = `
         ${layer.svg}
@@ -2323,38 +2336,112 @@ function renderLayer(layer) {
     div.style.zIndex = layerIndex + 1;
   }
 
-  interact(div)
-    .draggable({
-      enabled: true,
-      listeners: {
-        start(event) {
-          // Désactiver le drag si on est en mode édition
-          if (event.target.dataset.editing === 'true') {
-            return false;
+  // Configuration interact.js pour les images (resize + rotate)
+  if (layer.type === 'design' || layer.type === 'element') {
+    interact(div)
+      .draggable({
+        enabled: true,
+        ignoreFrom: '.ps-layer-delete-btn',
+        listeners: {
+          move(event) {
+            const l = state.layers.find(l => l.id === event.target.dataset.layerId);
+            if (!l) return;
+
+            const printArea = els.printArea.getBoundingClientRect();
+            const deltaX = (event.dx / printArea.width) * 100;
+            const deltaY = (event.dy / printArea.height) * 100;
+
+            l.x = Math.max(0, Math.min(100, l.x + deltaX));
+            l.y = Math.max(0, Math.min(100, l.y + deltaY));
+
+            event.target.style.left = l.x + '%';
+            event.target.style.top = l.y + '%';
+          }
+        }
+      })
+      .resizable({
+        edges: { left: true, right: true, bottom: true, top: true },
+        listeners: {
+          move(event) {
+            const l = state.layers.find(l => l.id === event.target.dataset.layerId);
+            if (!l) return;
+
+            // Sauvegarder la nouvelle échelle
+            l.width = event.rect.width;
+            l.height = event.rect.height;
+
+            // Appliquer la taille à l'image
+            const img = event.target.querySelector('img');
+            if (img) {
+              img.style.width = event.rect.width + 'px';
+              img.style.height = event.rect.height + 'px';
+            }
           }
         },
-        move(event) {
-          // Ne pas bouger si on édite
-          if (event.target.dataset.editing === 'true') return;
+        modifiers: [
+          interact.modifiers.aspectRatio({
+            ratio: 'preserve'
+          })
+        ]
+      })
+      .gesturable({
+        listeners: {
+          move(event) {
+            const l = state.layers.find(l => l.id === event.target.dataset.layerId);
+            if (!l) return;
 
-          const l = state.layers.find(l => l.id === event.target.dataset.layerId);
-          if (!l) return;
+            // Mettre à jour l'échelle avec le pinch
+            const currentScale = l.scale || 1;
+            l.scale = currentScale * (1 + event.ds);
 
-          const printArea = els.printArea.getBoundingClientRect();
-          const deltaX = (event.dx / printArea.width) * 100;
-          const deltaY = (event.dy / printArea.height) * 100;
+            // Mettre à jour la rotation
+            l.rotation = (l.rotation || 0) + event.da;
 
-          l.x = Math.max(0, Math.min(100, l.x + deltaX));
-          l.y = Math.max(0, Math.min(100, l.y + deltaY));
-
-          event.target.style.left = l.x + '%';
-          event.target.style.top = l.y + '%';
+            // Appliquer les transformations
+            const rotation = l.rotation || 0;
+            const scale = l.scale || 1;
+            event.target.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
+          }
         }
-      }
-    })
-    .on('tap', (event) => {
-      setActiveLayer(event.target.dataset.layerId);
-    });
+      })
+      .on('tap', (event) => {
+        setActiveLayer(event.target.dataset.layerId);
+      });
+  } else {
+    // Configuration interact.js standard pour texte et boutons
+    interact(div)
+      .draggable({
+        enabled: true,
+        listeners: {
+          start(event) {
+            // Désactiver le drag si on est en mode édition
+            if (event.target.dataset.editing === 'true') {
+              return false;
+            }
+          },
+          move(event) {
+            // Ne pas bouger si on édite
+            if (event.target.dataset.editing === 'true') return;
+
+            const l = state.layers.find(l => l.id === event.target.dataset.layerId);
+            if (!l) return;
+
+            const printArea = els.printArea.getBoundingClientRect();
+            const deltaX = (event.dx / printArea.width) * 100;
+            const deltaY = (event.dy / printArea.height) * 100;
+
+            l.x = Math.max(0, Math.min(100, l.x + deltaX));
+            l.y = Math.max(0, Math.min(100, l.y + deltaY));
+
+            event.target.style.left = l.x + '%';
+            event.target.style.top = l.y + '%';
+          }
+        }
+      })
+      .on('tap', (event) => {
+        setActiveLayer(event.target.dataset.layerId);
+      });
+  }
 }
 
 function setActiveLayer(layerId) {

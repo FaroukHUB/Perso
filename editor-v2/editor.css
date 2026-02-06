@@ -247,8 +247,8 @@ body {
 
 .ps-layer-image img,
 .ps-layer-shape svg {
-  max-width: 80px;
-  max-height: 80px;
+  max-width: 120px;
+  max-height: 120px;
   display: block;
 }
 
@@ -278,6 +278,9 @@ body {
 
 .ps-layer-image {
   position: relative;
+  padding: 0 !important;
+  display: inline-block;
+  line-height: 0;
 }
 
 .ps-layer-image:hover .ps-layer-delete-btn,
@@ -288,6 +291,17 @@ body {
 .ps-layer-delete-btn:hover {
   background: #ff1744;
   transform: scale(1.1);
+}
+
+/* Resize handles for image layers */
+.ps-layer-image.active {
+  outline: 2px solid var(--pink-main);
+  outline-offset: 2px;
+}
+
+/* Style resize corners */
+.ps-layer-image.interact-resizing {
+  opacity: 0.8;
 }
 
 /* ========================================
