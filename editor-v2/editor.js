@@ -2301,6 +2301,7 @@ function renderLayer(layer) {
     if (layer.image) {
       div.innerHTML = `
         <img src="${layer.image}" alt="${layer.name}" draggable="false">
+        <div class="ps-layer-rotate-handle" data-layer-id="${layer.id}" title="Faire pivoter">↻</div>
         <button class="ps-layer-delete-btn" data-layer-id="${layer.id}" title="Supprimer">×</button>
       `;
 
@@ -2313,6 +2314,7 @@ function renderLayer(layer) {
     } else if (layer.svg) {
       div.innerHTML = `
         ${layer.svg}
+        <div class="ps-layer-rotate-handle" data-layer-id="${layer.id}" title="Faire pivoter">↻</div>
         <button class="ps-layer-delete-btn" data-layer-id="${layer.id}" title="Supprimer">×</button>
       `;
     }
@@ -2325,6 +2327,56 @@ function renderLayer(layer) {
         e.preventDefault();
         removeLayer(layer.id);
       });
+    }
+
+    // Ajouter l'event listener pour la rotation
+    const rotateHandle = div.querySelector('.ps-layer-rotate-handle');
+    if (rotateHandle) {
+      let isDragging = false;
+      let startAngle = 0;
+      let currentRotation = layer.rotation || 0;
+
+      const onRotateStart = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        isDragging = true;
+
+        const rect = div.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+        currentRotation = layer.rotation || 0;
+
+        document.addEventListener('mousemove', onRotateMove);
+        document.addEventListener('mouseup', onRotateEnd);
+      };
+
+      const onRotateMove = (e) => {
+        if (!isDragging) return;
+
+        const rect = div.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+        const deltaAngle = angle - startAngle;
+
+        const l = state.layers.find(l => l.id === layer.id);
+        if (l) {
+          l.rotation = currentRotation + deltaAngle;
+          const scale = l.scale || 1;
+          div.style.transform = `translate(-50%, -50%) rotate(${l.rotation}deg) scale(${scale})`;
+        }
+      };
+
+      const onRotateEnd = () => {
+        isDragging = false;
+        document.removeEventListener('mousemove', onRotateMove);
+        document.removeEventListener('mouseup', onRotateEnd);
+      };
+
+      rotateHandle.addEventListener('mousedown', onRotateStart);
     }
   }
 
@@ -2341,7 +2393,7 @@ function renderLayer(layer) {
     interact(div)
       .draggable({
         enabled: true,
-        ignoreFrom: '.ps-layer-delete-btn',
+        ignoreFrom: '.ps-layer-delete-btn, .ps-layer-rotate-handle',
         listeners: {
           move(event) {
             const l = state.layers.find(l => l.id === event.target.dataset.layerId);
@@ -2383,26 +2435,6 @@ function renderLayer(layer) {
             ratio: 'preserve'
           })
         ]
-      })
-      .gesturable({
-        listeners: {
-          move(event) {
-            const l = state.layers.find(l => l.id === event.target.dataset.layerId);
-            if (!l) return;
-
-            // Mettre à jour l'échelle avec le pinch
-            const currentScale = l.scale || 1;
-            l.scale = currentScale * (1 + event.ds);
-
-            // Mettre à jour la rotation
-            l.rotation = (l.rotation || 0) + event.da;
-
-            // Appliquer les transformations
-            const rotation = l.rotation || 0;
-            const scale = l.scale || 1;
-            event.target.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
-          }
-        }
       })
       .on('tap', (event) => {
         setActiveLayer(event.target.dataset.layerId);

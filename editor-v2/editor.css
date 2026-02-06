@@ -293,6 +293,44 @@ body {
   transform: scale(1.1);
 }
 
+/* Rotate handle on design/element layers */
+.ps-layer-rotate-handle {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--pink-main);
+  color: white;
+  border: 2px solid white;
+  font-size: 14px;
+  line-height: 1;
+  cursor: grab;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: all var(--transition-fast);
+  z-index: 11;
+}
+
+.ps-layer-image:hover .ps-layer-rotate-handle,
+.ps-layer-image.active .ps-layer-rotate-handle {
+  display: flex;
+}
+
+.ps-layer-rotate-handle:hover {
+  background: #ff69b4;
+  transform: translateX(-50%) scale(1.1);
+}
+
+.ps-layer-rotate-handle:active {
+  cursor: grabbing;
+}
+
 /* Resize handles for image layers */
 .ps-layer-image.active {
   outline: 2px solid var(--pink-main);
