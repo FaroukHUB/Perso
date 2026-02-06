@@ -32,9 +32,11 @@ if (!in_array($currentType, ['technique', 'size', 'design', 'element'])) {
     $currentType = 'technique';
 }
 
-error_log('[OPTIONS DEBUG] ========== DÉBUT PAGE OPTIONS ==========');
-error_log('[OPTIONS DEBUG] Type: ' . $currentType);
-error_log('[OPTIONS DEBUG] Memory usage: ' . round(memory_get_usage() / 1024 / 1024, 2) . ' MB');
+// Debug dans un fichier accessible
+$debugLog = __DIR__ . '/../debug_options.txt';
+file_put_contents($debugLog, "[" . date('H:i:s') . "] DÉBUT PAGE OPTIONS\n", FILE_APPEND);
+file_put_contents($debugLog, "[" . date('H:i:s') . "] Type: $currentType\n", FILE_APPEND);
+file_put_contents($debugLog, "[" . date('H:i:s') . "] Memory: " . round(memory_get_usage() / 1024 / 1024, 2) . " MB\n", FILE_APPEND);
 
 $typeLabels = [
     'technique' => ['label' => 'Techniques', 'icon' => '🧵', 'desc' => 'Methodes de personnalisation (Broderie, Flex, Flock) avec tarifs'],
@@ -536,19 +538,20 @@ if ($currentType === 'technique') {
     $techniqueImages = $optionModel->getAllImagesForType('technique');
 }
 if ($currentType === 'size') {
-    error_log('[OPTIONS DEBUG] Début chargement tailles: ' . date('H:i:s.u'));
+    file_put_contents($debugLog, "[" . date('H:i:s') . "] Début chargement tailles\n", FILE_APPEND);
     $startTime = microtime(true);
 
     $sizes = $sizeModel->findAllGrouped();
     $timeGrouped = microtime(true) - $startTime;
-    error_log('[OPTIONS DEBUG] findAllGrouped() terminé en ' . round($timeGrouped * 1000, 2) . 'ms');
+    file_put_contents($debugLog, "[" . date('H:i:s') . "] findAllGrouped() terminé en " . round($timeGrouped * 1000, 2) . "ms\n", FILE_APPEND);
 
     $startGroups = microtime(true);
     $sizeGroups = $sizeGroupModel->findAllActive();
     $timeGroups = microtime(true) - $startGroups;
-    error_log('[OPTIONS DEBUG] findAllActive() terminé en ' . round($timeGroups * 1000, 2) . 'ms');
+    file_put_contents($debugLog, "[" . date('H:i:s') . "] findAllActive() terminé en " . round($timeGroups * 1000, 2) . "ms\n", FILE_APPEND);
 
-    error_log('[OPTIONS DEBUG] Total tailles chargées: ' . count($sizes));
+    file_put_contents($debugLog, "[" . date('H:i:s') . "] Total tailles chargées: " . count($sizes) . "\n", FILE_APPEND);
+    file_put_contents($debugLog, "[" . date('H:i:s') . "] FIN CHARGEMENT DONNÉES\n\n", FILE_APPEND);
 }
 if ($currentType === 'design') {
     $designs = $designModel->findAllGrouped();
