@@ -32,6 +32,10 @@ if (!in_array($currentType, ['technique', 'size', 'design', 'element'])) {
     $currentType = 'technique';
 }
 
+error_log('[OPTIONS DEBUG] ========== DÉBUT PAGE OPTIONS ==========');
+error_log('[OPTIONS DEBUG] Type: ' . $currentType);
+error_log('[OPTIONS DEBUG] Memory usage: ' . round(memory_get_usage() / 1024 / 1024, 2) . ' MB');
+
 $typeLabels = [
     'technique' => ['label' => 'Techniques', 'icon' => '🧵', 'desc' => 'Methodes de personnalisation (Broderie, Flex, Flock) avec tarifs'],
     'size' => ['label' => 'Tailles', 'icon' => '📏', 'desc' => 'Gerez vos tailles par groupe (Lettres, Chiffres, Enfants, Personnalise)'],
@@ -532,8 +536,19 @@ if ($currentType === 'technique') {
     $techniqueImages = $optionModel->getAllImagesForType('technique');
 }
 if ($currentType === 'size') {
+    error_log('[OPTIONS DEBUG] Début chargement tailles: ' . date('H:i:s.u'));
+    $startTime = microtime(true);
+
     $sizes = $sizeModel->findAllGrouped();
+    $timeGrouped = microtime(true) - $startTime;
+    error_log('[OPTIONS DEBUG] findAllGrouped() terminé en ' . round($timeGrouped * 1000, 2) . 'ms');
+
+    $startGroups = microtime(true);
     $sizeGroups = $sizeGroupModel->findAllActive();
+    $timeGroups = microtime(true) - $startGroups;
+    error_log('[OPTIONS DEBUG] findAllActive() terminé en ' . round($timeGroups * 1000, 2) . 'ms');
+
+    error_log('[OPTIONS DEBUG] Total tailles chargées: ' . count($sizes));
 }
 if ($currentType === 'design') {
     $designs = $designModel->findAllGrouped();
