@@ -30,6 +30,21 @@
         autoSaveInterval: 5000,
     };
 
+    // Configuration du positionnement (depuis PHP)
+    const POSITIONING = window.__POSITIONING_CONFIG || {
+        mode: 'free', // 'free', 'preset', 'fixed'
+        fixedPosition: { x: 50, y: 40 },
+        presetZones: [
+            { id: 'center', label: 'Centré', x: 50, y: 50 },
+            { id: 'top_left', label: 'Haut gauche', x: 15, y: 15 },
+            { id: 'top_right', label: 'Haut droite', x: 85, y: 15 },
+            { id: 'bottom_left', label: 'Bas gauche', x: 15, y: 85 },
+            { id: 'bottom_right', label: 'Bas droite', x: 85, y: 85 }
+        ]
+    };
+
+    console.log('[Configurator] Positioning mode:', POSITIONING.mode);
+
     // ===========================================
     // FONT LOADING
     // ===========================================
@@ -265,15 +280,31 @@
 
         const layerId = 'layer-' + Date.now();
 
+        // Déterminer la position initiale selon le mode
+        let initialX, initialY;
+        if (POSITIONING.mode === 'fixed') {
+            initialX = POSITIONING.fixedPosition.x;
+            initialY = POSITIONING.fixedPosition.y;
+        } else if (POSITIONING.mode === 'preset') {
+            // Prendre la première zone (centré) par défaut
+            const defaultZone = POSITIONING.presetZones[0] || { x: 50, y: 50 };
+            initialX = defaultZone.x;
+            initialY = defaultZone.y;
+        } else {
+            // Mode free: position par défaut
+            initialX = 50;
+            initialY = 40;
+        }
+
         const el = document.createElement('div');
         el.className = 'layer text-layer';
         el.id = layerId;
         el.textContent = text;
         el.style.position = 'absolute';
-        el.style.left = '50%';
-        el.style.top = '40%';
+        el.style.left = initialX + '%';
+        el.style.top = initialY + '%';
         el.style.transform = 'translate(-50%, -50%)';
-        el.style.cursor = 'move';
+        el.style.cursor = POSITIONING.mode === 'fixed' ? 'default' : 'move';
         el.style.userSelect = 'none';
         el.style.fontSize = '24px';
         el.style.fontWeight = 'bold';
@@ -298,14 +329,18 @@
             type: 'text',
             element: el,
             text: text,
-            x: 50,
-            y: 40,
+            x: initialX,
+            y: initialY,
             font: state.selectedFont,
             color: state.selectedTextColor,
         });
 
-        // Make draggable
-        makeDraggable(el);
+        // Make draggable (sauf si mode fixed)
+        if (POSITIONING.mode !== 'fixed') {
+            makeDraggable(el);
+        } else {
+            console.log('[Configurator] Dragging disabled (fixed mode)');
+        }
 
         // Clear input
         if (DOM.textInput) {

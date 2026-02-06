@@ -931,6 +931,23 @@ $cartCount = Cart::count();
 
     <!-- Configurator Scripts -->
     <script src="/public/assets/js/real-render-modal.js?v=<?= time() ?>"></script>
+    <script>
+        // Configuration du positionnement du texte
+        window.__POSITIONING_CONFIG = {
+            mode: "<?= h($shopSettings->get('text_positioning_mode', 'free')) ?>",
+            fixedPosition: {
+                x: <?= (int)$shopSettings->get('text_fixed_position_x', 50) ?>,
+                y: <?= (int)$shopSettings->get('text_fixed_position_y', 40) ?>
+            },
+            presetZones: <?= json_encode($shopSettings->get('text_preset_zones', [
+                ['id' => 'center', 'label' => 'Centré', 'x' => 50, 'y' => 50],
+                ['id' => 'top_left', 'label' => 'Haut gauche', 'x' => 15, 'y' => 15],
+                ['id' => 'top_right', 'label' => 'Haut droite', 'x' => 85, 'y' => 15],
+                ['id' => 'bottom_left', 'label' => 'Bas gauche', 'x' => 15, 'y' => 85],
+                ['id' => 'bottom_right', 'label' => 'Bas droite', 'x' => 85, 'y' => 85]
+            ])) ?>
+        };
+    </script>
     <script src="/public/assets/js/configurator.js?v=<?= time() ?>"></script>
     <script>
         window.__PRODUCT_DATA = {

@@ -130,6 +130,18 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
         $activeTab = 'shop';
     }
 
+    // Paramètres Personnalisation
+    if (isset($_POST['save_shop_customization'])) {
+        $shopSettings->setMultiple([
+            'text_positioning_mode' => post('text_positioning_mode', 'free'),
+            'text_fixed_position_x' => post('text_fixed_position_x', '50'),
+            'text_fixed_position_y' => post('text_fixed_position_y', '40')
+        ]);
+        $shopSettings->clearCache();
+        $success = 'Paramètres de personnalisation enregistrés.';
+        $activeTab = 'shop_customization';
+    }
+
     // Paramètres Livraison boutique
     if (isset($_POST['save_shop_shipping'])) {
         $shopSettings->setMultiple([
@@ -976,6 +988,7 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                 <!-- Sub-tabs for shop settings -->
                 <div class="sub-tabs">
                     <a href="?tab=shop" class="sub-tab <?= $activeTab === 'shop' ? 'active' : '' ?>">Général</a>
+                    <a href="?tab=shop_customization" class="sub-tab <?= $activeTab === 'shop_customization' ? 'active' : '' ?>">✏️ Personnalisation</a>
                     <a href="?tab=shop_shipping" class="sub-tab <?= $activeTab === 'shop_shipping' ? 'active' : '' ?>">Livraison</a>
                     <a href="?tab=shop_returns" class="sub-tab <?= $activeTab === 'shop_returns' ? 'active' : '' ?>">Retours</a>
                     <a href="?tab=shop_payments" class="sub-tab <?= $activeTab === 'shop_payments' ? 'active' : '' ?>">Paiements affichés</a>
@@ -1035,6 +1048,151 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                         <button type="submit" class="btn btn-primary btn-lg">Enregistrer</button>
                     </div>
                 </form>
+                <?php endif; ?>
+
+                <!-- CUSTOMIZATION -->
+                <?php if ($activeTab === 'shop_customization'): ?>
+                <form method="post">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="save_shop_customization" value="1">
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">✏️ Contrôle du positionnement du texte</h3>
+                            <span class="header-note">Contrôle comment vos clients peuvent positionner le texte lors de la personnalisation</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label" style="font-weight: 700; margin-bottom: 15px;">Mode de positionnement</label>
+
+                                <div style="display: flex; flex-direction: column; gap: 15px;">
+                                    <label class="radio-card" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                                        <input type="radio" name="text_positioning_mode" value="free"
+                                               <?= $shopSettings->get('text_positioning_mode', 'free') === 'free' ? 'checked' : '' ?>
+                                               style="margin-right: 12px;">
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 6px;">🆓 Liberté totale</div>
+                                            <div style="color: #6b7280; font-size: 0.9rem;">
+                                                Le client peut déplacer le texte où il veut sur le produit (curseur draggable)
+                                            </div>
+                                        </div>
+                                    </label>
+
+                                    <label class="radio-card" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                                        <input type="radio" name="text_positioning_mode" value="preset"
+                                               <?= $shopSettings->get('text_positioning_mode', 'free') === 'preset' ? 'checked' : '' ?>
+                                               style="margin-right: 12px;">
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 6px;">📍 Emplacements prédéfinis</div>
+                                            <div style="color: #6b7280; font-size: 0.9rem;">
+                                                Le client choisit parmi des zones prédéfinies (ex: centré, haut gauche, bas droite)
+                                            </div>
+                                        </div>
+                                    </label>
+
+                                    <label class="radio-card" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                                        <input type="radio" name="text_positioning_mode" value="fixed"
+                                               <?= $shopSettings->get('text_positioning_mode', 'free') === 'fixed' ? 'checked' : '' ?>
+                                               style="margin-right: 12px;">
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 6px;">🔒 Position fixe (imposée)</div>
+                                            <div style="color: #6b7280; font-size: 0.9rem;">
+                                                Le texte est toujours placé au même endroit, pas de choix pour le client
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="fixedPositionSettings" style="margin-top: 25px; padding: 20px; background: #f9fafb; border-radius: 8px; <?= $shopSettings->get('text_positioning_mode', 'free') !== 'fixed' ? 'display:none;' : '' ?>">
+                                <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 15px;">Position fixe (en %)</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Position horizontale (X)</label>
+                                        <input type="number" name="text_fixed_position_x" class="form-input"
+                                               min="0" max="100" step="1"
+                                               value="<?= h($shopSettings->get('text_fixed_position_x', 50)) ?>">
+                                        <small class="form-hint">0 = gauche, 50 = centre, 100 = droite</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Position verticale (Y)</label>
+                                        <input type="number" name="text_fixed_position_y" class="form-input"
+                                               min="0" max="100" step="1"
+                                               value="<?= h($shopSettings->get('text_fixed_position_y', 40)) ?>">
+                                        <small class="form-hint">0 = haut, 50 = centre, 100 = bas</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="presetZonesSettings" style="margin-top: 25px; padding: 20px; background: #f9fafb; border-radius: 8px; <?= $shopSettings->get('text_positioning_mode', 'free') !== 'preset' ? 'display:none;' : '' ?>">
+                                <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 10px;">Zones prédéfinies</h4>
+                                <p style="margin: 0 0 15px 0; font-size: 0.9rem; color: #6b7280;">
+                                    Les clients pourront choisir parmi ces emplacements :
+                                </p>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                                    <div style="padding: 12px; background: white; border: 2px solid #10b981; border-radius: 8px; text-align: center;">
+                                        <div style="font-weight: 600; font-size: 0.9rem; color: #065f46;">📍 Centré</div>
+                                        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">X: 50%, Y: 50%</div>
+                                    </div>
+                                    <div style="padding: 12px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+                                        <div style="font-weight: 600; font-size: 0.9rem;">↖️ Haut gauche</div>
+                                        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">X: 15%, Y: 15%</div>
+                                    </div>
+                                    <div style="padding: 12px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+                                        <div style="font-weight: 600; font-size: 0.9rem;">↗️ Haut droite</div>
+                                        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">X: 85%, Y: 15%</div>
+                                    </div>
+                                    <div style="padding: 12px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+                                        <div style="font-weight: 600; font-size: 0.9rem;">↙️ Bas gauche</div>
+                                        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">X: 15%, Y: 85%</div>
+                                    </div>
+                                    <div style="padding: 12px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+                                        <div style="font-weight: 600; font-size: 0.9rem;">↘️ Bas droite</div>
+                                        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">X: 85%, Y: 85%</div>
+                                    </div>
+                                </div>
+                                <p style="margin: 15px 0 0 0; font-size: 0.85rem; color: #6b7280; font-style: italic;">
+                                    💡 Les zones sont fixes pour l'instant. Configuration avancée à venir.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">Enregistrer</button>
+                    </div>
+                </form>
+
+                <script>
+                // Toggle des sections selon le mode sélectionné
+                document.querySelectorAll('input[name="text_positioning_mode"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        const fixedSettings = document.getElementById('fixedPositionSettings');
+                        const presetSettings = document.getElementById('presetZonesSettings');
+
+                        fixedSettings.style.display = this.value === 'fixed' ? 'block' : 'none';
+                        presetSettings.style.display = this.value === 'preset' ? 'block' : 'none';
+                    });
+                });
+
+                // Styling pour les radio cards
+                document.querySelectorAll('.radio-card').forEach(card => {
+                    const radio = card.querySelector('input[type="radio"]');
+
+                    function updateCardStyle() {
+                        if (radio.checked) {
+                            card.style.borderColor = '#10b981';
+                            card.style.background = '#f0fdf4';
+                        } else {
+                            card.style.borderColor = '#e5e7eb';
+                            card.style.background = 'white';
+                        }
+                    }
+
+                    updateCardStyle();
+                    radio.addEventListener('change', updateCardStyle);
+                });
+                </script>
                 <?php endif; ?>
 
                 <!-- SHIPPING DISPLAY -->
