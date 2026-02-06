@@ -1797,22 +1797,34 @@ if (isPost()) {
         const categoryAllowedGroups = <?= json_encode(array_map(function($cat) use ($categoryModel) {
             return [
                 'id' => $cat['id'],
+                'name' => $cat['name'],
+                'slug' => $cat['slug'],
                 'groups' => !empty($cat['allowed_size_groups']) ? json_decode($cat['allowed_size_groups'], true) : []
             ];
         }, $allCategories)) ?>;
+
+        console.log('🔍 [FILTRAGE TAILLES] Catégories disponibles:', categoryAllowedGroups);
 
         function filterSizesByCategories() {
             const selectedCats = Array.from(document.querySelectorAll('input[name="product_categories[]"]:checked'))
                 .map(cb => parseInt(cb.value));
 
+            console.log('✅ [FILTRAGE TAILLES] Catégories sélectionnées (IDs):', selectedCats);
+
             // Trouver les groupes autorisés pour les catégories sélectionnées
             let allowedGroups = [];
             selectedCats.forEach(catId => {
                 const cat = categoryAllowedGroups.find(c => c.id === catId);
-                if (cat && cat.groups.length > 0) {
+                console.log(`   → Catégorie ID ${catId}:`, cat);
+                if (cat && cat.groups && cat.groups.length > 0) {
+                    console.log(`   ✓ Groupes autorisés pour "${cat.name}":`, cat.groups);
                     allowedGroups = allowedGroups.concat(cat.groups);
+                } else {
+                    console.log(`   ✗ Aucun groupe défini pour "${cat ? cat.name : 'inconnue'}"`);
                 }
             });
+
+            console.log('📏 [FILTRAGE TAILLES] Groupes autorisés au total:', allowedGroups);
 
             // Si aucune catégorie ou aucune restriction, tout afficher
             if (selectedCats.length === 0 || allowedGroups.length === 0) {
@@ -1842,13 +1854,15 @@ if (isPost()) {
 
         // Écouter les changements de catégories
         document.querySelectorAll('input[name="product_categories[]"]').forEach(checkbox => {
-            checkbox.addEventListener('change', filterSizesByCategories);
+            checkbox.addEventListener('change', function() {
+                console.log('🔄 [FILTRAGE TAILLES] Changement de catégorie détecté');
+                filterSizesByCategories();
+            });
         });
 
-        // Appliquer le filtre au chargement si en mode édition
-        <?php if ($isEdit && !empty($productCategoryIds)): ?>
+        // Appliquer le filtre au chargement (toujours, pas seulement en mode édition)
+        console.log('🚀 [FILTRAGE TAILLES] Application du filtre au chargement...');
         filterSizesByCategories();
-        <?php endif; ?>
     </script>
 </body>
 </html>
