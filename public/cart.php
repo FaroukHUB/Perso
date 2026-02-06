@@ -13,9 +13,13 @@ require_once __DIR__ . '/../app/models/ProductUpsell.php';
 require_once __DIR__ . '/../app/models/PromoCode.php';
 require_once __DIR__ . '/../app/models/ShopSettings.php';
 require_once __DIR__ . '/../app/services/BoxtalService.php';
+require_once __DIR__ . '/../app/services/BrandingService.php';
 
 // Charger les paramètres de la boutique
 $shopSettings = new ShopSettings();
+
+// Charger le service de branding
+$brandingService = new BrandingService();
 
 $siteName = $shopSettings->getSiteName();
 $cartTexts = $shopSettings->getCartTexts();
@@ -219,19 +223,47 @@ if (!Cart::isEmpty()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($cartTexts['title']) ?> - <?= h($siteName) ?></title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <?= $brandingService->getFontLinks() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <style>
+        <?= $brandingService->getCSSVariables() ?>
+
+        /* Cart-specific variable mappings from BrandingService */
         :root {
+            /* Map BrandingService colors to cart page variables */
+            --pink-main: var(--color-primary);
+            --pink-light: color-mix(in srgb, var(--color-primary) 20%, white);
+            --pink-dark: color-mix(in srgb, var(--color-primary) 80%, black);
+            --mint-main: var(--color-accent);
+            --mint-dark: color-mix(in srgb, var(--color-accent) 80%, black);
+            --black-soft: var(--color-text);
+            --gray: var(--color-muted);
+
+            /* Gradient mappings */
+            --gradient-hero: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            --gradient-pink: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary) 20%));
+            --gradient-mint: linear-gradient(135deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 80%, white));
+
+            /* Display font mapping */
+            --font-display: var(--font-primary);
+
+            /* Radius utilities */
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-full: 9999px;
+
+            /* Glass effect */
             --glass-bg: rgba(255, 255, 255, 0.85);
             --glass-border: rgba(255, 255, 255, 0.3);
-            --radius-xl: 24px;
         }
 
         body {
-            background: linear-gradient(135deg, #fdf2f8 0%, #f0fdf9 50%, #fdf2f8 100%);
+            background: linear-gradient(135deg,
+                color-mix(in srgb, var(--color-primary) 5%, white) 0%,
+                color-mix(in srgb, var(--color-accent) 5%, white) 50%,
+                color-mix(in srgb, var(--color-primary) 5%, white) 100%
+            );
             min-height: 100vh;
         }
 
@@ -242,7 +274,7 @@ if (!Cart::isEmpty()) {
             z-index: 1000;
         }
         .navbar {
-            background: rgba(13, 13, 13, 0.95);
+            background: color-mix(in srgb, var(--color-text) 95%, transparent);
             backdrop-filter: blur(20px);
             padding: 15px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -422,7 +454,7 @@ if (!Cart::isEmpty()) {
             gap: 6px;
         }
         .clear-btn:hover {
-            color: #dc3545;
+            color: var(--btn-danger-bg);
         }
 
         /* ============ CART ITEM ============ */
@@ -611,7 +643,7 @@ if (!Cart::isEmpty()) {
             gap: 5px;
         }
         .remove-btn:hover {
-            color: #dc3545;
+            color: var(--btn-danger-bg);
         }
 
         /* ============ UPSELLS SECTION ============ */
@@ -801,7 +833,7 @@ if (!Cart::isEmpty()) {
         .promo-error {
             margin-top: 10px;
             font-size: 12px;
-            color: #dc3545;
+            color: var(--btn-danger-bg);
             display: none;
         }
         .promo-error.show {
@@ -845,8 +877,8 @@ if (!Cart::isEmpty()) {
             transition: all 0.2s;
         }
         .promo-remove-btn:hover {
-            background: rgba(220,53,69,0.15);
-            color: #dc3545;
+            background: color-mix(in srgb, var(--btn-danger-bg) 15%, transparent);
+            color: var(--btn-danger-bg);
         }
         .promo-success {
             margin-top: 10px;
@@ -983,10 +1015,10 @@ if (!Cart::isEmpty()) {
             color: var(--gray);
             box-shadow: 0 2px 4px rgba(0,0,0,0.08);
         }
-        .payment-icon.visa { color: #1A1F71; }
-        .payment-icon.mc { color: #EB001B; }
-        .payment-icon.amex { color: #006FCF; }
-        .payment-icon.cb { color: #1D4F91; }
+        .payment-icon.visa { color: var(--color-secondary); }
+        .payment-icon.mc { color: var(--btn-danger-bg); }
+        .payment-icon.amex { color: var(--color-secondary); }
+        .payment-icon.cb { color: var(--color-secondary); }
         .trust-badges {
             display: flex;
             flex-direction: column;
@@ -1268,7 +1300,7 @@ if (!Cart::isEmpty()) {
                             </div>
 
                             <?php foreach ($cartItems as $key => $item): ?>
-                                <div class="cart-item" style="border: 2px solid #FF69B4; background: white; padding: 20px; margin-bottom: 15px; border-radius: 12px; display: flex; align-items: center; gap: 20px;">
+                                <div class="cart-item" style="border: 2px solid var(--pink-main); background: white; padding: 20px; margin-bottom: 15px; border-radius: 12px; display: flex; align-items: center; gap: 20px;">
                                     <!-- Image -->
                                     <div style="width: 100px; height: 100px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                         <?php if (!empty($item['product']['image_front_url'])): ?>
@@ -1286,14 +1318,14 @@ if (!Cart::isEmpty()) {
                                             Couleur: <strong><?= htmlspecialchars($item['customization']['color'] ?? 'blanc') ?></strong>
                                         </p>
                                         <?php if (!empty($item['customization']['text'])): ?>
-                                            <p style="margin: 0; font-size: 13px; color: #FF69B4;">✏️ "<?= htmlspecialchars($item['customization']['text']) ?>"</p>
+                                            <p style="margin: 0; font-size: 13px; color: var(--pink-main);">✏️ "<?= htmlspecialchars($item['customization']['text']) ?>"</p>
                                         <?php endif; ?>
                                         <p style="margin: 8px 0 0 0; font-size: 13px; color: #888;"><?= number_format($item['unit_price'], 2, ',', ' ') ?> € / unité</p>
                                     </div>
 
                                     <!-- Quantity & Actions -->
                                     <div style="text-align: right;">
-                                        <div style="font-size: 1.3rem; font-weight: 800; color: #FF1493; margin-bottom: 10px;">
+                                        <div style="font-size: 1.3rem; font-weight: 800; color: var(--pink-dark); margin-bottom: 10px;">
                                             <?= number_format($item['subtotal'], 2, ',', ' ') ?> €
                                         </div>
                                         <div style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;">
@@ -1482,9 +1514,9 @@ if (!Cart::isEmpty()) {
                                 <?php if (in_array('mastercard', $enabledPayments)): ?><div class="payment-icon mc">MC</div><?php endif; ?>
                                 <?php if (in_array('amex', $enabledPayments)): ?><div class="payment-icon amex">AMEX</div><?php endif; ?>
                                 <?php if (in_array('cb', $enabledPayments)): ?><div class="payment-icon cb">CB</div><?php endif; ?>
-                                <?php if (in_array('paypal', $enabledPayments)): ?><div class="payment-icon" style="color:#003087;">PP</div><?php endif; ?>
-                                <?php if (in_array('apple_pay', $enabledPayments)): ?><div class="payment-icon" style="color:#000;">AP</div><?php endif; ?>
-                                <?php if (in_array('google_pay', $enabledPayments)): ?><div class="payment-icon" style="color:#4285F4;">GP</div><?php endif; ?>
+                                <?php if (in_array('paypal', $enabledPayments)): ?><div class="payment-icon" style="color:var(--color-secondary);">PP</div><?php endif; ?>
+                                <?php if (in_array('apple_pay', $enabledPayments)): ?><div class="payment-icon" style="color:var(--color-text);">AP</div><?php endif; ?>
+                                <?php if (in_array('google_pay', $enabledPayments)): ?><div class="payment-icon" style="color:var(--color-secondary);">GP</div><?php endif; ?>
                             </div>
                             <div class="trust-badges">
                                 <?php foreach ($trustBadges as $badge): ?>
@@ -1532,7 +1564,7 @@ if (!Cart::isEmpty()) {
                 fontSize: '2rem',
                 textX: 50,
                 textY: 50,
-                textColor: el.dataset.textColor || '#FF1493',
+                textColor: el.dataset.textColor || getComputedStyle(document.documentElement).getPropertyValue('--pink-dark').trim(),
                 technique: el.dataset.technique || 'flex'
             });
         }

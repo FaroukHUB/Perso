@@ -13,12 +13,16 @@ require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/User.php';
 require_once __DIR__ . '/../app/models/Upsell.php';
+require_once __DIR__ . '/../app/models/ShopSettings.php';
 require_once __DIR__ . '/../app/services/StripeService.php';
 require_once __DIR__ . '/../app/services/BoxtalService.php';
+require_once __DIR__ . '/../app/services/BrandingService.php';
 
 // Initialiser les services
+$shopSettings = new ShopSettings();
 $stripeService = new StripeService();
 $boxtalService = new BoxtalService();
+$brandingService = new BrandingService();
 
 // Vérifier si c'est un retour de Stripe
 $stripeSessionId = $_GET['session_id'] ?? null;
@@ -433,12 +437,41 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $success ? 'Commande confirmée' : 'Finaliser votre commande' ?> - PERSONNALY</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <title><?= $success ? 'Commande confirmée' : 'Finaliser votre commande' ?> - <?= h($shopSettings->getSiteName()) ?></title>
+    <?= $brandingService->getFontLinks() ?>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <style>
+        <?= $brandingService->getCSSVariables() ?>
+
+        /* Checkout-specific variable mappings from BrandingService */
+        :root {
+            /* Map BrandingService colors to checkout page variables */
+            --pink-main: var(--color-primary);
+            --pink-light: color-mix(in srgb, var(--color-primary) 20%, white);
+            --pink-dark: color-mix(in srgb, var(--color-primary) 80%, black);
+            --mint-main: var(--color-accent);
+            --mint-dark: color-mix(in srgb, var(--color-accent) 80%, black);
+            --black-soft: var(--color-text);
+            --black: var(--color-text);
+            --gray: var(--color-muted);
+            --gray-light: var(--color-light);
+
+            /* Gradient mappings */
+            --gradient-hero: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            --gradient-pink: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary) 20%));
+            --gradient-mint: linear-gradient(135deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 80%, white));
+
+            /* Display font mapping */
+            --font-display: var(--font-primary);
+
+            /* Radius utilities */
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --radius-full: 9999px;
+        }
+
         body { background: var(--gray-light); min-height: 100vh; }
 
         /* Navbar */
@@ -448,7 +481,7 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
             z-index: 1000;
         }
         .navbar {
-            background: rgba(13, 13, 13, 0.98);
+            background: color-mix(in srgb, var(--color-text) 98%, transparent);
             backdrop-filter: blur(10px);
             padding: 15px 0;
         }
