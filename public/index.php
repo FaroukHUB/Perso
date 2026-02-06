@@ -680,10 +680,57 @@ function getSubtitleStyles(array $section): string {
             font-weight: 600;
             font-size: 14px;
             transition: all var(--transition-normal);
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
         }
         .product-btn:hover {
             transform: scale(1.05);
             box-shadow: var(--shadow-mint);
+        }
+
+        /* Double boutons (Personnaliser + Ajouter au panier) */
+        .product-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .product-btn-primary {
+            background: linear-gradient(135deg, var(--pink-main) 0%, #ff1493 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 105, 180, 0.25);
+        }
+
+        .product-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
+        }
+
+        .product-btn-secondary {
+            background: white;
+            color: var(--black);
+            border: 2px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .product-btn-secondary:hover {
+            background: var(--gray-light);
+            border-color: rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+
+        /* Animation ajout panier */
+        @keyframes addedToCart {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); background: #10b981; }
+            100% { transform: scale(1); background: #10b981; }
+        }
+
+        .product-btn-primary.added {
+            animation: addedToCart 0.3s ease;
+            background: #10b981 !important;
         }
 
         /* ===== INSPIRATIONS/PACKS SECTION ===== */
@@ -1293,7 +1340,24 @@ function getSubtitleStyles(array $section): string {
                                     <?php else: ?>
                                         <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
                                     <?php endif; ?>
-                                    <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
+
+                                    <?php if (!empty($product['allow_direct_purchase'])): ?>
+                                        <!-- Produit achetable directement : 2 boutons -->
+                                        <div class="product-buttons">
+                                            <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn product-btn-secondary">
+                                                ✨ Personnaliser
+                                            </a>
+                                            <button type="button" class="product-btn product-btn-primary add-to-cart-btn"
+                                                    data-product-id="<?= $product['id'] ?>"
+                                                    data-product-name="<?= h($product['name']) ?>"
+                                                    data-product-price="<?= $hasSale ? $product['sale_price'] : $product['base_price'] ?>">
+                                                🛒 Ajouter au panier
+                                            </button>
+                                        </div>
+                                    <?php else: ?>
+                                        <!-- Personnalisation obligatoire : 1 bouton -->
+                                        <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -1363,7 +1427,24 @@ function getSubtitleStyles(array $section): string {
                                 <?php else: ?>
                                     <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
                                 <?php endif; ?>
-                                <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
+
+                                <?php if (!empty($product['allow_direct_purchase'])): ?>
+                                    <!-- Produit achetable directement : 2 boutons -->
+                                    <div class="product-buttons">
+                                        <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn product-btn-secondary">
+                                            ✨ Personnaliser
+                                        </a>
+                                        <button type="button" class="product-btn product-btn-primary add-to-cart-btn"
+                                                data-product-id="<?= $product['id'] ?>"
+                                                data-product-name="<?= h($product['name']) ?>"
+                                                data-product-price="<?= $hasSale ? $product['sale_price'] : $product['base_price'] ?>">
+                                            🛒 Ajouter au panier
+                                        </button>
+                                    </div>
+                                <?php else: ?>
+                                    <!-- Personnalisation obligatoire : 1 bouton -->
+                                    <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -2158,6 +2239,71 @@ function getSubtitleStyles(array $section): string {
                 submitBtn.disabled = false;
                 const originalText = submitBtn.getAttribute('data-original-text') || "S'inscrire";
                 submitBtn.innerHTML = originalText + ' <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+            });
+        });
+
+        // ===== AJOUT AU PANIER DIRECT =====
+        // Gérer les boutons "Ajouter au panier" pour les produits achetables directement
+        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+
+        addToCartButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.dataset.productId;
+                const productName = this.dataset.productName;
+                const productPrice = this.dataset.productPrice;
+
+                // Désactiver le bouton pendant l'ajout
+                const originalHTML = this.innerHTML;
+                this.disabled = true;
+                this.innerHTML = '⏳ Ajout...';
+
+                // Requête AJAX pour ajouter au panier
+                fetch('/public/api/cart-add.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        product_name: productName,
+                        product_price: productPrice,
+                        quantity: 1,
+                        direct_purchase: true // Indique que c'est un achat direct
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Animation de succès
+                        this.classList.add('added');
+                        this.innerHTML = '✓ Ajouté !';
+
+                        // Mettre à jour le compteur du panier
+                        const cartBadge = document.querySelector('.cart-badge');
+                        if (cartBadge) {
+                            cartBadge.textContent = data.cart_count || (parseInt(cartBadge.textContent || 0) + 1);
+                            cartBadge.style.display = 'flex';
+                        }
+
+                        // Réinitialiser après 2 secondes
+                        setTimeout(() => {
+                            this.classList.remove('added');
+                            this.innerHTML = originalHTML;
+                            this.disabled = false;
+                        }, 2000);
+                    } else {
+                        throw new Error(data.message || 'Erreur lors de l\'ajout au panier');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    this.innerHTML = '❌ Erreur';
+                    this.disabled = false;
+
+                    setTimeout(() => {
+                        this.innerHTML = originalHTML;
+                    }, 2000);
+                });
             });
         });
     });

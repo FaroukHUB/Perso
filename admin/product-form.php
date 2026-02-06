@@ -89,6 +89,7 @@ $formData = [
     'weight' => $product['weight'] ?? '',
     'category' => $product['category'] ?? '',
     'active' => $product['active'] ?? 1,
+    'allow_direct_purchase' => $product['allow_direct_purchase'] ?? 0,
     'image_front_url' => $product['image_front_url'] ?? '',
     'image_back_url' => $product['image_back_url'] ?? '',
     'available_sizes' => $product['available_sizes'] ?? null,
@@ -225,6 +226,7 @@ if (isPost()) {
             'weight' => (int)post('weight', 0) ?: null,
             'category' => trim(post('category', '')),
             'active' => post('active') ? 1 : 0,
+            'allow_direct_purchase' => post('allow_direct_purchase') ? 1 : 0,
             'image_front_url' => $formData['image_front_url'],
             'image_back_url' => $formData['image_back_url'],
             'available_sizes' => $availableSizesJson,
@@ -1260,6 +1262,20 @@ if (isPost()) {
                                            <?= $formData['active'] ? 'checked' : '' ?>>
                                     <span class="switch-slider"></span>
                                     <span class="switch-text">Produit actif (visible sur le site)</span>
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="switch-label">
+                                    <input type="checkbox" name="allow_direct_purchase" class="switch-input"
+                                           <?= $formData['allow_direct_purchase'] ? 'checked' : '' ?>>
+                                    <span class="switch-slider"></span>
+                                    <span class="switch-text">
+                                        🛒 Autoriser l'achat direct sans personnalisation
+                                        <small style="display: block; margin-top: 4px; color: #6c757d; font-weight: 400;">
+                                            Si activé, un bouton "Ajouter au panier" s'affichera sur la page d'accueil
+                                        </small>
+                                    </span>
                                 </label>
                             </div>
 
