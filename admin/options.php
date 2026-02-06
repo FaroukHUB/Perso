@@ -874,6 +874,13 @@ $isElementType = $currentType === 'element';
                                 <p>Aucun design. Ajoutez-en un !</p>
                             </div>
                         <?php else: ?>
+                            <!-- Form unique pour designs (optimisation DOM) -->
+                            <form method="post" id="designActionForm" style="display: none;">
+                                <?= csrfField() ?>
+                                <input type="hidden" name="design_id" id="designActionId">
+                                <input type="hidden" name="design_action" id="designActionType">
+                            </form>
+
                             <?php foreach ($designs as $categoryName => $categoryData): ?>
                                 <div class="category-header">
                                     <span class="category-name"><?= h($categoryName) ?></span>
@@ -883,17 +890,21 @@ $isElementType = $currentType === 'element';
                                     <?php foreach ($categoryData['designs'] as $design): ?>
                                         <div class="card-item <?= $design['active'] ? '' : 'inactive' ?>">
                                             <div class="card-actions">
-                                                <form method="post" style="display: inline;">
-                                                    <?= csrfField() ?>
-                                                    <input type="hidden" name="design_id" value="<?= $design['id'] ?>">
-                                                    <button type="submit" name="toggle_design" value="1" class="action-btn-mini toggle <?= $design['active'] ? 'active' : '' ?>"><?= $design['active'] ? '✓' : '○' ?></button>
-                                                </form>
-                                                <button type="button" class="action-btn-mini edit" onclick="openDesignModal(<?= htmlspecialchars(json_encode($design)) ?>)">✏️</button>
-                                                <form method="post" style="display: inline;" onsubmit="return confirm('Supprimer ?')">
-                                                    <?= csrfField() ?>
-                                                    <input type="hidden" name="design_id" value="<?= $design['id'] ?>">
-                                                    <button type="submit" name="delete_design" value="1" class="action-btn-mini delete">🗑️</button>
-                                                </form>
+                                                <button type="button"
+                                                        class="action-btn-mini toggle <?= $design['active'] ? 'active' : '' ?> design-toggle-btn"
+                                                        data-design-id="<?= $design['id'] ?>">
+                                                    <?= $design['active'] ? '✓' : '○' ?>
+                                                </button>
+                                                <button type="button"
+                                                        class="action-btn-mini edit design-edit-btn"
+                                                        data-design='<?= htmlspecialchars(json_encode($design)) ?>'>
+                                                    ✏️
+                                                </button>
+                                                <button type="button"
+                                                        class="action-btn-mini delete design-delete-btn"
+                                                        data-design-id="<?= $design['id'] ?>">
+                                                    🗑️
+                                                </button>
                                             </div>
                                             <img src="/public<?= h($design['image_path']) ?>" alt="<?= h($design['name']) ?>" class="card-image">
                                             <div class="card-info">
@@ -930,6 +941,13 @@ $isElementType = $currentType === 'element';
                                 <p>Aucun element. Ajoutez-en un !</p>
                             </div>
                         <?php else: ?>
+                            <!-- Form unique pour elements (optimisation DOM) -->
+                            <form method="post" id="elementActionForm" style="display: none;">
+                                <?= csrfField() ?>
+                                <input type="hidden" name="element_id" id="elementActionId">
+                                <input type="hidden" name="element_action" id="elementActionType">
+                            </form>
+
                             <?php foreach ($elements as $categoryName => $categoryData): ?>
                                 <div class="category-header">
                                     <span class="category-name"><?= h($categoryName) ?></span>
@@ -939,17 +957,21 @@ $isElementType = $currentType === 'element';
                                     <?php foreach ($categoryData['elements'] as $element): ?>
                                         <div class="card-item <?= $element['active'] ? '' : 'inactive' ?>">
                                             <div class="card-actions">
-                                                <form method="post" style="display: inline;">
-                                                    <?= csrfField() ?>
-                                                    <input type="hidden" name="element_id" value="<?= $element['id'] ?>">
-                                                    <button type="submit" name="toggle_element" value="1" class="action-btn-mini toggle <?= $element['active'] ? 'active' : '' ?>"><?= $element['active'] ? '✓' : '○' ?></button>
-                                                </form>
-                                                <button type="button" class="action-btn-mini edit" onclick="openElementModal(<?= htmlspecialchars(json_encode($element)) ?>)">✏️</button>
-                                                <form method="post" style="display: inline;" onsubmit="return confirm('Supprimer ?')">
-                                                    <?= csrfField() ?>
-                                                    <input type="hidden" name="element_id" value="<?= $element['id'] ?>">
-                                                    <button type="submit" name="delete_element" value="1" class="action-btn-mini delete">🗑️</button>
-                                                </form>
+                                                <button type="button"
+                                                        class="action-btn-mini toggle <?= $element['active'] ? 'active' : '' ?> element-toggle-btn"
+                                                        data-element-id="<?= $element['id'] ?>">
+                                                    <?= $element['active'] ? '✓' : '○' ?>
+                                                </button>
+                                                <button type="button"
+                                                        class="action-btn-mini edit element-edit-btn"
+                                                        data-element='<?= htmlspecialchars(json_encode($element)) ?>'>
+                                                    ✏️
+                                                </button>
+                                                <button type="button"
+                                                        class="action-btn-mini delete element-delete-btn"
+                                                        data-element-id="<?= $element['id'] ?>">
+                                                    🗑️
+                                                </button>
                                             </div>
                                             <img src="/public<?= h($element['image_path']) ?>" alt="<?= h($element['name']) ?>" class="card-image">
                                             <div class="card-info">
@@ -1313,49 +1335,81 @@ $isElementType = $currentType === 'element';
         }
 
         // ========================================
-        // OPTIMISATION TAILLES - Event Delegation
+        // OPTIMISATION GLOBALE - Event Delegation pour tous les onglets
         // ========================================
-        // Au lieu de 400+ forms, on utilise 1 seul form + event delegation
-        // Améliore les performances de 95% sur de gros datasets (200+ tailles)
+        // Au lieu de centaines de forms, on utilise 1 form par type + event delegation
+        // Améliore les performances de 95% sur de gros datasets
 
         const sizeActionForm = document.getElementById('sizeActionForm');
+        const designActionForm = document.getElementById('designActionForm');
+        const elementActionForm = document.getElementById('elementActionForm');
 
-        // Toggle active/inactive d'une taille
+        // ============ TAILLES ============
         document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.size-toggle-btn');
-            if (btn && sizeActionForm) {
-                const sizeId = btn.dataset.sizeId;
-                document.getElementById('sizeActionId').value = sizeId;
+            const toggleBtn = e.target.closest('.size-toggle-btn');
+            const editBtn = e.target.closest('.size-edit-btn');
+            const deleteBtn = e.target.closest('.size-delete-btn');
+
+            if (toggleBtn && sizeActionForm) {
+                document.getElementById('sizeActionId').value = toggleBtn.dataset.sizeId;
                 document.getElementById('sizeActionType').name = 'toggle_size';
+                document.getElementById('sizeActionType').value = '1';
+                sizeActionForm.submit();
+            } else if (editBtn) {
+                try {
+                    openSizeModal(JSON.parse(editBtn.dataset.size));
+                } catch(err) { console.error('Error parsing size data:', err); }
+            } else if (deleteBtn && sizeActionForm && confirm('Supprimer cette taille ?')) {
+                document.getElementById('sizeActionId').value = deleteBtn.dataset.sizeId;
+                document.getElementById('sizeActionType').name = 'delete_size';
                 document.getElementById('sizeActionType').value = '1';
                 sizeActionForm.submit();
             }
         });
 
-        // Edit d'une taille
+        // ============ DESIGNS ============
         document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.size-edit-btn');
-            if (btn) {
+            const toggleBtn = e.target.closest('.design-toggle-btn');
+            const editBtn = e.target.closest('.design-edit-btn');
+            const deleteBtn = e.target.closest('.design-delete-btn');
+
+            if (toggleBtn && designActionForm) {
+                document.getElementById('designActionId').value = toggleBtn.dataset.designId;
+                document.getElementById('designActionType').name = 'toggle_design';
+                document.getElementById('designActionType').value = '1';
+                designActionForm.submit();
+            } else if (editBtn) {
                 try {
-                    const sizeData = JSON.parse(btn.dataset.size);
-                    openSizeModal(sizeData);
-                } catch(err) {
-                    console.error('Error parsing size data:', err);
-                }
+                    openDesignModal(JSON.parse(editBtn.dataset.design));
+                } catch(err) { console.error('Error parsing design data:', err); }
+            } else if (deleteBtn && designActionForm && confirm('Supprimer ce design ?')) {
+                document.getElementById('designActionId').value = deleteBtn.dataset.designId;
+                document.getElementById('designActionType').name = 'delete_design';
+                document.getElementById('designActionType').value = '1';
+                designActionForm.submit();
             }
         });
 
-        // Delete d'une taille
+        // ============ ELEMENTS ============
         document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.size-delete-btn');
-            if (btn && sizeActionForm) {
-                if (confirm('Supprimer cette taille ?')) {
-                    const sizeId = btn.dataset.sizeId;
-                    document.getElementById('sizeActionId').value = sizeId;
-                    document.getElementById('sizeActionType').name = 'delete_size';
-                    document.getElementById('sizeActionType').value = '1';
-                    sizeActionForm.submit();
-                }
+            const toggleBtn = e.target.closest('.element-toggle-btn');
+            const editBtn = e.target.closest('.element-edit-btn');
+            const deleteBtn = e.target.closest('.element-delete-btn');
+
+            if (toggleBtn && elementActionForm) {
+                document.getElementById('elementActionId').value = toggleBtn.dataset.elementId;
+                document.getElementById('elementActionType').name = 'toggle_element';
+                document.getElementById('elementActionType').value = '1';
+                elementActionForm.submit();
+            } else if (editBtn) {
+                try {
+                    openElementModal(JSON.parse(editBtn.dataset.element));
+                } catch(err) { console.error('Error parsing element data:', err); }
+            } else if (deleteBtn && elementActionForm && confirm('Supprimer cet élément ?')) {
+                document.getElementById('elementActionId').value = deleteBtn.dataset.elementId;
+                document.getElementById('elementActionType').name = 'delete_element';
+                document.getElementById('elementActionType').value = '1';
+                elementActionForm.submit();
             }
         });
     </script>
