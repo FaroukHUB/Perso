@@ -1836,6 +1836,9 @@ if (isPost()) {
                     setTimeout(updateSizeToggleClasses, 0);
                 });
             });
+
+            // Appliquer le filtrage des tailles à la nouvelle variante
+            filterSizesByCategories();
         }
 
         function deleteVariant(btn, variantId) {
@@ -1969,13 +1972,17 @@ if (isPost()) {
                 document.querySelectorAll('.size-group').forEach(group => {
                     group.style.display = 'block';
                 });
+                // Afficher toutes les tailles des variantes aussi
+                document.querySelectorAll('.size-toggle-mini').forEach(toggle => {
+                    toggle.style.display = 'inline-flex';
+                });
                 return;
             }
 
             // Sinon, filtrer les tailles individuelles
             allowedSizes = [...new Set(allowedSizes)]; // unique
 
-            // Parcourir chaque groupe
+            // 1️⃣ Filtrer les tailles PRINCIPALES du produit
             document.querySelectorAll('.size-group').forEach(group => {
                 const toggles = group.querySelectorAll('.size-toggle');
                 let visibleCount = 0;
@@ -2003,9 +2010,28 @@ if (isPost()) {
                 }
             });
 
+            // 2️⃣ Filtrer les tailles des VARIANTES (couleurs)
+            document.querySelectorAll('.variant-item').forEach(variantItem => {
+                const variantToggles = variantItem.querySelectorAll('.size-toggle-mini');
+
+                variantToggles.forEach(toggle => {
+                    const checkbox = toggle.querySelector('input[type="checkbox"]');
+                    const sizeValue = checkbox ? checkbox.value : '';
+
+                    if (allowedSizes.includes(sizeValue)) {
+                        toggle.style.display = 'inline-flex';
+                    } else {
+                        toggle.style.display = 'none';
+                        // Décocher si masqué
+                        if (checkbox) checkbox.checked = false;
+                    }
+                });
+            });
+
             updateSizeToggleClasses();
 
             console.log('✨ [FILTRAGE TAILLES] Filtrage terminé - Tailles visibles:', allowedSizes.length);
+            console.log('   → Tailles produit + variantes filtrées selon catégories');
         }
 
         // Écouter les changements de catégories
