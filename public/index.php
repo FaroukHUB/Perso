@@ -1121,7 +1121,7 @@ function getSubtitleStyles(array $section): string {
         .footer {
             background: var(--gradient-dark);
             color: var(--white);
-            padding: 60px 0 30px;
+            padding: 100px 0 30px;
         }
         .footer-content {
             display: grid;
