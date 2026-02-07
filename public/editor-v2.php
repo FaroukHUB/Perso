@@ -136,9 +136,26 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
         <!-- TAB CONTENT -->
         <div class="ps-tab-content">
 
-            <!-- PRODUCT COLORS (always visible at top) -->
-            <div class="ps-product-colors-wrapper" id="productColorsWrapper" style="display: none;">
-                <div class="ps-product-colors" id="productColorSelector"></div>
+            <!-- PRODUCT CONFIGURATION (always visible at top) -->
+            <div class="ps-form-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #E5E7EB;">
+                <label class="ps-label">👕 Configuration du produit</label>
+
+                <!-- Sélecteur de couleur -->
+                <div class="ps-form-group" style="margin-top: 15px;">
+                    <label class="ps-label" style="font-size: 13px; margin-bottom: 8px;">Couleur</label>
+                    <div id="colorSelector" class="ps-color-selector">
+                        <!-- Couleurs générées par JS -->
+                    </div>
+                </div>
+
+                <!-- Sélecteur de taille -->
+                <div class="ps-form-group" style="margin-top: 15px;">
+                    <label class="ps-label" style="font-size: 13px; margin-bottom: 8px;">Taille</label>
+                    <select class="ps-select" id="sizeSelector">
+                        <option value="">Sélectionnez une taille</option>
+                        <!-- Tailles générées par JS -->
+                    </select>
+                </div>
             </div>
 
             <!-- TAB: TEXTE -->
@@ -271,28 +288,6 @@ $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: 1;
 
             <!-- TAB: DESIGNS -->
             <div class="ps-panel" id="panel-designs">
-
-                <!-- Configuration Produit -->
-                <div class="ps-form-group" style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #E5E7EB;">
-                    <label class="ps-label">👕 Configuration du produit</label>
-
-                    <!-- Sélecteur de couleur -->
-                    <div class="ps-form-group" style="margin-top: 15px;">
-                        <label class="ps-label" style="font-size: 13px; margin-bottom: 8px;">Couleur</label>
-                        <div id="colorSelector" class="ps-color-selector">
-                            <!-- Couleurs générées par JS -->
-                        </div>
-                    </div>
-
-                    <!-- Sélecteur de taille -->
-                    <div class="ps-form-group" style="margin-top: 15px;">
-                        <label class="ps-label" style="font-size: 13px; margin-bottom: 8px;">Taille</label>
-                        <select class="ps-select" id="sizeSelector">
-                            <option value="">Sélectionnez une taille</option>
-                            <!-- Tailles générées par JS -->
-                        </select>
-                    </div>
-                </div>
 
                 <p class="ps-label">Choisir un design</p>
                 <div class="ps-grid" id="designsGrid">
