@@ -289,6 +289,9 @@ if (!Cart::isEmpty()) {
             font-size: 1.6rem;
             font-weight: 800;
             text-decoration: none;
+        }
+        /* Gradient texte uniquement si pas d'image */
+        .navbar-brand:not(:has(img)) {
             background: var(--gradient-hero);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;

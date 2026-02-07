@@ -495,6 +495,9 @@ if (isPost() && isset($_POST['place_order']) && !$paymentSuccess) {
             font-size: 1.5rem;
             font-weight: 800;
             text-decoration: none;
+        }
+        /* Gradient texte uniquement si pas d'image */
+        .navbar-brand:not(:has(img)) {
             background: var(--gradient-hero);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
