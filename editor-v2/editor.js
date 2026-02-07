@@ -34,6 +34,7 @@ const state = {
 
   // État courant
   currentColorId: null,
+  currentSize: null,
   currentView: 'front',
   currentTechnique: null,
 
@@ -263,36 +264,78 @@ function renderProductInfo() {
 }
 
 function renderProductColors() {
-  const wrapper = document.getElementById('productColorsWrapper');
-  const container = document.getElementById('productColorSelector');
-
-  // Masquer si ≤1 couleur
-  if (!state.colors || state.colors.length <= 1) {
-    if (wrapper) wrapper.style.display = 'none';
-    return;
-  }
-
-  // Afficher et remplir
-  if (wrapper) wrapper.style.display = 'block';
-  if (!container) return;
+  const container = document.getElementById('colorSelector');
+  if (!container || !state.colors || state.colors.length === 0) return;
 
   container.innerHTML = '';
 
   state.colors.forEach(color => {
     const btn = document.createElement('div');
-    btn.className = 'ps-product-color';
+    btn.className = 'ps-color-option';
     if (color.id === state.currentColorId) btn.classList.add('active');
     btn.style.backgroundColor = color.hex;
     btn.title = color.name;
 
+    // Détecter si la couleur est claire pour ajuster le checkmark
+    const isLight = isColorLight(color.hex);
+    if (isLight) btn.setAttribute('data-light', 'true');
+
     btn.addEventListener('click', () => {
       state.currentColorId = color.id;
       renderProductColors();
+      renderSizeSelector(); // Mise à jour des tailles disponibles
       renderProductInfo();
     });
 
     container.appendChild(btn);
   });
+}
+
+function renderSizeSelector() {
+  const select = document.getElementById('sizeSelector');
+  if (!select) return;
+
+  // Récupérer toutes les tailles disponibles (union de toutes les couleurs)
+  const allSizes = new Set();
+
+  state.colors.forEach(color => {
+    if (color.sizes && Array.isArray(color.sizes)) {
+      color.sizes.forEach(size => allSizes.add(size));
+    }
+  });
+
+  // Vider le select
+  select.innerHTML = '<option value="">Sélectionnez une taille</option>';
+
+  // Ajouter les tailles
+  if (allSizes.size === 0) {
+    select.innerHTML = '<option value="">Aucune taille disponible</option>';
+    select.disabled = true;
+  } else {
+    allSizes.forEach(size => {
+      const option = document.createElement('option');
+      option.value = size;
+      option.textContent = size;
+      if (size === state.currentSize) option.selected = true;
+      select.appendChild(option);
+    });
+    select.disabled = false;
+  }
+
+  // Écouter les changements
+  select.addEventListener('change', (e) => {
+    state.currentSize = e.target.value || null;
+  });
+}
+
+// Helper pour détecter si une couleur est claire
+function isColorLight(hex) {
+  const rgb = parseInt(hex.replace('#', ''), 16);
+  const r = (rgb >> 16) & 0xff;
+  const g = (rgb >>  8) & 0xff;
+  const b = (rgb >>  0) & 0xff;
+  const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luma > 180;
 }
 
 function initViewToggle() {
@@ -2934,7 +2977,7 @@ function initAddToCart() {
     const payload = {
       product_id: state.productId,
       color_id: state.currentColorId || 0,
-      size: null,
+      size: state.currentSize || null,
       technique: state.currentTechnique,
       view: state.currentView,
       preview_image_url: previewImageUrl,
@@ -3106,6 +3149,7 @@ async function init() {
   // Render UI depuis les données API
   renderProductInfo();
   renderProductColors();
+  renderSizeSelector();
   renderPrintZone();
 
   // Initialiser les interactions
