@@ -3016,6 +3016,76 @@ function initAddToCart() {
 }
 
 // ============================================
+// SHARE MODAL
+// ============================================
+function initShareModal() {
+  const btnShare = document.getElementById('btnShare');
+  const shareModal = document.getElementById('shareModal');
+  const btnCloseShare = document.getElementById('btnCloseShare');
+  const shareOverlay = shareModal?.querySelector('.ps-share-overlay');
+
+  if (!btnShare || !shareModal) return;
+
+  // Ouvrir le modal
+  btnShare.addEventListener('click', async () => {
+    // Vérifier qu'il y a au moins un layer
+    if (state.layers.length === 0) {
+      alert('Ajoutez au moins un élément à votre design avant de partager.');
+      return;
+    }
+
+    shareModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  });
+
+  // Fermer le modal
+  const closeModal = () => {
+    shareModal.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  btnCloseShare?.addEventListener('click', closeModal);
+  shareOverlay?.addEventListener('click', closeModal);
+
+  // Boutons de partage
+  document.getElementById('btnShareFacebook')?.addEventListener('click', async () => {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent('Regardez mon design personnalisé sur Personnaly !');
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`, '_blank', 'width=600,height=400');
+  });
+
+  document.getElementById('btnShareTwitter')?.addEventListener('click', async () => {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent('Regardez mon design personnalisé sur Personnaly ! 🎨');
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
+  });
+
+  document.getElementById('btnShareWhatsApp')?.addEventListener('click', async () => {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent('Regardez mon design personnalisé sur Personnaly ! 🎨 ' + window.location.href);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  });
+
+  document.getElementById('btnCopyLink')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btnCopyLink');
+    const originalText = btn.innerHTML;
+
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span>Lien copié !</span>
+      `;
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+      }, 2000);
+    } catch (error) {
+      alert('Erreur lors de la copie du lien.');
+    }
+  });
+}
+
+// ============================================
 // INIT
 // ============================================
 async function init() {
@@ -3043,6 +3113,7 @@ async function init() {
   initViewToggle();
   initPreview();
   initAddToCart();
+  initShareModal();
 
   // Initialiser le prix
   updatePrice();
