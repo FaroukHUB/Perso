@@ -2867,6 +2867,50 @@ function closeTechniqueRender() {
 }
 
 // ============================================
+// CAPTURE PREVIEW IMAGE
+// ============================================
+async function capturePreviewImage() {
+  try {
+    const previewElement = document.querySelector('.ps-product-frame');
+    if (!previewElement) {
+      console.warn('Preview element not found');
+      return null;
+    }
+
+    // Capturer l'élément avec html2canvas
+    const canvas = await html2canvas(previewElement, {
+      backgroundColor: null,
+      scale: 2, // Qualité haute résolution
+      logging: false,
+      useCORS: true,
+      allowTaint: true
+    });
+
+    // Convertir le canvas en base64
+    const imageData = canvas.toDataURL('image/png');
+
+    // Envoyer l'image à l'API pour sauvegarde
+    const response = await fetch(`${CONFIG.apiBase}/cart/save-preview.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: imageData })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      return result.url; // Retourne l'URL relative de l'image
+    } else {
+      console.error('Erreur sauvegarde preview:', result.error);
+      return null;
+    }
+  } catch (error) {
+    console.error('Erreur capture preview:', error);
+    return null;
+  }
+}
+
+// ============================================
 // ADD TO CART
 // ============================================
 function initAddToCart() {
@@ -2881,12 +2925,19 @@ function initAddToCart() {
       return;
     }
 
+    // Capturer l'image du design avant d'ajouter au panier
+    els.btnAddToCart.disabled = true;
+    els.btnAddToCart.textContent = 'Génération de l\'aperçu...';
+
+    const previewImageUrl = await capturePreviewImage();
+
     const payload = {
       product_id: state.productId,
       color_id: state.currentColorId || 0,
       size: null,
       technique: state.currentTechnique,
       view: state.currentView,
+      preview_image_url: previewImageUrl,
       layers: state.layers.map(l => {
         const base = {
           type: l.type,
