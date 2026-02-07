@@ -13,16 +13,18 @@ require_once __DIR__ . '/../app/models/Order.php';
 
 Auth::requireAdmin();
 
-require_once __DIR__ . '/../app/models/CustomizationOption.php';
+require_once __DIR__ . '/../app/models/Size.php';
+require_once __DIR__ . '/../app/models/SizeGroup.php';
 
 $categoryModel = new Category();
 $orderModel = new Order();
-$customizationModel = new CustomizationOption();
+$sizeModel = new Size();
 $pendingOrders = $orderModel->countNew();
 $statuses = $categoryModel->getStatuses();
 
 // Récupérer toutes les tailles disponibles (groupées pour l'affichage)
-$allSizesGrouped = $customizationModel->getSizesGrouped();
+// Utilise le nouveau système Size/SizeGroup au lieu de CustomizationOption
+$allSizesGrouped = $sizeModel->getSizesGroupedForCategories();
 
 // Mode édition ou création
 $editMode = false;

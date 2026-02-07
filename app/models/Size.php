@@ -190,4 +190,46 @@ class Size
         }
         return $result;
     }
+
+    /**
+     * Recupere les tailles groupees par groupe (format compatible avec l'ancien systeme)
+     * Utilise pour category-form.php et product-form.php
+     * Retourne: ['Lettres' => [['value' => 'XS', 'label' => 'XS', ...], ...], ...]
+     */
+    public function getSizesGroupedForCategories(): array
+    {
+        try {
+            $stmt = $this->db->prepare(
+                'SELECT s.*, sg.name as group_name
+                 FROM sizes s
+                 JOIN size_groups sg ON s.size_group_id = sg.id
+                 WHERE s.active = 1 AND sg.active = 1
+                 ORDER BY sg.sort_order ASC, s.sort_order ASC'
+            );
+            $stmt->execute();
+            $sizes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Grouper par group_name avec format compatible
+            $grouped = [];
+            foreach ($sizes as $size) {
+                $groupName = $size['group_name'] ?: 'Autres';
+                if (!isset($grouped[$groupName])) {
+                    $grouped[$groupName] = [];
+                }
+                // Format compatible avec l'ancien systeme (value = label pour les tailles)
+                $grouped[$groupName][] = [
+                    'id' => $size['id'],
+                    'value' => $size['label'],  // value = label pour compatibilite
+                    'label' => $size['label'],
+                    'size_group' => $groupName,
+                    'size_group_id' => $size['size_group_id'],
+                    'sort_order' => $size['sort_order'],
+                    'active' => $size['active']
+                ];
+            }
+            return $grouped;
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
 }

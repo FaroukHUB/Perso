@@ -13,7 +13,8 @@ require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/ProductColor.php';
 require_once __DIR__ . '/../app/models/ProductColorImage.php';
 require_once __DIR__ . '/../app/models/Category.php';
-require_once __DIR__ . '/../app/models/CustomizationOption.php';
+require_once __DIR__ . '/../app/models/Size.php';
+require_once __DIR__ . '/../app/models/SizeGroup.php';
 
 Auth::requireAdmin();
 
@@ -22,11 +23,12 @@ $orderModel = new Order();
 $productColorModel = new ProductColor();
 $productColorImageModel = new ProductColorImage();
 $categoryModel = new Category();
-$optionModel = new CustomizationOption();
+$sizeModel = new Size();
 $pendingOrders = $orderModel->countNew();
 
 // Récupérer les tailles depuis la base de données (groupées)
-$sizesGrouped = $optionModel->getSizesGrouped();
+// Utilise le nouveau système Size/SizeGroup au lieu de CustomizationOption
+$sizesGrouped = $sizeModel->getSizesGroupedForCategories();
 // Fallback si pas de tailles en BDD
 if (empty($sizesGrouped)) {
     $sizesGrouped = [
