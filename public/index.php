@@ -386,6 +386,42 @@ function getSubtitleStyles(array $section): string {
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <?= $brandingService->getStyleBlock() ?>
     <style>
+        /* Variable mappings from BrandingService */
+        :root {
+            /* Map BrandingService colors to legacy variables */
+            --pink-main: var(--color-primary);
+            --pink-light: color-mix(in srgb, var(--color-primary) 20%, white);
+            --pink-dark: color-mix(in srgb, var(--color-primary) 80%, black);
+            --mint-main: var(--color-accent);
+            --mint-dark: color-mix(in srgb, var(--color-accent) 80%, black);
+            --black-soft: var(--color-text);
+            --black: var(--color-text);
+            --gray: #6B7280;
+            --gray-light: var(--color-surface);
+            --white: #FFFFFF;
+
+            /* Gradient mappings */
+            --gradient-hero: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            --gradient-pink: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary) 20%));
+            --gradient-mint: linear-gradient(135deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 80%, white));
+            --gradient-dark: linear-gradient(135deg, #1a1a2e, #0f0f1e);
+
+            /* Display font mapping */
+            --font-display: var(--font-primary);
+
+            /* Spacing */
+            --spacing-xs: 8px;
+            --spacing-sm: 12px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-xxl: 48px;
+
+            /* Transitions */
+            --transition-fast: 0.2s ease;
+            --transition-base: 0.3s ease;
+        }
+
         /* ===== NAVBAR ===== */
         .site-header {
             position: fixed;
