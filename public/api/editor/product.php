@@ -96,20 +96,19 @@ try {
         }
     }
 
-    // TOUJOURS ajouter le produit de base en premier (même si des variantes existent)
-    if (!empty($product['image_front_url']) || !empty($product['image_back_url'])) {
-        $colorsData[] = [
-            'id' => 0,
-            'name' => 'Standard',
-            'hex' => '#FFFFFF',
-            'is_default' => empty($colorImages), // Par défaut seulement si pas de variantes
-            'sizes' => $productSizes,
-            'images' => [
-                'front' => $product['image_front_url'] ?: '/editor-v2/tshirt-front.svg',
-                'back' => $product['image_back_url'] ?: null
-            ]
-        ];
-    }
+    // TOUJOURS ajouter le produit de base (couleur Standard)
+    // Ceci garantit qu'il y a toujours au moins une couleur
+    $colorsData[] = [
+        'id' => 0,
+        'name' => 'Standard',
+        'hex' => '#FFFFFF',
+        'is_default' => empty($colorImages), // Par défaut seulement si pas de variantes
+        'sizes' => $productSizes,
+        'images' => [
+            'front' => $product['image_front_url'] ?: '/editor-v2/tshirt-front.svg',
+            'back' => $product['image_back_url'] ?: '/editor-v2/tshirt-back.svg'
+        ]
+    ];
 
     // Ajouter les variantes couleur si elles existent
     if (!empty($colorImages)) {
