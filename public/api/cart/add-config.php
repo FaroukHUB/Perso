@@ -52,6 +52,7 @@ $technique = $data['technique'] ?? 'dtg';
 $view = $data['view'] ?? 'front';
 $layers = $data['layers'] ?? [];
 $quantity = isset($data['quantity']) ? max(1, (int) $data['quantity']) : 1;
+$previewImageUrl = $data['preview_image_url'] ?? null;
 
 // Valider product_id
 if ($productId <= 0) {
@@ -136,6 +137,7 @@ $customization = [
         'price' => $techniquePrice
     ],
     'layers' => $layers,
+    'preview_image_url' => $previewImageUrl,
     'prices' => [
         'base' => $basePrice,
         'technique' => $techniquePrice,

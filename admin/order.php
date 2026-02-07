@@ -834,17 +834,25 @@ if ($customer && !empty($customer['phone'])) {
                             $unitPrice = isset($item['unit_price']) ? (float)$item['unit_price'] : 0;
                             $productName = isset($item['product_name']) ? (string)$item['product_name'] : 'Produit supprimé';
                             $productImage = isset($item['product_image']) ? (string)$item['product_image'] : '';
+
+                            // Utiliser l'image du design personnalisé si disponible, sinon l'image du produit de base
+                            $displayImage = '';
+                            if (!empty($customization['preview_image_url'])) {
+                                $displayImage = '/public' . $customization['preview_image_url'];
+                            } elseif ($productImage) {
+                                $displayImage = '/public' . $productImage;
+                            }
                         ?>
                             <div class="order-item">
                                 <div class="item-image" onclick="openOrderLightbox(this)"
-                                     data-img="<?= $productImage ? '/public' . h($productImage) : '' ?>"
+                                     data-img="<?= h($displayImage) ?>"
                                      data-text="<?= h((string)($customization['text'] ?? '')) ?>"
                                      data-font="<?= h((string)($customization['font'] ?? 'Poppins')) ?>"
                                      data-text-color="<?= h((string)($customization['text_color'] ?? '#FF1493')) ?>"
                                      data-technique="<?= h((string)($customization['technique'] ?? 'flex')) ?>"
                                      data-name="<?= h($productName) ?>">
-                                    <?php if ($productImage): ?>
-                                        <img src="/public<?= h($productImage) ?>" alt="<?= h($productName) ?>">
+                                    <?php if ($displayImage): ?>
+                                        <img src="<?= h($displayImage) ?>" alt="<?= h($productName) ?>">
                                     <?php else: ?>
                                         <span style="font-size:2rem;">&#128085;</span>
                                     <?php endif; ?>
