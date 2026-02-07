@@ -265,6 +265,13 @@ function renderProductInfo() {
 
 function renderProductColors() {
   const container = document.getElementById('colorSelector');
+
+  console.log('[DEBUG] renderProductColors:', {
+    hasContainer: !!container,
+    colorsCount: state.colors?.length,
+    colors: state.colors
+  });
+
   if (!container || !state.colors || state.colors.length === 0) return;
 
   container.innerHTML = '';
@@ -293,16 +300,25 @@ function renderProductColors() {
 
 function renderSizeSelector() {
   const select = document.getElementById('sizeSelector');
+
+  console.log('[DEBUG] renderSizeSelector:', {
+    hasSelect: !!select,
+    colorsCount: state.colors?.length
+  });
+
   if (!select) return;
 
   // Récupérer toutes les tailles disponibles (union de toutes les couleurs)
   const allSizes = new Set();
 
   state.colors.forEach(color => {
+    console.log('[DEBUG] Processing color:', color.name, 'sizes:', color.sizes);
     if (color.sizes && Array.isArray(color.sizes)) {
       color.sizes.forEach(size => allSizes.add(size));
     }
   });
+
+  console.log('[DEBUG] All sizes found:', Array.from(allSizes));
 
   // Vider le select
   select.innerHTML = '<option value="">Sélectionnez une taille</option>';

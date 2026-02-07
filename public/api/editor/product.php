@@ -87,6 +87,15 @@ try {
 
     $colorsData = [];
 
+    // Récupérer les tailles du produit de base
+    $productSizes = [];
+    if (!empty($product['available_sizes'])) {
+        $decoded = json_decode($product['available_sizes'], true);
+        if (is_array($decoded)) {
+            $productSizes = $decoded;
+        }
+    }
+
     // TOUJOURS ajouter le produit de base en premier (même si des variantes existent)
     if (!empty($product['image_front_url']) || !empty($product['image_back_url'])) {
         $colorsData[] = [
@@ -94,7 +103,7 @@ try {
             'name' => 'Standard',
             'hex' => '#FFFFFF',
             'is_default' => empty($colorImages), // Par défaut seulement si pas de variantes
-            'sizes' => [],
+            'sizes' => $productSizes,
             'images' => [
                 'front' => $product['image_front_url'] ?: '/editor-v2/tshirt-front.svg',
                 'back' => $product['image_back_url'] ?: null
@@ -135,7 +144,7 @@ try {
             'name' => 'Standard',
             'hex' => '#FFFFFF',
             'is_default' => true,
-            'sizes' => [],
+            'sizes' => $productSizes,
             'images' => [
                 'front' => '/editor-v2/tshirt-front.svg',
                 'back' => null
