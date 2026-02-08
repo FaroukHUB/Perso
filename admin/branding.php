@@ -49,12 +49,45 @@ if (isset($successMessages[$successKey])) {
 if (isPost()) {
     if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
         $error = 'Token CSRF invalide.';
-    } elseif (isset($_POST['save_branding'])) {
-        // Sauvegarde branding (identité, couleurs, polices)
+    } elseif (isset($_POST['save_identity'])) {
+        // Sauvegarde Identité (logos et polices uniquement)
         if (!$tableExists) {
             $error = 'La table branding_settings n\'existe pas. Exécutez la migration SQL d\'abord.';
         } else {
-            // Construire button_styles JSON (simplifié: juste bg_color)
+            $data = [
+                'logo_url' => post('logo_url', ''),
+                'logo_light_url' => post('logo_light_url', ''),
+                'favicon_url' => post('favicon_url', ''),
+                'font_primary' => post('font_primary', ''),
+                'font_primary_url' => post('font_primary_url', ''),
+                'font_secondary' => post('font_secondary', ''),
+                'font_secondary_url' => post('font_secondary_url', ''),
+            ];
+
+            // Nettoyer les valeurs vides
+            foreach ($data as $key => $value) {
+                if ($value === '') {
+                    $data[$key] = null;
+                }
+            }
+
+            try {
+                if ($clientId === null) {
+                    $brandingModel->upsertGlobal($data);
+                } else {
+                    $brandingModel->upsertForClient($clientId, $data);
+                }
+                redirect('/admin/branding.php?tab=identity&success=branding');
+            } catch (Exception $e) {
+                $error = 'Erreur lors de la sauvegarde : ' . $e->getMessage();
+            }
+        }
+    } elseif (isset($_POST['save_colors'])) {
+        // Sauvegarde Couleurs et styles de boutons uniquement
+        if (!$tableExists) {
+            $error = 'La table branding_settings n\'existe pas. Exécutez la migration SQL d\'abord.';
+        } else {
+            // Construire button_styles JSON
             $buttonTypes = ['primary', 'secondary', 'danger', 'success', 'outline'];
             $buttonStyles = [];
             foreach ($buttonTypes as $type) {
@@ -64,10 +97,6 @@ if (isPost()) {
             }
 
             $data = [
-                'font_primary' => post('font_primary', ''),
-                'font_primary_url' => post('font_primary_url', ''),
-                'font_secondary' => post('font_secondary', ''),
-                'font_secondary_url' => post('font_secondary_url', ''),
                 'color_primary' => post('color_primary', ''),
                 'color_secondary' => post('color_secondary', ''),
                 'color_accent' => post('color_accent', ''),
@@ -79,9 +108,6 @@ if (isPost()) {
                 'color_button_text' => post('color_button_text', ''),
                 'border_radius' => post('border_radius', 'medium'),
                 'shadow_intensity' => post('shadow_intensity', 'subtle'),
-                'logo_url' => post('logo_url', ''),
-                'logo_light_url' => post('logo_light_url', ''),
-                'favicon_url' => post('favicon_url', ''),
                 'button_styles' => json_encode($buttonStyles),
             ];
 
@@ -98,9 +124,7 @@ if (isPost()) {
                 } else {
                     $brandingModel->upsertForClient($clientId, $data);
                 }
-                $redirectUrl = '/admin/branding.php?tab=' . $activeTab . '&success=branding';
-                if ($clientId) $redirectUrl .= '&client_id=' . $clientId;
-                redirect($redirectUrl);
+                redirect('/admin/branding.php?tab=colors&success=branding');
             } catch (Exception $e) {
                 $error = 'Erreur lors de la sauvegarde : ' . $e->getMessage();
             }
@@ -314,7 +338,7 @@ $shadowOptions = [
             <?php if ($activeTab === 'identity'): ?>
             <form method="post" class="branding-form">
                 <?= csrfField() ?>
-                <input type="hidden" name="save_branding" value="1">
+                <input type="hidden" name="save_identity" value="1">
 
                 <!-- Section: Identité (Logos) -->
                 <div class="data-card">
@@ -462,7 +486,7 @@ $shadowOptions = [
             <?php if ($activeTab === 'colors'): ?>
             <form method="post" class="branding-form">
                 <?= csrfField() ?>
-                <input type="hidden" name="save_branding" value="1">
+                <input type="hidden" name="save_colors" value="1">
 
                 <!-- Section: Couleurs -->
                 <div class="data-card">
