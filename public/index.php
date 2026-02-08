@@ -2279,69 +2279,9 @@ function getSubtitleStyles(array $section): string {
         });
 
         // ===== AJOUT AU PANIER DIRECT =====
-        // Gérer les boutons "Ajouter au panier" pour les produits achetables directement
-        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-
-        addToCartButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const productId = this.dataset.productId;
-                const productName = this.dataset.productName;
-                const productPrice = this.dataset.productPrice;
-
-                // Désactiver le bouton pendant l'ajout
-                const originalHTML = this.innerHTML;
-                this.disabled = true;
-                this.innerHTML = '⏳ Ajout...';
-
-                // Requête AJAX pour ajouter au panier
-                fetch('/public/api/cart-add.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        product_id: productId,
-                        product_name: productName,
-                        product_price: productPrice,
-                        quantity: 1,
-                        direct_purchase: true // Indique que c'est un achat direct
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Animation de succès
-                        this.classList.add('added');
-                        this.innerHTML = '✓ Ajouté !';
-
-                        // Mettre à jour le compteur du panier
-                        const cartBadge = document.querySelector('.cart-badge');
-                        if (cartBadge) {
-                            cartBadge.textContent = data.cart_count || (parseInt(cartBadge.textContent || 0) + 1);
-                            cartBadge.style.display = 'flex';
-                        }
-
-                        // Réinitialiser après 2 secondes
-                        setTimeout(() => {
-                            this.classList.remove('added');
-                            this.innerHTML = originalHTML;
-                            this.disabled = false;
-                        }, 2000);
-                    } else {
-                        throw new Error(data.message || 'Erreur lors de l\'ajout au panier');
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur:', error);
-                    this.innerHTML = '❌ Erreur';
-                    this.disabled = false;
-
-                    setTimeout(() => {
-                        this.innerHTML = originalHTML;
-                    }, 2000);
-                });
-            });
-        });
+        // Le code pour gérer les boutons "Ajouter au panier" a été déplacé
+        // dans /public/assets/js/cart-quick-add.js (chargé via footer.php)
+        // pour éviter les doublons et être utilisé sur toutes les pages
     });
     </script>
 </body>
