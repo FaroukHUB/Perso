@@ -112,7 +112,22 @@ $cartItem = [
 ];
 
 try {
-    Cart::add($cartItem);
+    // Appeler Cart::add() avec les bons paramètres (productId, customization, unitPrice, quantity)
+    Cart::add(
+        $productId,
+        [
+            'type' => 'direct_purchase',
+            'product_name' => $product['name'],
+            'product_image' => $product['image_front_url'] ?? null,
+            'size' => null,
+            'color' => null,
+            'technique' => null,
+            'layers' => [],
+            'direct_purchase' => true
+        ],
+        $finalPrice,
+        $quantity
+    );
     $cartCount = Cart::count();
 
     http_response_code(200);
