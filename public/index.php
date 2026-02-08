@@ -1377,23 +1377,8 @@ function getSubtitleStyles(array $section): string {
                                         <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
                                     <?php endif; ?>
 
-                                    <?php if (!empty($product['allow_direct_purchase'])): ?>
-                                        <!-- Produit achetable directement : 2 boutons -->
-                                        <div class="product-buttons">
-                                            <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn product-btn-secondary">
-                                                ✨ Personnaliser
-                                            </a>
-                                            <button type="button" class="product-btn product-btn-primary add-to-cart-btn"
-                                                    data-product-id="<?= $product['id'] ?>"
-                                                    data-product-name="<?= h($product['name']) ?>"
-                                                    data-product-price="<?= $hasSale ? $product['sale_price'] : $product['base_price'] ?>">
-                                                🛒 Ajouter au panier
-                                            </button>
-                                        </div>
-                                    <?php else: ?>
-                                        <!-- Personnalisation obligatoire : 1 bouton -->
-                                        <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
-                                    <?php endif; ?>
+                                    <!-- TEMPORAIRE: Bouton Personnaliser uniquement -->
+                                    <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
                                 </div>
                             </div>
                         </div>
@@ -1464,23 +1449,8 @@ function getSubtitleStyles(array $section): string {
                                     <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
                                 <?php endif; ?>
 
-                                <?php if (!empty($product['allow_direct_purchase'])): ?>
-                                    <!-- Produit achetable directement : 2 boutons -->
-                                    <div class="product-buttons">
-                                        <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn product-btn-secondary">
-                                            ✨ Personnaliser
-                                        </a>
-                                        <button type="button" class="product-btn product-btn-primary add-to-cart-btn"
-                                                data-product-id="<?= $product['id'] ?>"
-                                                data-product-name="<?= h($product['name']) ?>"
-                                                data-product-price="<?= $hasSale ? $product['sale_price'] : $product['base_price'] ?>">
-                                            🛒 Ajouter au panier
-                                        </button>
-                                    </div>
-                                <?php else: ?>
-                                    <!-- Personnalisation obligatoire : 1 bouton -->
-                                    <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
-                                <?php endif; ?>
+                                <!-- TEMPORAIRE: Bouton Personnaliser uniquement -->
+                                <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
                             </div>
                         </div>
                     </div>

@@ -90,7 +90,8 @@ $footerLogoUrl = $brandingService->getLogo(null, false); // false = fond sombre
 </footer>
 
 <!-- Script global pour ajout rapide au panier -->
-<script src="/public/assets/js/cart-quick-add.js"></script>
+<!-- TEMPORAIREMENT DÉSACTIVÉ pour résoudre le freeze au chargement -->
+<!-- <script src="/public/assets/js/cart-quick-add.js"></script> -->
 
 <?php
 // Inclure le popup si activé
