@@ -123,7 +123,13 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
             'site_description' => post('site_description', ''),
             'contact_email' => post('contact_email', ''),
             'contact_phone' => post('contact_phone', ''),
-            'copyright_text' => post('copyright_text', '')
+            'copyright_text' => post('copyright_text', ''),
+            'btn_add_to_cart_text' => post('btn_add_to_cart_text', 'Ajouter au panier'),
+            'btn_customize_text' => post('btn_customize_text', 'Personnaliser'),
+            'btn_add_to_cart_loading' => post('btn_add_to_cart_loading', 'Ajout...'),
+            'btn_add_to_cart_success' => post('btn_add_to_cart_success', 'Ajouté !'),
+            'btn_add_to_cart_error' => post('btn_add_to_cart_error', 'Erreur'),
+            'btn_buy_now_text' => post('btn_buy_now_text', 'Acheter maintenant')
         ]);
         $shopSettings->clearCache();
         $success = 'Paramètres généraux enregistrés.';
@@ -1040,6 +1046,53 @@ $marketingSettings = $settingsModel->getByCategory('marketing');
                                 <label class="form-label">Texte copyright</label>
                                 <input type="text" name="copyright_text" class="form-input"
                                        value="<?= h($shopSettings->get('copyright_text', '© ' . date('Y') . ' PERSONNALY')) ?>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h3 class="data-card-title">🔘 Textes des boutons</h3>
+                            <span class="header-note">Personnalisez les textes affichés sur les boutons du site</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Bouton "Ajouter au panier"</label>
+                                    <input type="text" name="btn_add_to_cart_text" class="form-input"
+                                           value="<?= h($shopSettings->get('btn_add_to_cart_text', 'Ajouter au panier')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Bouton "Personnaliser"</label>
+                                    <input type="text" name="btn_customize_text" class="form-input"
+                                           value="<?= h($shopSettings->get('btn_customize_text', 'Personnaliser')) ?>">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Texte pendant ajout</label>
+                                    <input type="text" name="btn_add_to_cart_loading" class="form-input"
+                                           value="<?= h($shopSettings->get('btn_add_to_cart_loading', 'Ajout...')) ?>">
+                                    <small class="form-hint">Affiché pendant l'ajout au panier</small>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Texte après ajout réussi</label>
+                                    <input type="text" name="btn_add_to_cart_success" class="form-input"
+                                           value="<?= h($shopSettings->get('btn_add_to_cart_success', 'Ajouté !')) ?>">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Texte en cas d'erreur</label>
+                                    <input type="text" name="btn_add_to_cart_error" class="form-input"
+                                           value="<?= h($shopSettings->get('btn_add_to_cart_error', 'Erreur')) ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Bouton "Acheter maintenant"</label>
+                                    <input type="text" name="btn_buy_now_text" class="form-input"
+                                           value="<?= h($shopSettings->get('btn_buy_now_text', 'Acheter maintenant')) ?>">
+                                    <small class="form-hint">Pour future fonctionnalité</small>
+                                </div>
                             </div>
                         </div>
                     </div>
