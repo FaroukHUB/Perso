@@ -88,6 +88,10 @@ $footerLogoUrl = $brandingService->getLogo(null, false); // false = fond sombre
         </div>
     </div>
 </footer>
+
+<!-- Script global pour ajout rapide au panier -->
+<script src="/public/assets/js/cart-quick-add.js"></script>
+
 <?php
 // Inclure le popup si activé
 include __DIR__ . '/popup.php';

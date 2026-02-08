@@ -1001,6 +1001,69 @@ h4 { font-size: 1.25rem; }
     box-shadow: var(--shadow-mint);
 }
 
+/* Product Footer avec deux boutons */
+.product-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.product-footer-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.product-buttons {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.product-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+}
+
+.product-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.product-btn-primary {
+    background: var(--gradient-pink);
+    color: var(--white);
+    box-shadow: var(--shadow-pink);
+}
+
+.product-btn-primary:hover {
+    box-shadow: 0 8px 20px rgba(255, 105, 180, 0.4);
+}
+
+.product-btn-primary.added {
+    background: var(--mint-main);
+    color: var(--black);
+}
+
+.product-btn-secondary {
+    background: transparent;
+    color: var(--pink-main);
+    border: 2px solid var(--pink-main);
+    box-shadow: none;
+}
+
+.product-btn-secondary:hover {
+    background: var(--pink-main);
+    color: var(--white);
+    box-shadow: var(--shadow-pink);
+}
+
 /* Sale Price & Badges */
 .product-badge {
     position: absolute;
