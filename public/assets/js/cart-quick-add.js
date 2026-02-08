@@ -1,79 +1,70 @@
 /**
- * PERSONNALY - Ajout rapide au panier - VERSION DEBUG
+ * Ajout rapide au panier - Version simple et stable
  */
+(function() {
+    'use strict';
 
-console.log('[CART] Script chargé');
+    function initCartButtons() {
+        // Trouver tous les boutons
+        const buttons = document.querySelectorAll('.add-to-cart-btn');
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('[CART] DOM ready');
+        if (buttons.length === 0) return;
 
-    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-    console.log('[CART] Boutons trouvés:', addToCartButtons.length);
+        buttons.forEach(function(button) {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
 
-    addToCartButtons.forEach((btn, index) => {
-        console.log('[CART] Ajout listener sur bouton', index);
+                const btn = this;
+                const productId = btn.dataset.productId;
 
-        btn.addEventListener('click', function(e) {
-            console.log('[CART] CLIC détecté sur bouton', index);
-            e.preventDefault();
-            e.stopPropagation();
+                if (!productId) return;
 
-            const button = this;
-            const productId = button.dataset.productId;
+                // Désactiver
+                btn.disabled = true;
+                btn.textContent = 'Ajout...';
 
-            console.log('[CART] Product ID:', productId);
-
-            if (!productId) {
-                console.error('[CART] Pas d\'ID produit !');
-                return;
-            }
-
-            const originalHTML = button.innerHTML;
-            button.disabled = true;
-            button.textContent = 'Chargement...';
-
-            console.log('[CART] Envoi requête API...');
-
-            fetch('/public/api/cart-add.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    product_name: button.dataset.productName,
-                    product_price: button.dataset.productPrice,
-                    quantity: 1,
-                    direct_purchase: true
+                // Appel API
+                fetch('/public/api/cart-add.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        product_id: productId,
+                        product_name: btn.dataset.productName || '',
+                        product_price: btn.dataset.productPrice || 0,
+                        quantity: 1,
+                        direct_purchase: true
+                    })
                 })
-            })
-            .then(response => {
-                console.log('[CART] Réponse reçue, status:', response.status);
-                if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('[CART] Data:', data);
-                if (data.success) {
-                    button.textContent = 'Ajouté !';
-                    console.log('[CART] Succès ! Redirection dans 1s...');
-                    setTimeout(() => {
-                        window.location.href = '/public/cart.php';
-                    }, 1000);
-                } else {
-                    throw new Error(data.message);
-                }
-            })
-            .catch(error => {
-                console.error('[CART] ERREUR:', error);
-                button.textContent = 'Erreur';
-                button.disabled = false;
-                setTimeout(() => {
-                    button.innerHTML = originalHTML;
-                }, 2000);
+                .then(function(response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
+                .then(function(data) {
+                    if (data.success) {
+                        btn.textContent = 'Ajouté !';
+                        setTimeout(function() {
+                            window.location.href = '/public/cart.php';
+                        }, 800);
+                    } else {
+                        throw new Error(data.message || 'Erreur');
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Erreur cart:', error);
+                    btn.textContent = 'Erreur';
+                    btn.disabled = false;
+                    setTimeout(function() {
+                        btn.textContent = 'Ajouter au panier';
+                    }, 2000);
+                });
             });
         });
-    });
-});
+    }
+
+    // Init au chargement
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCartButtons);
+    } else {
+        initCartButtons();
+    }
+})();

@@ -62,8 +62,17 @@ $badgeTextColor = in_array($badgeText, ['Nouveau']) ? '#1a1a2e' : '#ffffff';
                     <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
                 <?php endif; ?>
             </div>
-            <!-- TEMPORAIRE: Bouton Personnaliser uniquement (ajout panier désactivé pour débug freeze) -->
-            <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
+            <div class="product-buttons">
+                <button type="button" class="product-btn product-btn-primary add-to-cart-btn"
+                        data-product-id="<?= $product['id'] ?>"
+                        data-product-name="<?= h($product['name']) ?>"
+                        data-product-price="<?= $hasSalePrice ? $product['sale_price'] : $product['base_price'] ?>">
+                    Ajouter au panier
+                </button>
+                <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn product-btn-secondary">
+                    Personnaliser
+                </a>
+            </div>
         </div>
     </div>
 </div>
