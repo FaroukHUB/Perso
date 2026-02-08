@@ -1382,17 +1382,23 @@ function getSubtitleStyles(array $section): string {
                                         <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
                                     <?php endif; ?>
 
-                                    <div class="product-buttons">
-                                        <button type="button" class="product-btn product-btn-primary add-to-cart-btn"
-                                                data-product-id="<?= $product['id'] ?>"
-                                                data-product-name="<?= h($product['name']) ?>"
-                                                data-product-price="<?= $hasSale ? $product['sale_price'] : $product['base_price'] ?>">
-                                            <?= h($btnAddToCart) ?>
-                                        </button>
-                                        <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn product-btn-secondary">
+                                    <?php if (!empty($product['allow_direct_purchase'])): ?>
+                                        <div class="product-buttons">
+                                            <button type="button" class="product-btn product-btn-primary add-to-cart-btn"
+                                                    data-product-id="<?= $product['id'] ?>"
+                                                    data-product-name="<?= h($product['name']) ?>"
+                                                    data-product-price="<?= $hasSale ? $product['sale_price'] : $product['base_price'] ?>">
+                                                <?= h($btnAddToCart) ?>
+                                            </button>
+                                            <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn product-btn-secondary">
+                                                <?= h($btnCustomize) ?>
+                                            </a>
+                                        </div>
+                                    <?php else: ?>
+                                        <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">
                                             <?= h($btnCustomize) ?>
                                         </a>
-                                    </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -1463,17 +1469,23 @@ function getSubtitleStyles(array $section): string {
                                     <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
                                 <?php endif; ?>
 
-                                <div class="product-buttons">
-                                    <button type="button" class="product-btn product-btn-primary add-to-cart-btn"
-                                            data-product-id="<?= $product['id'] ?>"
-                                            data-product-name="<?= h($product['name']) ?>"
-                                            data-product-price="<?= $hasSale ? $product['sale_price'] : $product['base_price'] ?>">
-                                        Ajouter au panier
-                                    </button>
-                                    <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn product-btn-secondary">
-                                        Personnaliser
+                                <?php if (!empty($product['allow_direct_purchase'])): ?>
+                                    <div class="product-buttons">
+                                        <button type="button" class="product-btn product-btn-primary add-to-cart-btn"
+                                                data-product-id="<?= $product['id'] ?>"
+                                                data-product-name="<?= h($product['name']) ?>"
+                                                data-product-price="<?= $hasSale ? $product['sale_price'] : $product['base_price'] ?>">
+                                            <?= h($btnAddToCart) ?>
+                                        </button>
+                                        <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn product-btn-secondary">
+                                            <?= h($btnCustomize) ?>
+                                        </a>
+                                    </div>
+                                <?php else: ?>
+                                    <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">
+                                        <?= h($btnCustomize) ?>
                                     </a>
-                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
