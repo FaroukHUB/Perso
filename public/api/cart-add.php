@@ -74,11 +74,15 @@ if (!$product['active']) {
 }
 
 // Vérifier si le produit autorise l'achat direct
+// NOTE: Temporairement désactivé pour permettre l'achat direct de tous les produits
+// À réactiver après avoir exécuté la migration SQL enable_direct_purchase_all_products.sql
+/*
 if (empty($product['allow_direct_purchase'])) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Ce produit nécessite une personnalisation']);
     exit;
 }
+*/
 
 // =========================================
 // CALCUL DU PRIX (TOUJOURS DEPUIS BDD)

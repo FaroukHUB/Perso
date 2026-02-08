@@ -8,15 +8,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
 
     addToCartButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = this.dataset.productId;
-            const productName = this.dataset.productName;
-            const productPrice = this.dataset.productPrice;
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const button = this;
+            const productId = button.dataset.productId;
+            const productName = button.dataset.productName;
+            const productPrice = button.dataset.productPrice;
+
+            // Validation
+            if (!productId) {
+                alert('Erreur: ID produit manquant');
+                return;
+            }
 
             // Désactiver le bouton pendant l'ajout
-            const originalHTML = this.innerHTML;
-            this.disabled = true;
-            this.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Ajout...';
+            const originalHTML = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Ajout...';
 
             // Requête AJAX pour ajouter au panier
             fetch('/public/api/cart-add.php', {
@@ -32,12 +41,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     direct_purchase: true
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                // Vérifier le statut HTTP
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`Erreur HTTP ${response.status}: ${text}`);
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     // Animation de succès
-                    this.classList.add('added');
-                    this.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Ajouté !';
+                    button.classList.add('added');
+                    button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Ajouté !';
 
                     // Mettre à jour le compteur du panier
                     const cartBadge = document.querySelector('.cart-badge');
@@ -55,15 +72,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                console.error('Erreur:', error);
-                this.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Erreur';
-                this.disabled = false;
+                console.error('Erreur détaillée:', error);
+                button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Erreur';
+                button.disabled = false;
 
-                // Réinitialiser après 2 secondes
+                // Afficher l'erreur en console pour debug
+                alert('Impossible d\'ajouter au panier. Vérifiez la console (F12) pour plus de détails.');
+
+                // Réinitialiser après 3 secondes
                 setTimeout(() => {
-                    this.innerHTML = originalHTML;
-                    this.classList.remove('added');
-                }, 2000);
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('added');
+                }, 3000);
             });
         });
     });
