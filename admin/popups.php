@@ -1,7 +1,7 @@
 <?php
 /**
- * PERSONNALY - Admin : Gestion des Popups ULTRA-MODERNE
- * Interface redesignée avec glassmorphism + chatbot d'aide
+ * PERSONNALY - Admin : Gestion des Popups
+ * Interface moderne avec upload d'images
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
@@ -101,153 +101,83 @@ $popups = $popupModel->findAll();
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link rel="stylesheet" href="/public/assets/css/admin.css">
     <style>
-        /* ULTRA-MODERNE DESIGN */
-        :root {
-            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --glass-bg: rgba(255, 255, 255, 0.9);
-            --glass-border: rgba(255, 255, 255, 0.18);
-            --shadow-lg: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            --shadow-xl: 0 20px 60px 0 rgba(31, 38, 135, 0.25);
-        }
+        /* ====================================
+           POPUPS ADMIN - STYLE MODERNE
+           Rose + Vert Menthe + Blanc
+           ==================================== */
 
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            background-attachment: fixed;
-        }
-
-        .main-content {
-            background: transparent;
-        }
-
-        /* Header Ultra-Moderne */
-        .modern-header {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 40px;
-            margin-bottom: 40px;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--glass-border);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .modern-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-1);
-        }
-
-        .modern-header h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: var(--gradient-1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-
-        .modern-header p {
-            color: #666;
-            font-size: 1.1rem;
-        }
-
-        /* Cards Glassmorphism */
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 25px;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--glass-border);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-xl);
-        }
-
-        /* Section Accordion Ultra-Moderne */
-        .section-accordion {
+        /* Section Accordion */
+        .popup-accordion {
             margin-bottom: 20px;
         }
 
-        .section-header {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border-radius: 16px;
+        .popup-accordion-header {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
             padding: 20px 25px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
             transition: all 0.3s;
-            border: 2px solid transparent;
         }
 
-        .section-header:hover {
-            border-color: rgba(102, 126, 234, 0.3);
-            transform: scale(1.01);
+        .popup-accordion-header:hover {
+            border-color: var(--pink-main);
+            box-shadow: 0 4px 12px rgba(255, 105, 180, 0.1);
         }
 
-        .section-header.active {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
-            border-color: rgba(102, 126, 234, 0.5);
+        .popup-accordion-header.active {
+            border-color: var(--pink-main);
+            background: linear-gradient(135deg, rgba(255, 105, 180, 0.05), rgba(61, 255, 192, 0.05));
         }
 
-        .section-title-group {
+        .popup-accordion-title-group {
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        .section-emoji {
+        .popup-accordion-emoji {
             font-size: 2rem;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
-        .section-title {
-            font-size: 1.3rem;
+        .popup-accordion-title {
+            font-size: 1.2rem;
             font-weight: 700;
-            color: #1a1a2e;
+            color: var(--black-soft);
             margin: 0;
         }
 
-        .section-subtitle {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: 5px;
+        .popup-accordion-subtitle {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 4px;
         }
 
-        .section-chevron {
+        .popup-accordion-chevron {
             transition: transform 0.3s;
-            color: #667eea;
+            color: var(--pink-main);
         }
 
-        .section-header.active .section-chevron {
+        .popup-accordion-header.active .popup-accordion-chevron {
             transform: rotate(180deg);
         }
 
-        .section-content {
+        .popup-accordion-content {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 0 25px;
         }
 
-        .section-content.active {
+        .popup-accordion-content.active {
             max-height: 2000px;
-            padding: 25px;
+            padding: 25px 0;
         }
 
-        /* Modern Toggle Switch */
+        /* Modern Toggle Switch - Pink/Mint */
         .toggle-switch {
             position: relative;
             display: inline-block;
@@ -286,89 +216,134 @@ $popups = $popupModel->findAll();
         }
 
         input:checked + .toggle-slider {
-            background: var(--gradient-1);
+            background: linear-gradient(135deg, var(--pink-main), var(--mint-main));
         }
 
         input:checked + .toggle-slider:before {
             transform: translateX(26px);
         }
 
-        /* Modern Input Fields */
-        .modern-input, .modern-textarea, .modern-select {
-            width: 100%;
-            padding: 16px 20px;
-            border: 2px solid #e5e7eb;
+        /* Image Upload Widget */
+        .image-upload-widget {
+            border: 2px dashed #e5e7eb;
             border-radius: 12px;
-            font-size: 15px;
+            padding: 30px;
+            text-align: center;
             transition: all 0.3s;
             background: white;
         }
 
-        .modern-input:focus, .modern-textarea:focus, .modern-select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
+        .image-upload-widget:hover {
+            border-color: var(--pink-main);
+            background: rgba(255, 105, 180, 0.02);
         }
 
-        /* Modern Button */
-        .btn-modern {
-            background: var(--gradient-1);
+        .image-upload-widget.has-image {
+            border-style: solid;
+            border-color: var(--mint-main);
+            padding: 15px;
+        }
+
+        .image-preview-container {
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .image-remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--pink-main);
             color: white;
             border: none;
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(255, 105, 180, 0.4);
+            transition: all 0.2s;
+        }
+
+        .image-remove-btn:hover {
+            transform: scale(1.1);
+            background: var(--pink-dark);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--pink-main), var(--mint-main));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, var(--pink-main), var(--mint-main));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-modern:hover {
+        .upload-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 6px 20px rgba(255, 105, 180, 0.3);
         }
 
-        .btn-modern-secondary {
-            background: var(--gradient-2);
-            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
-        }
-
-        /* Stats Cards */
-        .stats-grid {
+        /* Stats Cards - Pink/Mint */
+        .popup-stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin: 20px 0;
         }
 
-        .stat-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
+        .popup-stat-card {
+            background: white;
+            border-radius: 12px;
             padding: 20px;
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 2px solid #f8f9fa;
+            transition: all 0.3s;
         }
 
-        .stat-value {
+        .popup-stat-card:hover {
+            border-color: var(--pink-main);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.15);
+        }
+
+        .popup-stat-value {
             font-size: 2rem;
             font-weight: 800;
-            background: var(--gradient-1);
+            background: linear-gradient(135deg, var(--pink-main), var(--mint-main));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .stat-label {
+        .popup-stat-label {
             font-size: 0.85rem;
-            color: #666;
+            color: var(--gray);
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-top: 8px;
+            font-weight: 600;
         }
 
-        /* Chatbot Ultra-Moderne */
+        /* Chatbot Widget - Pink/Mint */
         .chatbot-widget {
             position: fixed;
             bottom: 30px;
@@ -380,10 +355,10 @@ $popups = $popupModel->findAll();
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: var(--gradient-1);
+            background: linear-gradient(135deg, var(--pink-main), var(--mint-main));
             border: none;
             cursor: pointer;
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 8px 30px rgba(255, 105, 180, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -393,12 +368,12 @@ $popups = $popupModel->findAll();
 
         .chatbot-button:hover {
             transform: scale(1.1);
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 12px 40px rgba(255, 105, 180, 0.5);
         }
 
         @keyframes pulse {
-            0%, 100% { box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5); }
-            50% { box-shadow: 0 8px 40px rgba(102, 126, 234, 0.8); }
+            0%, 100% { box-shadow: 0 8px 30px rgba(255, 105, 180, 0.4); }
+            50% { box-shadow: 0 8px 40px rgba(61, 255, 192, 0.6); }
         }
 
         .chatbot-panel {
@@ -407,11 +382,10 @@ $popups = $popupModel->findAll();
             right: 0;
             width: 380px;
             max-height: 600px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            box-shadow: var(--shadow-xl);
-            border: 1px solid var(--glass-border);
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 2px solid #f8f9fa;
             display: none;
             flex-direction: column;
             overflow: hidden;
@@ -434,7 +408,7 @@ $popups = $popupModel->findAll();
         }
 
         .chatbot-header {
-            background: var(--gradient-1);
+            background: linear-gradient(135deg, var(--pink-main), var(--mint-main));
             padding: 20px;
             color: white;
         }
@@ -457,27 +431,32 @@ $popups = $popupModel->findAll();
         }
 
         .chatbot-question {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            background: linear-gradient(135deg, rgba(255, 105, 180, 0.08), rgba(61, 255, 192, 0.08));
             padding: 12px 16px;
             border-radius: 12px;
             margin-bottom: 10px;
             cursor: pointer;
             transition: all 0.2s;
             border: 2px solid transparent;
+            font-weight: 600;
+            color: var(--black-soft);
         }
 
         .chatbot-question:hover {
-            border-color: rgba(102, 126, 234, 0.3);
+            border-color: var(--pink-main);
             transform: translateX(5px);
+            background: linear-gradient(135deg, rgba(255, 105, 180, 0.12), rgba(61, 255, 192, 0.12));
         }
 
         .chatbot-answer {
-            background: white;
+            background: #f8f9fa;
             padding: 15px;
             border-radius: 12px;
             margin-top: 10px;
-            border-left: 3px solid #667eea;
+            border-left: 4px solid var(--pink-main);
             display: none;
+            color: var(--black-soft);
+            line-height: 1.6;
         }
 
         .chatbot-answer.active {
@@ -490,9 +469,24 @@ $popups = $popupModel->findAll();
             to { opacity: 1; }
         }
 
+        /* Popup Item Card */
+        .popup-item-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 2px solid #f8f9fa;
+            transition: all 0.3s;
+        }
+
+        .popup-item-card:hover {
+            border-color: var(--pink-main);
+            box-shadow: 0 8px 24px rgba(255, 105, 180, 0.1);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
-            .stats-grid {
+            .popup-stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
             .chatbot-panel {
@@ -508,68 +502,81 @@ $popups = $popupModel->findAll();
         <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
         <main class="main-content">
-            <!-- Header Ultra-Moderne -->
-            <div class="modern-header">
-                <h1>✨ Gestion des Popups</h1>
-                <p>Créez des popups magnifiques qui convertissent vos visiteurs en clients</p>
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Gestion des <span>Popups</span></h1>
+                <?php if (!$editing && !empty($popups)): ?>
+                    <a href="?edit=new" class="btn btn-primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Créer une popup
+                    </a>
+                <?php endif; ?>
             </div>
 
             <?php if ($success): ?>
-                <div class="alert alert-success" style="animation: fadeIn 0.3s;"><?= h($success) ?></div>
+                <div class="alert alert-success"><?= h($success) ?></div>
             <?php endif; ?>
 
             <?php if ($error): ?>
-                <div class="alert alert-error" style="animation: fadeIn 0.3s;"><?= h($error) ?></div>
+                <div class="alert alert-error"><?= h($error) ?></div>
             <?php endif; ?>
 
             <!-- Liste des Popups -->
             <?php if (!empty($popups) && !$editing): ?>
-                <div class="glass-card">
-                    <h2 style="margin-bottom: 20px;">📊 Vos Popups</h2>
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">📊 Vos Popups (<?= count($popups) ?>)</h3>
+                    </div>
 
                     <?php foreach ($popups as $popup): ?>
                         <?php $stats = $popupModel->getStats($popup['id']); ?>
-                        <div class="glass-card" style="margin-bottom: 20px;">
+                        <div class="popup-item-card">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
                                 <div>
-                                    <h3 style="margin: 0 0 10px 0; font-size: 1.3rem;"><?= h($popup['title']) ?></h3>
+                                    <h3 style="margin: 0 0 10px 0; font-size: 1.3rem; color: var(--black-soft);"><?= h($popup['title']) ?></h3>
                                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                         <span class="badge"><?= ucfirst(str_replace('_', ' ', $popup['template_type'])) ?></span>
                                         <span class="badge"><?= ucfirst(str_replace('_', ' ', $popup['target_pages'])) ?></span>
                                         <?php if ($popup['is_active']): ?>
-                                            <span class="badge badge-success">✓ Actif</span>
+                                            <span class="badge" style="background: var(--mint-main); color: var(--black);">✓ Actif</span>
                                         <?php else: ?>
                                             <span class="badge badge-gray">⏸ Inactif</span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
                                 <div class="table-actions">
-                                    <a href="?toggle=<?= $popup['id'] ?>&token=<?= csrfToken() ?>" class="btn btn-sm btn-secondary">
+                                    <a href="?toggle=<?= $popup['id'] ?>&token=<?= csrfToken() ?>"
+                                       class="btn btn-sm btn-secondary"
+                                       title="<?= $popup['is_active'] ? 'Désactiver' : 'Activer' ?>">
                                         <?= $popup['is_active'] ? '⏸' : '▶' ?>
                                     </a>
-                                    <a href="?edit=<?= $popup['id'] ?>" class="btn btn-sm btn-primary">✏️</a>
+                                    <a href="?edit=<?= $popup['id'] ?>" class="btn btn-sm btn-primary" title="Modifier">✏️</a>
                                     <a href="?delete=<?= $popup['id'] ?>&token=<?= csrfToken() ?>"
                                        class="btn btn-sm btn-danger"
-                                       onclick="return confirm('Supprimer ?')">🗑️</a>
+                                       onclick="return confirm('Supprimer cette popup ?')"
+                                       title="Supprimer">🗑️</a>
                                 </div>
                             </div>
 
-                            <div class="stats-grid">
-                                <div class="stat-card">
-                                    <div class="stat-value"><?= number_format($stats['total_views']) ?></div>
-                                    <div class="stat-label">Vues</div>
+                            <div class="popup-stats-grid">
+                                <div class="popup-stat-card">
+                                    <div class="popup-stat-value"><?= number_format($stats['total_views']) ?></div>
+                                    <div class="popup-stat-label">Vues</div>
                                 </div>
-                                <div class="stat-card">
-                                    <div class="stat-value"><?= number_format($stats['total_clicks']) ?></div>
-                                    <div class="stat-label">Clics</div>
+                                <div class="popup-stat-card">
+                                    <div class="popup-stat-value"><?= number_format($stats['total_clicks']) ?></div>
+                                    <div class="popup-stat-label">Clics</div>
                                 </div>
-                                <div class="stat-card">
-                                    <div class="stat-value"><?= $stats['click_rate'] ?>%</div>
-                                    <div class="stat-label">Taux de clic</div>
+                                <div class="popup-stat-card">
+                                    <div class="popup-stat-value"><?= $stats['click_rate'] ?>%</div>
+                                    <div class="popup-stat-label">Taux de clic</div>
                                 </div>
-                                <div class="stat-card">
-                                    <div class="stat-value"><?= $stats['close_rate'] ?>%</div>
-                                    <div class="stat-label">Taux de fermeture</div>
+                                <div class="popup-stat-card">
+                                    <div class="popup-stat-value"><?= $stats['close_rate'] ?>%</div>
+                                    <div class="popup-stat-label">Taux de fermeture</div>
                                 </div>
                             </div>
                         </div>
@@ -577,64 +584,83 @@ $popups = $popupModel->findAll();
                 </div>
             <?php endif; ?>
 
-            <!-- Bouton Créer -->
-            <?php if (!$editing && !empty($popups)): ?>
-                <button onclick="window.location.href='?edit=new'" class="btn-modern" style="width: 100%; font-size: 1.2rem; padding: 20px;">
-                    ➕ Créer une nouvelle popup
-                </button>
-            <?php endif; ?>
-
-            <!-- Formulaire Ultra-Moderne -->
+            <!-- Formulaire -->
             <?php if ($editing || empty($popups)): ?>
-                <form method="post">
+                <form method="post" id="popupForm">
                     <?= csrfField() ?>
                     <?php if ($editing && $editPopup): ?>
                         <input type="hidden" name="popup_id" value="<?= $editPopup['id'] ?>">
                     <?php endif; ?>
 
-                    <div class="glass-card" style="margin-bottom: 30px;">
-                        <h2 style="margin-bottom: 30px;">
-                            <?= $editing ? '✏️ Modifier la popup' : '✨ Créer une popup' ?>
-                        </h2>
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <h2 style="margin: 0;">
+                                <?= $editing ? '✏️ Modifier la popup' : '✨ Créer une popup' ?>
+                            </h2>
+                        </div>
 
                         <!-- Section 1: Message -->
-                        <div class="section-accordion">
-                            <div class="section-header active" onclick="toggleSection(this)">
-                                <div class="section-title-group">
-                                    <span class="section-emoji">💬</span>
+                        <div class="popup-accordion">
+                            <div class="popup-accordion-header active" onclick="togglePopupSection(this)">
+                                <div class="popup-accordion-title-group">
+                                    <span class="popup-accordion-emoji">💬</span>
                                     <div>
-                                        <div class="section-title">Que voulez-vous dire ?</div>
-                                        <div class="section-subtitle">Le message principal de votre popup</div>
+                                        <div class="popup-accordion-title">Que voulez-vous dire ?</div>
+                                        <div class="popup-accordion-subtitle">Le message principal de votre popup</div>
                                     </div>
                                 </div>
-                                <svg class="section-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg class="popup-accordion-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="6 9 12 15 18 9"/>
                                 </svg>
                             </div>
-                            <div class="section-content active">
+                            <div class="popup-accordion-content active">
                                 <div class="form-group">
-                                    <label style="font-weight: 600; margin-bottom: 8px; display: block;">Titre principal *</label>
-                                    <input type="text" name="title" class="modern-input" required
+                                    <label>Titre principal *</label>
+                                    <input type="text" name="title" class="form-input" required
                                            value="<?= h($editPopup['title'] ?? '') ?>"
                                            placeholder="Ex: Offre spéciale -20% 🎉">
                                 </div>
 
                                 <div class="form-group">
-                                    <label style="font-weight: 600; margin-bottom: 8px; display: block;">Description</label>
-                                    <textarea name="content" class="modern-textarea" rows="3"
+                                    <label>Description</label>
+                                    <textarea name="content" class="form-input" rows="3"
                                               placeholder="Profitez de -20% sur toute la boutique jusqu'à dimanche !"><?= h($editPopup['content'] ?? '') ?></textarea>
                                 </div>
 
                                 <div class="form-group">
-                                    <label style="font-weight: 600; margin-bottom: 8px; display: block;">Image (optionnel)</label>
-                                    <input type="url" name="image_url" class="modern-input"
-                                           value="<?= h($editPopup['image_url'] ?? '') ?>"
-                                           placeholder="/public/uploads/promo.jpg">
+                                    <label>Image (optionnel)</label>
+                                    <div class="image-upload-widget" id="imageUploadWidget">
+                                        <input type="hidden" name="image_url" id="imageUrl" value="<?= h($editPopup['image_url'] ?? '') ?>">
+                                        <input type="file" id="imageInput" accept="image/*" style="display: none;">
+
+                                        <div id="uploadArea">
+                                            <div class="upload-icon">🖼️</div>
+                                            <p style="color: var(--gray); margin-bottom: 15px;">Cliquez pour ajouter une image</p>
+                                            <button type="button" class="upload-btn" onclick="document.getElementById('imageInput').click()">
+                                                Choisir une image
+                                            </button>
+                                            <p style="font-size: 0.85rem; color: var(--gray-dark); margin-top: 10px;">
+                                                JPG, PNG, GIF ou WEBP • Max 5 MB
+                                            </p>
+                                        </div>
+
+                                        <div id="previewArea" style="display: none;">
+                                            <div class="image-preview-container">
+                                                <img id="imagePreview" class="image-preview" src="" alt="Aperçu">
+                                                <button type="button" class="image-remove-btn" onclick="removeImage()">✕</button>
+                                            </div>
+                                            <p style="margin-top: 15px; color: var(--gray);">
+                                                <button type="button" class="upload-btn" onclick="document.getElementById('imageInput').click()">
+                                                    Changer l'image
+                                                </button>
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="form-group">
-                                    <label style="font-weight: 600; margin-bottom: 8px; display: block;">Code promo à afficher</label>
-                                    <input type="text" name="promo_code" class="modern-input"
+                                    <label>Code promo à afficher</label>
+                                    <input type="text" name="promo_code" class="form-input"
                                            value="<?= h($editPopup['promo_code'] ?? '') ?>"
                                            placeholder="PROMO20">
                                 </div>
@@ -642,63 +668,63 @@ $popups = $popupModel->findAll();
                         </div>
 
                         <!-- Section 2: Bouton d'action -->
-                        <div class="section-accordion">
-                            <div class="section-header" onclick="toggleSection(this)">
-                                <div class="section-title-group">
-                                    <span class="section-emoji">🎯</span>
+                        <div class="popup-accordion">
+                            <div class="popup-accordion-header" onclick="togglePopupSection(this)">
+                                <div class="popup-accordion-title-group">
+                                    <span class="popup-accordion-emoji">🎯</span>
                                     <div>
-                                        <div class="section-title">Où voulez-vous les envoyer ?</div>
-                                        <div class="section-subtitle">Le bouton d'action de votre popup</div>
+                                        <div class="popup-accordion-title">Où voulez-vous les envoyer ?</div>
+                                        <div class="popup-accordion-subtitle">Le bouton d'action de votre popup</div>
                                     </div>
                                 </div>
-                                <svg class="section-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg class="popup-accordion-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="6 9 12 15 18 9"/>
                                 </svg>
                             </div>
-                            <div class="section-content">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="popup-accordion-content">
+                                <div class="form-row">
                                     <div class="form-group">
-                                        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Texte du bouton</label>
-                                        <input type="text" name="cta_text" class="modern-input"
+                                        <label>Texte du bouton</label>
+                                        <input type="text" name="cta_text" class="form-input"
                                                value="<?= h($editPopup['cta_text'] ?? '') ?>"
                                                placeholder="J'en profite !">
                                     </div>
                                     <div class="form-group">
-                                        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Lien du bouton</label>
-                                        <input type="url" name="cta_url" class="modern-input"
+                                        <label>Lien du bouton</label>
+                                        <input type="url" name="cta_url" class="form-input"
                                                value="<?= h($editPopup['cta_url'] ?? '') ?>"
                                                placeholder="/public/cart.php">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                    <label class="checkbox-label">
                                         <input type="checkbox" name="cta_new_tab" value="1"
                                                <?= ($editPopup['cta_new_tab'] ?? false) ? 'checked' : '' ?>>
-                                        Ouvrir dans un nouvel onglet
+                                        <span>Ouvrir dans un nouvel onglet</span>
                                     </label>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Section 3: Quand l'afficher -->
-                        <div class="section-accordion">
-                            <div class="section-header" onclick="toggleSection(this)">
-                                <div class="section-title-group">
-                                    <span class="section-emoji">⏰</span>
+                        <div class="popup-accordion">
+                            <div class="popup-accordion-header" onclick="togglePopupSection(this)">
+                                <div class="popup-accordion-title-group">
+                                    <span class="popup-accordion-emoji">⏰</span>
                                     <div>
-                                        <div class="section-title">Quand l'afficher ?</div>
-                                        <div class="section-subtitle">À quel moment montrer la popup</div>
+                                        <div class="popup-accordion-title">Quand l'afficher ?</div>
+                                        <div class="popup-accordion-subtitle">À quel moment montrer la popup</div>
                                     </div>
                                 </div>
-                                <svg class="section-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg class="popup-accordion-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="6 9 12 15 18 9"/>
                                 </svg>
                             </div>
-                            <div class="section-content">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="popup-accordion-content">
+                                <div class="form-row">
                                     <div class="form-group">
-                                        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Déclencheur</label>
-                                        <select name="trigger_type" id="trigger_type" class="modern-select">
+                                        <label>Déclencheur</label>
+                                        <select name="trigger_type" id="trigger_type" class="form-input">
                                             <option value="immediate" <?= ($editPopup['trigger_type'] ?? '') === 'immediate' ? 'selected' : '' ?>>Tout de suite</option>
                                             <option value="delay" <?= ($editPopup['trigger_type'] ?? '') === 'delay' ? 'selected' : '' ?>>Après quelques secondes</option>
                                             <option value="scroll" <?= ($editPopup['trigger_type'] ?? '') === 'scroll' ? 'selected' : '' ?>>Quand il scroll</option>
@@ -706,16 +732,16 @@ $popups = $popupModel->findAll();
                                         </select>
                                     </div>
                                     <div class="form-group" id="trigger-value-group">
-                                        <label style="font-weight: 600; margin-bottom: 8px; display: block;" id="trigger-value-label">Combien ?</label>
-                                        <input type="number" name="trigger_value" class="modern-input"
+                                        <label id="trigger-value-label">Combien ?</label>
+                                        <input type="number" name="trigger_value" class="form-input"
                                                value="<?= h($editPopup['trigger_value'] ?? '') ?>"
                                                placeholder="3">
                                     </div>
                                 </div>
 
                                 <div class="form-group">
-                                    <label style="font-weight: 600; margin-bottom: 8px; display: block;">À quelle fréquence ?</label>
-                                    <select name="frequency" class="modern-select">
+                                    <label>À quelle fréquence ?</label>
+                                    <select name="frequency" class="form-input">
                                         <option value="every_visit" <?= ($editPopup['frequency'] ?? '') === 'every_visit' ? 'selected' : '' ?>>À chaque fois</option>
                                         <option value="per_session" <?= ($editPopup['frequency'] ?? '') === 'per_session' ? 'selected' : '' ?>>Une fois par visite</option>
                                         <option value="daily" <?= ($editPopup['frequency'] ?? '') === 'daily' ? 'selected' : '' ?>>Une fois par jour</option>
@@ -727,24 +753,24 @@ $popups = $popupModel->findAll();
                         </div>
 
                         <!-- Section 4: Pour qui -->
-                        <div class="section-accordion">
-                            <div class="section-header" onclick="toggleSection(this)">
-                                <div class="section-title-group">
-                                    <span class="section-emoji">👥</span>
+                        <div class="popup-accordion">
+                            <div class="popup-accordion-header" onclick="togglePopupSection(this)">
+                                <div class="popup-accordion-title-group">
+                                    <span class="popup-accordion-emoji">👥</span>
                                     <div>
-                                        <div class="section-title">Pour qui ?</div>
-                                        <div class="section-subtitle">Qui va voir cette popup</div>
+                                        <div class="popup-accordion-title">Pour qui ?</div>
+                                        <div class="popup-accordion-subtitle">Qui va voir cette popup</div>
                                     </div>
                                 </div>
-                                <svg class="section-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg class="popup-accordion-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="6 9 12 15 18 9"/>
                                 </svg>
                             </div>
-                            <div class="section-content">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="popup-accordion-content">
+                                <div class="form-row">
                                     <div class="form-group">
-                                        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Sur quelles pages ?</label>
-                                        <select name="target_pages" id="target_pages" class="modern-select">
+                                        <label>Sur quelles pages ?</label>
+                                        <select name="target_pages" id="target_pages" class="form-input">
                                             <option value="all" <?= ($editPopup['target_pages'] ?? '') === 'all' ? 'selected' : '' ?>>Toutes les pages</option>
                                             <option value="home" <?= ($editPopup['target_pages'] ?? '') === 'home' ? 'selected' : '' ?>>Page d'accueil seulement</option>
                                             <option value="products" <?= ($editPopup['target_pages'] ?? '') === 'products' ? 'selected' : '' ?>>Pages produits</option>
@@ -754,8 +780,8 @@ $popups = $popupModel->findAll();
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Quel type de visiteur ?</label>
-                                        <select name="target_visitors" class="modern-select">
+                                        <label>Quel type de visiteur ?</label>
+                                        <select name="target_visitors" class="form-input">
                                             <option value="all" <?= ($editPopup['target_visitors'] ?? '') === 'all' ? 'selected' : '' ?>>Tout le monde</option>
                                             <option value="new" <?= ($editPopup['target_visitors'] ?? '') === 'new' ? 'selected' : '' ?>>Nouveaux visiteurs</option>
                                             <option value="returning" <?= ($editPopup['target_visitors'] ?? '') === 'returning' ? 'selected' : '' ?>>Visiteurs qui reviennent</option>
@@ -764,8 +790,8 @@ $popups = $popupModel->findAll();
                                 </div>
 
                                 <div class="form-group" id="target-urls-group" style="display: none;">
-                                    <label style="font-weight: 600; margin-bottom: 8px; display: block;">URLs spécifiques (une par ligne)</label>
-                                    <textarea name="target_urls" class="modern-textarea" rows="3"
+                                    <label>URLs spécifiques (une par ligne)</label>
+                                    <textarea name="target_urls" class="form-input" rows="3"
                                               placeholder="/public/product.php&#10;/public/special-offer.php"><?php
                                         if (!empty($editPopup['target_urls'])) {
                                             $urls = json_decode($editPopup['target_urls'], true);
@@ -777,24 +803,24 @@ $popups = $popupModel->findAll();
                         </div>
 
                         <!-- Section 5: Apparence -->
-                        <div class="section-accordion">
-                            <div class="section-header" onclick="toggleSection(this)">
-                                <div class="section-title-group">
-                                    <span class="section-emoji">🎨</span>
+                        <div class="popup-accordion">
+                            <div class="popup-accordion-header" onclick="togglePopupSection(this)">
+                                <div class="popup-accordion-title-group">
+                                    <span class="popup-accordion-emoji">🎨</span>
                                     <div>
-                                        <div class="section-title">Comment ça doit apparaître ?</div>
-                                        <div class="section-subtitle">Le style visuel de la popup</div>
+                                        <div class="popup-accordion-title">Comment ça doit apparaître ?</div>
+                                        <div class="popup-accordion-subtitle">Le style visuel de la popup</div>
                                     </div>
                                 </div>
-                                <svg class="section-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg class="popup-accordion-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="6 9 12 15 18 9"/>
                                 </svg>
                             </div>
-                            <div class="section-content">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                            <div class="popup-accordion-content">
+                                <div class="form-row" style="grid-template-columns: repeat(3, 1fr);">
                                     <div class="form-group">
-                                        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Style</label>
-                                        <select name="template_type" class="modern-select">
+                                        <label>Style</label>
+                                        <select name="template_type" class="form-input">
                                             <option value="modal" <?= ($editPopup['template_type'] ?? '') === 'modal' ? 'selected' : '' ?>>Au centre</option>
                                             <option value="banner_top" <?= ($editPopup['template_type'] ?? '') === 'banner_top' ? 'selected' : '' ?>>Bandeau haut</option>
                                             <option value="banner_bottom" <?= ($editPopup['template_type'] ?? '') === 'banner_bottom' ? 'selected' : '' ?>>Bandeau bas</option>
@@ -803,16 +829,16 @@ $popups = $popupModel->findAll();
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Taille</label>
-                                        <select name="size" class="modern-select">
+                                        <label>Taille</label>
+                                        <select name="size" class="form-input">
                                             <option value="small" <?= ($editPopup['size'] ?? '') === 'small' ? 'selected' : '' ?>>Petit</option>
                                             <option value="medium" <?= ($editPopup['size'] ?? '') === 'medium' ? 'selected' : '' ?>>Moyen</option>
                                             <option value="large" <?= ($editPopup['size'] ?? '') === 'large' ? 'selected' : '' ?>>Grand</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Animation</label>
-                                        <select name="animation" class="modern-select">
+                                        <label>Animation</label>
+                                        <select name="animation" class="form-input">
                                             <option value="fade" <?= ($editPopup['animation'] ?? '') === 'fade' ? 'selected' : '' ?>>Fondu</option>
                                             <option value="slide_up" <?= ($editPopup['animation'] ?? '') === 'slide_up' ? 'selected' : '' ?>>Montée</option>
                                             <option value="scale" <?= ($editPopup['animation'] ?? '') === 'scale' ? 'selected' : '' ?>>Zoom</option>
@@ -823,21 +849,21 @@ $popups = $popupModel->findAll();
                         </div>
 
                         <!-- Section 6: Options -->
-                        <div class="section-accordion">
-                            <div class="section-header" onclick="toggleSection(this)">
-                                <div class="section-title-group">
-                                    <span class="section-emoji">⚙️</span>
+                        <div class="popup-accordion">
+                            <div class="popup-accordion-header" onclick="togglePopupSection(this)">
+                                <div class="popup-accordion-title-group">
+                                    <span class="popup-accordion-emoji">⚙️</span>
                                     <div>
-                                        <div class="section-title">Options avancées</div>
-                                        <div class="section-subtitle">Comportements et réglages</div>
+                                        <div class="popup-accordion-title">Options avancées</div>
+                                        <div class="popup-accordion-subtitle">Comportements et réglages</div>
                                     </div>
                                 </div>
-                                <svg class="section-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg class="popup-accordion-chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="6 9 12 15 18 9"/>
                                 </svg>
                             </div>
-                            <div class="section-content">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="popup-accordion-content">
+                                <div class="form-row">
                                     <div class="form-group">
                                         <label style="display: flex; align-items: center; justify-content: space-between;">
                                             <span>Bouton X pour fermer</span>
@@ -858,6 +884,8 @@ $popups = $popupModel->findAll();
                                             </label>
                                         </label>
                                     </div>
+                                </div>
+                                <div class="form-row">
                                     <div class="form-group">
                                         <label style="display: flex; align-items: center; justify-content: space-between;">
                                             <span>Bouton "Ne plus afficher"</span>
@@ -869,17 +897,17 @@ $popups = $popupModel->findAll();
                                         </label>
                                     </div>
                                     <div class="form-group">
-                                        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Fermeture auto (secondes)</label>
-                                        <input type="number" name="auto_close_after" class="modern-input"
+                                        <label>Fermeture auto (secondes)</label>
+                                        <input type="number" name="auto_close_after" class="form-input"
                                                value="<?= h($editPopup['auto_close_after'] ?? '') ?>"
                                                placeholder="Laisser vide pour jamais">
                                     </div>
                                 </div>
 
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                                <div class="form-row">
                                     <div class="form-group">
-                                        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Priorité (0 = normal)</label>
-                                        <input type="number" name="priority" class="modern-input"
+                                        <label>Priorité (0 = normal)</label>
+                                        <input type="number" name="priority" class="form-input"
                                                value="<?= h($editPopup['priority'] ?? 0) ?>">
                                     </div>
                                     <div class="form-group">
@@ -897,12 +925,12 @@ $popups = $popupModel->findAll();
                         </div>
 
                         <!-- Boutons d'action -->
-                        <div style="display: flex; gap: 15px; margin-top: 40px;">
-                            <button type="submit" class="btn-modern" style="flex: 1;">
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
                                 💾 <?= $editing ? 'Mettre à jour' : 'Créer la popup' ?>
                             </button>
                             <?php if ($editing): ?>
-                                <a href="/admin/popups.php" class="btn-modern btn-modern-secondary">
+                                <a href="/admin/popups.php" class="btn btn-secondary">
                                     ← Retour
                                 </a>
                             <?php endif; ?>
@@ -911,10 +939,20 @@ $popups = $popupModel->findAll();
                 </form>
             <?php endif; ?>
 
+            <!-- Empty State -->
+            <?php if (empty($popups) && !$editing): ?>
+                <div class="empty-state">
+                    <div class="empty-state-icon">✨</div>
+                    <h4>Aucune popup pour le moment</h4>
+                    <p class="text-muted">Créez votre première popup pour commencer à convertir vos visiteurs</p>
+                    <a href="?edit=new" class="btn btn-primary mt-lg">Créer ma première popup</a>
+                </div>
+            <?php endif; ?>
+
         </main>
     </div>
 
-    <!-- Chatbot Ultra-Moderne -->
+    <!-- Chatbot Assistant -->
     <div class="chatbot-widget">
         <button class="chatbot-button" onclick="toggleChatbot()">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -999,18 +1037,15 @@ $popups = $popupModel->findAll();
 
         // Show Answer
         function showAnswer(id) {
-            // Fermer toutes les réponses
             document.querySelectorAll('.chatbot-answer').forEach(a => a.classList.remove('active'));
-            // Ouvrir la réponse cliquée
             document.getElementById('answer' + id).classList.add('active');
         }
 
         // Toggle Section
-        function toggleSection(header) {
+        function togglePopupSection(header) {
             const content = header.nextElementSibling;
             const isActive = header.classList.contains('active');
 
-            // Toggle active state
             if (isActive) {
                 header.classList.remove('active');
                 content.classList.remove('active');
@@ -1051,6 +1086,101 @@ $popups = $popupModel->findAll();
                 targetUrlsGroup.style.display = this.value === 'specific' ? 'block' : 'none';
             });
             targetPages.dispatchEvent(new Event('change'));
+        }
+
+        // ==================================
+        // IMAGE UPLOAD FUNCTIONALITY
+        // ==================================
+
+        const imageInput = document.getElementById('imageInput');
+        const imageUrl = document.getElementById('imageUrl');
+        const uploadArea = document.getElementById('uploadArea');
+        const previewArea = document.getElementById('previewArea');
+        const imagePreview = document.getElementById('imagePreview');
+        const imageUploadWidget = document.getElementById('imageUploadWidget');
+
+        // Show existing image if any
+        if (imageUrl.value) {
+            showImagePreview(imageUrl.value);
+        }
+
+        // Handle file selection
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Type de fichier non autorisé. Utilisez JPG, PNG, GIF ou WEBP.');
+                return;
+            }
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Fichier trop volumineux. Taille maximale: 5 MB');
+                return;
+            }
+
+            // Upload file
+            uploadImage(file);
+        });
+
+        function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('csrf_token', '<?= csrfToken() ?>');
+
+            // Show loading state
+            uploadArea.innerHTML = '<p style="color: var(--pink-main); font-weight: 600;">Upload en cours...</p>';
+
+            fetch('/admin/upload-popup-image.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    imageUrl.value = data.url;
+                    showImagePreview(data.url);
+                } else {
+                    alert('Erreur: ' + (data.error || 'Upload impossible'));
+                    resetUploadArea();
+                }
+            })
+            .catch(error => {
+                alert('Erreur réseau: ' + error);
+                resetUploadArea();
+            });
+        }
+
+        function showImagePreview(url) {
+            imagePreview.src = url;
+            uploadArea.style.display = 'none';
+            previewArea.style.display = 'block';
+            imageUploadWidget.classList.add('has-image');
+        }
+
+        function removeImage() {
+            imageUrl.value = '';
+            imageInput.value = '';
+            resetUploadArea();
+        }
+
+        function resetUploadArea() {
+            uploadArea.style.display = 'block';
+            previewArea.style.display = 'none';
+            imageUploadWidget.classList.remove('has-image');
+            uploadArea.innerHTML = `
+                <div class="upload-icon">🖼️</div>
+                <p style="color: var(--gray); margin-bottom: 15px;">Cliquez pour ajouter une image</p>
+                <button type="button" class="upload-btn" onclick="document.getElementById('imageInput').click()">
+                    Choisir une image
+                </button>
+                <p style="font-size: 0.85rem; color: var(--gray-dark); margin-top: 10px;">
+                    JPG, PNG, GIF ou WEBP • Max 5 MB
+                </p>
+            `;
         }
     </script>
 </body>
