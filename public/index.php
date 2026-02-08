@@ -18,6 +18,11 @@ require_once __DIR__ . '/../app/models/ShopSettings.php';
 
 $cartCount = Cart::count();
 
+// Charger les textes administrables des boutons
+$shopSettings = new ShopSettings();
+$btnAddToCart = $shopSettings->get('btn_add_to_cart_text', 'Ajouter au panier');
+$btnCustomize = $shopSettings->get('btn_customize_text', 'Personnaliser');
+
 // Branding dynamique
 $brandingService = new BrandingService();
 
@@ -1382,10 +1387,10 @@ function getSubtitleStyles(array $section): string {
                                                 data-product-id="<?= $product['id'] ?>"
                                                 data-product-name="<?= h($product['name']) ?>"
                                                 data-product-price="<?= $hasSale ? $product['sale_price'] : $product['base_price'] ?>">
-                                            Ajouter au panier
+                                            <?= h($btnAddToCart) ?>
                                         </button>
                                         <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn product-btn-secondary">
-                                            Personnaliser
+                                            <?= h($btnCustomize) ?>
                                         </a>
                                     </div>
                                 </div>

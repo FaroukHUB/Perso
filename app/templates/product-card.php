@@ -4,6 +4,15 @@
  * Utilisé dans les sections featured_products et featured_category
  * Variable disponible: $product (tableau avec les données du produit)
  */
+
+// Charger les textes administrables des boutons
+if (!class_exists('ShopSettings')) {
+    require_once __DIR__ . '/../models/ShopSettings.php';
+}
+$shopSettings = new ShopSettings();
+$btnAddToCart = $shopSettings->get('btn_add_to_cart_text', 'Ajouter au panier');
+$btnCustomize = $shopSettings->get('btn_customize_text', 'Personnaliser');
+
 $hasSalePrice = !empty($product['sale_price']) && $product['sale_price'] > 0 && $product['sale_price'] < $product['base_price'];
 $badgeText = $product['badge'] ?? '';
 $badgeColor = $product['badge_color'] ?? '#FF1493';
@@ -67,10 +76,10 @@ $badgeTextColor = in_array($badgeText, ['Nouveau']) ? '#1a1a2e' : '#ffffff';
                         data-product-id="<?= $product['id'] ?>"
                         data-product-name="<?= h($product['name']) ?>"
                         data-product-price="<?= $hasSalePrice ? $product['sale_price'] : $product['base_price'] ?>">
-                    Ajouter au panier
+                    <?= h($btnAddToCart) ?>
                 </button>
                 <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn product-btn-secondary">
-                    Personnaliser
+                    <?= h($btnCustomize) ?>
                 </a>
             </div>
         </div>
