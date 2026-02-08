@@ -25,10 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Charger les dépendances
-require_once __DIR__ . '/../app/core/Database.php';
-require_once __DIR__ . '/../app/helpers/Cart.php';
-require_once __DIR__ . '/../app/models/Product.php';
+// Charger les dépendances (remonter 2 niveaux depuis /public/api/ vers /app/)
+require_once __DIR__ . '/../../app/core/Database.php';
+require_once __DIR__ . '/../../app/helpers/Cart.php';
+require_once __DIR__ . '/../../app/models/Product.php';
 
 // Lire le JSON
 $json = file_get_contents('php://input');
