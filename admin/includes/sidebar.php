@@ -84,6 +84,14 @@ function isActive($page, $current) {
             <span>Codes Promo</span>
         </a>
 
+        <a href="/admin/homepage-settings.php" class="nav-item <?= isActive('homepage-settings.php', $currentPage) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            <span>Page d'accueil</span>
+        </a>
+
         <a href="/admin/blog.php" class="nav-item <?= isActive('blog.php', $currentPage) ?><?= isActive('blog-form.php', $currentPage) ?>">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>

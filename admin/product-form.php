@@ -85,6 +85,7 @@ $formData = [
     'base_price' => $product['base_price'] ?? '',
     'category' => $product['category'] ?? '',
     'active' => $product['active'] ?? 1,
+    'is_featured' => $product['is_featured'] ?? 0,
     'image_front_url' => $product['image_front_url'] ?? '',
     'image_back_url' => $product['image_back_url'] ?? '',
     'available_sizes' => $product['available_sizes'] ?? null,
@@ -173,6 +174,7 @@ if (isPost()) {
             'base_price' => (float)post('base_price', 0),
             'category' => trim(post('category', '')),
             'active' => post('active') ? 1 : 0,
+            'is_featured' => post('is_featured') ? 1 : 0,
             'image_front_url' => $formData['image_front_url'],
             'image_back_url' => $formData['image_back_url'],
             'available_sizes' => $availableSizesJson,
@@ -1073,6 +1075,15 @@ if (isPost()) {
                                            <?= $formData['active'] ? 'checked' : '' ?>>
                                     <span class="switch-slider"></span>
                                     <span class="switch-text">Produit actif (visible sur le site)</span>
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="switch-label">
+                                    <input type="checkbox" name="is_featured" class="switch-input"
+                                           <?= $formData['is_featured'] ? 'checked' : '' ?>>
+                                    <span class="switch-slider"></span>
+                                    <span class="switch-text">Produit populaire (mis en avant sur l'accueil)</span>
                                 </label>
                             </div>
 

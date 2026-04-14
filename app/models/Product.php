@@ -119,4 +119,25 @@ class Product
         $stmt = $this->db->query($sql);
         return (int) $stmt->fetchColumn();
     }
+
+    /**
+     * Liste les produits mis en avant (featured)
+     */
+    public function findFeatured(int $limit = 8): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT * FROM products WHERE active = 1 AND is_featured = 1 ORDER BY name ASC LIMIT ?'
+        );
+        $stmt->execute([$limit]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Toggle featured status
+     */
+    public function toggleFeatured(int $id): bool
+    {
+        $stmt = $this->db->prepare('UPDATE products SET is_featured = NOT is_featured WHERE id = ?');
+        return $stmt->execute([$id]);
+    }
 }
