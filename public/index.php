@@ -1,111 +1,31 @@
 <?php
 /**
- * PERSONNALY - Page d'accueil dynamique
- * Rendu automatique des sections configurées en admin
+ * PERSONNALY - Page d'accueil
+ * Affiche les produits du catalogue
  */
 
 require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/helpers/Cart.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
-require_once __DIR__ . '/../app/models/Pack.php';
-require_once __DIR__ . '/../app/models/HomepageSection.php';
-require_once __DIR__ . '/../app/models/BlogPost.php';
 require_once __DIR__ . '/../app/models/Category.php';
 
 $cartCount = Cart::count();
 
-// Chargement des sections actives
-$sectionModel = new HomepageSection();
-$sections = $sectionModel->findActive();
-
-// Modèles pour les données
 $productModel = new Product();
-$packModel = new Pack();
-$blogModel = new BlogPost();
 $categoryModel = new Category();
 
-// Préparer les données pour chaque section
-foreach ($sections as &$section) {
-    switch ($section['type']) {
-        case 'featured_products':
-            // Charger les produits liés
-            $section['products'] = [];
-            if (!empty($section['items'])) {
-                foreach ($section['items'] as $item) {
-                    if ($item['item_type'] === 'product' && $item['item_active']) {
-                        $product = $productModel->findById($item['item_id']);
-                        if ($product && $product['active']) {
-                            // Ajouter les noms des catégories du produit
-                            $product['category_names'] = $categoryModel->getCategoryNamesByProduct($product['id']);
-                            $section['products'][] = $product;
-                        }
-                    }
-                }
-            }
-            break;
+// Tous les produits actifs
+$products = $productModel->findActive();
 
-        case 'featured_packs':
-            // Charger les packs liés
-            $section['packs'] = [];
-            if (!empty($section['items'])) {
-                foreach ($section['items'] as $item) {
-                    if ($item['item_type'] === 'pack' && $item['item_active']) {
-                        $pack = $packModel->findById($item['item_id']);
-                        if ($pack && $pack['status'] === 'active') {
-                            $pack['first_product'] = $packModel->getFirstProduct($pack['id']);
-                            $section['packs'][] = $pack;
-                        }
-                    }
-                }
-            }
-            break;
-
-        case 'blog_slider':
-            // Charger les articles sélectionnés
-            $section['posts'] = [];
-            if (!empty($section['items'])) {
-                foreach ($section['items'] as $item) {
-                    if ($item['item_type'] === 'blog' && $item['item_active']) {
-                        $post = $blogModel->findById($item['item_id']);
-                        if ($post && $post['status'] === 'published') {
-                            $section['posts'][] = $post;
-                        }
-                    }
-                }
-            }
-            // Fallback: si aucun article sélectionné, charger les derniers publiés
-            if (empty($section['posts'])) {
-                $limit = $section['config']['limit'] ?? 6;
-                $section['posts'] = $blogModel->findPublished($limit);
-            }
-            break;
-
-        case 'featured_category':
-            // Charger les produits de la catégorie
-            $section['category'] = null;
-            $section['category_products'] = [];
-            if (!empty($section['config']['category_id'])) {
-                $catId = (int) $section['config']['category_id'];
-                $section['category'] = $categoryModel->findById($catId);
-                if ($section['category'] && $section['category']['status'] === 'active') {
-                    $limit = $section['config']['products_limit'] ?? 8;
-                    $section['category_products'] = $categoryModel->getProducts($catId, $limit);
-                }
-            }
-            break;
-    }
+// Ajouter les noms de catégories pour chaque produit
+foreach ($products as &$product) {
+    $product['category_names'] = $categoryModel->getCategoryNamesByProduct($product['id']);
 }
-unset($section);
+unset($product);
 
-// Vérifier si au moins une section featured_packs existe
-$hasPacks = false;
-foreach ($sections as $s) {
-    if ($s['type'] === 'featured_packs' && !empty($s['packs'])) {
-        $hasPacks = true;
-        break;
-    }
-}
+// Catégories actives
+$categories = $categoryModel->findAllActive();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -180,9 +100,9 @@ foreach ($sections as $s) {
             border-radius: var(--radius-full);
         }
 
-        /* ===== HERO SECTION ===== */
+        /* ===== HERO ===== */
         .hero {
-            min-height: 100vh;
+            min-height: 60vh;
             display: flex;
             align-items: center;
             background: var(--gradient-dark);
@@ -190,76 +110,44 @@ foreach ($sections as $s) {
             overflow: hidden;
             padding-top: 80px;
         }
-        .hero-with-bg {
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        .hero-with-bg::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(13, 13, 13, 0.85) 0%, rgba(13, 13, 13, 0.7) 100%);
-            z-index: 0;
-        }
-        .hero-with-bg .container {
-            position: relative;
-            z-index: 1;
-        }
         .hero::before {
-            content: '';
-            position: absolute;
-            width: 800px;
-            height: 800px;
-            background: var(--pink-main);
-            border-radius: 50%;
-            filter: blur(200px);
-            opacity: 0.2;
-            top: -300px;
-            right: -200px;
-            animation: pulse 8s ease-in-out infinite;
-        }
-        .hero::after {
             content: '';
             position: absolute;
             width: 600px;
             height: 600px;
+            background: var(--pink-main);
+            border-radius: 50%;
+            filter: blur(200px);
+            opacity: 0.15;
+            top: -200px;
+            right: -100px;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
             background: var(--mint-main);
             border-radius: 50%;
             filter: blur(180px);
-            opacity: 0.15;
-            bottom: -200px;
-            left: -100px;
-            animation: pulse 6s ease-in-out infinite reverse;
+            opacity: 0.1;
+            bottom: -100px;
+            left: -50px;
         }
         .hero-content {
             position: relative;
             z-index: 1;
             text-align: center;
-            max-width: 800px;
+            max-width: 700px;
             margin: 0 auto;
         }
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 20px;
-            border-radius: var(--radius-full);
-            margin-bottom: var(--spacing-lg);
-            color: var(--mint-main);
-            font-size: 14px;
-            font-weight: 600;
-        }
         .hero h1 {
-            font-size: 4rem;
+            font-family: var(--font-display);
+            font-size: 3rem;
             font-weight: 800;
             color: var(--white);
-            margin-bottom: var(--spacing-lg);
-            line-height: 1.1;
+            margin-bottom: var(--spacing-md);
+            line-height: 1.15;
         }
         .hero h1 span {
             background: var(--gradient-hero);
@@ -267,1055 +155,236 @@ foreach ($sections as $s) {
             -webkit-text-fill-color: transparent;
         }
         .hero p {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             color: rgba(255, 255, 255, 0.7);
             margin-bottom: var(--spacing-xl);
-            line-height: 1.7;
+            line-height: 1.6;
         }
-        .hero-buttons {
-            display: flex;
-            gap: var(--spacing-md);
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .hero-categories {
-            display: flex;
-            gap: var(--spacing-md);
-            justify-content: center;
-            margin-top: var(--spacing-xxl);
-        }
-        .category-pill {
-            display: flex;
+        .hero-cta {
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.08);
-            padding: 12px 24px;
+            gap: 10px;
+            background: var(--gradient-pink);
+            color: white;
+            padding: 14px 32px;
             border-radius: var(--radius-full);
-            color: var(--white);
-            font-weight: 500;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
             transition: all var(--transition-normal);
         }
-        .category-pill:hover {
-            background: rgba(255, 105, 180, 0.2);
-            border-color: var(--pink-main);
+        .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-pink);
         }
 
-        /* ===== PRODUCTS SECTION ===== */
+        /* ===== PRODUITS ===== */
         .products-section {
-            padding: 100px 0;
+            padding: var(--spacing-xxl) 0;
             background: var(--gray-light);
         }
-        .section-header {
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
             text-align: center;
-            margin-bottom: var(--spacing-xxl);
-        }
-        .section-header h2 {
-            font-size: 2.5rem;
-            margin-bottom: var(--spacing-md);
-        }
-        .section-header p {
-            color: var(--gray);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
+            margin-bottom: var(--spacing-xl);
+            color: var(--black);
         }
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: var(--spacing-lg);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
         }
         .product-card {
-            background: var(--white);
-            border-radius: var(--radius-lg);
+            background: white;
+            border-radius: var(--radius-md);
             overflow: hidden;
-            transition: all var(--transition-normal);
             box-shadow: var(--shadow-sm);
+            transition: all var(--transition-normal);
+            text-decoration: none;
+            color: inherit;
+            display: block;
         }
         .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
         }
-        .product-image {
-            aspect-ratio: 4/3;
-            background: linear-gradient(145deg, #fafafa 0%, #f0f0f0 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .product-image::before {
-            content: '👕';
-            font-size: 4rem;
-            opacity: 0.5;
-        }
-        .product-image img {
+        .product-card-img {
             width: 100%;
-            height: 100%;
-            object-fit: contain;
-            padding: 20px;
-            box-sizing: border-box;
+            aspect-ratio: 1;
+            object-fit: cover;
+            background: #f0f0f0;
         }
-        .product-image:has(img)::before { display: none; }
-        .product-category {
-            position: absolute;
-            top: 15px;
-            left: 15px;
+        .product-card-body {
+            padding: var(--spacing-md);
         }
-        .product-info { padding: var(--spacing-lg); }
-        .product-info h3 {
-            font-size: 1.1rem;
-            margin-bottom: var(--spacing-sm);
-            color: var(--black-soft);
+        .product-card-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 6px;
+            color: var(--black);
         }
-        .product-info p {
-            color: var(--gray);
-            font-size: 14px;
-            margin-bottom: var(--spacing-md);
-            line-height: 1.5;
-        }
-        .product-footer {
+        .product-card-categories {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
         }
-        .product-price {
-            font-family: var(--font-display);
-            font-size: 1.5rem;
+        .product-card-cat {
+            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: var(--radius-full);
+            background: rgba(61, 255, 192, 0.15);
+            color: var(--mint-dark);
+            font-weight: 500;
+        }
+        .product-card-price {
             font-weight: 700;
+            font-size: 1.1rem;
             color: var(--pink-dark);
         }
-        .product-btn {
-            background: var(--gradient-mint);
-            color: var(--black);
-            padding: 10px 20px;
-            border-radius: var(--radius-full);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all var(--transition-normal);
-        }
-        .product-btn:hover {
-            transform: scale(1.05);
-            box-shadow: var(--shadow-mint);
-        }
-
-        /* ===== INSPIRATIONS/PACKS SECTION ===== */
-        .inspirations-section {
-            padding: 100px 0;
-            background: var(--black-soft);
-            position: relative;
-            overflow: hidden;
-        }
-        .inspirations-section::before {
-            content: '';
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            background: var(--pink-main);
-            border-radius: 50%;
-            filter: blur(200px);
-            opacity: 0.08;
-            top: -100px;
-            left: -100px;
-        }
-        .inspirations-section .section-header h2,
-        .inspirations-section .section-header p { color: var(--white); }
-        .inspirations-section .section-header p { color: rgba(255, 255, 255, 0.7); }
-        .inspirations-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: var(--spacing-lg);
-            position: relative;
-            z-index: 1;
-        }
-        .inspiration-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            transition: all var(--transition-normal);
-            backdrop-filter: blur(10px);
-        }
-        .inspiration-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--pink-main);
-            box-shadow: 0 20px 40px rgba(255, 105, 180, 0.15);
-        }
-        .inspiration-image {
-            aspect-ratio: 16/10;
-            background: linear-gradient(135deg, rgba(255,105,180,0.2) 0%, rgba(61,255,192,0.1) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .inspiration-image::before {
-            content: '✨';
-            font-size: 3rem;
-            opacity: 0.5;
-        }
-        .inspiration-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .inspiration-image:has(img)::before { display: none; }
-        .inspiration-type {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 6px 12px;
-            border-radius: var(--radius-full);
-            background: rgba(0, 0, 0, 0.6);
-            color: var(--white);
-            backdrop-filter: blur(4px);
-        }
-        .inspiration-type.type-technique { background: var(--pink-main); }
-        .inspiration-type.type-contextuel { background: var(--mint-dark); color: var(--black); }
-        .inspiration-type.type-thematique { background: #9b59b6; }
-        .inspiration-type.type-inspiration { background: #3498db; }
-        .inspiration-info { padding: 20px; }
-        .inspiration-info h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--white);
-            margin-bottom: 8px;
-        }
-        .inspiration-info p {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.6);
-            line-height: 1.5;
-            margin-bottom: 16px;
-        }
-        .inspiration-cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--gradient-pink);
-            color: var(--white);
-            padding: 10px 20px;
-            border-radius: var(--radius-full);
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all var(--transition-fast);
-        }
-        .inspiration-cta:hover {
-            transform: scale(1.05);
-            box-shadow: var(--shadow-pink);
-        }
-        .inspiration-cta svg { width: 16px; height: 16px; }
-
-        /* ===== CONTENT BLOCK SECTION ===== */
-        .content-block-section {
-            padding: 80px 0;
-            background: var(--white);
-        }
-        .content-block-section.alt-bg {
-            background: var(--gray-light);
-        }
-        .content-block-inner {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            align-items: center;
-        }
-        .content-block-inner.media-left {
-            direction: rtl;
-        }
-        .content-block-inner.media-left > * {
-            direction: ltr;
-        }
-        .content-block-inner.gallery-mode {
-            grid-template-columns: 1fr;
-            gap: 40px;
-        }
-        .content-block-text h2 {
-            font-size: 2.2rem;
-            margin-bottom: var(--spacing-md);
-        }
-        .content-block-text p {
-            color: var(--gray);
-            font-size: 1.05rem;
-            line-height: 1.8;
-            margin-bottom: var(--spacing-lg);
-        }
-        .content-block-media {
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-lg);
-        }
-        .content-block-media img,
-        .content-block-media video {
-            width: 100%;
+        .product-card-cta {
             display: block;
-        }
-        .content-block-media .main-media {
-            border-radius: var(--radius-lg);
-        }
-        /* Galerie de cartes individuelles */
-        .content-block-gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: var(--spacing-lg);
-        }
-        .gallery-card {
-            background: var(--white);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-md);
-            transition: all var(--transition-normal);
-        }
-        .gallery-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-lg);
-        }
-        .gallery-card img {
-            width: 100%;
-            aspect-ratio: 4/3;
-            object-fit: cover;
-            display: block;
-        }
-
-        /* ===== BLOG SLIDER SECTION ===== */
-        .blog-section {
-            padding: 100px 0;
-            background: var(--gray-light);
-        }
-        .blog-slider {
-            display: flex;
-            gap: var(--spacing-lg);
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 20px;
-        }
-        .blog-slider::-webkit-scrollbar { height: 6px; }
-        .blog-slider::-webkit-scrollbar-track { background: var(--gray-light); border-radius: 10px; }
-        .blog-slider::-webkit-scrollbar-thumb { background: var(--pink-main); border-radius: 10px; }
-        .blog-card {
-            min-width: 320px;
-            max-width: 320px;
-            background: var(--white);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            scroll-snap-align: start;
-            transition: all var(--transition-normal);
-            box-shadow: var(--shadow-sm);
-        }
-        .blog-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-        .blog-card-image {
-            aspect-ratio: 16/10;
-            background: linear-gradient(135deg, rgba(255,105,180,0.15) 0%, rgba(61,255,192,0.15) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-        .blog-card-image::before {
-            content: '📝';
-            font-size: 2.5rem;
-            opacity: 0.5;
-        }
-        .blog-card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .blog-card-image:has(img)::before { display: none; }
-        .blog-card-content { padding: 20px; }
-        .blog-card-content h3 {
-            font-size: 1rem;
-            margin-bottom: 8px;
-            color: var(--black-soft);
-        }
-        .blog-card-content p {
-            font-size: 0.9rem;
-            color: var(--gray);
-            line-height: 1.5;
-        }
-        .blog-card-date {
-            font-size: 12px;
-            color: var(--pink-main);
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        /* ===== NEWSLETTER SECTION ===== */
-        .newsletter-section {
-            position: relative;
-            padding: 100px 0;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-color: var(--black-soft);
-        }
-        .newsletter-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(13, 13, 13, 0.9) 0%, rgba(30, 30, 30, 0.85) 100%);
-            z-index: 0;
-        }
-        .newsletter-section .container {
-            position: relative;
-            z-index: 1;
-        }
-        .newsletter-content {
-            max-width: 600px;
-            margin: 0 auto;
             text-align: center;
-        }
-        .newsletter-content h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--white);
-            margin-bottom: var(--spacing-md);
-        }
-        .newsletter-subtitle {
-            font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: var(--spacing-xl);
-            line-height: 1.6;
-        }
-        .newsletter-form {
-            margin-bottom: var(--spacing-lg);
-        }
-        .newsletter-input-group {
-            display: flex;
-            gap: 12px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        .newsletter-input {
-            flex: 1;
-            padding: 16px 24px;
-            font-size: 1rem;
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            border-radius: var(--radius-full);
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--white);
-            outline: none;
-            transition: all var(--transition-fast);
-        }
-        .newsletter-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-        .newsletter-input:focus {
-            border-color: var(--pink-main);
-            background: rgba(255, 255, 255, 0.12);
-        }
-        .newsletter-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 16px 28px;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--white);
+            padding: 10px;
             background: var(--gradient-pink);
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
             border: none;
-            border-radius: var(--radius-full);
             cursor: pointer;
-            transition: all var(--transition-normal);
-            white-space: nowrap;
+            transition: opacity var(--transition-fast);
         }
-        .newsletter-btn:hover {
-            transform: scale(1.05);
-            box-shadow: var(--shadow-pink);
+        .product-card-cta:hover {
+            opacity: 0.9;
         }
-        .newsletter-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .newsletter-message {
-            margin-top: var(--spacing-md);
-            padding: 12px 20px;
-            border-radius: var(--radius-md);
-            font-weight: 500;
-            display: none;
-        }
-        .newsletter-message.show {
-            display: block;
-        }
-        .newsletter-message.success {
-            background: rgba(61, 255, 192, 0.15);
-            color: var(--mint-main);
-            border: 1px solid rgba(61, 255, 192, 0.3);
-        }
-        .newsletter-message.error {
-            background: rgba(255, 105, 180, 0.15);
-            color: var(--pink-main);
-            border: 1px solid rgba(255, 105, 180, 0.3);
-        }
-        .newsletter-privacy {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.4);
-            line-height: 1.6;
-        }
-        @media (max-width: 768px) {
-            .newsletter-content h2 {
-                font-size: 1.8rem;
-            }
-            .newsletter-input-group {
-                flex-direction: column;
-            }
-            .newsletter-btn {
-                width: 100%;
-                justify-content: center;
-            }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xxl);
+            color: var(--gray);
         }
 
         /* ===== FOOTER ===== */
         .footer {
-            background: var(--gradient-dark);
-            color: var(--white);
-            padding: 60px 0 30px;
-        }
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--spacing-xl);
-            margin-bottom: var(--spacing-xl);
-        }
-        .footer-brand h3 {
-            font-family: var(--font-display);
-            font-size: 1.5rem;
-            background: var(--gradient-hero);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: var(--spacing-sm);
-        }
-        .footer-brand p {
+            background: var(--black);
             color: rgba(255, 255, 255, 0.6);
-            font-size: 14px;
+            padding: var(--spacing-xl) 0;
+            text-align: center;
+            font-size: 0.9rem;
         }
-        .footer-links h4 {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--mint-main);
-            margin-bottom: var(--spacing-md);
-        }
-        .footer-links a {
-            display: block;
-            color: rgba(255, 255, 255, 0.6);
+        .footer a {
+            color: var(--pink-main);
             text-decoration: none;
-            padding: 6px 0;
-            font-size: 14px;
-            transition: color var(--transition-fast);
-        }
-        .footer-links a:hover { color: var(--pink-main); }
-        .footer-bottom {
-            text-align: center;
-            padding-top: var(--spacing-lg);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 14px;
-        }
-
-        /* ===== EMPTY STATE ===== */
-        .empty-products {
-            text-align: center;
-            padding: var(--spacing-xxl);
-        }
-        .empty-products-icon {
-            font-size: 5rem;
-            margin-bottom: var(--spacing-lg);
         }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .navbar-nav { display: none; }
-            .hero-categories { flex-direction: column; align-items: center; }
-            .content-block-inner {
-                grid-template-columns: 1fr;
+            .hero h1 { font-size: 2rem; }
+            .hero p { font-size: 1rem; }
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--spacing-md);
             }
-            .content-block-inner.media-left {
-                direction: ltr;
+            .navbar-nav { gap: 15px; }
+        }
+        @media (max-width: 480px) {
+            .products-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
+
+    <!-- NAVBAR -->
     <nav class="navbar">
         <div class="container">
-            <a href="/" class="navbar-brand">PERSONNALY</a>
+            <a href="/public/" class="navbar-brand">PERSONNALY</a>
             <div class="navbar-nav">
-                <a href="#produits">Produits</a>
-                <?php if ($hasPacks): ?><a href="#inspirations">Idées</a><?php endif; ?>
-                <a href="#categories">Catégories</a>
-                <a href="#contact">Contact</a>
+                <a href="/public/">Accueil</a>
                 <a href="/public/cart.php" class="cart-nav-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                        <line x1="3" y1="6" x2="21" y2="6"/>
-                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
                     </svg>
                     Panier
-                    <?php if ($cartCount > 0): ?><span class="cart-badge"><?= $cartCount ?></span><?php endif; ?>
+                    <?php if ($cartCount > 0): ?>
+                        <span class="cart-badge"><?= $cartCount ?></span>
+                    <?php endif; ?>
                 </a>
             </div>
         </div>
     </nav>
 
-    <?php
-    // Rendu dynamique des sections
-    $contentBlockIndex = 0;
-    foreach ($sections as $section):
-        switch ($section['type']):
-
-            // ===== HERO =====
-            case 'hero':
-                $heroStyle = '';
-                if ($section['media_type'] === 'image' && !empty($section['media_url'])) {
-                    $heroStyle = 'style="background-image: url(\'/public' . h($section['media_url']) . '\');"';
-                }
-    ?>
-    <section class="hero <?= !empty($section['media_url']) ? 'hero-with-bg' : '' ?>" <?= $heroStyle ?>>
+    <!-- HERO -->
+    <section class="hero">
         <div class="container">
             <div class="hero-content">
-                <div class="hero-badge">
-                    ✨ Nouveau — Personnalisation en ligne
-                </div>
-                <h1><?= h($section['title'] ?: 'Créez des vêtements uniques') ?> <span><?= h($section['config']['highlight'] ?? 'pour toute la famille') ?></span></h1>
-                <p><?= h($section['subtitle'] ?: 'Personnalisez vos t-shirts, sweats et polos avec vos propres designs. Qualité premium, livraison rapide, satisfaction garantie.') ?></p>
-                <div class="hero-buttons">
-                    <?php if ($section['cta_url'] && $section['cta_text']): ?>
-                        <a href="<?= h($section['cta_url']) ?>" class="btn btn-primary">
-                            <?= h($section['cta_text']) ?>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M5 12h14M12 5l7 7-7 7"/>
-                            </svg>
-                        </a>
-                    <?php else: ?>
-                        <a href="#produits" class="btn btn-primary">
-                            Découvrir nos produits
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M5 12h14M12 5l7 7-7 7"/>
-                            </svg>
-                        </a>
-                    <?php endif; ?>
-                    <a href="#categories" class="btn btn-dark">Voir les catégories</a>
-                </div>
-                <div class="hero-categories" id="categories">
-                    <div class="category-pill">👨 Homme</div>
-                    <div class="category-pill">👩 Femme</div>
-                    <div class="category-pill">👶 Enfant</div>
-                    <div class="category-pill">👨‍👩‍👧‍👦 Famille</div>
-                </div>
+                <h1>Créez des vêtements <span>uniques</span></h1>
+                <p>Personnalisez vos textiles avec broderie, flocage et plus encore. Pour toute la famille.</p>
+                <a href="#produits" class="hero-cta">
+                    Découvrir nos produits
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </a>
             </div>
         </div>
     </section>
-    <?php
-            break;
 
-            // ===== FEATURED PRODUCTS =====
-            case 'featured_products':
-    ?>
+    <!-- PRODUITS -->
     <section class="products-section" id="produits">
         <div class="container">
-            <div class="section-header">
-                <h2><?= h($section['title'] ?: 'Nos Produits') ?></h2>
-                <?php if ($section['subtitle']): ?>
-                    <p><?= h($section['subtitle']) ?></p>
-                <?php endif; ?>
-            </div>
+            <h2 class="section-title">Nos produits</h2>
 
-            <?php if (empty($section['products'])): ?>
-                <div class="empty-products">
-                    <div class="empty-products-icon">👕</div>
-                    <h3>Produits bientôt disponibles</h3>
-                    <p class="text-muted">Notre catalogue est en cours de préparation.</p>
+            <?php if (empty($products)): ?>
+                <div class="empty-state">
+                    <p>Aucun produit disponible pour le moment.</p>
                 </div>
             <?php else: ?>
                 <div class="products-grid">
-                    <?php foreach ($section['products'] as $product): ?>
-                        <div class="product-card">
-                            <div class="product-image">
-                                <?php if (!empty($product['category_names'])): ?>
-                                    <span class="product-category badge badge-mint">
-                                        <?= h($product['category_names'][0]) ?>
-                                    </span>
-                                <?php endif; ?>
-                                <?php if (!empty($product['image_front_url'])): ?>
-                                    <?= picture($product['image_front_url'], $product['name']) ?>
-                                <?php endif; ?>
-                            </div>
-                            <div class="product-info">
-                                <h3><?= h($product['name']) ?></h3>
-                                <p><?= h($product['description'] ?? 'Personnalisable avec votre design') ?></p>
-                                <div class="product-footer">
-                                    <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
-                                    <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
+                    <?php foreach ($products as $product): ?>
+                        <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-card">
+                            <?php if (!empty($product['image_front_url'])): ?>
+                                <img src="/public<?= h($product['image_front_url']) ?>" alt="<?= h($product['name']) ?>" class="product-card-img">
+                            <?php else: ?>
+                                <div class="product-card-img" style="display:flex;align-items:center;justify-content:center;color:#ccc;font-size:3rem;">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                                    </svg>
                                 </div>
+                            <?php endif; ?>
+                            <div class="product-card-body">
+                                <div class="product-card-name"><?= h($product['name']) ?></div>
+                                <?php if (!empty($product['category_names'])): ?>
+                                    <div class="product-card-categories">
+                                        <?php foreach ($product['category_names'] as $catName): ?>
+                                            <span class="product-card-cat"><?= h($catName) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                                <div class="product-card-price"><?= number_format($product['base_price'], 2, ',', ' ') ?> &euro;</div>
                             </div>
-                        </div>
+                            <div class="product-card-cta">Personnaliser</div>
+                        </a>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
         </div>
     </section>
-    <?php
-            break;
 
-            // ===== FEATURED CATEGORY =====
-            case 'featured_category':
-                if (empty($section['category']) || empty($section['category_products'])) break;
-                $cat = $section['category'];
-    ?>
-    <section class="category-section" id="categorie-<?= h($cat['slug']) ?>">
+    <!-- FOOTER -->
+    <footer class="footer">
         <div class="container">
-            <div class="section-header">
-                <h2><?= h($section['title'] ?: $cat['name']) ?></h2>
-                <?php if ($section['subtitle']): ?>
-                    <p><?= h($section['subtitle']) ?></p>
-                <?php elseif (!empty($cat['description'])): ?>
-                    <p><?= h($cat['description']) ?></p>
-                <?php endif; ?>
-            </div>
-
-            <div class="products-grid">
-                <?php foreach ($section['category_products'] as $product): ?>
-                    <div class="product-card">
-                        <div class="product-image">
-                            <span class="product-category badge badge-mint">
-                                <?= h($cat['name']) ?>
-                            </span>
-                            <?php if (!empty($product['image_front_url'])): ?>
-                                <?= picture($product['image_front_url'], $product['name']) ?>
-                            <?php endif; ?>
-                        </div>
-                        <div class="product-info">
-                            <h3><?= h($product['name']) ?></h3>
-                            <p><?= h($product['description'] ?? 'Personnalisable avec votre design') ?></p>
-                            <div class="product-footer">
-                                <span class="product-price"><?= formatPrice($product['base_price']) ?></span>
-                                <a href="/public/product.php?id=<?= $product['id'] ?>" class="product-btn">Personnaliser</a>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-
-            <?php if (!empty($section['cta_text']) && !empty($section['cta_url'])): ?>
-                <div class="section-cta" style="text-align: center; margin-top: 30px;">
-                    <a href="<?= h($section['cta_url']) ?>" class="btn btn-primary">
-                        <?= h($section['cta_text']) ?>
-                    </a>
-                </div>
-            <?php endif; ?>
-        </div>
-    </section>
-    <?php
-            break;
-
-            // ===== FEATURED PACKS =====
-            case 'featured_packs':
-                if (empty($section['packs'])) break;
-                $typeLabels = [
-                    'technique' => 'Technique',
-                    'contextuel' => 'Contextuel',
-                    'thematique' => 'Thématique',
-                    'inspiration' => 'Inspiration'
-                ];
-    ?>
-    <section class="inspirations-section" id="inspirations">
-        <div class="container">
-            <div class="section-header">
-                <h2><?= h($section['title'] ?: 'Nos Idées Tendance') ?></h2>
-                <?php if ($section['subtitle']): ?>
-                    <p><?= h($section['subtitle']) ?></p>
-                <?php endif; ?>
-            </div>
-
-            <div class="inspirations-grid">
-                <?php foreach ($section['packs'] as $pack):
-                    if (!$pack['first_product']) continue;
-                ?>
-                    <div class="inspiration-card">
-                        <div class="inspiration-image">
-                            <span class="inspiration-type type-<?= h($pack['type']) ?>">
-                                <?= h($typeLabels[$pack['type']] ?? 'Idée') ?>
-                            </span>
-                            <?php if (!empty($pack['cover_image_url'])): ?>
-                                <?= picture($pack['cover_image_url'], $pack['name']) ?>
-                            <?php endif; ?>
-                        </div>
-                        <div class="inspiration-info">
-                            <h3><?= h($pack['name']) ?></h3>
-                            <?php if (!empty($pack['description'])): ?>
-                                <p><?= h($pack['description']) ?></p>
-                            <?php endif; ?>
-                            <a href="/public/product.php?id=<?= $pack['first_product']['id'] ?>&pack_id=<?= $pack['id'] ?>" class="inspiration-cta">
-                                Essayer cette idée
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </section>
-    <?php
-            break;
-
-            // ===== CONTENT BLOCK =====
-            case 'content_block':
-                $contentBlockIndex++;
-                $altBg = ($contentBlockIndex % 2 === 0) ? 'alt-bg' : '';
-                $mediaLeft = ($section['config']['media_position'] ?? 'right') === 'left';
-                $additionalMedia = $section['config']['additional_media'] ?? [];
-                $hasMultipleMedia = !empty($additionalMedia);
-                $hasMainMedia = $section['media_type'] !== 'none' && !empty($section['media_url']);
-                // Mode galerie si plusieurs images additionnelles (sans image principale)
-                $isGalleryMode = $hasMultipleMedia && !$hasMainMedia;
-    ?>
-    <section class="content-block-section <?= $altBg ?>">
-        <div class="container">
-            <?php if ($isGalleryMode): ?>
-                <!-- Mode Galerie : texte au-dessus, images en grille -->
-                <div class="content-block-inner gallery-mode">
-                    <div class="content-block-text" style="text-align: center; max-width: 800px; margin: 0 auto;">
-                        <?php if ($section['title']): ?>
-                            <h2><?= h($section['title']) ?></h2>
-                        <?php endif; ?>
-                        <?php if ($section['content']): ?>
-                            <p><?= nl2br(h($section['content'])) ?></p>
-                        <?php endif; ?>
-                        <?php if ($section['cta_url'] && $section['cta_text']): ?>
-                            <a href="<?= h($section['cta_url']) ?>" class="btn btn-primary"><?= h($section['cta_text']) ?></a>
-                        <?php endif; ?>
-                    </div>
-                    <div class="content-block-gallery">
-                        <?php foreach ($additionalMedia as $media): ?>
-                            <div class="gallery-card">
-                                <?= picture($media['url'], '') ?>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            <?php else: ?>
-                <!-- Mode classique : texte + média côte à côte -->
-                <div class="content-block-inner <?= $mediaLeft ? 'media-left' : '' ?>">
-                    <div class="content-block-text">
-                        <?php if ($section['title']): ?>
-                            <h2><?= h($section['title']) ?></h2>
-                        <?php endif; ?>
-                        <?php if ($section['content']): ?>
-                            <p><?= nl2br(h($section['content'])) ?></p>
-                        <?php endif; ?>
-                        <?php if ($section['cta_url'] && $section['cta_text']): ?>
-                            <a href="<?= h($section['cta_url']) ?>" class="btn btn-primary"><?= h($section['cta_text']) ?></a>
-                        <?php endif; ?>
-                    </div>
-                    <?php if ($hasMainMedia): ?>
-                        <div class="content-block-media">
-                            <?php if ($section['media_type'] === 'video'): ?>
-                                <video src="/public<?= h($section['media_url']) ?>" autoplay muted loop playsinline></video>
-                            <?php else: ?>
-                                <?= picture($section['media_url'], $section['title'], 'main-media') ?>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            <?php endif; ?>
-        </div>
-    </section>
-    <?php
-            break;
-
-            // ===== BLOG SLIDER =====
-            case 'blog_slider':
-                if (empty($section['posts'])) break;
-    ?>
-    <section class="blog-section">
-        <div class="container">
-            <div class="section-header">
-                <h2><?= h($section['title'] ?: 'Notre Blog') ?></h2>
-                <?php if ($section['subtitle']): ?>
-                    <p><?= h($section['subtitle']) ?></p>
-                <?php endif; ?>
-            </div>
-
-            <div class="blog-slider">
-                <?php foreach ($section['posts'] as $post): ?>
-                    <div class="blog-card">
-                        <div class="blog-card-image">
-                            <?php if (!empty($post['cover_image_url'])): ?>
-                                <?= picture($post['cover_image_url'], $post['title']) ?>
-                            <?php endif; ?>
-                        </div>
-                        <div class="blog-card-content">
-                            <?php if ($post['published_at']): ?>
-                                <div class="blog-card-date"><?= date('d M Y', strtotime($post['published_at'])) ?></div>
-                            <?php endif; ?>
-                            <h3><?= h($post['title']) ?></h3>
-                            <?php if ($post['excerpt']): ?>
-                                <p><?= h(substr($post['excerpt'], 0, 120)) ?>...</p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </section>
-    <?php
-            break;
-
-            // ===== NEWSLETTER =====
-            case 'newsletter':
-                $newsletterStyle = '';
-                if ($section['media_type'] === 'image' && !empty($section['media_url'])) {
-                    $newsletterStyle = 'background-image: url(\'/public' . h($section['media_url']) . '\');';
-                }
-    ?>
-    <section class="newsletter-section" style="<?= $newsletterStyle ?>">
-        <div class="newsletter-overlay"></div>
-        <div class="container">
-            <div class="newsletter-content">
-                <?php if ($section['title']): ?>
-                    <h2><?= h($section['title']) ?></h2>
-                <?php endif; ?>
-                <?php if ($section['subtitle']): ?>
-                    <p class="newsletter-subtitle"><?= h($section['subtitle']) ?></p>
-                <?php endif; ?>
-
-                <form class="newsletter-form" id="newsletterForm" data-section-id="<?= $section['id'] ?>">
-                    <div class="newsletter-input-group">
-                        <input type="email" name="email" placeholder="Votre adresse email" required class="newsletter-input">
-                        <button type="submit" class="newsletter-btn" data-original-text="<?= h($section['cta_text'] ?: 'S\'inscrire') ?>">
-                            <?= h($section['cta_text'] ?: 'S\'inscrire') ?>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M5 12h14M12 5l7 7-7 7"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="newsletter-message" id="newsletterMessage"></div>
-                </form>
-
-                <p class="newsletter-privacy">
-                    En vous inscrivant, vous acceptez notre politique de confidentialité.<br>
-                    Désabonnement possible à tout moment.
-                </p>
-            </div>
-        </div>
-    </section>
-    <?php
-            break;
-
-        endswitch;
-    endforeach;
-    ?>
-
-    <!-- Footer -->
-    <footer class="footer" id="contact">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <h3>PERSONNALY</h3>
-                    <p>Personnalisation textile de qualité pour toute la famille.</p>
-                </div>
-
-                <div class="footer-links">
-                    <h4>Navigation</h4>
-                    <a href="#produits">Produits</a>
-                    <?php if ($hasPacks): ?><a href="#inspirations">Idées</a><?php endif; ?>
-                    <a href="#categories">Catégories</a>
-                    <a href="#">FAQ</a>
-                </div>
-
-                <div class="footer-links">
-                    <h4>Légal</h4>
-                    <a href="#">CGV</a>
-                    <a href="#">Mentions légales</a>
-                    <a href="#">Politique de confidentialité</a>
-                </div>
-
-                <div class="footer-links">
-                    <h4>Contact</h4>
-                    <a href="mailto:contact@personnaly.fr">contact@personnaly.fr</a>
-                    <a href="#">Instagram</a>
-                    <a href="#">Facebook</a>
-                </div>
-            </div>
-
-            <div class="footer-bottom">
-                <p>&copy; <?= date('Y') ?> PERSONNALY - Tous droits réservés</p>
-            </div>
+            <p>&copy; <?= date('Y') ?> PERSONNALY &mdash; Personnalisation textile</p>
         </div>
     </footer>
 
-    <!-- Newsletter AJAX Script -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('newsletterForm');
-        if (!form) return;
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const emailInput = form.querySelector('input[name="email"]');
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const messageDiv = document.getElementById('newsletterMessage');
-            const email = emailInput.value.trim();
-
-            if (!email) return;
-
-            // Disable form during submission
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = 'Inscription en cours...';
-            messageDiv.className = 'newsletter-message';
-            messageDiv.textContent = '';
-
-            // AJAX request
-            fetch('/public/api/newsletter-subscribe.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email,
-                    source: 'homepage'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                messageDiv.className = 'newsletter-message show ' + (data.success ? 'success' : 'error');
-                messageDiv.textContent = data.message;
-
-                if (data.success) {
-                    emailInput.value = '';
-                }
-            })
-            .catch(error => {
-                messageDiv.className = 'newsletter-message show error';
-                messageDiv.textContent = 'Une erreur est survenue. Veuillez réessayer.';
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
-                const originalText = submitBtn.getAttribute('data-original-text') || "S'inscrire";
-                submitBtn.innerHTML = originalText + ' <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
-            });
-        });
-    });
-    </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <?php
 /**
  * PERSONNALY - Admin : Gestion Options de Personnalisation
- * Techniques, Tailles, Designs (Idees cadeaux), Elements (Cliparts)
+ * Techniques, Tailles, Elements (Cliparts)
  */
 
 require_once __DIR__ . '/../app/core/Auth.php';
@@ -10,8 +10,6 @@ require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/CustomizationOption.php';
 require_once __DIR__ . '/../app/models/SizeGroup.php';
 require_once __DIR__ . '/../app/models/Size.php';
-require_once __DIR__ . '/../app/models/DesignCategory.php';
-require_once __DIR__ . '/../app/models/Design.php';
 require_once __DIR__ . '/../app/models/ElementCategory.php';
 require_once __DIR__ . '/../app/models/Element.php';
 
@@ -21,21 +19,18 @@ Auth::requireAdmin();
 $optionModel = new CustomizationOption();
 $sizeGroupModel = new SizeGroup();
 $sizeModel = new Size();
-$designCategoryModel = new DesignCategory();
-$designModel = new Design();
 $elementCategoryModel = new ElementCategory();
 $elementModel = new Element();
 
 // Type d'option actuel
 $currentType = get('type', 'technique');
-if (!in_array($currentType, ['technique', 'size', 'design', 'element'])) {
+if (!in_array($currentType, ['technique', 'size', 'element'])) {
     $currentType = 'technique';
 }
 
 $typeLabels = [
     'technique' => ['label' => 'Techniques', 'icon' => '🧵', 'desc' => 'Methodes de personnalisation (Broderie, Flex, Flock) avec tarifs'],
     'size' => ['label' => 'Tailles', 'icon' => '📏', 'desc' => 'Gerez vos tailles par groupe (Lettres, Chiffres, Enfants, Personnalise)'],
-    'design' => ['label' => 'Designs', 'icon' => '🎨', 'desc' => 'Idees cadeaux pretes a l\'emploi (Nounours, Poupee, Mug decore...)'],
     'element' => ['label' => 'Elements', 'icon' => '✨', 'desc' => 'Cliparts et formes a ajouter sur les produits (gratuits ou payants)'],
 ];
 
@@ -226,146 +221,6 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
     }
 
     // ========================================
-    // DESIGNS
-    // ========================================
-    if ($currentType === 'design') {
-        // Ajouter une categorie de design
-        if (isset($_POST['add_design_category'])) {
-            $name = trim(post('category_name', ''));
-            if (empty($name)) {
-                $error = 'Le nom de la categorie est obligatoire.';
-            } else {
-                $designCategoryModel->create($name);
-                $success = 'Categorie creee avec succes.';
-            }
-        }
-
-        // Supprimer une categorie de design
-        if (isset($_POST['delete_design_category'])) {
-            $id = (int) post('category_id', 0);
-            if ($id) {
-                $designCategoryModel->delete($id);
-                $success = 'Categorie supprimee.';
-            }
-        }
-
-        // Ajouter un design
-        if (isset($_POST['add_design'])) {
-            $name = trim(post('name', ''));
-            $categoryId = (int) post('category_id', 0);
-            $newCategoryName = trim(post('new_category_name', ''));
-
-            if (empty($name)) {
-                $error = 'Le nom du design est obligatoire.';
-            } elseif ($categoryId === 0 && empty($newCategoryName)) {
-                $error = 'Veuillez selectionner une categorie ou en creer une nouvelle.';
-            } elseif (empty($_FILES['image']['tmp_name'])) {
-                $error = 'L\'image est obligatoire.';
-            } else {
-                // Si nouvelle categorie
-                if (!empty($newCategoryName)) {
-                    $categoryId = $designCategoryModel->findOrCreate($newCategoryName);
-                }
-
-                $uploadDir = __DIR__ . '/../public/uploads/designs/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
-
-                $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-                $allowed = ['jpg', 'jpeg', 'png', 'svg', 'webp'];
-
-                if (in_array($ext, $allowed)) {
-                    $filename = 'design_' . time() . '_' . uniqid() . '.' . $ext;
-                    $fullPath = $uploadDir . $filename;
-
-                    if (move_uploaded_file($_FILES['image']['tmp_name'], $fullPath)) {
-                        if ($ext !== 'svg') {
-                            require_once __DIR__ . '/../app/helpers/ImageHelper.php';
-                            ImageHelper::convertToWebP($fullPath);
-                        }
-
-                        $designModel->create([
-                            'name' => $name,
-                            'image_path' => '/uploads/designs/' . $filename,
-                            'category_id' => $categoryId
-                        ]);
-                        $success = 'Design ajoute avec succes.';
-                    } else {
-                        $error = 'Erreur lors de l\'upload.';
-                    }
-                } else {
-                    $error = 'Format non autorise. Utilisez JPG, PNG, SVG ou WebP.';
-                }
-            }
-        }
-
-        // Modifier un design
-        if (isset($_POST['edit_design'])) {
-            $id = (int) post('design_id', 0);
-            $name = trim(post('name', ''));
-            $categoryId = (int) post('category_id', 0);
-
-            if ($id && !empty($name) && $categoryId > 0) {
-                // Nouvelle image ?
-                if (!empty($_FILES['image']['tmp_name'])) {
-                    $uploadDir = __DIR__ . '/../public/uploads/designs/';
-                    $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-                    $allowed = ['jpg', 'jpeg', 'png', 'svg', 'webp'];
-
-                    if (in_array($ext, $allowed)) {
-                        $filename = 'design_' . time() . '_' . uniqid() . '.' . $ext;
-                        $fullPath = $uploadDir . $filename;
-
-                        if (move_uploaded_file($_FILES['image']['tmp_name'], $fullPath)) {
-                            if ($ext !== 'svg') {
-                                require_once __DIR__ . '/../app/helpers/ImageHelper.php';
-                                ImageHelper::convertToWebP($fullPath);
-                            }
-
-                            $designModel->update($id, [
-                                'name' => $name,
-                                'image_path' => '/uploads/designs/' . $filename,
-                                'category_id' => $categoryId
-                            ]);
-                            $success = 'Design modifie avec succes.';
-                        }
-                    }
-                } else {
-                    $designModel->updateWithoutImage($id, [
-                        'name' => $name,
-                        'category_id' => $categoryId
-                    ]);
-                    $success = 'Design modifie avec succes.';
-                }
-            }
-        }
-
-        // Toggle actif design
-        if (isset($_POST['toggle_design'])) {
-            $id = (int) post('design_id', 0);
-            if ($id) {
-                $designModel->toggleActive($id);
-                $success = 'Statut modifie.';
-            }
-        }
-
-        // Supprimer design
-        if (isset($_POST['delete_design'])) {
-            $id = (int) post('design_id', 0);
-            if ($id) {
-                $design = $designModel->findById($id);
-                if ($design && !empty($design['image_path'])) {
-                    $imagePath = __DIR__ . '/../public' . $design['image_path'];
-                    if (file_exists($imagePath)) @unlink($imagePath);
-                }
-                $designModel->delete($id);
-                $success = 'Design supprime.';
-            }
-        }
-    }
-
-    // ========================================
     // ELEMENTS
     // ========================================
     if ($currentType === 'element') {
@@ -520,8 +375,6 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
 $techniques = [];
 $sizes = [];
 $sizeGroups = [];
-$designs = [];
-$designCategories = [];
 $elements = [];
 $elementCategories = [];
 
@@ -532,10 +385,6 @@ if ($currentType === 'size') {
     $sizes = $sizeModel->findAllGrouped();
     $sizeGroups = $sizeGroupModel->findAllActive();
 }
-if ($currentType === 'design') {
-    $designs = $designModel->findAllGrouped();
-    $designCategories = $designCategoryModel->findAllActive();
-}
 if ($currentType === 'element') {
     $elements = $elementModel->findAllGrouped();
     $elementCategories = $elementCategoryModel->findAllActive();
@@ -543,7 +392,6 @@ if ($currentType === 'element') {
 
 $isTechniqueType = $currentType === 'technique';
 $isSizeType = $currentType === 'size';
-$isDesignType = $currentType === 'design';
 $isElementType = $currentType === 'element';
 ?>
 <!DOCTYPE html>
@@ -710,7 +558,6 @@ $isElementType = $currentType === 'element';
                             <?php
                             if ($isTechniqueType) echo count($techniques) . ' technique' . (count($techniques) > 1 ? 's' : '');
                             if ($isSizeType) echo array_sum(array_map(fn($g) => count($g['sizes']), $sizes)) . ' taille(s)';
-                            if ($isDesignType) echo array_sum(array_map(fn($g) => count($g['designs']), $designs)) . ' design(s)';
                             if ($isElementType) echo array_sum(array_map(fn($g) => count($g['elements']), $elements)) . ' element(s)';
                             ?>
                         </span>
@@ -818,62 +665,6 @@ $isElementType = $currentType === 'element';
                                                     <input type="hidden" name="size_id" value="<?= $size['id'] ?>">
                                                     <button type="submit" name="delete_size" value="1" class="action-btn-mini delete">🗑️</button>
                                                 </form>
-                                            </div>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    <?php endif; ?>
-
-                    <?php if ($isDesignType): ?>
-                        <?php if (!empty($designCategories)): ?>
-                            <div class="categories-manage">
-                                <h4>Categories existantes</h4>
-                                <div class="categories-tags">
-                                    <?php foreach ($designCategories as $cat): ?>
-                                        <span class="category-tag">
-                                            <?= h($cat['name']) ?>
-                                            <form method="post" style="display: contents;" onsubmit="return confirm('Supprimer cette categorie ?')">
-                                                <?= csrfField() ?>
-                                                <input type="hidden" name="category_id" value="<?= $cat['id'] ?>">
-                                                <button type="submit" name="delete_design_category" value="1" class="category-tag-delete">x</button>
-                                            </form>
-                                        </span>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                        <?php if (empty($designs)): ?>
-                            <div class="empty-state">
-                                <div class="empty-state-icon">🎨</div>
-                                <p>Aucun design. Ajoutez-en un !</p>
-                            </div>
-                        <?php else: ?>
-                            <?php foreach ($designs as $categoryName => $categoryData): ?>
-                                <div class="category-header">
-                                    <span class="category-name"><?= h($categoryName) ?></span>
-                                    <span class="category-count"><?= count($categoryData['designs']) ?> design<?= count($categoryData['designs']) > 1 ? 's' : '' ?></span>
-                                </div>
-                                <div class="cards-grid">
-                                    <?php foreach ($categoryData['designs'] as $design): ?>
-                                        <div class="card-item <?= $design['active'] ? '' : 'inactive' ?>">
-                                            <div class="card-actions">
-                                                <form method="post" style="display: inline;">
-                                                    <?= csrfField() ?>
-                                                    <input type="hidden" name="design_id" value="<?= $design['id'] ?>">
-                                                    <button type="submit" name="toggle_design" value="1" class="action-btn-mini toggle <?= $design['active'] ? 'active' : '' ?>"><?= $design['active'] ? '✓' : '○' ?></button>
-                                                </form>
-                                                <button type="button" class="action-btn-mini edit" onclick="openDesignModal(<?= htmlspecialchars(json_encode($design)) ?>)">✏️</button>
-                                                <form method="post" style="display: inline;" onsubmit="return confirm('Supprimer ?')">
-                                                    <?= csrfField() ?>
-                                                    <input type="hidden" name="design_id" value="<?= $design['id'] ?>">
-                                                    <button type="submit" name="delete_design" value="1" class="action-btn-mini delete">🗑️</button>
-                                                </form>
-                                            </div>
-                                            <img src="/public<?= h($design['image_path']) ?>" alt="<?= h($design['name']) ?>" class="card-image">
-                                            <div class="card-info">
-                                                <div class="card-name"><?= h($design['name']) ?></div>
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
@@ -998,47 +789,6 @@ $isElementType = $currentType === 'element';
                         </form>
                     <?php endif; ?>
 
-                    <?php if ($isDesignType): ?>
-                        <h3>Ajouter un design</h3>
-                        <form method="post" enctype="multipart/form-data">
-                            <?= csrfField() ?>
-                            <div class="form-group">
-                                <label class="form-label">Categorie *</label>
-                                <select name="category_id" class="form-input form-select">
-                                    <option value="">-- Selectionner --</option>
-                                    <?php foreach ($designCategories as $cat): ?>
-                                        <option value="<?= $cat['id'] ?>"><?= h($cat['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="divider-or">ou</div>
-                            <div class="new-group-section">
-                                <label class="form-label">Creer une nouvelle categorie</label>
-                                <input type="text" name="new_category_name" class="form-input" placeholder="Ex: Saint-Valentin...">
-                            </div>
-                            <div class="form-group" style="margin-top: 20px;">
-                                <label class="form-label">Nom du design *</label>
-                                <input type="text" name="name" class="form-input" placeholder="Ex: Nounours Anniversaire" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Image *</label>
-                                <input type="file" name="image" class="form-input" accept="image/*" required>
-                                <div class="form-hint">PNG ou SVG fond transparent recommande</div>
-                            </div>
-                            <button type="submit" name="add_design" value="1" class="btn btn-primary" style="width: 100%;">Ajouter</button>
-                        </form>
-                        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-                            <h3 style="font-size: 14px; margin-bottom: 15px;">Creer une categorie seule</h3>
-                            <form method="post">
-                                <?= csrfField() ?>
-                                <div class="form-group">
-                                    <input type="text" name="category_name" class="form-input" placeholder="Nom de la categorie" required>
-                                </div>
-                                <button type="submit" name="add_design_category" value="1" class="btn btn-secondary" style="width: 100%;">Creer categorie</button>
-                            </form>
-                        </div>
-                    <?php endif; ?>
-
                     <?php if ($isElementType): ?>
                         <h3>Ajouter un element</h3>
                         <form method="post" enctype="multipart/form-data">
@@ -1158,36 +908,6 @@ $isElementType = $currentType === 'element';
         </div>
     </div>
 
-    <div class="modal-overlay" id="designModal">
-        <div class="modal">
-            <h3>Modifier le design</h3>
-            <form method="post" enctype="multipart/form-data">
-                <?= csrfField() ?>
-                <input type="hidden" name="design_id" id="designId">
-                <div class="form-group">
-                    <label class="form-label">Categorie</label>
-                    <select name="category_id" id="designCategoryId" class="form-input form-select" required>
-                        <?php foreach ($designCategories as $cat): ?>
-                            <option value="<?= $cat['id'] ?>"><?= h($cat['name']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nom</label>
-                    <input type="text" name="name" id="designName" class="form-input" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nouvelle image (optionnel)</label>
-                    <input type="file" name="image" class="form-input" accept="image/*">
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('designModal')">Annuler</button>
-                    <button type="submit" name="edit_design" value="1" class="btn btn-primary">Enregistrer</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <div class="modal-overlay" id="elementModal">
         <div class="modal">
             <h3>Modifier l'element</h3>
@@ -1250,13 +970,6 @@ $isElementType = $currentType === 'element';
             document.getElementById('sizeLabel').value = d.label;
             document.getElementById('sizeGroupId').value = d.size_group_id;
             document.getElementById('sizeModal').classList.add('active');
-        }
-
-        function openDesignModal(d) {
-            document.getElementById('designId').value = d.id;
-            document.getElementById('designName').value = d.name;
-            document.getElementById('designCategoryId').value = d.category_id;
-            document.getElementById('designModal').classList.add('active');
         }
 
         function openElementModal(d) {
