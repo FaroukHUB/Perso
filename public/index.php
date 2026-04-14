@@ -76,26 +76,6 @@ if (isPost() && isset($_POST['newsletter_email'])) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <style>
-        /* ===== NAVBAR ===== */
-        .navbar {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-            background: rgba(13, 13, 13, 0.95); backdrop-filter: blur(10px); padding: 15px 0;
-        }
-        .navbar .container { display: flex; align-items: center; justify-content: space-between; }
-        .navbar-brand {
-            font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; text-decoration: none;
-            background: var(--gradient-hero); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .navbar-nav { display: flex; align-items: center; gap: 30px; }
-        .navbar-nav a { color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500; transition: color 0.2s; }
-        .navbar-nav a:hover { color: var(--pink-main); }
-        .cart-nav-link {
-            display: flex; align-items: center; gap: 8px; background: var(--gradient-mint);
-            color: var(--black) !important; padding: 10px 18px; border-radius: 50px; font-weight: 600;
-        }
-        .cart-nav-link:hover { transform: scale(1.05); box-shadow: 0 4px 20px rgba(61,255,192,0.4); }
-        .cart-badge { background: var(--pink-main); color: white; font-size: 11px; padding: 2px 8px; border-radius: 50px; }
-
         /* ===== HERO SLIDER ===== */
         .hero { min-height: 80vh; position: relative; overflow: hidden; padding-top: 70px; }
         .hero-slider { position: relative; height: 80vh; }
@@ -227,7 +207,6 @@ if (isPost() && isset($_POST['newsletter_email'])) {
             .section { padding: 50px 0; }
             .section-title { font-size: 1.6rem; }
             .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .navbar-nav { gap: 15px; }
         }
         @media (max-width: 480px) {
             .products-grid { grid-template-columns: 1fr; }
@@ -237,25 +216,7 @@ if (isPost() && isset($_POST['newsletter_email'])) {
 </head>
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <div class="container">
-            <a href="/public/" class="navbar-brand">PERSONNALY</a>
-            <div class="navbar-nav">
-                <a href="#produits">Produits</a>
-                <a href="/public/cart.php" class="cart-nav-link">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                    </svg>
-                    Panier
-                    <?php if ($cartCount > 0): ?>
-                        <span class="cart-badge"><?= $cartCount ?></span>
-                    <?php endif; ?>
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include __DIR__ . '/includes/header.php'; ?>
 
     <!-- HERO SLIDER -->
     <?php if (!empty($heroSlides)): ?>
@@ -317,7 +278,7 @@ if (isPost() && isset($_POST['newsletter_email'])) {
             <p class="section-subtitle">Trouvez le produit parfait pour chaque occasion</p>
             <div class="categories-grid">
                 <?php foreach ($categories as $cat): ?>
-                    <a href="#produits" class="category-card">
+                    <a href="/category.php?slug=<?= h($cat['slug']) ?>" class="category-card">
                         <?php if (!empty($cat['image_url'])): ?>
                             <img src="/public<?= h($cat['image_url']) ?>" alt="<?= h($cat['name']) ?>">
                         <?php else: ?>
