@@ -176,7 +176,7 @@ if (isPost() && isset($_POST['newsletter_email'])) {
         .testimonial-content { color: rgba(255,255,255,0.8); line-height: 1.6; font-style: italic; }
 
         /* ===== BLOG ===== */
-        .blog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+        .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
         .blog-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-decoration: none; color: inherit; }
         .blog-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
         .blog-card-img { width: 100%; height: 180px; object-fit: cover; background: #f5f5f5; }
@@ -208,6 +208,7 @@ if (isPost() && isset($_POST['newsletter_email'])) {
             .section { padding: 50px 0; }
             .section-title { font-size: 1.6rem; }
             .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .blog-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
             .products-grid { grid-template-columns: 1fr; }
