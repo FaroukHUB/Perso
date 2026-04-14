@@ -226,7 +226,7 @@ $howItWorksSteps = $stepModel->findAll();
 $testimonials = $testimonialModel->findAll();
 
 $tabs = [
-    'hero' => ['label' => 'Hero Slider', 'icon' => '🎠', 'count' => count($heroSlides)],
+    'hero' => ['label' => 'Hero Slider', 'icon' => '🖼️', 'count' => count($heroSlides)],
     'badges' => ['label' => 'Trust Badges', 'icon' => '🏆', 'count' => count($trustBadges)],
     'steps' => ['label' => 'Comment ça marche', 'icon' => '📋', 'count' => count($howItWorksSteps)],
     'testimonials' => ['label' => 'Témoignages', 'icon' => '💬', 'count' => count($testimonials)]
