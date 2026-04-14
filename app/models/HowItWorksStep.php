@@ -48,12 +48,13 @@ class HowItWorksStep
         $maxOrder = $stmt->fetch(PDO::FETCH_ASSOC)['max_order'] ?? 0;
 
         $stmt = $this->db->prepare(
-            'INSERT INTO how_it_works_steps (title, description, icon, sort_order, active) VALUES (?, ?, ?, ?, 1)'
+            'INSERT INTO how_it_works_steps (title, description, icon, image_url, sort_order, active) VALUES (?, ?, ?, ?, ?, 1)'
         );
         $stmt->execute([
             $data['title'],
             $data['description'] ?? null,
             $data['icon'] ?? null,
+            $data['image_url'] ?? null,
             $maxOrder + 1
         ]);
 
@@ -63,12 +64,13 @@ class HowItWorksStep
     public function update(int $id, array $data): bool
     {
         $stmt = $this->db->prepare(
-            'UPDATE how_it_works_steps SET title = ?, description = ?, icon = ? WHERE id = ?'
+            'UPDATE how_it_works_steps SET title = ?, description = ?, icon = ?, image_url = ? WHERE id = ?'
         );
         return $stmt->execute([
             $data['title'],
             $data['description'] ?? null,
             $data['icon'] ?? null,
+            $data['image_url'] ?? null,
             $id
         ]);
     }

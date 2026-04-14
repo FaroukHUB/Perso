@@ -141,6 +141,7 @@ if (isPost() && isset($_POST['newsletter_email'])) {
         .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 32px; max-width: 900px; margin: 0 auto; }
         .step-card { text-align: center; padding: 32px 24px; }
         .step-icon { font-size: 48px; margin-bottom: 16px; }
+        .step-image { width: 80px; height: 80px; object-fit: cover; border-radius: 16px; margin: 0 auto 16px; display: block; border: 3px solid var(--pink-main); }
         .step-title { font-weight: 700; font-size: 18px; margin-bottom: 8px; color: var(--pink-dark); }
         .step-desc { color: rgba(255,255,255,0.7); line-height: 1.6; }
 
@@ -301,7 +302,11 @@ if (isPost() && isset($_POST['newsletter_email'])) {
             <div class="steps-grid">
                 <?php foreach ($howItWorksSteps as $step): ?>
                     <div class="step-card">
-                        <div class="step-icon"><?= h($step['icon']) ?></div>
+                        <?php if (!empty($step['image_url'])): ?>
+                            <img src="/public<?= h($step['image_url']) ?>" alt="<?= h($step['title']) ?>" class="step-image">
+                        <?php elseif (!empty($step['icon'])): ?>
+                            <div class="step-icon"><?= h($step['icon']) ?></div>
+                        <?php endif; ?>
                         <div class="step-title"><?= h($step['title']) ?></div>
                         <?php if (!empty($step['description'])): ?>
                             <div class="step-desc"><?= h($step['description']) ?></div>

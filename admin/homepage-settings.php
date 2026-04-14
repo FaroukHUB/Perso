@@ -122,7 +122,22 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
             if (empty($title)) {
                 $error = 'Le titre est obligatoire.';
             } else {
-                $stepModel->create(['title' => $title, 'description' => trim(post('description', '')), 'icon' => trim(post('icon', ''))]);
+                $imageUrl = null;
+                if (!empty($_FILES['step_image']['tmp_name'])) {
+                    $uploadDir = __DIR__ . '/../public/uploads/steps/';
+                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                    $ext = strtolower(pathinfo($_FILES['step_image']['name'], PATHINFO_EXTENSION));
+                    $filename = 'step_' . time() . '_' . uniqid() . '.' . $ext;
+                    if (move_uploaded_file($_FILES['step_image']['tmp_name'], $uploadDir . $filename)) {
+                        $imageUrl = '/uploads/steps/' . $filename;
+                    }
+                }
+                $stepModel->create([
+                    'title' => $title,
+                    'description' => trim(post('description', '')),
+                    'icon' => trim(post('icon', '')),
+                    'image_url' => $imageUrl
+                ]);
                 $success = 'Étape ajoutée.';
             }
         }
@@ -130,7 +145,23 @@ if (isPost() && verifyCsrf($_POST['csrf_token'] ?? '')) {
             $id = (int) post('step_id', 0);
             $title = trim(post('title', ''));
             if ($id && !empty($title)) {
-                $stepModel->update($id, ['title' => $title, 'description' => trim(post('description', '')), 'icon' => trim(post('icon', ''))]);
+                $data = [
+                    'title' => $title,
+                    'description' => trim(post('description', '')),
+                    'icon' => trim(post('icon', ''))
+                ];
+                if (!empty($_FILES['step_image']['tmp_name'])) {
+                    $uploadDir = __DIR__ . '/../public/uploads/steps/';
+                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                    $ext = strtolower(pathinfo($_FILES['step_image']['name'], PATHINFO_EXTENSION));
+                    $filename = 'step_' . time() . '_' . uniqid() . '.' . $ext;
+                    if (move_uploaded_file($_FILES['step_image']['tmp_name'], $uploadDir . $filename)) {
+                        $data['image_url'] = '/uploads/steps/' . $filename;
+                    }
+                } elseif (post('remove_image') === '1') {
+                    $data['image_url'] = null;
+                }
+                $stepModel->update($id, $data);
                 $success = 'Étape modifiée.';
             }
         }
@@ -340,8 +371,14 @@ $tabs = [
                             <div class="cards-grid">
                                 <?php foreach ($howItWorksSteps as $st): ?>
                                     <div class="card-item <?= $st['active'] ? '' : 'inactive' ?>">
-                                        <div class="card-item-title"><span style="font-size:24px;margin-right:8px;"><?= h($st['icon']) ?></span><?= h($st['title']) ?></div>
+                                        <?php if (!empty($st['image_url'])): ?>
+                                            <img src="/public<?= h($st['image_url']) ?>" class="card-item-img" style="height:80px;width:80px;object-fit:cover;border-radius:12px;margin-bottom:12px;">
+                                        <?php elseif (!empty($st['icon'])): ?>
+                                            <div style="font-size:40px;margin-bottom:12px;"><?= h($st['icon']) ?></div>
+                                        <?php endif; ?>
+                                        <div class="card-item-title"><?= h($st['title']) ?></div>
                                         <div class="card-item-desc"><?= h($st['description']) ?></div>
+                                        <div class="card-item-meta"><?= !empty($st['image_url']) ? '📷 Image' : '🎨 Icône' ?></div>
                                         <div class="card-item-actions">
                                             <form method="post" style="display:contents;"><?= csrfField() ?><input type="hidden" name="step_id" value="<?= $st['id'] ?>"><button type="submit" name="toggle_step" class="action-btn-mini toggle <?= $st['active'] ? 'active' : '' ?>"><?= $st['active'] ? '✓' : '○' ?></button></form>
                                             <button class="action-btn-mini edit" onclick="editStep(<?= htmlspecialchars(json_encode($st)) ?>)">✏️</button>
@@ -404,13 +441,18 @@ $tabs = [
 
                     <?php if ($currentTab === 'steps'): ?>
                         <h3>Ajouter une étape</h3>
-                        <form method="post">
+                        <form method="post" enctype="multipart/form-data">
                             <?= csrfField() ?>
-                            <div class="form-row">
-                                <div class="form-group"><label class="form-label">Icône</label><input type="text" name="icon" class="form-input" placeholder="1️⃣"></div>
-                                <div class="form-group"><label class="form-label">Titre *</label><input type="text" name="title" class="form-input" required></div>
-                            </div>
+                            <div class="form-group"><label class="form-label">Titre *</label><input type="text" name="title" class="form-input" required></div>
                             <div class="form-group"><label class="form-label">Description</label><textarea name="description" class="form-textarea"></textarea></div>
+                            <div class="form-group">
+                                <label class="form-label">Visuel (icône OU image)</label>
+                                <p style="font-size:12px;color:var(--gray);margin-bottom:10px;">Choisissez un émoji/icône OU uploadez une image. L'image sera prioritaire si les deux sont remplis.</p>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Icône (émoji)</label><input type="text" name="icon" class="form-input" placeholder="1️⃣ 🎨 📦"></div>
+                                <div class="form-group"><label class="form-label">Ou Image</label><input type="file" name="step_image" class="form-input" accept="image/*"></div>
+                            </div>
                             <button type="submit" name="add_step" class="btn btn-primary">Ajouter</button>
                         </form>
                     <?php endif; ?>
@@ -438,7 +480,7 @@ $tabs = [
 
     <div class="modal-overlay" id="badgeModal"><div class="modal"><h3>Modifier le badge</h3><form method="post"><?= csrfField() ?><input type="hidden" name="badge_id" id="badgeId"><div class="form-row"><div class="form-group"><label class="form-label">Icône</label><input type="text" name="icon" id="badgeIcon" class="form-input"></div><div class="form-group"><label class="form-label">Titre</label><input type="text" name="title" id="badgeTitle" class="form-input" required></div></div><div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('badgeModal')">Annuler</button><button type="submit" name="edit_badge" class="btn btn-primary">Enregistrer</button></div></form></div></div>
 
-    <div class="modal-overlay" id="stepModal"><div class="modal"><h3>Modifier l'étape</h3><form method="post"><?= csrfField() ?><input type="hidden" name="step_id" id="stepId"><div class="form-row"><div class="form-group"><label class="form-label">Icône</label><input type="text" name="icon" id="stepIcon" class="form-input"></div><div class="form-group"><label class="form-label">Titre</label><input type="text" name="title" id="stepTitle" class="form-input" required></div></div><div class="form-group"><label class="form-label">Description</label><textarea name="description" id="stepDescription" class="form-textarea"></textarea></div><div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('stepModal')">Annuler</button><button type="submit" name="edit_step" class="btn btn-primary">Enregistrer</button></div></form></div></div>
+    <div class="modal-overlay" id="stepModal"><div class="modal"><h3>Modifier l'étape</h3><form method="post" enctype="multipart/form-data"><?= csrfField() ?><input type="hidden" name="step_id" id="stepId"><div class="form-group"><label class="form-label">Titre *</label><input type="text" name="title" id="stepTitle" class="form-input" required></div><div class="form-group"><label class="form-label">Description</label><textarea name="description" id="stepDescription" class="form-textarea"></textarea></div><div class="form-group"><label class="form-label">Icône (émoji)</label><input type="text" name="icon" id="stepIcon" class="form-input" placeholder="1️⃣ 🎨 📦"></div><div class="form-group"><label class="form-label">Nouvelle image</label><input type="file" name="step_image" class="form-input" accept="image/*"></div><div class="form-group" id="stepImagePreview" style="display:none;"><label class="form-label">Image actuelle</label><div style="display:flex;align-items:center;gap:10px;"><img id="stepImageThumb" src="" style="width:60px;height:60px;object-fit:cover;border-radius:8px;"><label style="font-size:13px;display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" name="remove_image" value="1"> Supprimer l'image</label></div></div><div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('stepModal')">Annuler</button><button type="submit" name="edit_step" class="btn btn-primary">Enregistrer</button></div></form></div></div>
 
     <div class="modal-overlay" id="testimonialModal"><div class="modal"><h3>Modifier le témoignage</h3><form method="post" enctype="multipart/form-data"><?= csrfField() ?><input type="hidden" name="testimonial_id" id="testimonialId"><div class="form-row"><div class="form-group"><label class="form-label">Nom</label><input type="text" name="name" id="testimonialName" class="form-input" required></div><div class="form-group"><label class="form-label">Note</label><select name="rating" id="testimonialRating" class="form-select"><option value="5">⭐⭐⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="3">⭐⭐⭐</option></select></div></div><div class="form-group"><label class="form-label">Témoignage</label><textarea name="content" id="testimonialContent" class="form-textarea" required></textarea></div><div class="form-group"><label class="form-label">Nouvelle photo</label><input type="file" name="photo" class="form-input" accept="image/*"></div><div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('testimonialModal')">Annuler</button><button type="submit" name="edit_testimonial" class="btn btn-primary">Enregistrer</button></div></form></div></div>
 
@@ -446,7 +488,22 @@ $tabs = [
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         function editSlide(s) { document.getElementById('slideId').value = s.id; document.getElementById('slideTitle').value = s.title || ''; document.getElementById('slideSubtitle').value = s.subtitle || ''; document.getElementById('slideCtaText').value = s.cta_text || ''; document.getElementById('slideCtaUrl').value = s.cta_url || ''; document.getElementById('slideModal').classList.add('active'); }
         function editBadge(b) { document.getElementById('badgeId').value = b.id; document.getElementById('badgeIcon').value = b.icon || ''; document.getElementById('badgeTitle').value = b.title || ''; document.getElementById('badgeModal').classList.add('active'); }
-        function editStep(s) { document.getElementById('stepId').value = s.id; document.getElementById('stepIcon').value = s.icon || ''; document.getElementById('stepTitle').value = s.title || ''; document.getElementById('stepDescription').value = s.description || ''; document.getElementById('stepModal').classList.add('active'); }
+        function editStep(s) {
+            document.getElementById('stepId').value = s.id;
+            document.getElementById('stepIcon').value = s.icon || '';
+            document.getElementById('stepTitle').value = s.title || '';
+            document.getElementById('stepDescription').value = s.description || '';
+            var preview = document.getElementById('stepImagePreview');
+            var thumb = document.getElementById('stepImageThumb');
+            if (s.image_url) {
+                preview.style.display = 'block';
+                thumb.src = '/public' + s.image_url;
+            } else {
+                preview.style.display = 'none';
+                thumb.src = '';
+            }
+            document.getElementById('stepModal').classList.add('active');
+        }
         function editTestimonial(t) { document.getElementById('testimonialId').value = t.id; document.getElementById('testimonialName').value = t.name || ''; document.getElementById('testimonialRating').value = t.rating || 5; document.getElementById('testimonialContent').value = t.content || ''; document.getElementById('testimonialModal').classList.add('active'); }
         document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }));
     </script>
