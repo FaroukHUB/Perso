@@ -15,7 +15,6 @@ require_once __DIR__ . '/../app/models/Font.php';
 require_once __DIR__ . '/../app/models/ProductPrintZone.php';
 require_once __DIR__ . '/../app/models/ProductColor.php';
 require_once __DIR__ . '/../app/models/ProductColorImage.php';
-require_once __DIR__ . '/../app/models/Pack.php';
 
 // Récupération du produit
 $productId = (int) get('id', 0);
@@ -30,66 +29,11 @@ if (!$product || !$product['active']) {
 $success = '';
 $error = '';
 
-// === PACK / IDÉE : Chargement du preset (ONE-SHOT) ===
-$packId = (int) get('pack_id', 0);
-$pack = null;
-$preset = null;
-
-if ($packId > 0) {
-    $packModel = new Pack();
-    $pack = $packModel->findById($packId);
-
-    // Vérifications silencieuses :
-    // 1. Pack existe
-    // 2. Pack actif
-    // 3. Produit courant ∈ pack_products (ou pack sans produits = universel)
-    $isValidPack = false;
-
-    if ($pack && $pack['status'] === 'active') {
-        // Vérifier si le produit courant appartient au pack
-        $packProducts = $packModel->getProducts($packId);
-        $packProductIds = array_column($packProducts, 'id');
-
-        // Pack valide si : aucun produit lié (universel) OU produit courant dans la liste
-        if (empty($packProductIds) || in_array($productId, $packProductIds)) {
-            $isValidPack = true;
-        }
-    }
-
-    if ($isValidPack) {
-        // Décoder le preset JSON
-        $presetJson = $pack['preset_json'] ?? '{}';
-        $preset = is_string($presetJson) ? json_decode($presetJson, true) : $presetJson;
-
-        // Valeurs par défaut si le preset est incomplet
-        $preset = array_merge([
-            'text' => '',
-            'font' => '',
-            'text_color' => '',
-            'technique' => '',
-            'position' => ['x' => 50, 'y' => 50],
-            'view' => 'front'
-        ], $preset ?? []);
-    } else {
-        // Pack invalide → ignorer silencieusement
-        $pack = null;
-        $preset = null;
-    }
-}
-
 // Options de personnalisation depuis la base de données
 $optionModel = new CustomizationOption();
 $sizesFromDb = $optionModel->getSizes();
 $textColorsFromDb = $optionModel->getTextColors();
 $techniquesFromDb = $optionModel->getTechniques();
-
-// === DESIGNS PRÉDÉFINIS depuis l'admin (packs de type thematique/inspiration) ===
-$packModelDesigns = new Pack();
-$designsFromDb = $packModelDesigns->findActive();
-// Filtrer uniquement les packs qui ont une image de couverture
-$designTemplates = array_filter($designsFromDb, function($p) {
-    return !empty($p['cover_image_url']);
-});
 
 // Couleurs du produit avec images (nouveau système prioritaire)
 $productColorImageModel = new ProductColorImage();
@@ -462,57 +406,11 @@ $cartCount = Cart::count();
                 <div class="alert alert-error" style="margin-bottom: 20px;"><?= h($error) ?></div>
             <?php endif; ?>
 
-            <?php if ($pack): ?>
-                <div class="pack-info-banner" style="margin-bottom: 20px; padding: 16px 20px; background: linear-gradient(135deg, rgba(255,105,180,0.08) 0%, rgba(61,255,192,0.08) 100%); border-radius: 12px; border-left: 4px solid var(--pink-main);">
-                    <strong>Idée : <?= h($pack['name']) ?></strong>
-                    <span style="display: block; font-size: 13px; color: var(--gray); margin-top: 4px;">
-                        Configuration pré-remplie — Vous pouvez tout modifier librement
-                    </span>
-                </div>
-            <?php endif; ?>
-
             <?php
-            // === Calcul des indices par défaut pour le preset ===
-            $selectedFontIndex = 0;
-            $selectedTextColorIndex = 0;
-            $selectedTechniqueIndex = 0;
-
-            if ($preset) {
-                // Trouver l'index de la police du preset
-                if (!empty($preset['font'])) {
-                    foreach ($fonts as $idx => $f) {
-                        if ($f['value'] === $preset['font']) {
-                            $selectedFontIndex = $idx;
-                            break;
-                        }
-                    }
-                }
-
-                // Trouver l'index de la couleur de texte du preset
-                if (!empty($preset['text_color'])) {
-                    foreach ($textColors as $idx => $tc) {
-                        if ($tc['value'] === $preset['text_color']) {
-                            $selectedTextColorIndex = $idx;
-                            break;
-                        }
-                    }
-                }
-
-                // Trouver l'index de la technique du preset
-                if (!empty($preset['technique'])) {
-                    foreach ($techniques as $idx => $t) {
-                        if ($t['value'] === $preset['technique']) {
-                            $selectedTechniqueIndex = $idx;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // Récupérer les valeurs sélectionnées
-            $selectedFont = $fonts[$selectedFontIndex] ?? $fonts[0] ?? ['value' => 'Poppins', 'label' => 'Poppins', 'category' => 'sans-serif'];
-            $selectedTextColor = $textColors[$selectedTextColorIndex] ?? $textColors[0] ?? ['value' => 'noir', 'label' => 'Noir', 'hex' => '#1A1A2E'];
-            $selectedTechnique = $techniques[$selectedTechniqueIndex] ?? $techniques[0] ?? ['value' => 'flex', 'label' => 'Flex', 'description' => '', 'price' => 0];
+            // Valeurs par défaut
+            $selectedFont = $fonts[0] ?? ['value' => 'Poppins', 'label' => 'Poppins', 'category' => 'sans-serif'];
+            $selectedTextColor = $textColors[0] ?? ['value' => 'noir', 'label' => 'Noir', 'hex' => '#1A1A2E'];
+            $selectedTechnique = $techniques[0] ?? ['value' => 'flex', 'label' => 'Flex', 'description' => '', 'price' => 0];
             ?>
 
             <form method="post" id="customizationForm">
@@ -690,29 +588,6 @@ $cartCount = Cart::count();
                                         <?= h($size) ?>
                                     </label>
                                     <?php endforeach; ?>
-                                </div>
-                            </div>
-
-                            <!-- Designs prédéfinis (chargés depuis l'admin) -->
-                            <div class="cfg-section">
-                                <h4 class="cfg-section-title">Designs prédéfinis</h4>
-                                <div class="cfg-designs-grid" id="cfgDesignsGrid">
-                                    <?php if (!empty($designTemplates)): ?>
-                                        <?php foreach ($designTemplates as $design): ?>
-                                        <button type="button" class="cfg-design-card"
-                                                data-pack-id="<?= $design['id'] ?>"
-                                                data-pack-name="<?= h($design['name']) ?>"
-                                                data-preset='<?= h($design['preset_json'] ?? '{}') ?>'>
-                                            <img src="/public<?= h($design['cover_image_url']) ?>" alt="<?= h($design['name']) ?>" class="cfg-design-img">
-                                            <span class="cfg-design-name"><?= h($design['name']) ?></span>
-                                        </button>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                    <div class="cfg-designs-placeholder">
-                                        <span class="cfg-placeholder-icon">🎨</span>
-                                        <span class="cfg-placeholder-text">Aucun design disponible</span>
-                                    </div>
-                                    <?php endif; ?>
                                 </div>
                             </div>
 
