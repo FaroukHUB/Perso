@@ -91,7 +91,7 @@ if (isPost() && isset($_POST['newsletter_email'])) {
         }
         .hero-slide-bg::after {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(13,13,13,0.85), rgba(13,13,13,0.6));
+            background: linear-gradient(135deg, rgba(13,13,13,0.5), rgba(13,13,13,0.3));
         }
         .hero-slide::before {
             content: ''; position: absolute; width: 600px; height: 600px; background: var(--pink-main);
