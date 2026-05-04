@@ -97,7 +97,7 @@ if (isPost() && isset($_POST['newsletter_email'])) {
             content: ''; position: absolute; width: 600px; height: 600px; background: var(--pink-main);
             border-radius: 50%; filter: blur(200px); opacity: 0.15; top: -200px; right: -100px;
         }
-        .hero-content { position: relative; z-index: 2; text-align: center; max-width: 700px; padding: 0 20px; }
+        .hero-content { position: relative; z-index: 2; text-align: center; max-width: 700px; padding: 0 20px; margin-top: 15vh; }
         .hero h1 { font-family: var(--font-display); font-size: 3rem; font-weight: 800; color: white; margin-bottom: 16px; line-height: 1.15; }
         .hero h1 span { background: var(--gradient-hero); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .hero p { font-size: 1.1rem; color: rgba(255,255,255,0.7); margin-bottom: 32px; line-height: 1.6; }
