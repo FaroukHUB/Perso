@@ -252,6 +252,59 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
             color: var(--pink-dark);
         }
         .custom-text-tag strong { color: var(--pink-dark); }
+
+        /* Personnalisation détaillée */
+        .item-personalization {
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(255,105,180,0.05), rgba(61,255,192,0.05));
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--pink-main);
+        }
+        .item-personalization h4 {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--pink-dark);
+            margin-bottom: 12px;
+        }
+        .personalization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .perso-item {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .perso-label {
+            font-size: 11px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .perso-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--black-soft);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .perso-text {
+            font-style: italic;
+            color: var(--pink-dark);
+        }
+        .color-preview {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
         .item-price {
             text-align: right;
         }
@@ -453,22 +506,48 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
                                         Taille: <strong><?= h($customization['size'] ?? 'M') ?></strong>
                                     </span>
                                     <span class="custom-tag">
-                                        Couleur: <strong><?= ucfirst(h($customization['color'] ?? 'blanc')) ?></strong>
-                                    </span>
-                                    <span class="custom-tag">
-                                        Position: <strong><?= ucfirst(h($customization['position'] ?? 'centre')) ?></strong>
+                                        Couleur produit: <strong><?= ucfirst(h($customization['color'] ?? 'blanc')) ?></strong>
                                     </span>
                                     <?php if (!empty($customization['technique'])): ?>
                                         <span class="custom-tag">
                                             Technique: <strong><?= ucfirst(h($customization['technique'])) ?></strong>
                                         </span>
                                     <?php endif; ?>
-                                    <?php if (!empty($customization['text'])): ?>
-                                        <span class="custom-tag custom-text-tag">
-                                            Texte: <strong>"<?= h($customization['text']) ?>"</strong>
+                                    <?php if (!empty($customization['view'])): ?>
+                                        <span class="custom-tag">
+                                            Face: <strong><?= $customization['view'] === 'front' ? 'Avant' : 'Dos' ?></strong>
                                         </span>
                                     <?php endif; ?>
                                 </div>
+
+                                <?php if (!empty($customization['text'])): ?>
+                                <div class="item-personalization">
+                                    <h4>Personnalisation texte</h4>
+                                    <div class="personalization-grid">
+                                        <div class="perso-item">
+                                            <span class="perso-label">Texte</span>
+                                            <span class="perso-value perso-text">"<?= h($customization['text']) ?>"</span>
+                                        </div>
+                                        <div class="perso-item">
+                                            <span class="perso-label">Police</span>
+                                            <span class="perso-value" style="font-family: '<?= h($customization['font'] ?? 'Poppins') ?>'"><?= h($customization['font'] ?? 'Poppins') ?></span>
+                                        </div>
+                                        <div class="perso-item">
+                                            <span class="perso-label">Couleur texte</span>
+                                            <span class="perso-value">
+                                                <span class="color-preview" style="background: <?= h($customization['text_color'] ?? '#000') ?>"></span>
+                                                <?= ucfirst(h($customization['text_color'] ?? 'noir')) ?>
+                                            </span>
+                                        </div>
+                                        <?php if (isset($customization['position']) && is_array($customization['position'])): ?>
+                                        <div class="perso-item">
+                                            <span class="perso-label">Position</span>
+                                            <span class="perso-value">X: <?= $customization['position']['x'] ?? 50 ?>% / Y: <?= $customization['position']['y'] ?? 50 ?>%</span>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
                             </div>
                             <div class="item-price">
                                 <div class="item-qty"><?= $item['quantity'] ?> × <?= formatPrice($item['unit_price']) ?></div>
