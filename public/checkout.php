@@ -12,6 +12,11 @@ require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/Order.php';
 require_once __DIR__ . '/../app/models/User.php';
 require_once __DIR__ . '/../app/models/Upsell.php';
+require_once __DIR__ . '/../app/models/SiteSetting.php';
+
+// Charger le logo
+$siteSettingModel = new SiteSetting();
+$siteLogo = $siteSettingModel->getLogo();
 
 // Panier vide = retour accueil
 if (Cart::isEmpty()) {
@@ -479,7 +484,7 @@ if (isPost() && isset($_POST['place_order'])) {
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
-            <a href="/" class="navbar-brand">PERSONNALY</a>
+            <a href="/" class="navbar-brand"><?php if ($siteLogo['type'] === 'image' && !empty($siteLogo['image_url'])): ?><img src="/public<?= h($siteLogo['image_url']) ?>" alt="<?= h($siteLogo['text']) ?>" style="height:35px;"><?php else: ?><?= h($siteLogo['text'] ?: 'PERSONNALY') ?><?php endif; ?></a>
         </div>
     </nav>
 

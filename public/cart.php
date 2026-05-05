@@ -11,6 +11,11 @@ require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
 require_once __DIR__ . '/../app/models/ProductUpsell.php';
 require_once __DIR__ . '/../app/models/PromoCode.php';
+require_once __DIR__ . '/../app/models/SiteSetting.php';
+
+// Charger le logo
+$siteSettingModel = new SiteSetting();
+$siteLogo = $siteSettingModel->getLogo();
 
 $success = '';
 $error = '';
@@ -1118,7 +1123,7 @@ if (!Cart::isEmpty()) {
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
-            <a href="/" class="navbar-brand">PERSONNALY</a>
+            <a href="/" class="navbar-brand"><?php if ($siteLogo['type'] === 'image' && !empty($siteLogo['image_url'])): ?><img src="/public<?= h($siteLogo['image_url']) ?>" alt="<?= h($siteLogo['text']) ?>" style="height:35px;"><?php else: ?><?= h($siteLogo['text'] ?: 'PERSONNALY') ?><?php endif; ?></a>
             <div class="navbar-actions">
                 <a href="/">Accueil</a>
                 <a href="/#produits">Nos Produits</a>
@@ -1490,7 +1495,7 @@ if (!Cart::isEmpty()) {
         <div class="container">
             <div class="footer-content">
                 <div class="footer-brand">
-                    <h3>PERSONNALY</h3>
+                    <h3><?php if ($siteLogo['type'] === 'image' && !empty($siteLogo['image_url'])): ?><img src="/public<?= h($siteLogo['image_url']) ?>" alt="<?= h($siteLogo['text']) ?>" style="height:35px;"><?php else: ?><?= h($siteLogo['text'] ?: 'PERSONNALY') ?><?php endif; ?></h3>
                     <p>Créez des produits uniques qui vous ressemblent. Personnalisation textile de qualité, made in France.</p>
                 </div>
                 <div class="footer-col">
@@ -1518,7 +1523,7 @@ if (!Cart::isEmpty()) {
                 </div>
             </div>
             <div class="footer-bottom">
-                <span>© 2026 PERSONNALY. Tous droits réservés.</span>
+                <span>© <?= date('Y') ?> <?= h($siteLogo['text'] ?: 'PERSONNALY') ?>. Tous droits réservés.</span>
                 <div class="footer-reassurance">
                     <span>🔒 Paiement sécurisé</span>
                     <span>🚚 Livraison gratuite</span>
