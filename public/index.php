@@ -195,10 +195,6 @@ if (isPost() && isset($_POST['newsletter_email'])) {
         .newsletter-btn:hover { transform: scale(1.05); }
         .newsletter-success { background: rgba(255,255,255,0.2); padding: 16px; border-radius: 12px; color: white; font-weight: 500; }
 
-        /* ===== FOOTER ===== */
-        .footer { background: var(--black); color: rgba(255,255,255,0.6); padding: 40px 0; text-align: center; }
-        .footer a { color: var(--pink-main); text-decoration: none; }
-
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .hero h1 { font-size: 2rem; }
@@ -465,12 +461,7 @@ if (isPost() && isset($_POST['newsletter_email'])) {
         </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; <?= date('Y') ?> PERSONNALY &mdash; Personnalisation textile de qualité</p>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/includes/footer.php'; ?>
 
     <!-- SLIDER SCRIPT -->
     <?php if (count($heroSlides) > 1): ?>

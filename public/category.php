@@ -220,21 +220,6 @@ if (!$category || $category['status'] !== 'active') {
             justify-content: center;
         }
 
-        /* ===== FOOTER ===== */
-        .footer {
-            background: rgba(0,0,0,0.5);
-            padding: 40px 0;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-        .footer p {
-            color: rgba(255,255,255,0.5);
-            font-size: 0.9rem;
-        }
-        .footer a {
-            color: var(--pink-main);
-            text-decoration: none;
-        }
     </style>
 </head>
 <body>
@@ -322,11 +307,6 @@ if (!$category || $category['status'] !== 'active') {
         </section>
     <?php endif; ?>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; <?= date('Y') ?> PERSONNALY. Tous droits réservés. <a href="/mentions-legales.php">Mentions légales</a></p>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/includes/footer.php'; ?>
 </body>
 </html>
