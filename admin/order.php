@@ -32,7 +32,8 @@ $customer = $order['user_id'] ? $userModel->findById($order['user_id']) : null;
 // Récupérer les items de la commande
 $db = Database::getInstance();
 $stmt = $db->prepare('
-    SELECT oc.*, p.name as product_name, p.category as product_category, p.image_front_url as product_image
+    SELECT oc.*, p.name as product_name, p.category as product_category,
+           p.image_front_url as product_image_front, p.image_back_url as product_image_back
     FROM order_customizations oc
     LEFT JOIN products p ON oc.product_id = p.id
     WHERE oc.order_id = ?
@@ -409,10 +410,79 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
             color: var(--mint-dark);
         }
 
+        /* Prévisualisation visuelle */
+        .visual-preview-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed rgba(255, 105, 180, 0.3);
+        }
+        .visual-preview-section h4 {
+            margin-bottom: 15px;
+            color: var(--mint-dark);
+        }
+        .visual-preview-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .preview-card {
+            background: white;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .preview-card.active-view {
+            border-color: var(--pink-main);
+            box-shadow: 0 4px 20px rgba(255, 105, 180, 0.2);
+        }
+        .preview-label {
+            display: block;
+            padding: 8px 12px;
+            background: #f5f5f5;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray);
+            text-align: center;
+        }
+        .preview-card.active-view .preview-label {
+            background: var(--gradient-pink);
+            color: white;
+        }
+        .preview-image-wrapper {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .preview-product-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .preview-placeholder {
+            color: #ccc;
+            font-size: 12px;
+        }
+        .preview-text-overlay {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            pointer-events: none;
+        }
+
         @media (max-width: 968px) {
             .order-grid { grid-template-columns: 1fr; }
             .order-item { grid-template-columns: 60px 1fr; }
             .item-price { grid-column: span 2; text-align: left; margin-top: 10px; }
+            .visual-preview-container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -477,16 +547,24 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
                             ? json_decode($item['data_json'], true)
                             : $item['data_json'];
                     ?>
+                        <?php
+                            $activeView = $customization['view'] ?? 'front';
+                            $displayImage = $activeView === 'back' ? ($item['product_image_back'] ?? $item['product_image_front']) : $item['product_image_front'];
+                            $posX = $customization['position']['x'] ?? 50;
+                            $posY = $customization['position']['y'] ?? 50;
+                        ?>
                         <div class="order-item">
                             <div class="item-image" onclick="openOrderLightbox(this)"
-                                 data-img="<?= !empty($item['product_image']) ? '/public' . h($item['product_image']) : '' ?>"
+                                 data-img="<?= !empty($displayImage) ? '/public' . h($displayImage) : '' ?>"
                                  data-text="<?= h($customization['text'] ?? '') ?>"
                                  data-font="<?= h($customization['font'] ?? 'Poppins') ?>"
                                  data-text-color="<?= h($customization['text_color'] ?? '#FF1493') ?>"
                                  data-technique="<?= h($customization['technique'] ?? 'flex') ?>"
+                                 data-pos-x="<?= $posX ?>"
+                                 data-pos-y="<?= $posY ?>"
                                  data-name="<?= h($item['product_name'] ?? 'Produit') ?>">
-                                <?php if (!empty($item['product_image'])): ?>
-                                    <img src="/public<?= h($item['product_image']) ?>" alt="<?= h($item['product_name']) ?>">
+                                <?php if (!empty($displayImage)): ?>
+                                    <img src="/public<?= h($displayImage) ?>" alt="<?= h($item['product_name']) ?>">
                                 <?php else: ?>
                                     👕
                                 <?php endif; ?>
@@ -545,6 +623,59 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
                                             <span class="perso-value">X: <?= $customization['position']['x'] ?? 50 ?>% / Y: <?= $customization['position']['y'] ?? 50 ?>%</span>
                                         </div>
                                         <?php endif; ?>
+                                    </div>
+
+                                    <!-- Prévisualisation visuelle -->
+                                    <div class="visual-preview-section">
+                                        <h4>Aperçu visuel</h4>
+                                        <div class="visual-preview-container">
+                                            <?php
+                                            $textPosX = $customization['position']['x'] ?? 50;
+                                            $textPosY = $customization['position']['y'] ?? 50;
+                                            $textFont = $customization['font'] ?? 'Poppins';
+                                            $textColor = $customization['text_color'] ?? '#000000';
+                                            $customText = $customization['text'];
+                                            $activeView = $customization['view'] ?? 'front';
+                                            ?>
+
+                                            <!-- Vue AVANT -->
+                                            <div class="preview-card <?= $activeView === 'front' ? 'active-view' : '' ?>">
+                                                <span class="preview-label">AVANT <?= $activeView === 'front' ? '(personnalisé)' : '' ?></span>
+                                                <div class="preview-image-wrapper">
+                                                    <?php if (!empty($item['product_image_front'])): ?>
+                                                        <img src="/public<?= h($item['product_image_front']) ?>" alt="Avant" class="preview-product-img">
+                                                    <?php else: ?>
+                                                        <div class="preview-placeholder">Pas d'image</div>
+                                                    <?php endif; ?>
+                                                    <?php if ($activeView === 'front' && !empty($customText)): ?>
+                                                        <span class="preview-text-overlay"
+                                                              style="left: <?= $textPosX ?>%; top: <?= $textPosY ?>%; color: <?= h($textColor) ?>; font-family: '<?= h($textFont) ?>', sans-serif;"
+                                                              data-font="<?= h($textFont) ?>">
+                                                            <?= h($customText) ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+
+                                            <!-- Vue DOS -->
+                                            <div class="preview-card <?= $activeView === 'back' ? 'active-view' : '' ?>">
+                                                <span class="preview-label">DOS <?= $activeView === 'back' ? '(personnalisé)' : '' ?></span>
+                                                <div class="preview-image-wrapper">
+                                                    <?php if (!empty($item['product_image_back'])): ?>
+                                                        <img src="/public<?= h($item['product_image_back']) ?>" alt="Dos" class="preview-product-img">
+                                                    <?php else: ?>
+                                                        <div class="preview-placeholder">Pas d'image</div>
+                                                    <?php endif; ?>
+                                                    <?php if ($activeView === 'back' && !empty($customText)): ?>
+                                                        <span class="preview-text-overlay"
+                                                              style="left: <?= $textPosX ?>%; top: <?= $textPosY ?>%; color: <?= h($textColor) ?>; font-family: '<?= h($textFont) ?>', sans-serif;"
+                                                              data-font="<?= h($textFont) ?>">
+                                                            <?= h($customText) ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <?php endif; ?>
@@ -631,6 +762,37 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
     <!-- Lightbox Component -->
     <script src="/public/assets/js/lightbox.js"></script>
     <script>
+        // Charger les polices Google pour les prévisualisations
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadedFonts = new Set(['Poppins', 'Inter']);
+
+            function loadGoogleFont(fontName) {
+                if (loadedFonts.has(fontName)) return Promise.resolve();
+
+                return new Promise((resolve) => {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:wght@400;500;600;700&display=swap`;
+                    link.onload = () => {
+                        loadedFonts.add(fontName);
+                        resolve();
+                    };
+                    link.onerror = resolve;
+                    document.head.appendChild(link);
+                });
+            }
+
+            // Charger toutes les polices utilisées dans les prévisualisations
+            const textOverlays = document.querySelectorAll('.preview-text-overlay');
+            textOverlays.forEach(async (overlay) => {
+                const fontName = overlay.dataset.font;
+                if (fontName && fontName !== 'Poppins' && fontName !== 'Inter') {
+                    await loadGoogleFont(fontName);
+                    overlay.style.fontFamily = `'${fontName}', sans-serif`;
+                }
+            });
+        });
+
         function openOrderLightbox(el) {
             if (!window.PersonnalyLightbox) return;
 
@@ -643,8 +805,8 @@ $currentStatus = $statusLabels[$order['status']] ?? $statusLabels['pending'];
                 text: el.dataset.text || null,
                 font: (el.dataset.font || 'Poppins') + ', sans-serif',
                 fontSize: '2rem',
-                textX: 50,
-                textY: 50,
+                textX: parseFloat(el.dataset.posX) || 50,
+                textY: parseFloat(el.dataset.posY) || 50,
                 textColor: el.dataset.textColor || '#FF1493',
                 technique: el.dataset.technique || 'flex'
             });
