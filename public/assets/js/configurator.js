@@ -1854,9 +1854,16 @@
         });
 
         fontList?.querySelectorAll('.cfg-dropdown-item').forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', async () => {
                 const font = item.dataset.font;
                 const label = item.dataset.label;
+
+                // Load the font first
+                try {
+                    await loadGoogleFont(font);
+                } catch (e) {
+                    console.warn('[Configurator] Could not load font:', font);
+                }
 
                 // Update hidden input
                 if (fontInput) fontInput.value = font;
