@@ -10,10 +10,23 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 function isActive($page, $current) {
     return $page === $current ? 'active' : '';
 }
+
+// Charger le logo
+if (!class_exists('SiteSetting')) {
+    require_once __DIR__ . '/../../app/models/SiteSetting.php';
+}
+if (!isset($siteLogo)) {
+    $siteSettingModel = new SiteSetting();
+    $siteLogo = $siteSettingModel->getLogo();
+}
 ?>
 <aside class="sidebar">
     <div class="sidebar-logo">
-        <h2>PERSONNALY</h2>
+        <?php if ($siteLogo['type'] === 'image' && !empty($siteLogo['image_url'])): ?>
+            <img src="/public<?= htmlspecialchars($siteLogo['image_url']) ?>" alt="<?= htmlspecialchars($siteLogo['text']) ?>" style="max-height: 40px; width: auto;">
+        <?php else: ?>
+            <h2><?= htmlspecialchars($siteLogo['text'] ?: 'PERSONNALY') ?></h2>
+        <?php endif; ?>
         <span>Administration</span>
     </div>
 

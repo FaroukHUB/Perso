@@ -7,15 +7,41 @@ require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/core/Database.php';
 require_once __DIR__ . '/../app/core/Auth.php';
 require_once __DIR__ . '/../app/models/Order.php';
+require_once __DIR__ . '/../app/models/SiteSetting.php';
 
 Auth::requireAdmin();
 
 $orderModel = new Order();
 $pendingOrders = $orderModel->countNew();
 $user = Auth::getUser();
+$settingModel = new SiteSetting();
 
 $success = '';
 $error = '';
+
+// Sauvegarde du logo
+if (isPost() && isset($_POST['save_logo'])) {
+    if (verifyCsrf($_POST['csrf_token'] ?? '')) {
+        $logoType = post('logo_type', 'text');
+        $logoText = trim(post('logo_text', 'PERSONNALY'));
+
+        $imageUrl = $settingModel->get('logo_image_url');
+
+        // Upload nouvelle image
+        if (!empty($_FILES['logo_image']['tmp_name'])) {
+            $uploadDir = __DIR__ . '/../public/uploads/logo/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+            $ext = strtolower(pathinfo($_FILES['logo_image']['name'], PATHINFO_EXTENSION));
+            $filename = 'logo_' . time() . '.' . $ext;
+            if (move_uploaded_file($_FILES['logo_image']['tmp_name'], $uploadDir . $filename)) {
+                $imageUrl = '/uploads/logo/' . $filename;
+            }
+        }
+
+        $settingModel->setLogo($logoType, $logoText, $imageUrl);
+        $success = 'Logo mis à jour avec succès.';
+    }
+}
 
 // Changement de mot de passe
 if (isPost() && isset($_POST['change_password'])) {
@@ -79,7 +105,51 @@ if (isPost() && isset($_POST['change_password'])) {
                 <div class="alert alert-error"><?= h($error) ?></div>
             <?php endif; ?>
 
+            <?php $logo = $settingModel->getLogo(); ?>
             <div class="settings-grid">
+                <!-- Logo -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">Logo du site</h3>
+                    </div>
+                    <form method="post" enctype="multipart/form-data" style="padding: var(--spacing-lg);">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="save_logo" value="1">
+
+                        <div class="form-group">
+                            <label class="form-label">Type de logo</label>
+                            <div style="display: flex; gap: 15px; margin-top: 8px;">
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                    <input type="radio" name="logo_type" value="text" <?= $logo['type'] === 'text' ? 'checked' : '' ?> onchange="toggleLogoType()">
+                                    Texte
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                    <input type="radio" name="logo_type" value="image" <?= $logo['type'] === 'image' ? 'checked' : '' ?> onchange="toggleLogoType()">
+                                    Image
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="logoTextGroup">
+                            <label class="form-label">Texte du logo</label>
+                            <input type="text" name="logo_text" class="form-input" value="<?= h($logo['text']) ?>" placeholder="PERSONNALY">
+                        </div>
+
+                        <div class="form-group" id="logoImageGroup">
+                            <label class="form-label">Image du logo</label>
+                            <?php if (!empty($logo['image_url'])): ?>
+                                <div style="margin-bottom: 10px;">
+                                    <img src="/public<?= h($logo['image_url']) ?>" alt="Logo actuel" style="max-height: 60px; border-radius: 8px; background: #f5f5f5; padding: 8px;">
+                                </div>
+                            <?php endif; ?>
+                            <input type="file" name="logo_image" class="form-input" accept="image/*">
+                            <small style="color: var(--gray); font-size: 12px;">PNG ou SVG transparent recommandé (max 200px de haut)</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </form>
+                </div>
+
                 <!-- Compte -->
                 <div class="data-card">
                     <div class="data-card-header">
@@ -128,5 +198,13 @@ if (isPost() && isset($_POST['change_password'])) {
         .alert-error { background: rgba(255, 105, 180, 0.15); color: var(--pink-dark); border-left: 4px solid var(--pink-main); }
         .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: var(--spacing-lg); }
     </style>
+    <script>
+        function toggleLogoType() {
+            const type = document.querySelector('input[name="logo_type"]:checked').value;
+            document.getElementById('logoTextGroup').style.display = type === 'text' ? 'block' : 'none';
+            document.getElementById('logoImageGroup').style.display = type === 'image' ? 'block' : 'none';
+        }
+        toggleLogoType();
+    </script>
 </body>
 </html>

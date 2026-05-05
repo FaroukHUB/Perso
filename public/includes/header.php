@@ -11,6 +11,9 @@ if (!class_exists('Category')) {
 if (!class_exists('Cart')) {
     require_once __DIR__ . '/../../app/helpers/Cart.php';
 }
+if (!class_exists('SiteSetting')) {
+    require_once __DIR__ . '/../../app/models/SiteSetting.php';
+}
 
 // Charger les catégories si pas déjà fait
 if (!isset($categories)) {
@@ -23,6 +26,12 @@ if (!isset($cartCount)) {
     $cartCount = Cart::count();
 }
 
+// Charger le logo
+if (!isset($siteLogo)) {
+    $siteSettingModel = new SiteSetting();
+    $siteLogo = $siteSettingModel->getLogo();
+}
+
 // Page courante pour activer le bon lien
 $currentPage = basename($_SERVER['PHP_SELF']);
 $currentSlug = $_GET['slug'] ?? '';
@@ -30,7 +39,13 @@ $currentSlug = $_GET['slug'] ?? '';
 <!-- ===== NAVBAR ===== -->
 <nav class="navbar">
     <div class="container">
-        <a href="/" class="navbar-brand">PERSONNALY</a>
+        <a href="/" class="navbar-brand">
+            <?php if ($siteLogo['type'] === 'image' && !empty($siteLogo['image_url'])): ?>
+                <img src="/public<?= htmlspecialchars($siteLogo['image_url']) ?>" alt="<?= htmlspecialchars($siteLogo['text']) ?>" class="navbar-logo-img">
+            <?php else: ?>
+                <?= htmlspecialchars($siteLogo['text'] ?: 'PERSONNALY') ?>
+            <?php endif; ?>
+        </a>
 
         <!-- Hamburger Button (Mobile) -->
         <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
@@ -95,8 +110,9 @@ $currentSlug = $_GET['slug'] ?? '';
 .navbar-brand {
     font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; text-decoration: none;
     background: var(--gradient-hero); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background-clip: text; display: flex; align-items: center;
 }
+.navbar-logo-img { height: 40px; width: auto; }
 .navbar-nav { display: flex; align-items: center; gap: 30px; }
 .navbar-nav > a, .nav-dropdown-toggle {
     color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500;
